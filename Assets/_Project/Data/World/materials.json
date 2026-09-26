@@ -1,0 +1,232 @@
+{
+ "materials": [
+  {
+   "name": "M_Bark",
+   "texture": "Bark",
+   "tint": [
+    1,
+    1,
+    1
+   ],
+   "alphaClip": false,
+   "doubleSided": false,
+   "color": [
+    1,
+    1,
+    1
+   ],
+   "smoothness": 0.2,
+   "metallic": 0.0,
+   "tiling": 1.0
+  },
+  {
+   "name": "M_BarrelStaves",
+   "texture": "WoodBeam",
+   "tint": [
+    0.9,
+    0.8,
+    0.66
+   ],
+   "alphaClip": false,
+   "doubleSided": false,
+   "color": [
+    1,
+    1,
+    1
+   ],
+   "smoothness": 0.2,
+   "metallic": 0.0,
+   "tiling": 1.0
+  },
+  {
+   "name": "M_Berry",
+   "texture": "",
+   "tint": [
+    1,
+    1,
+    1
+   ],
+   "alphaClip": false,
+   "doubleSided": false,
+   "color": [
+    0.32,
+    0.03,
+    0.08
+   ],
+   "smoothness": 0.65,
+   "metallic": 0.0,
+   "tiling": 1.0
+  },
+  {
+   "name": "M_CratePlanks",
+   "texture": "WoodPlanks",
+   "tint": [
+    0.95,
+    0.88,
+    0.75
+   ],
+   "alphaClip": false,
+   "doubleSided": false,
+   "color": [
+    1,
+    1,
+    1
+   ],
+   "smoothness": 0.2,
+   "metallic": 0.0,
+   "tiling": 1.0
+  },
+  {
+   "name": "M_Driftwood",
+   "texture": "Bark",
+   "tint": [
+    1.35,
+    1.3,
+    1.2
+   ],
+   "alphaClip": false,
+   "doubleSided": false,
+   "color": [
+    1,
+    1,
+    1
+   ],
+   "smoothness": 0.2,
+   "metallic": 0.0,
+   "tiling": 1.0
+  },
+  {
+   "name": "M_Foliage",
+   "texture": "FoliageAtlas",
+   "tint": [
+    1,
+    1,
+    1
+   ],
+   "alphaClip": true,
+   "doubleSided": true,
+   "color": [
+    1,
+    1,
+    1
+   ],
+   "smoothness": 0.2,
+   "metallic": 0.0,
+   "tiling": 1.0
+  },
+  {
+   "name": "M_IronHoop",
+   "texture": "",
+   "tint": [
+    1,
+    1,
+    1
+   ],
+   "alphaClip": false,
+   "doubleSided": false,
+   "color": [
+    0.12,
+    0.11,
+    0.1
+   ],
+   "smoothness": 0.4,
+   "metallic": 0.6,
+   "tiling": 1.0
+  },
+  {
+   "name": "M_Rock",
+   "texture": "Rock",
+   "tint": [
+    0.86,
+    0.8,
+    0.72
+   ],
+   "alphaClip": false,
+   "doubleSided": false,
+   "color": [
+    1,
+    1,
+    1
+   ],
+   "smoothness": 0.2,
+   "metallic": 0.0,
+   "tiling": 1.0
+  },
+  {
+   "name": "M_Rope",
+   "texture": "Rope",
+   "tint": [
+    1,
+    1,
+    1
+   ],
+   "alphaClip": false,
+   "doubleSided": false,
+   "color": [
+    1,
+    1,
+    1
+   ],
+   "smoothness": 0.2,
+   "metallic": 0.0,
+   "tiling": 1.0
+  },
+  {
+   "name": "M_SailCloth",
+   "texture": "SailCloth",
+   "tint": [
+    1,
+    1,
+    1
+   ],
+   "alphaClip": false,
+   "doubleSided": true,
+   "color": [
+    1,
+    1,
+    1
+   ],
+   "smoothness": 0.2,
+   "metallic": 0.0,
+   "tiling": 1.0
+  },
+  {
+   "name": "M_ShipBeam",
+   "texture": "WoodBeam",
+   "tint": [
+    0.8,
+    0.72,
+    0.62
+   ],
+   "alphaClip": false,
+   "doubleSided": false,
+   "color": [
+    1,
+    1,
+    1
+   ],
+   "smoothness": 0.2,
+   "metallic": 0.0,
+   "tiling": 1.0
+  },
+  {
+   "name": "M_ShipPlanks",
+   "texture": "WoodPlanks",
+   "tint": [
+    0.9,
+    0.85,
+    0.78
+   ],
+   "alphaClip": false,
+   "doubleSided": false,
+   "color": [
+    1,
+    1,
+    1
+   ],
+   "smoothness": 0.2,
+   "metallic": 0.0,
+   "tiling": 1.0
+  }
+ ]
+}

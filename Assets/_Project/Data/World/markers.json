@@ -1,0 +1,184 @@
+{
+ "markers": [
+  {
+   "name": "ZONE_StartBeach",
+   "group": "Zones",
+   "x": 0,
+   "y": -205,
+   "z": 1.84,
+   "r": 0,
+   "yaw": 0
+  },
+  {
+   "name": "ZONE_PlayerSpawn",
+   "group": "Zones",
+   "x": 20,
+   "y": -211,
+   "z": 1.441,
+   "r": 0,
+   "yaw": 60
+  },
+  {
+   "name": "ZONE_Shipwreck",
+   "group": "Zones",
+   "x": 45,
+   "y": -224,
+   "z": -0.136,
+   "r": 0,
+   "yaw": 28
+  },
+  {
+   "name": "ZONE_Camp",
+   "group": "Zones",
+   "x": -18,
+   "y": -178,
+   "z": 4.312,
+   "r": 12,
+   "yaw": 0
+  },
+  {
+   "name": "ZONE_Pond",
+   "group": "Zones",
+   "x": -38,
+   "y": -62,
+   "z": 6.9,
+   "r": 17,
+   "yaw": 0
+  },
+  {
+   "name": "ZONE_Meadow",
+   "group": "Zones",
+   "x": 0,
+   "y": 20,
+   "z": 9.035,
+   "r": 72,
+   "yaw": 0
+  },
+  {
+   "name": "ZONE_Rocky",
+   "group": "Zones",
+   "x": 118,
+   "y": 128,
+   "z": 28.577,
+   "r": 45,
+   "yaw": 0
+  },
+  {
+   "name": "ZONE_Cave",
+   "group": "Zones",
+   "x": 18,
+   "y": 131,
+   "z": 18.415,
+   "r": 0,
+   "yaw": 0
+  },
+  {
+   "name": "HAB_Triceratops",
+   "group": "Habitats",
+   "x": 15,
+   "y": 35,
+   "z": 9.244,
+   "r": 45,
+   "yaw": 0
+  },
+  {
+   "name": "HAB_Parasaurolophus",
+   "group": "Habitats",
+   "x": -70,
+   "y": -5,
+   "z": 9.867,
+   "r": 40,
+   "yaw": 0
+  },
+  {
+   "name": "HAB_Ankylosaurus",
+   "group": "Habitats",
+   "x": -155,
+   "y": 95,
+   "z": 6.848,
+   "r": 35,
+   "yaw": 0
+  },
+  {
+   "name": "HAB_Velociraptor",
+   "group": "Habitats",
+   "x": 165,
+   "y": -30,
+   "z": 12.447,
+   "r": 45,
+   "yaw": 0
+  },
+  {
+   "name": "HAB_Carnotaurus",
+   "group": "Habitats",
+   "x": 95,
+   "y": 70,
+   "z": 11.915,
+   "r": 50,
+   "yaw": 0
+  },
+  {
+   "name": "HAB_ApexPredator",
+   "group": "Habitats",
+   "x": -30,
+   "y": 235,
+   "z": 48.757,
+   "r": 60,
+   "yaw": 0
+  },
+  {
+   "name": "RESAREA_Driftwood",
+   "group": "ResourceAreas",
+   "x": 10,
+   "y": -205,
+   "z": 1.839,
+   "r": 90,
+   "yaw": 0
+  },
+  {
+   "name": "RESAREA_Stone",
+   "group": "ResourceAreas",
+   "x": 95,
+   "y": 115,
+   "z": 19.65,
+   "r": 40,
+   "yaw": 0
+  },
+  {
+   "name": "RESAREA_StreamStone",
+   "group": "ResourceAreas",
+   "x": -70,
+   "y": 60,
+   "z": 10.254,
+   "r": 30,
+   "yaw": 0
+  },
+  {
+   "name": "RESAREA_Fiber",
+   "group": "ResourceAreas",
+   "x": -30,
+   "y": -120,
+   "z": 10.973,
+   "r": 45,
+   "yaw": 0
+  },
+  {
+   "name": "RESAREA_Berries",
+   "group": "ResourceAreas",
+   "x": -75,
+   "y": -135,
+   "z": 7.925,
+   "r": 30,
+   "yaw": 0
+  },
+  {
+   "name": "WATER_Pond",
+   "group": "Water",
+   "x": -38,
+   "y": -62,
+   "z": 9.549,
+   "r": 17,
+   "yaw": 0
+  }
+ ]
+}
