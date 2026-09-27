@@ -1,0 +1,504 @@
+{
+ "character": "PLAYER_Survivor",
+ "rig": "Humanoid",
+ "fps": 30,
+ "clips": [
+  {
+   "name": "IDLE",
+   "frames": 90,
+   "loop": true,
+   "speed": 0.0,
+   "notes": "breathing, slight weight shift",
+   "events": []
+  },
+  {
+   "name": "IDLE_VARIATION",
+   "frames": 150,
+   "loop": true,
+   "speed": 0.0,
+   "notes": "looks left/right, rubs arm",
+   "events": []
+  },
+  {
+   "name": "WALK_FORWARD",
+   "frames": 34,
+   "loop": true,
+   "speed": 1.35,
+   "notes": "in place; stance travel 0.918 m; turn 0 deg/s",
+   "events": [
+    {
+     "frame": 0,
+     "function": "OnFootstep",
+     "param": "L"
+    },
+    {
+     "frame": 17,
+     "function": "OnFootstep",
+     "param": "R"
+    }
+   ]
+  },
+  {
+   "name": "WALK_BACKWARD",
+   "frames": 36,
+   "loop": true,
+   "speed": 1.05,
+   "notes": "in place; stance travel 0.781 m; turn 0 deg/s",
+   "events": [
+    {
+     "frame": 0,
+     "function": "OnFootstep",
+     "param": "L"
+    },
+    {
+     "frame": 18,
+     "function": "OnFootstep",
+     "param": "R"
+    }
+   ]
+  },
+  {
+   "name": "WALK_LEFT",
+   "frames": 34,
+   "loop": true,
+   "speed": 1.1,
+   "notes": "in place; stance travel 0.773 m; turn 0 deg/s",
+   "events": [
+    {
+     "frame": 0,
+     "function": "OnFootstep",
+     "param": "L"
+    },
+    {
+     "frame": 17,
+     "function": "OnFootstep",
+     "param": "R"
+    }
+   ]
+  },
+  {
+   "name": "WALK_RIGHT",
+   "frames": 34,
+   "loop": true,
+   "speed": 1.1,
+   "notes": "in place; stance travel 0.773 m; turn 0 deg/s",
+   "events": [
+    {
+     "frame": 0,
+     "function": "OnFootstep",
+     "param": "L"
+    },
+    {
+     "frame": 17,
+     "function": "OnFootstep",
+     "param": "R"
+    }
+   ]
+  },
+  {
+   "name": "RUN_FORWARD",
+   "frames": 22,
+   "loop": true,
+   "speed": 3.8,
+   "notes": "in place; stance travel 1.003 m; turn 0 deg/s",
+   "events": [
+    {
+     "frame": 0,
+     "function": "OnFootstep",
+     "param": "L"
+    },
+    {
+     "frame": 11,
+     "function": "OnFootstep",
+     "param": "R"
+    }
+   ]
+  },
+  {
+   "name": "SPRINT",
+   "frames": 18,
+   "loop": true,
+   "speed": 6.2,
+   "notes": "in place; stance travel 1.116 m; turn 0 deg/s",
+   "events": [
+    {
+     "frame": 0,
+     "function": "OnFootstep",
+     "param": "L"
+    },
+    {
+     "frame": 9,
+     "function": "OnFootstep",
+     "param": "R"
+    }
+   ]
+  },
+  {
+   "name": "CROUCH_WALK",
+   "frames": 40,
+   "loop": true,
+   "speed": 0.95,
+   "notes": "in place; stance travel 0.861 m; turn 0 deg/s",
+   "events": [
+    {
+     "frame": 0,
+     "function": "OnFootstep",
+     "param": "L"
+    },
+    {
+     "frame": 20,
+     "function": "OnFootstep",
+     "param": "R"
+    }
+   ]
+  },
+  {
+   "name": "TURN_LEFT",
+   "frames": 30,
+   "loop": true,
+   "speed": 0.0,
+   "notes": "in place; stance travel 0.000 m; turn 90.0 deg/s",
+   "events": [
+    {
+     "frame": 0,
+     "function": "OnFootstep",
+     "param": "L"
+    },
+    {
+     "frame": 15,
+     "function": "OnFootstep",
+     "param": "R"
+    }
+   ]
+  },
+  {
+   "name": "TURN_RIGHT",
+   "frames": 30,
+   "loop": true,
+   "speed": 0.0,
+   "notes": "in place; stance travel 0.000 m; turn -90.0 deg/s",
+   "events": [
+    {
+     "frame": 0,
+     "function": "OnFootstep",
+     "param": "L"
+    },
+    {
+     "frame": 15,
+     "function": "OnFootstep",
+     "param": "R"
+    }
+   ]
+  },
+  {
+   "name": "CROUCH",
+   "frames": 60,
+   "loop": true,
+   "speed": 0.0,
+   "notes": "",
+   "events": []
+  },
+  {
+   "name": "JUMP",
+   "frames": 24,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "anticipation -> takeoff -> tuck; physics moves the body",
+   "events": [
+    {
+     "frame": 11,
+     "function": "OnJumpTakeoff",
+     "param": ""
+    }
+   ]
+  },
+  {
+   "name": "FALL",
+   "frames": 30,
+   "loop": true,
+   "speed": 0.0,
+   "notes": "",
+   "events": []
+  },
+  {
+   "name": "LAND",
+   "frames": 20,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "",
+   "events": [
+    {
+     "frame": 3,
+     "function": "OnLand",
+     "param": ""
+    }
+   ]
+  },
+  {
+   "name": "PICKUP",
+   "frames": 40,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "",
+   "events": [
+    {
+     "frame": 16,
+     "function": "OnPickup",
+     "param": ""
+    }
+   ]
+  },
+  {
+   "name": "GATHER_WOOD",
+   "frames": 36,
+   "loop": true,
+   "speed": 0.0,
+   "notes": "",
+   "events": [
+    {
+     "frame": 21,
+     "function": "OnGatherHit",
+     "param": "GATHER_WOOD"
+    }
+   ]
+  },
+  {
+   "name": "GATHER_STONE",
+   "frames": 34,
+   "loop": true,
+   "speed": 0.0,
+   "notes": "",
+   "events": [
+    {
+     "frame": 20,
+     "function": "OnGatherHit",
+     "param": "GATHER_STONE"
+    }
+   ]
+  },
+  {
+   "name": "INTERACT",
+   "frames": 30,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "",
+   "events": [
+    {
+     "frame": 14,
+     "function": "OnInteract",
+     "param": ""
+    }
+   ]
+  },
+  {
+   "name": "CRAFT",
+   "frames": 60,
+   "loop": true,
+   "speed": 0.0,
+   "notes": "",
+   "events": [
+    {
+     "frame": 15,
+     "function": "OnCraftTick",
+     "param": ""
+    },
+    {
+     "frame": 45,
+     "function": "OnCraftTick",
+     "param": ""
+    }
+   ]
+  },
+  {
+   "name": "DRINK",
+   "frames": 70,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "",
+   "events": [
+    {
+     "frame": 44,
+     "function": "OnDrink",
+     "param": ""
+    }
+   ]
+  },
+  {
+   "name": "EAT",
+   "frames": 48,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "",
+   "events": [
+    {
+     "frame": 18,
+     "function": "OnEat",
+     "param": ""
+    },
+    {
+     "frame": 30,
+     "function": "OnEat",
+     "param": ""
+    }
+   ]
+  },
+  {
+   "name": "ATTACK_SPEAR",
+   "frames": 30,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "",
+   "events": [
+    {
+     "frame": 12,
+     "function": "OnAttackHit",
+     "param": "spear_thrust"
+    }
+   ]
+  },
+  {
+   "name": "ATTACK_SPEAR_ALT",
+   "frames": 34,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "",
+   "events": [
+    {
+     "frame": 14,
+     "function": "OnAttackHit",
+     "param": "spear_downstab"
+    }
+   ]
+  },
+  {
+   "name": "THROW_SPEAR",
+   "frames": 46,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "",
+   "events": [
+    {
+     "frame": 24,
+     "function": "OnThrowRelease",
+     "param": "spear"
+    }
+   ]
+  },
+  {
+   "name": "BOW_IDLE",
+   "frames": 60,
+   "loop": true,
+   "speed": 0.0,
+   "notes": "",
+   "events": []
+  },
+  {
+   "name": "BOW_DRAW",
+   "frames": 26,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "",
+   "events": [
+    {
+     "frame": 4,
+     "function": "OnBowDrawStart",
+     "param": ""
+    }
+   ]
+  },
+  {
+   "name": "BOW_RELEASE",
+   "frames": 28,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "",
+   "events": [
+    {
+     "frame": 1,
+     "function": "OnBowRelease",
+     "param": ""
+    }
+   ]
+  },
+  {
+   "name": "HURT",
+   "frames": 24,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "",
+   "events": [
+    {
+     "frame": 0,
+     "function": "OnHurt",
+     "param": "light"
+    }
+   ]
+  },
+  {
+   "name": "HURT_HEAVY",
+   "frames": 40,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "",
+   "events": [
+    {
+     "frame": 0,
+     "function": "OnHurt",
+     "param": "heavy"
+    }
+   ]
+  },
+  {
+   "name": "DEATH",
+   "frames": 60,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "ends lying on the back",
+   "events": [
+    {
+     "frame": 50,
+     "function": "OnBodyFall",
+     "param": ""
+    }
+   ]
+  },
+  {
+   "name": "REVIVE",
+   "frames": 60,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "lying -> sit -> kneel -> stand (GET_UP)",
+   "events": []
+  },
+  {
+   "name": "SLEEP",
+   "frames": 120,
+   "loop": true,
+   "speed": 0.0,
+   "notes": "lying on the side, breathing",
+   "events": []
+  },
+  {
+   "name": "BUILD",
+   "frames": 40,
+   "loop": true,
+   "speed": 0.0,
+   "notes": "",
+   "events": [
+    {
+     "frame": 24,
+     "function": "OnBuildHit",
+     "param": ""
+    }
+   ]
+  },
+  {
+   "name": "CARRY_ITEM",
+   "frames": 60,
+   "loop": true,
+   "speed": 0.0,
+   "notes": "upper-body carry pose (use on an upper-body Animator layer while walking)",
+   "events": []
+  }
+ ]
+}
