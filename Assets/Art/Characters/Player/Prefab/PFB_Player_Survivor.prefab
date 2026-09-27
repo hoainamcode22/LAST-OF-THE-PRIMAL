@@ -48,6 +48,18 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: -4352720709578258959, guid: a1e4ee4c8a7174c4daa2574dfa479694, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.16036518
+      objectReference: {fileID: 0}
+    - target: {fileID: -4352720709578258959, guid: a1e4ee4c8a7174c4daa2574dfa479694, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0.6556704
+      objectReference: {fileID: 0}
+    - target: {fileID: -2461313400240809679, guid: a1e4ee4c8a7174c4daa2574dfa479694, type: 3}
+      propertyPath: m_Quality
+      value: 4
+      objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: a1e4ee4c8a7174c4daa2574dfa479694, type: 3}
       propertyPath: m_Name
       value: PFB_Player_Survivor
@@ -60,17 +72,21 @@ PrefabInstance:
       propertyPath: m_Quality
       value: 4
       objectReference: {fileID: 0}
-    - target: {fileID: 4742473837712756890, guid: a1e4ee4c8a7174c4daa2574dfa479694, type: 3}
-      propertyPath: m_LODs.Array.data[1].screenRelativeHeight
-      value: 0.02
-      objectReference: {fileID: 0}
     - target: {fileID: 5866666021909216657, guid: a1e4ee4c8a7174c4daa2574dfa479694, type: 3}
       propertyPath: m_Controller
       value: 
-      objectReference: {fileID: 9100000, guid: f776c0bce0ce9aa48b3d2ed2953894ab, type: 2}
+      objectReference: {fileID: 9100000, guid: 5c221cf9bc436fd469657d2731037c0b, type: 2}
     - target: {fileID: 5866666021909216657, guid: a1e4ee4c8a7174c4daa2574dfa479694, type: 3}
       propertyPath: m_ApplyRootMotion
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8862976807023858098, guid: a1e4ee4c8a7174c4daa2574dfa479694, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0.017873764
+      objectReference: {fileID: 0}
+    - target: {fileID: 8862976807023858098, guid: a1e4ee4c8a7174c4daa2574dfa479694, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0.05177132
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

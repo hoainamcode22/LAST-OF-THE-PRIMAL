@@ -1,65 +1,60 @@
 # Player automated test
 
-Result: **FAIL**
+Result: **PASS**
 
 ```
-=== Player === 2026-09-27 02:35:09
+=== Player === 2026-09-27 12:36:51
 Avatar: valid=True human=True
-Importer: 35 clips configured (20 loops, 38 events)
+Importer: 38 clips configured (21 loops, 44 events)
 Materials: M_Player_Cloth, M_Player_Eye, M_Player_Hair, M_Player_Skin
-Clips in FBX: 35 (meta: 35)
-Controller: Assets/Art/Characters/Player/Animations/AC_Player.controller (states: 23 base + 5 upper body)
-LOD: 2 levels (LOD0:23514 tris, LOD1:9875 tris)
+Clips in FBX: 38 (meta: 38)
+Controller: Assets/Art/Characters/Player/Animations/PlayerAnimator.controller (states: 26 base + 5 upper body, params 8)
+LOD: 3 levels (LOD0:72952 tris, LOD1:17107 tris, LOD2:5668 tris)
 Prefab: Assets/Art/Characters/Player/Prefab/PFB_Player_Survivor.prefab
-Scale: bounds size (0.87, 1.85, 0.99), min y -0,096
-Collider: CharacterController h=1,8 r=0,3 (mesh height 1,85)
-Clips not referenced by the controller: IDLE_VARIATION
-ATTACK_SPEAR       1,25s loop=N events=1
-ATTACK_SPEAR_ALT   1,42s loop=N events=1
-BOW_DRAW           1,08s loop=N events=1
-BOW_IDLE           2,50s loop=Y events=0 loopGap=0,0cm
-BOW_RELEASE        1,17s loop=N events=1
-BUILD              1,67s loop=Y events=1 loopGap=0,0cm
-CARRY_ITEM         2,50s loop=Y events=0 loopGap=0,0cm
-CRAFT              2,50s loop=Y events=2 loopGap=0,0cm
-CROUCH             2,50s loop=Y events=0 loopGap=0,0cm
-FAIL: CROUCH_WALK: foot sliding 1,49 m/s
-CROUCH_WALK        1,67s loop=Y events=2 loopGap=0,0cm footSlide=1,49m/s (157% of 0,95) contactVel L(-0.02, 0.00, 0.54) (3f) R(0.09, 0.00, 0.47) (3f)
-DEATH              2,50s loop=N events=1
-DRINK              2,92s loop=N events=1
-EAT                2,00s loop=N events=2
-FALL               1,25s loop=Y events=0 loopGap=0,0cm
-GATHER_STONE       1,42s loop=Y events=1 loopGap=0,0cm
-GATHER_WOOD        1,50s loop=Y events=1 loopGap=0,0cm
-HURT               1,00s loop=N events=1
-HURT_HEAVY         1,67s loop=N events=1
-IDLE               3,75s loop=Y events=0 loopGap=0,0cm
-IDLE_VARIATION     6,25s loop=Y events=0 loopGap=0,0cm
-INTERACT           1,25s loop=N events=1
-JUMP               1,00s loop=N events=1
-LAND               0,83s loop=N events=1
-PICKUP             1,67s loop=N events=1
-REVIVE             2,50s loop=N events=0
-FAIL: RUN_FORWARD: foot sliding 999,00 m/s
-RUN_FORWARD        0,92s loop=Y events=2 loopGap=0,0cm footSlide=999,00m/s (26289% of 3,80) contactVel L(0.00, 0.00, 0.00) (0f) R(0.00, 0.00, 0.00) (0f)
-SLEEP              5,00s loop=Y events=0 loopGap=0,0cm
-FAIL: SPRINT: foot sliding 999,00 m/s
-SPRINT             0,75s loop=Y events=2 loopGap=0,0cm footSlide=999,00m/s (16113% of 6,20) contactVel L(0.00, 0.00, 0.00) (0f) R(0.00, 0.00, 0.00) (0f)
-THROW_SPEAR        1,92s loop=N events=1
-TURN_LEFT          1,25s loop=Y events=2 loopGap=0,0cm
-TURN_RIGHT         1,25s loop=Y events=2 loopGap=0,0cm
-FAIL: WALK_BACKWARD: foot sliding 1,82 m/s
-WALK_BACKWARD      1,50s loop=Y events=2 loopGap=0,0cm footSlide=1,82m/s (173% of 1,05) contactVel L(0.00, 0.00, -0.77) (30f) R(0.06, 0.00, -0.72) (4f)
-FAIL: WALK_FORWARD: foot sliding 2,05 m/s
-WALK_FORWARD       1,42s loop=Y events=2 loopGap=0,0cm footSlide=2,05m/s (152% of 1,35) contactVel L(0.01, 0.00, 0.36) (2f) R(0.00, 0.00, 0.70) (2f)
-FAIL: WALK_LEFT: foot sliding 2,02 m/s
-WALK_LEFT          1,42s loop=Y events=2 loopGap=0,0cm footSlide=2,02m/s (183% of 1,10) contactVel L(-0.79, 0.00, 0.02) (16f) R(-0.92, 0.00, 0.01) (5f)
-FAIL: WALK_RIGHT: foot sliding 2,02 m/s
-WALK_RIGHT         1,42s loop=Y events=2 loopGap=0,0cm footSlide=2,02m/s (184% of 1,10) contactVel L(0.81, 0.00, 0.01) (16f) R(0.92, 0.00, 0.01) (5f)
-Sampler check: max bone travel across clips 1,86 m
-Ground contact (IDLE frame 0, skinned vertices): min y 0,004 m
-Facing: shoulders -> (0.00, 0.00, -1.00), left foot -> toes (0.05, 0.00, -1.00) (expected +Z)
-FAIL: character does not face +Z
-Screenshots: Documentation/CharacterTests/Player_clips.png (35 clips, 3/4 front view, character faces +Z)
-RESULT: FAIL (8 failures)
+Scale: bounds size (0.96, 1.89, 1.03), min y -0,073
+Collider: CharacterController h=1,8 r=0,3 (mesh height 1,89)
+Clips not referenced by the controller: Idle_Variation, Walk_Backward, Walk_Left, Walk_Right
+Attack_Spear       1,00s loop=N events=1
+Attack_Spear_Heavy 1,53s loop=N events=2
+Bow_Aim            2,00s loop=Y events=0 loopGap=0,0cm
+Bow_Draw           0,87s loop=N events=1
+Bow_Release        0,93s loop=N events=1
+Build              1,33s loop=Y events=1 loopGap=0,0cm
+Carry_Item         2,00s loop=Y events=0 loopGap=0,0cm
+Craft              2,00s loop=Y events=2 loopGap=0,0cm
+Crouch             2,00s loop=Y events=0 loopGap=0,0cm
+Crouch_Walk        1,33s loop=Y events=2 loopGap=0,0cm footSlide=0,01m/s (1% of 0,95) contactVel L(0.00, 0.00, -0.95) (27f) R(0.00, 0.00, -0.95) (27f)
+Death              2,00s loop=N events=1
+Drink              2,33s loop=N events=1
+Eat                1,60s loop=N events=2
+Fall               1,00s loop=Y events=0 loopGap=0,0cm
+Gather_Plant       1,60s loop=Y events=1 loopGap=0,0cm
+Gather_Stone       1,13s loop=Y events=1 loopGap=0,0cm
+Gather_Wood        1,20s loop=Y events=1 loopGap=0,0cm
+Get_Up             2,00s loop=N events=0
+Hurt               0,80s loop=N events=1
+Hurt_Heavy         1,33s loop=N events=1
+Idle               3,00s loop=Y events=0 loopGap=0,0cm
+Idle_Variation     5,00s loop=Y events=0 loopGap=0,0cm
+Interact           1,00s loop=N events=1
+Jump               0,80s loop=N events=1
+Land               0,67s loop=N events=1
+Pickup             1,33s loop=N events=1
+Run                0,67s loop=Y events=2 loopGap=0,0cm footSlide=0,02m/s (1% of 3,80) contactVel L(0.00, 0.00, -3.79) (7f) R(0.00, 0.00, -3.79) (7f)
+Sleep              4,00s loop=Y events=0 loopGap=0,0cm
+Sprint             0,47s loop=Y events=2 loopGap=0,0cm footSlide=0,01m/s (0% of 6,20) contactVel L(0.00, 0.00, -6.20) (3f) R(-0.01, 0.00, -6.20) (3f)
+Throw_Spear        1,53s loop=N events=1
+Turn_Left          1,00s loop=Y events=2 loopGap=0,0cm
+Turn_Right         1,00s loop=Y events=2 loopGap=0,0cm
+Use_Item           1,33s loop=N events=1
+Wake_Up            6,00s loop=N events=3
+Walk               1,00s loop=Y events=2 loopGap=0,0cm footSlide=0,03m/s (2% of 1,35) contactVel L(0.00, 0.00, -1.35) (16f) R(0.00, 0.00, -1.35) (16f)
+Walk_Backward      1,00s loop=Y events=2 loopGap=0,0cm footSlide=0,04m/s (4% of 1,05) contactVel L(0.00, 0.00, 1.04) (12f) R(0.00, 0.00, 1.05) (12f)
+Walk_Left          0,80s loop=Y events=2 loopGap=0,0cm footSlide=0,02m/s (2% of 1,10) contactVel L(1.10, 0.00, 0.00) (15f) R(1.10, 0.00, 0.00) (15f)
+Walk_Right         0,80s loop=Y events=2 loopGap=0,0cm footSlide=0,02m/s (2% of 1,10) contactVel L(-1.10, 0.00, 0.00) (15f) R(-1.10, 0.00, 0.00) (15f)
+Sampler check: max bone travel across clips 1,99 m
+Ground contact (IDLE frame 0, skinned vertices): min y 0,000 m
+Facing: shoulders -> (0.00, 0.00, 1.00), left foot -> toes (-0.04, 0.00, 1.00) (expected +Z)
+Screenshots: Documentation/CharacterTests/Player_clips.png (38 clips, 3/4 front view, character faces +Z)
+RESULT: PASS
 ```

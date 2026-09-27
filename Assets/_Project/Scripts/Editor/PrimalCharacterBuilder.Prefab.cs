@@ -153,7 +153,7 @@ namespace PrimalFrontier.EditorTools
             if (maxMotion < 0.05f) F($"animation sampling produced no motion (max bone travel {maxMotion:F3} m) - clips not applied");
             else L($"Sampler check: max bone travel across clips {maxMotion:F2} m");
             // grounded check on the real skinned mesh in the first frame of IDLE
-            var idle = clips.FirstOrDefault(c => c.name == "IDLE") ?? clips[0];
+            var idle = clips.FirstOrDefault(c => c.name == "Idle" || c.name == "IDLE") ?? clips[0];
             Sample(go, idle, 0f);
             float minVertY = float.MaxValue;
             foreach (var smr in go.GetComponentsInChildren<SkinnedMeshRenderer>())
@@ -209,9 +209,9 @@ namespace PrimalFrontier.EditorTools
         static Vector3 ExpectedFootVelocity(string clip, float speed)
         {
             // in-place clips: a planted foot moves opposite to the body's travel. Unity forward = +Z, character left = -X.
-            if (clip.Contains("BACKWARD")) return new Vector3(0, 0, speed);
-            if (clip.Contains("WALK_LEFT")) return new Vector3(speed, 0, 0);
-            if (clip.Contains("WALK_RIGHT")) return new Vector3(-speed, 0, 0);
+            if (clip.ToUpper().Contains("BACKWARD")) return new Vector3(0, 0, speed);
+            if (clip.ToUpper().Contains("WALK_LEFT")) return new Vector3(speed, 0, 0);
+            if (clip.ToUpper().Contains("WALK_RIGHT")) return new Vector3(-speed, 0, 0);
             return new Vector3(0, 0, -speed);
         }
 

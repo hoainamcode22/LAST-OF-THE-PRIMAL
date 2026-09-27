@@ -12,6 +12,8 @@ using UnityEngine.Animations;
 using UnityEngine.Playables;
 using UnityEngine.Rendering;
 
+using PA = PrimalFrontier.Animation.PlayerActions;
+
 namespace PrimalFrontier.EditorTools
 {
     /// <summary>
@@ -336,83 +338,90 @@ namespace PrimalFrontier.EditorTools
 
         static AnimatorController BuildPlayerController(Spec spec, List<AnimationClip> clips)
         {
-            string path = $"{spec.Folder}/Animations/AC_Player.controller";
+            // PlayerAnimator: parameters from the vertical-slice brief (+ TurnSpeed for turn-in-place)
+            string path = $"{spec.Folder}/Animations/PlayerAnimator.controller";
+            AssetDatabase.DeleteAsset($"{spec.Folder}/Animations/AC_Player.controller");
             var ac = NewController(path);
             foreach (var (n, t) in new (string, AnimatorControllerParameterType)[] {
-                ("Speed", AnimatorControllerParameterType.Float), ("VelX", AnimatorControllerParameterType.Float), ("VelZ", AnimatorControllerParameterType.Float),
-                ("Turn", AnimatorControllerParameterType.Float), ("VerticalVelocity", AnimatorControllerParameterType.Float),
-                ("IsGrounded", AnimatorControllerParameterType.Bool), ("IsCrouching", AnimatorControllerParameterType.Bool), ("IsAttacking", AnimatorControllerParameterType.Bool),
-                ("Dead", AnimatorControllerParameterType.Bool), ("Jump", AnimatorControllerParameterType.Trigger), ("Action", AnimatorControllerParameterType.Trigger),
-                ("Attack", AnimatorControllerParameterType.Trigger), ("Hurt", AnimatorControllerParameterType.Trigger), ("Revive", AnimatorControllerParameterType.Trigger),
-                ("ActionType", AnimatorControllerParameterType.Int), ("AttackType", AnimatorControllerParameterType.Int), ("HurtType", AnimatorControllerParameterType.Int),
-                ("UpperBody", AnimatorControllerParameterType.Int) })
+                ("Speed", AnimatorControllerParameterType.Float), ("IsGrounded", AnimatorControllerParameterType.Bool),
+                ("VerticalVelocity", AnimatorControllerParameterType.Float), ("IsCrouching", AnimatorControllerParameterType.Bool),
+                ("IsAttacking", AnimatorControllerParameterType.Bool), ("Action", AnimatorControllerParameterType.Int),
+                ("HealthState", AnimatorControllerParameterType.Int), ("TurnSpeed", AnimatorControllerParameterType.Float) })
                 ac.AddParameter(n, t);
             var p = ac.parameters; foreach (var x in p) if (x.name == "IsGrounded") x.defaultBool = true; ac.parameters = p;
             var sm = ac.layers[0].stateMachine;
-            // locomotion: 2D freeform cartesian on local velocity (m/s)
+            // locomotion: 1D on planar speed (m/s); thresholds = the clips' authored speeds so feet do not slide
             var loco = ac.CreateBlendTreeInController("Locomotion", out var bt, 0);
-            bt.blendType = BlendTreeType.FreeformCartesian2D; bt.blendParameter = "VelX"; bt.blendParameterY = "VelZ";
-            bt.AddChild(Clip(clips, "IDLE"), new Vector2(0, 0));
-            bt.AddChild(Clip(clips, "WALK_FORWARD"), new Vector2(0, 1.35f));
-            bt.AddChild(Clip(clips, "RUN_FORWARD"), new Vector2(0, 3.8f));
-            bt.AddChild(Clip(clips, "SPRINT"), new Vector2(0, 6.2f));
-            bt.AddChild(Clip(clips, "WALK_BACKWARD"), new Vector2(0, -1.05f));
-            bt.AddChild(Clip(clips, "WALK_LEFT"), new Vector2(-1.1f, 0));
-            bt.AddChild(Clip(clips, "WALK_RIGHT"), new Vector2(1.1f, 0));
+            bt.blendType = BlendTreeType.Simple1D; bt.blendParameter = "Speed"; bt.useAutomaticThresholds = false;
+            bt.AddChild(Clip(clips, "Idle"), 0f); bt.AddChild(Clip(clips, "Walk"), 1.35f); bt.AddChild(Clip(clips, "Run"), 3.8f); bt.AddChild(Clip(clips, "Sprint"), 6.2f);
             sm.defaultState = loco;
             var crouch = ac.CreateBlendTreeInController("Crouch", out var ct, 0);
             ct.blendType = BlendTreeType.Simple1D; ct.blendParameter = "Speed"; ct.useAutomaticThresholds = false;
-            ct.AddChild(Clip(clips, "CROUCH"), 0f); ct.AddChild(Clip(clips, "CROUCH_WALK"), 0.95f);
+            ct.AddChild(Clip(clips, "Crouch"), 0f); ct.AddChild(Clip(clips, "Crouch_Walk"), 0.95f);
             var turn = ac.CreateBlendTreeInController("TurnInPlace", out var tt, 0);
-            tt.blendType = BlendTreeType.Simple1D; tt.blendParameter = "Turn"; tt.useAutomaticThresholds = false;
-            tt.AddChild(Clip(clips, "TURN_RIGHT"), -1f); tt.AddChild(Clip(clips, "IDLE"), 0f); tt.AddChild(Clip(clips, "TURN_LEFT"), 1f);
+            tt.blendType = BlendTreeType.Simple1D; tt.blendParameter = "TurnSpeed"; tt.useAutomaticThresholds = false;
+            tt.AddChild(Clip(clips, "Turn_Right"), -90f); tt.AddChild(Clip(clips, "Idle"), 0f); tt.AddChild(Clip(clips, "Turn_Left"), 90f);
             T(loco, crouch, 0.25f).AddCondition(AnimatorConditionMode.If, 0, "IsCrouching");
             T(crouch, loco, 0.25f).AddCondition(AnimatorConditionMode.IfNot, 0, "IsCrouching");
-            var toTurn = T(loco, turn, 0.2f); toTurn.AddCondition(AnimatorConditionMode.Less, 0.1f, "Speed"); toTurn.AddCondition(AnimatorConditionMode.Greater, 0.5f, "Turn");
-            var toTurn2 = T(loco, turn, 0.2f); toTurn2.AddCondition(AnimatorConditionMode.Less, 0.1f, "Speed"); toTurn2.AddCondition(AnimatorConditionMode.Less, -0.5f, "Turn");
-            var back = T(turn, loco, 0.2f); back.AddCondition(AnimatorConditionMode.Greater, -0.5f, "Turn"); back.AddCondition(AnimatorConditionMode.Less, 0.5f, "Turn");
+            foreach (var sign in new[] { 1, -1 })
+            {
+                var tin = T(loco, turn, 0.2f); tin.AddCondition(AnimatorConditionMode.Less, 0.1f, "Speed");
+                tin.AddCondition(sign > 0 ? AnimatorConditionMode.Greater : AnimatorConditionMode.Less, sign * 45f, "TurnSpeed");
+            }
+            var tb = T(turn, loco, 0.2f); tb.AddCondition(AnimatorConditionMode.Greater, -30f, "TurnSpeed"); tb.AddCondition(AnimatorConditionMode.Less, 30f, "TurnSpeed");
             T(turn, loco, 0.2f).AddCondition(AnimatorConditionMode.Greater, 0.1f, "Speed");
-            // air
-            var jump = sm.AddState("Jump"); jump.motion = Clip(clips, "JUMP");
-            var fall = sm.AddState("Fall"); fall.motion = Clip(clips, "FALL");
-            var land = sm.AddState("Land"); land.motion = Clip(clips, "LAND");
-            T(loco, jump, 0.1f).AddCondition(AnimatorConditionMode.If, 0, "Jump");
-            T(crouch, jump, 0.1f).AddCondition(AnimatorConditionMode.If, 0, "Jump");
+            // air: derived from IsGrounded + VerticalVelocity (no jump trigger needed)
+            var jump = sm.AddState("Jump"); jump.motion = Clip(clips, "Jump");
+            var fall = sm.AddState("Fall"); fall.motion = Clip(clips, "Fall");
+            var land = sm.AddState("Land"); land.motion = Clip(clips, "Land");
+            foreach (var from in new[] { loco, crouch, turn })
+            {
+                var tj = T(from, jump, 0.1f); tj.AddCondition(AnimatorConditionMode.IfNot, 0, "IsGrounded"); tj.AddCondition(AnimatorConditionMode.Greater, 1.0f, "VerticalVelocity");
+                var tf = T(from, fall, 0.25f); tf.AddCondition(AnimatorConditionMode.IfNot, 0, "IsGrounded"); tf.AddCondition(AnimatorConditionMode.Less, -3f, "VerticalVelocity");
+            }
             T(jump, fall, 0.2f, true, 0.85f);
-            var lf = T(loco, fall, 0.25f); lf.AddCondition(AnimatorConditionMode.IfNot, 0, "IsGrounded"); lf.AddCondition(AnimatorConditionMode.Less, -2f, "VerticalVelocity");
             T(fall, land, 0.05f).AddCondition(AnimatorConditionMode.If, 0, "IsGrounded");
             T(jump, land, 0.05f).AddCondition(AnimatorConditionMode.If, 0, "IsGrounded");
             T(land, loco, 0.2f, true, 0.6f);
-            // actions (full body)
-            var actions = new (int id, string clip, bool loop)[] { (1, "PICKUP", false), (2, "GATHER_WOOD", true), (3, "GATHER_STONE", true), (4, "INTERACT", false),
-                (5, "CRAFT", true), (6, "DRINK", false), (7, "EAT", false), (8, "BUILD", true), (9, "SLEEP", true), (10, "THROW_SPEAR", false) };
+            // full-body actions: Action = id (gameplay resets one-shots to 0 once entered; loops run until Action changes)
+            var actions = new (int id, string clip, bool loop)[] {
+                (PA.Pickup, "Pickup", false), (PA.GatherWood, "Gather_Wood", true), (PA.GatherStone, "Gather_Stone", true), (PA.GatherPlant, "Gather_Plant", true),
+                (PA.Interact, "Interact", false), (PA.Craft, "Craft", true), (PA.Eat, "Eat", false), (PA.Drink, "Drink", false), (PA.Build, "Build", true),
+                (PA.UseItem, "Use_Item", false), (PA.Sleep, "Sleep", true), (PA.WakeUp, "Wake_Up", false), (PA.GetUp, "Get_Up", false) };
+            var actionStates = new Dictionary<int, AnimatorState>();
             foreach (var (id, clipName, loop) in actions)
             {
-                var s = sm.AddState(clipName); s.motion = Clip(clips, clipName);
-                var tin = T(loco, s, 0.2f); tin.AddCondition(AnimatorConditionMode.If, 0, "Action"); tin.AddCondition(AnimatorConditionMode.Equals, id, "ActionType");
-                if (loop) T(s, loco, 0.3f).AddCondition(AnimatorConditionMode.NotEqual, id, "ActionType");
-                else T(s, loco, 0.25f, true, 0.92f);
+                var s = sm.AddState(clipName); s.motion = Clip(clips, clipName); s.tag = "Action"; actionStates[id] = s;
+                foreach (var from in new[] { loco, crouch, turn })
+                    T(from, s, 0.2f).AddCondition(AnimatorConditionMode.Equals, id, "Action");
+                if (loop && id != PA.Sleep) T(s, loco, 0.3f).AddCondition(AnimatorConditionMode.NotEqual, id, "Action");
+                else if (!loop) T(s, loco, 0.25f, true, 0.94f);
             }
-            // attacks
-            var attacks = new (int id, string clip)[] { (0, "ATTACK_SPEAR"), (1, "ATTACK_SPEAR_ALT"), (2, "THROW_SPEAR") };
-            foreach (var (id, clipName) in attacks)
+            T(actionStates[PA.Sleep], actionStates[PA.GetUp], 0.4f).AddCondition(AnimatorConditionMode.NotEqual, PA.Sleep, "Action");
+            // opening: frozen first frame of Wake_Up (lying on the sand) until the intro sets Action = WakeUp
+            var uncon = sm.AddState("Unconscious"); uncon.motion = Clip(clips, "Wake_Up"); uncon.speed = 0f; uncon.tag = "Action";
+            T(uncon, actionStates[PA.WakeUp], 0.05f).AddCondition(AnimatorConditionMode.Equals, PA.WakeUp, "Action");
+            // attacks: IsAttacking + Action id
+            foreach (var (id, clipName) in new (int, string)[] { (PA.AttackSpear, "Attack_Spear"), (PA.AttackSpearHeavy, "Attack_Spear_Heavy"), (PA.ThrowSpear, "Throw_Spear") })
             {
-                var s = sm.AddState("Attack_" + clipName); s.motion = Clip(clips, clipName);
-                var tin = T(loco, s, 0.1f); tin.AddCondition(AnimatorConditionMode.If, 0, "Attack"); tin.AddCondition(AnimatorConditionMode.Equals, id, "AttackType");
+                var s = sm.AddState(clipName); s.motion = Clip(clips, clipName); s.tag = "Attack";
+                foreach (var from in new[] { loco, crouch, turn })
+                {
+                    var tin = T(from, s, 0.1f); tin.AddCondition(AnimatorConditionMode.If, 0, "IsAttacking"); tin.AddCondition(AnimatorConditionMode.Equals, id, "Action");
+                }
                 T(s, loco, 0.2f, true, 0.9f);
             }
-            // hurt / death / revive
-            var hurt = sm.AddState("Hurt"); hurt.motion = Clip(clips, "HURT");
-            var hurtH = sm.AddState("HurtHeavy"); hurtH.motion = Clip(clips, "HURT_HEAVY");
-            var death = sm.AddState("Death"); death.motion = Clip(clips, "DEATH");
-            var revive = sm.AddState("Revive"); revive.motion = Clip(clips, "REVIVE");
-            var ah = sm.AddAnyStateTransition(hurt); ah.duration = 0.05f; ah.AddCondition(AnimatorConditionMode.If, 0, "Hurt"); ah.AddCondition(AnimatorConditionMode.Equals, 0, "HurtType"); ah.AddCondition(AnimatorConditionMode.IfNot, 0, "Dead");
-            var ahh = sm.AddAnyStateTransition(hurtH); ahh.duration = 0.05f; ahh.AddCondition(AnimatorConditionMode.If, 0, "Hurt"); ahh.AddCondition(AnimatorConditionMode.Equals, 1, "HurtType"); ahh.AddCondition(AnimatorConditionMode.IfNot, 0, "Dead");
+            // health: HealthState 1 = light hit, 2 = heavy hit (pulses, reset by gameplay), 3 = dead, back to 0 on respawn
+            var hurt = sm.AddState("Hurt"); hurt.motion = Clip(clips, "Hurt"); hurt.tag = "Hurt";
+            var hurtH = sm.AddState("Hurt_Heavy"); hurtH.motion = Clip(clips, "Hurt_Heavy"); hurtH.tag = "Hurt";
+            var death = sm.AddState("Death"); death.motion = Clip(clips, "Death"); death.tag = "Dead";
+            var getup = actionStates[PA.GetUp];
+            var ah = sm.AddAnyStateTransition(hurt); ah.duration = 0.05f; ah.canTransitionToSelf = false; ah.AddCondition(AnimatorConditionMode.Equals, 1, "HealthState");
+            var ahh = sm.AddAnyStateTransition(hurtH); ahh.duration = 0.05f; ahh.canTransitionToSelf = false; ahh.AddCondition(AnimatorConditionMode.Equals, 2, "HealthState");
             T(hurt, loco, 0.2f, true, 0.85f); T(hurtH, loco, 0.25f, true, 0.9f);
-            var ad = sm.AddAnyStateTransition(death); ad.duration = 0.15f; ad.canTransitionToSelf = false; ad.AddCondition(AnimatorConditionMode.If, 0, "Dead");
-            var dr = T(death, revive, 0.2f); dr.AddCondition(AnimatorConditionMode.If, 0, "Revive"); dr.AddCondition(AnimatorConditionMode.IfNot, 0, "Dead");
-            T(revive, loco, 0.25f, true, 0.95f);
-            // upper body layer: carry + bow (avatar mask = spine, arms, head)
+            var ad = sm.AddAnyStateTransition(death); ad.duration = 0.15f; ad.canTransitionToSelf = false; ad.AddCondition(AnimatorConditionMode.Equals, 3, "HealthState");
+            T(death, getup, 0.3f).AddCondition(AnimatorConditionMode.Equals, 0, "HealthState");
+            // upper body layer: bow + carry (avatar mask = spine, arms, head)
             var mask = new AvatarMask();
             foreach (AvatarMaskBodyPart part in Enum.GetValues(typeof(AvatarMaskBodyPart)))
             {
@@ -427,17 +436,16 @@ namespace PrimalFrontier.EditorTools
             var layers = ac.layers; layers[1].avatarMask = mask; layers[1].defaultWeight = 1f; layers[1].blendingMode = AnimatorLayerBlendingMode.Override; ac.layers = layers;
             var usm = ac.layers[1].stateMachine;
             var empty = usm.AddState("Empty"); usm.defaultState = empty;
-            var ub = new (int id, string clip)[] { (1, "CARRY_ITEM"), (2, "BOW_IDLE"), (3, "BOW_DRAW"), (4, "BOW_RELEASE") };
-            var ubStates = new Dictionary<int, AnimatorState>();
-            foreach (var (id, clipName) in ub)
+            foreach (var (id, clipName) in new (int, string)[] { (PA.BowAim, "Bow_Aim"), (PA.BowDraw, "Bow_Draw"), (PA.BowRelease, "Bow_Release"), (PA.CarryItem, "Carry_Item") })
             {
-                var s = usm.AddState(clipName); s.motion = Clip(clips, clipName); ubStates[id] = s;
-                var tin = usm.AddAnyStateTransition(s); tin.duration = 0.2f; tin.canTransitionToSelf = false; tin.AddCondition(AnimatorConditionMode.Equals, id, "UpperBody");
+                var s = usm.AddState(clipName); s.motion = Clip(clips, clipName);
+                var tin = usm.AddAnyStateTransition(s); tin.duration = 0.2f; tin.canTransitionToSelf = false; tin.AddCondition(AnimatorConditionMode.Equals, id, "Action");
+                var o1 = s.AddTransition(empty); o1.duration = 0.25f; o1.AddCondition(AnimatorConditionMode.Less, PA.BowAim, "Action");
+                var o2 = s.AddTransition(empty); o2.duration = 0.25f; o2.AddCondition(AnimatorConditionMode.Greater, PA.CarryItem, "Action");
+                var o3 = s.AddTransition(empty); o3.duration = 0.25f; o3.AddCondition(AnimatorConditionMode.Greater, PA.BowRelease, "Action"); o3.AddCondition(AnimatorConditionMode.Less, PA.CarryItem, "Action");
             }
-            var toEmpty = usm.AddAnyStateTransition(empty); toEmpty.duration = 0.25f; toEmpty.canTransitionToSelf = false; toEmpty.AddCondition(AnimatorConditionMode.Equals, 0, "UpperBody");
-            // BOW_DRAW holds its last frame (non-loop); after BOW_RELEASE gameplay sets UpperBody back to 2 (bow idle).
             EditorUtility.SetDirty(ac);
-            L($"Controller: {path} (states: {sm.states.Length} base + {usm.states.Length} upper body)");
+            L($"Controller: {path} (states: {sm.states.Length} base + {usm.states.Length} upper body, params {ac.parameters.Length})");
             return ac;
         }
     }

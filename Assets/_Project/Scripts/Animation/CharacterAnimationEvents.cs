@@ -35,6 +35,8 @@ namespace PrimalFrontier.Animation
         public void OnDrink(string p) => Raise(nameof(OnDrink), p);
         public void OnEat(string p) => Raise(nameof(OnEat), p);
         public void OnBuildHit(string p) => Raise(nameof(OnBuildHit), p);
+        public void OnUseItem(string p) => Raise(nameof(OnUseItem), p);
+        public void OnWakeUp(string p) => Raise(nameof(OnWakeUp), p);
         // combat
         public void OnAttackHit(string p) => Raise(nameof(OnAttackHit), p);
         public void OnWeaponImpact(string p) => Raise(nameof(OnWeaponImpact), p);
