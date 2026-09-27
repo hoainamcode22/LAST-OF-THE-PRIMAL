@@ -1,0 +1,202 @@
+{
+ "character": "Ankylosaurus",
+ "rig": "Generic",
+ "fps": 30,
+ "clips": [
+  {
+   "name": "Idle",
+   "frames": 120,
+   "loop": true,
+   "speed": 0.0,
+   "notes": "",
+   "move": "",
+   "events": []
+  },
+  {
+   "name": "Idle_Variation",
+   "frames": 150,
+   "loop": true,
+   "speed": 0.0,
+   "notes": "",
+   "move": "",
+   "events": []
+  },
+  {
+   "name": "Walk",
+   "frames": 30,
+   "loop": true,
+   "speed": 1.2,
+   "notes": "",
+   "move": "forward",
+   "events": [
+    {
+     "frame": 1,
+     "function": "OnFootstep",
+     "param": "L"
+    },
+    {
+     "frame": 15,
+     "function": "OnFootstep",
+     "param": "R"
+    }
+   ]
+  },
+  {
+   "name": "Run",
+   "frames": 21,
+   "loop": true,
+   "speed": 3.2,
+   "notes": "",
+   "move": "forward",
+   "events": [
+    {
+     "frame": 1,
+     "function": "OnFootstep",
+     "param": "L"
+    },
+    {
+     "frame": 10,
+     "function": "OnFootstep",
+     "param": "R"
+    }
+   ]
+  },
+  {
+   "name": "Turn_Left",
+   "frames": 30,
+   "loop": true,
+   "speed": 0.0,
+   "notes": "",
+   "move": "turn",
+   "events": []
+  },
+  {
+   "name": "Turn_Right",
+   "frames": 30,
+   "loop": true,
+   "speed": 0.0,
+   "notes": "",
+   "move": "turn",
+   "events": []
+  },
+  {
+   "name": "Eat",
+   "frames": 120,
+   "loop": true,
+   "speed": 0.0,
+   "notes": "",
+   "move": "",
+   "events": []
+  },
+  {
+   "name": "Drink",
+   "frames": 120,
+   "loop": true,
+   "speed": 0.0,
+   "notes": "",
+   "move": "",
+   "events": []
+  },
+  {
+   "name": "Look",
+   "frames": 90,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "",
+   "move": "",
+   "events": []
+  },
+  {
+   "name": "Alert",
+   "frames": 60,
+   "loop": true,
+   "speed": 0.0,
+   "notes": "",
+   "move": "",
+   "events": []
+  },
+  {
+   "name": "Roar",
+   "frames": 90,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "",
+   "move": "",
+   "events": []
+  },
+  {
+   "name": "Attack",
+   "frames": 42,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "",
+   "move": "",
+   "events": [
+    {
+     "frame": 17,
+     "function": "OnTailHit",
+     "param": ""
+    }
+   ]
+  },
+  {
+   "name": "Heavy_Attack",
+   "frames": 60,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "",
+   "move": "",
+   "events": [
+    {
+     "frame": 31,
+     "function": "OnHornHit",
+     "param": "heavy"
+    }
+   ]
+  },
+  {
+   "name": "Hurt",
+   "frames": 30,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "",
+   "move": "",
+   "events": []
+  },
+  {
+   "name": "Death",
+   "frames": 75,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "",
+   "move": "",
+   "events": [
+    {
+     "frame": 60,
+     "function": "OnBodyFall",
+     "param": ""
+    }
+   ]
+  },
+  {
+   "name": "Charge",
+   "frames": 21,
+   "loop": true,
+   "speed": 2.88,
+   "notes": "",
+   "move": "forward",
+   "events": [
+    {
+     "frame": 1,
+     "function": "OnFootstep",
+     "param": "L"
+    },
+    {
+     "frame": 10,
+     "function": "OnFootstep",
+     "param": "R"
+    }
+   ]
+  }
+ ]
+}

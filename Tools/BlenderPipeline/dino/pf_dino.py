@@ -247,6 +247,65 @@ def build_armature(sid, sp, J):
     return arm
 
 # ------------------------------------------------------------------ weights
+def _components(me):
+    """connected vertex islands -> (labels, shell label)"""
+    bm = bmesh.new(); bm.from_mesh(me); bm.verts.ensure_lookup_table()
+    n = len(bm.verts); comp = np.full(n, -1, np.int32); cid = 0
+    for v in bm.verts:
+        if comp[v.index] >= 0: continue
+        st = [v]; comp[v.index] = cid
+        while st:
+            a = st.pop()
+            for e in a.link_edges:
+                b = e.other_vert(a)
+                if comp[b.index] < 0: comp[b.index] = cid; st.append(b)
+        cid += 1
+    bm.free()
+    return comp, int(np.bincount(comp).argmax())
+
+
+def seat_islands(o, apply=True):
+    """Eyes and SDF horns that ended up floating off the skin (the relax pass shrinks the skull a little) are moved onto it:
+    eyes sink to ~40 % of their size, horns / spikes get their base 25 % into the skin. Teeth (inside the mouth), claws and
+    membranes are left alone. Only translations, so UVs and textures stay valid."""
+    from mathutils.bvhtree import BVHTree
+    me = o.data; n = len(me.vertices)
+    co = np.empty(n * 3, np.float32); me.vertices.foreach_get("co", co); co = co.reshape(-1, 3)
+    part = np.zeros(n, np.int32)
+    if "part" in me.attributes: me.attributes["part"].data.foreach_get("value", part)
+    comp, shell = _components(me)
+    sv = np.where(comp == shell)[0]; remap = -np.ones(n, np.int64); remap[sv] = np.arange(len(sv))
+    polys = []
+    for p in me.polygons:
+        vs = list(p.vertices)
+        if comp[vs[0]] == shell: polys.append([int(remap[i]) for i in vs])
+    tree = BVHTree.FromPolygons([tuple(map(float, co[i])) for i in sv], polys)
+    report = []
+    for c in range(comp.max() + 1):
+        if c == shell: continue
+        ids = np.where(comp == c)[0]; pt = int(np.bincount(part[ids]).argmax())
+        if pt in (1, 2, 4) or len(ids) < 8: continue                  # tiny leftovers are removed, not seated
+        best = None; inside = False
+        for i in ids:
+            loc, nrm, _, dist = tree.find_nearest(Vector(co[i]))
+            if loc is None: continue
+            sd = (Vector(co[i]) - loc).dot(nrm)
+            if sd < 0: inside = True
+            if best is None or sd < best[0]: best = (sd, i, loc, nrm)
+        ext = float(np.linalg.norm(co[ids].max(0) - co[ids].min(0)))
+        want = ext * (0.4 if pt == 3 else 0.25)                      # how deep the lowest point should sit
+        depth = -best[0]                                              # current penetration of the lowest point
+        moved = 0.0
+        if depth < want * 0.6:
+            off = -np.array(best[3], np.float32) * (want - depth)
+            if apply: co[ids] += off
+            moved = float(np.linalg.norm(off))
+        report.append(dict(part=pt, n=len(ids), ext=round(ext, 3), gap=round(float(best[0]), 3), moved=round(moved, 3)))
+    if apply:
+        me.vertices.foreach_set("co", co.ravel()); me.update()
+    return report
+
+
 def _auto_weights(body, arm):
     """Bone-heat weights solved on the body shell only. Teeth / eyes / claws are many tiny separate islands and make the heat
     solver fail for most bones (the carnivores ended up ~85% unweighted), so they are left out here and skinned rigidly later."""
@@ -322,10 +381,15 @@ def skin(body, arm, sp, J):
     jaw_w = np.clip((lip - lu) / (hh * 0.06 + 1e-4), 0, 1) * np.clip((lf - hl * 0.2) / (hl * 0.15), 0, 1)
     ids = np.where(head_zone | (part == 2) | (part == 3))[0]
     headG, jawG = G("Head"), G("Jaw")
+    # each tooth follows one jaw as a whole: a tooth pointing down hangs from the skull, one pointing up sits in the lower jaw
+    comp, _ = _components(me); tooth_jaw = {}
+    for c in np.unique(comp[part == 2]):
+        tid = np.where(comp == c)[0]; med = float(np.median(lu[tid])); tip = tid[int(np.argmax(np.abs(lu[tid] - med)))]
+        for k in tid: tooth_jaw[int(k)] = bool(lu[tip] > med)
     for i in ids:
         i = int(i)
         if part[i] == 3: w_j = 0.0
-        elif part[i] == 2: w_j = 1.0 if lu[i] < lip - hh * 0.03 else 0.0
+        elif part[i] == 2: w_j = 1.0 if tooth_jaw.get(i, bool(lu[i] < lip)) else 0.0
         else: w_j = float(jaw_w[i])
         for g in list(me.vertices[i].groups):
             body.vertex_groups[g.group].remove([i])

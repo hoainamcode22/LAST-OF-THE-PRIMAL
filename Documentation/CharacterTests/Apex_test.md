@@ -3,7 +3,7 @@
 Result: **PASS**
 
 ```
-=== Apex === 2026-09-27 15:24:05
+=== Apex === 2026-09-27 15:40:45
 Avatar: valid=True human=False
 Importer: 15 clips configured (9 loops, 7 events)
 Materials: M_Dino_Apex
@@ -26,7 +26,7 @@ Idle               4,00s loop=Y events=0 loopGap=0,0cm
 Idle_Variation     5,00s loop=Y events=0 loopGap=0,0cm
 Look               3,00s loop=N events=0
 Roar               3,00s loop=N events=0
-Run                0,77s loop=Y events=2 loopGap=0,0cm footSlide=0,21m/s (3% of 7,00) contactVel L(0.00, 0.00, -7.12) (9f) R(-0.04, 0.00, -7.15) (6f)
+Run                0,77s loop=Y events=2 loopGap=0,0cm footSlide=0,17m/s (2% of 7,00) contactVel L(0.00, 0.00, -7.00) (9f) R(-0.04, 0.00, -7.03) (6f)
 Turn_Left          1,30s loop=Y events=0 loopGap=0,0cm
 Turn_Right         1,30s loop=Y events=0 loopGap=0,0cm
 Walk               1,30s loop=Y events=2 loopGap=0,0cm footSlide=0,06m/s (3% of 2,00) contactVel L(0.01, 0.00, -2.00) (25f) R(-0.01, 0.00, -1.99) (24f)

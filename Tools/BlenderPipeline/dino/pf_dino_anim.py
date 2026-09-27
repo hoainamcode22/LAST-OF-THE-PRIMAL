@@ -130,7 +130,8 @@ class Rig:
         if "Head" in self.names: self.follow("Head", qa(Z, head_yaw) @ qa(X, head_pitch) @ qa(Y, roll))
 
     def jaw(self, open_deg):
-        if "Jaw" in self.names: self.follow("Jaw", qa(X, open_deg))
+        # long snouts swing much further at the tip for the same angle and stretch the mouth corners: scaled per species
+        if "Jaw" in self.names: self.follow("Jaw", qa(X, open_deg * self.sp["head"].get("jaw_k", 1.0)))
 
     def tail_wave(self, yaw_amp, phase, lag=0.12, pitch=0.0, pitch_amp=0.0):
         n = max(1, len(self.tail))
@@ -191,7 +192,7 @@ def new_action(arm, name):
 def locomotion(rig, name, speed, cycle, duty, lift_k, run=False):
     arm = rig.arm; act = new_action(arm, name)
     frames = max(8, int(round(cycle * FPS)))
-    stride = speed * cycle
+    stride = speed * frames / FPS                            # the clip's real length, so the planted foot matches the speed exactly
     lift = lift_k * (1.3 if run else 1.0)
     offs = gait_offsets(rig, run)
     L = rig.L; bob = (0.012 if not run else 0.03) * L * (0.6 if rig.quad else 1.0)

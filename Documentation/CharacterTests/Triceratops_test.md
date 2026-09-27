@@ -3,7 +3,7 @@
 Result: **PASS**
 
 ```
-=== Triceratops === 2026-09-27 15:24:32
+=== Triceratops === 2026-09-27 15:41:12
 Avatar: valid=True human=False
 Importer: 16 clips configured (10 loops, 9 events)
 Materials: M_Dino_Triceratops

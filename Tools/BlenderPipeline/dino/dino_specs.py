@@ -89,7 +89,7 @@ SPECS["velociraptor"] = dict(
               arm=dict(hip=(0.075, -0.33, 0.6), knee=(0.1, -0.3, 0.46), ankle=(0.09, -0.42, 0.44), foot=(0.09, -0.48, 0.43), toe_len=0.05,
                        r=(0.028, 0.02, 0.014, 0.01), stance="hand")),
     claws=dict(hind=3, front=3, size=0.022, sickle=True, hoof=False), armor=None, sail=None, feathers=True,
-    speeds=dict(walk=1.5, run=11.0), gait=dict(walk=0.55, run=0.36, duty_walk=0.6, duty_run=0.3, lift=0.08),
+    speeds=dict(walk=1.5, run=11.0), gait=dict(walk=0.6, run=0.36, duty_walk=0.6, duty_run=0.3, lift=0.36),
 )
 
 # ---------------------------------------------------------------- 5. CARNOTAURUS (biped, 8 m)
@@ -117,7 +117,7 @@ SPECS["spinosaurus"] = dict(
     tail=chain([(7.2, 1.7, 0.03, 0.1), (6.0, 1.95, 0.08, 0.34), (4.6, 2.3, 0.2, 0.55), (3.2, 2.7, 0.35, 0.6), (1.8, 3.05, 0.55, 0.75)]),
     body=chain([(0.7, 3.3, 0.72, 0.85, 0.05), (-0.4, 3.35, 0.78, 0.9, 0.12), (-1.5, 3.3, 0.66, 0.78)]),
     neck=chain([(-2.2, 3.6, 0.4, 0.46), (-2.8, 3.95, 0.32, 0.38), (-3.25, 4.1, 0.28, 0.32)]),
-    head=dict(pos=(0, -3.45, 4.12), pitch=-12, len=1.7, w=0.2, h=0.3, snout=0.08, beak=False, croc=True, mouth_depth=0.22,
+    head=dict(pos=(0, -3.45, 4.12), pitch=-12, len=1.7, w=0.2, h=0.3, snout=0.08, beak=False, croc=True, mouth_depth=0.22, jaw_k=0.5,
               eye=dict(at=(0.13, 1.2, 0.2), r=0.04), teeth=50, tooth=0.045),
     legs=dict(hind=dict(hip=(0.55, 0.6, 3.1), knee=(0.62, 0.0, 1.8), ankle=(0.58, 0.7, 0.5), foot=(0.58, 0.35, 0.0), toe_len=0.45,
                         r=(0.5, 0.26, 0.14, 0.11), stance="digitigrade"),
@@ -170,7 +170,7 @@ SPECS["mosasaurus"] = dict(
     tail=chain([(6.4, 0.0, 0.05, 0.5), (5.2, 0.0, 0.16, 0.4), (3.8, 0.0, 0.32, 0.45), (2.4, 0.0, 0.55, 0.6), (1.2, 0.0, 0.75, 0.8)]),
     body=chain([(0.2, 0.0, 0.9, 0.95), (-0.9, 0.0, 0.92, 0.95), (-2.0, 0.0, 0.78, 0.8)]),
     neck=chain([(-2.9, 0.05, 0.62, 0.6), (-3.5, 0.1, 0.52, 0.5)]),
-    head=dict(pos=(0, -3.8, 0.12), pitch=0, len=1.9, w=0.42, h=0.5, snout=0.12, beak=False, mouth_depth=0.4,
+    head=dict(pos=(0, -3.8, 0.12), pitch=0, len=1.9, w=0.42, h=0.5, snout=0.12, beak=False, mouth_depth=0.4, jaw_k=0.7,
               eye=dict(at=(0.32, 0.6, 0.22), r=0.05), teeth=44, tooth=0.07),
     legs=dict(fin_front=dict(root=(0.7, -1.9, -0.3), tip=(1.9, -1.2, -0.75), w=0.45),
               fin_hind=dict(root=(0.6, 0.9, -0.3), tip=(1.4, 1.5, -0.65), w=0.32)),

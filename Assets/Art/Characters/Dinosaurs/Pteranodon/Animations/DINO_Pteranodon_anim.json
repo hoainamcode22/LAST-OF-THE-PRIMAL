@@ -1,0 +1,118 @@
+{
+ "character": "Pteranodon",
+ "rig": "Generic",
+ "fps": 30,
+ "clips": [
+  {
+   "name": "Idle",
+   "frames": 90,
+   "loop": true,
+   "speed": 0.0,
+   "notes": "",
+   "move": "",
+   "events": []
+  },
+  {
+   "name": "Idle_Variation",
+   "frames": 120,
+   "loop": true,
+   "speed": 0.0,
+   "notes": "",
+   "move": "",
+   "events": []
+  },
+  {
+   "name": "Walk",
+   "frames": 24,
+   "loop": true,
+   "speed": 0.8,
+   "notes": "",
+   "move": "forward",
+   "events": []
+  },
+  {
+   "name": "Fly",
+   "frames": 27,
+   "loop": true,
+   "speed": 0.0,
+   "notes": "",
+   "move": "",
+   "events": []
+  },
+  {
+   "name": "Glide",
+   "frames": 90,
+   "loop": true,
+   "speed": 0.0,
+   "notes": "",
+   "move": "",
+   "events": []
+  },
+  {
+   "name": "Takeoff",
+   "frames": 40,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "",
+   "move": "",
+   "events": []
+  },
+  {
+   "name": "Land",
+   "frames": 40,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "",
+   "move": "",
+   "events": []
+  },
+  {
+   "name": "Attack",
+   "frames": 30,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "",
+   "move": "",
+   "events": [
+    {
+     "frame": 12,
+     "function": "OnBite",
+     "param": ""
+    }
+   ]
+  },
+  {
+   "name": "Roar",
+   "frames": 60,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "",
+   "move": "",
+   "events": []
+  },
+  {
+   "name": "Hurt",
+   "frames": 24,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "",
+   "move": "",
+   "events": []
+  },
+  {
+   "name": "Death",
+   "frames": 60,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "",
+   "move": "",
+   "events": [
+    {
+     "frame": 45,
+     "function": "OnBodyFall",
+     "param": ""
+    }
+   ]
+  }
+ ]
+}

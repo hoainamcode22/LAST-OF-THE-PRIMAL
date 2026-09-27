@@ -28223,7 +28223,7 @@ Transform:
   - {fileID: 495161751}
   - {fileID: 1504547454}
   - {fileID: 1491393691}
-  - {fileID: 1457836468}
+  - {fileID: 1635455553}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &608860522
@@ -68199,97 +68199,6 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.85613704
---- !u!1 &1457836467
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1457836468}
-  - component: {fileID: 1457836469}
-  m_Layer: 0
-  m_Name: '[Dinosaurs]'
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1457836468
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1457836467}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 605584470}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1457836469
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1457836467}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e080c6be99078b945ae952a58c9aac1e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: PrimalFrontier.Runtime::PrimalFrontier.AI.DinosaurSpawner
-  entries:
-  - def: {fileID: 11400000, guid: 8249d54e496277f418146019b7a912c9, type: 2}
-    center: {x: -15, y: 9.244339, z: -35}
-    radius: 30
-    count: 2
-    altitude: 0
-  - def: {fileID: 11400000, guid: d1e608b06e8ee0f4fae2fe0d730addc9, type: 2}
-    center: {x: 70, y: 9.866936, z: 5}
-    radius: 30
-    count: 3
-    altitude: 0
-  - def: {fileID: 11400000, guid: 3bdaccc176aff8448acb6e7c4ebf03a4, type: 2}
-    center: {x: 155, y: 6.8491726, z: -95}
-    radius: 25
-    count: 1
-    altitude: 0
-  - def: {fileID: 11400000, guid: bf9f9fc06ab4dad49b89e744d7c93654, type: 2}
-    center: {x: -165, y: 12.447659, z: 30}
-    radius: 25
-    count: 2
-    altitude: 0
-  - def: {fileID: 11400000, guid: 1c83541960f5eba4cbcbb06ca3fda709, type: 2}
-    center: {x: -95, y: 11.9154, z: -70}
-    radius: 30
-    count: 1
-    altitude: 0
-  - def: {fileID: 11400000, guid: f755251a1af74d5479d296b902f7fa33, type: 2}
-    center: {x: 70, y: 10.255142, z: -60}
-    radius: 20
-    count: 1
-    altitude: 0
-  - def: {fileID: 11400000, guid: 57e6200f01215ac409be568edcf4815c, type: 2}
-    center: {x: 30, y: 48.756027, z: -235}
-    radius: 40
-    count: 1
-    altitude: 0
-  - def: {fileID: 11400000, guid: d7a1beecc5f3b784e884b621a3e09387, type: 2}
-    center: {x: -45, y: -0.13660812, z: 224}
-    radius: 70
-    count: 3
-    altitude: 28
-  - def: {fileID: 11400000, guid: 71e790f3f0f076245a364e7cb04e3616, type: 2}
-    center: {x: -66.66535, y: 0, z: 331.8453}
-    radius: 60
-    count: 1
-    altitude: 0
-  spawnOnStart: 1
 --- !u!1001 &1458074526
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -77887,6 +77796,97 @@ Transform:
   - {fileID: 2041880797}
   m_Father: {fileID: 757361537}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1635455552
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1635455553}
+  - component: {fileID: 1635455554}
+  m_Layer: 0
+  m_Name: '[Dinosaurs]'
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1635455553
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1635455552}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 605584470}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1635455554
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1635455552}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e080c6be99078b945ae952a58c9aac1e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: PrimalFrontier.Runtime::PrimalFrontier.AI.DinosaurSpawner
+  entries:
+  - def: {fileID: 11400000, guid: 8249d54e496277f418146019b7a912c9, type: 2}
+    center: {x: -15, y: 9.244339, z: -35}
+    radius: 30
+    count: 2
+    altitude: 0
+  - def: {fileID: 11400000, guid: d1e608b06e8ee0f4fae2fe0d730addc9, type: 2}
+    center: {x: 70, y: 9.866936, z: 5}
+    radius: 30
+    count: 3
+    altitude: 0
+  - def: {fileID: 11400000, guid: 3bdaccc176aff8448acb6e7c4ebf03a4, type: 2}
+    center: {x: 155, y: 6.8491726, z: -95}
+    radius: 25
+    count: 1
+    altitude: 0
+  - def: {fileID: 11400000, guid: bf9f9fc06ab4dad49b89e744d7c93654, type: 2}
+    center: {x: -165, y: 12.447659, z: 30}
+    radius: 25
+    count: 2
+    altitude: 0
+  - def: {fileID: 11400000, guid: 1c83541960f5eba4cbcbb06ca3fda709, type: 2}
+    center: {x: -95, y: 11.9154, z: -70}
+    radius: 30
+    count: 1
+    altitude: 0
+  - def: {fileID: 11400000, guid: f755251a1af74d5479d296b902f7fa33, type: 2}
+    center: {x: 70, y: 10.255142, z: -60}
+    radius: 20
+    count: 1
+    altitude: 0
+  - def: {fileID: 11400000, guid: 57e6200f01215ac409be568edcf4815c, type: 2}
+    center: {x: 30, y: 48.756027, z: -235}
+    radius: 40
+    count: 1
+    altitude: 0
+  - def: {fileID: 11400000, guid: d7a1beecc5f3b784e884b621a3e09387, type: 2}
+    center: {x: -45, y: -0.13660812, z: 224}
+    radius: 70
+    count: 3
+    altitude: 28
+  - def: {fileID: 11400000, guid: 71e790f3f0f076245a364e7cb04e3616, type: 2}
+    center: {x: -66.66535, y: 0, z: 331.8453}
+    radius: 60
+    count: 1
+    altitude: 0
+  spawnOnStart: 1
 --- !u!1001 &1635910538
 PrefabInstance:
   m_ObjectHideFlags: 0
