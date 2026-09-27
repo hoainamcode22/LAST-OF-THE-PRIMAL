@@ -54,3 +54,7 @@ CLAUDE.local.md
 production/session-logs/
 production/session-state/active.md
 docs/consistency-failures.md
+
+# ===== local build helpers (compile-check references, transfer archives) =====
+Tools/_refdlls/
+Tools/*.zip
