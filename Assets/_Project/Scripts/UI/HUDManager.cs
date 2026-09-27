@@ -189,6 +189,7 @@ namespace PrimalFrontier.UI
 
         // ================================================================== API
         public void SetHudVisible(bool on) { _hudVisible = on; }
+        public float HudAlpha => _hudGroup ? _hudGroup.alpha : 1f;
         public void Fade(float to, float seconds) { _fadeFrom = _fade.color.a; _fadeTo = to; _fadeDur = Mathf.Max(0.0001f, seconds); _fadeT = 0f; if (seconds <= 0f) SetFade(to); }
         void SetFade(float a) { var c = _fade.color; c.a = a; _fade.color = c; }
         public float FadeAlpha => _fade.color.a;
@@ -272,6 +273,7 @@ namespace PrimalFrontier.UI
                 _slotBg[i].sprite = i == _inv.ActiveSlot ? UIStyle.SlotActive : UIStyle.Slot;
                 _slotIcon[i].enabled = s != null && s.item.icon; if (s != null) _slotIcon[i].sprite = s.item.icon;
                 _slotCount[i].text = s == null ? "" : s.item.IsWaterContainer ? $"{s.water}/{s.item.waterCharges}" : s.count > 1 ? s.count.ToString() : "";
+                _slotCount[i].color = s != null && s.dirty && s.water > 0 ? DirtyWater : UIStyle.Text;
                 bool dur = s != null && s.item.HasDurability;
                 _slotDur[i].enabled = dur; if (dur) { float k = Mathf.Clamp01(s.durability / s.item.maxDurability); _slotDur[i].fillAmount = k; _slotDur[i].color = Color.Lerp(UIStyle.Bad, UIStyle.Good, k); }
             }
@@ -316,7 +318,7 @@ namespace PrimalFrontier.UI
                 Pulse(_hungerBar, _sv.Hunger < 15f); Pulse(_thirstBar, _sv.Thirst < 15f); Pulse(_hpBar, _hp && _hp.Normalized < 0.25f); Pulse(_tempBar, _sv.IsCold);
                 var st = new System.Text.StringBuilder();
                 if (_hp && _hp.IsBleeding) st.Append("Bleeding  ");
-                if (_sv.SickSeconds > 0f) st.Append("Sick  ");
+                if (_sv.SickSeconds > 0f) st.Append("Stomach sick  ");
                 if (_sv.Wetness > 0.3f) st.Append("Wet  ");
                 if (_sv.IsCold) st.Append("Cold  ");
                 if (_sv.Overweight) st.Append("Overburdened  ");
@@ -335,7 +337,8 @@ namespace PrimalFrontier.UI
                 rel = Mathf.Clamp(rel, -42f, 42f);
                 _marker.rectTransform.anchoredPosition = new Vector2(rel * 4f, 0);
                 _markerDist.text = dist > 8f ? Mathf.RoundToInt(dist) + " m" : "";
-                _markerDist.rectTransform.anchoredPosition = new Vector2(-204 + rel * 4f, -70);
+                // under the marker, wherever the compass has been placed
+                _markerDist.rectTransform.position = _marker.rectTransform.position + new Vector3(0f, -34f * (_canvas ? _canvas.scaleFactor : 1f), 0f);
             }
             _marker.enabled = mk; _markerDist.enabled = mk;
             var tm = TimeManager.Instance;
@@ -369,6 +372,7 @@ namespace PrimalFrontier.UI
             if (build) _cross.color = Building.BuildSystem.Instance.Valid ? UIStyle.Good : UIStyle.Bad; else _cross.color = new Color(1, 1, 1, 0.85f);
         }
 
+        public static readonly Color DirtyWater = new Color(0.78f, 0.6f, 0.36f);
         static void Pulse(Image bar, bool on)
         {
             if (!bar) return;

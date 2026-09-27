@@ -18,6 +18,9 @@ namespace PrimalFrontier.Core
         public static bool Fullscreen { get => UnityEngine.Screen.fullScreen; set { UnityEngine.Screen.fullScreen = value; } }
         public static bool Hints { get => PlayerPrefs.GetInt("pf_hints", 1) == 1; set => PlayerPrefs.SetInt("pf_hints", value ? 1 : 0); }
         /// <summary>blood effects: Off (dust puffs instead), Reduced (small sprays, no pools / trails), Normal</summary>
+        /// <summary>on-screen touch controls: 0 automatic (touch devices), 1 always, 2 never</summary>
+        public static int TouchControls { get => PlayerPrefs.GetInt("pf_touch", 0); set => PlayerPrefs.SetInt("pf_touch", Mathf.Clamp(value, 0, 2)); }
+        public static readonly string[] TouchNames = { "AUTO", "ON", "OFF" };
         public static BloodLevel Blood { get => (BloodLevel)Mathf.Clamp(PlayerPrefs.GetInt("pf_blood", (int)BloodLevel.Normal), 0, 2); set => PlayerPrefs.SetInt("pf_blood", (int)value); }
         public static readonly string[] BloodNames = { "OFF", "REDUCED", "NORMAL" };
         public static readonly string[] QualityNames = { "Low", "Medium", "High", "Ultra" };

@@ -88,6 +88,7 @@ namespace PrimalFrontier.Core
             _hud = uiRoot.GetOrAdd<HUDManager>();
             uiRoot.GetOrAdd<InventoryUI>(); uiRoot.GetOrAdd<JournalUI>(); uiRoot.GetOrAdd<PauseMenuUI>(); uiRoot.GetOrAdd<TitleScreenUI>();
             _death = uiRoot.GetOrAdd<DeathScreenUI>();
+            uiRoot.GetOrAdd<Minimap>(); uiRoot.GetOrAdd<MobileHUD>();
             SaveSystem.Track();
             foreach (var p in FindObjectsByType<WorldPickup>(FindObjectsInactive.Include, FindObjectsSortMode.None)) _scenePickups.Add(p);
         }
@@ -252,6 +253,8 @@ namespace PrimalFrontier.Core
         public bool SaveGame()
         {
             if (State != GameState.Playing && State != GameState.Sleeping) return false;
+            var climb = Player ? Player.GetComponent<PlayerClimb>() : null;
+            if (climb && climb.IsClimbing) { _hud.Notify("Get down before saving."); return false; }
             return SaveSystem.Save(this);
         }
 
@@ -272,6 +275,7 @@ namespace PrimalFrontier.Core
                 else if (it is Examinable e) e.Restore(false);
             }
             var th = FindFirstObjectByType<TreeHarvest>(); if (th) th.RestoreAll();
+            foreach (var fc in FindObjectsByType<FruitCluster>(FindObjectsSortMode.None)) fc.Regrow();
             var dinos = FindFirstObjectByType<AI.DinosaurSpawner>(); if (dinos && State != GameState.Boot) dinos.SpawnAll();
             _journal.SetUnlocked(new string[0]);
             if (_zones) _zones.SetVisited(new string[0]);

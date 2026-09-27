@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: RCP_water_container
   m_EditorClassIdentifier: PrimalFrontier.Runtime::PrimalFrontier.Items.RecipeDefinition
   id: water_container
-  category: 2
+  category: 5
   output: {fileID: 11400000, guid: f602a77183392ef4a951cbdc672cba43, type: 2}
   outputCount: 1
   ingredients:

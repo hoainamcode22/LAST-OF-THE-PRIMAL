@@ -30,7 +30,7 @@ namespace PrimalFrontier.UI
         RectTransform _tooltip; Text _tipText;
         RawImage _preview; Camera _previewCam; RenderTexture _rt;
         // crafting
-        RecipeCategory? _cat; readonly List<(RecipeDefinition r, Image bg, Image icon, Text name)> _tiles = new List<(RecipeDefinition, Image, Image, Text)>();
+        RecipeCategory? _cat; readonly List<RecipeCategory?> _catOf = new List<RecipeCategory?>(); readonly List<(RecipeDefinition r, Image bg, Image icon, Text name)> _tiles = new List<(RecipeDefinition, Image, Image, Text)>();
         RectTransform _tileRoot; RecipeDefinition _recipe;
         Image _cIcon; Text _cName, _cDesc, _cReq, _cInfo, _cReason; Button _bCraft, _bCraft5;
         readonly List<Image> _queueIcons = new List<Image>(); readonly List<Image> _queueBars = new List<Image>();
@@ -144,12 +144,15 @@ namespace PrimalFrontier.UI
         void BuildCraftTab()
         {
             var left = UIFactory.Image(_craftTab, "Categories", UIStyle.PanelDark, new Color(1, 1, 1, 0.8f), new Vector2(0, 0), new Vector2(0, 1), new Vector2(0, 0.5f), Vector2.zero, new Vector2(230, 0)).rectTransform;
-            string[] names = { "ALL", "TOOLS", "WEAPONS", "SURVIVAL", "FOOD", "STRUCTURES" };
+            // tab order and names are game data (the buttons themselves can be moved / restyled in the scene)
+            string[] names = { "ALL", "TOOLS", "WEAPONS", "FOOD", "WATER", "BUILDING", "SURVIVAL" };
+            RecipeCategory?[] cats = { null, RecipeCategory.Tools, RecipeCategory.Weapons, RecipeCategory.Food, RecipeCategory.Water, RecipeCategory.Structures, RecipeCategory.Survival };
             for (int i = 0; i < names.Length; i++)
             {
-                int k = i;
-                var b = UIFactory.Button(left, "Cat" + i, names[i], () => { _cat = k == 0 ? (RecipeCategory?)null : (RecipeCategory)(k - 1); BuildTiles(); }, new Vector2(0.5f, 1), new Vector2(0.5f, 1), new Vector2(0.5f, 1), new Vector2(0, -18 - i * 62), new Vector2(200, 52), 20);
-                _catButtons.Add(b);
+                var cat = cats[i];
+                var b = UIFactory.Button(left, "Cat" + i, names[i], () => { _cat = cat; BuildTiles(); }, new Vector2(0.5f, 1), new Vector2(0.5f, 1), new Vector2(0.5f, 1), new Vector2(0, -18 - i * 62), new Vector2(200, 52), 20);
+                var t = b.GetComponentInChildren<Text>(); if (t) t.text = names[i];
+                _catButtons.Add(b); _catOf.Add(cat);
             }
             var mid = UIFactory.Image(_craftTab, "Recipes", UIStyle.PanelDark, new Color(1, 1, 1, 0.65f), new Vector2(0, 0), new Vector2(0, 1), new Vector2(0, 0.5f), new Vector2(246, 0), new Vector2(700, 0)).rectTransform;
             var scroll = UIFactory.Stretch(mid, "Scroll", 14f);
@@ -390,7 +393,7 @@ namespace PrimalFrontier.UI
                 _tiles.Add((r, bg, icon, name));
             }
             _tileRoot.sizeDelta = new Vector2(0, Mathf.Ceil(n / 3f) * (H + 8) + 16);
-            for (int i = 0; i < _catButtons.Count; i++) _catButtons[i].GetComponent<Image>().color = (i == 0 && !_cat.HasValue) || (_cat.HasValue && (int)_cat.Value == i - 1) ? Color.white : new Color(0.6f, 0.55f, 0.5f);
+            for (int i = 0; i < _catButtons.Count; i++) _catButtons[i].GetComponent<Image>().color = i < _catOf.Count && _catOf[i] == _cat ? Color.white : new Color(0.6f, 0.55f, 0.5f);
             if (_recipe == null && _tiles.Count > 0) _recipe = _tiles[0].r;
             RefreshCraft();
         }

@@ -10,35 +10,36 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 857d5e04a80595f49a772487b5593144, type: 3}
-  m_Name: ITEM_flint_knife
+  m_Name: ITEM_fruit
   m_EditorClassIdentifier: PrimalFrontier.Runtime::PrimalFrontier.Items.ItemDefinition
-  id: flint_knife
-  displayName: Flint Knife
-  description: A flake of flint bound to a bone handle. Cuts fibre and hide cleanly.
-  icon: {fileID: 21300000, guid: c37ff25d31bd6c04f83299f1e75ec450, type: 3}
-  category: 2
-  maxStack: 1
-  weight: 0.4
-  worldPrefab: {fileID: 919132149155446097, guid: 9e55eda93b5f6f646bc853fdf9790190, type: 3}
+  id: fruit
+  displayName: Wild Fruit
+  description: Sweet orange fruit from the crown of a tall fern-palm. Food and a
+    little water. You have to climb for it.
+  icon: {fileID: 21300000, guid: 6715a056d55ea63449e4ca03c73a5cc4, type: 3}
+  category: 1
+  maxStack: 20
+  weight: 0.2
+  worldPrefab: {fileID: 7850282647022769900, guid: e88e308bd271d4c4d92471f030de97d4, type: 3}
   worldEuler: {x: 0, y: 0, z: 0}
-  handPrefab: {fileID: 919132149155446097, guid: 9e55eda93b5f6f646bc853fdf9790190, type: 3}
+  handPrefab: {fileID: 0}
   gripPosition: {x: 0, y: 0, z: 0}
   gripEuler: {x: 0, y: 0, z: 0}
-  hunger: 0
-  thirst: 0
+  hunger: 16
+  thirst: 8
   health: 0
-  stamina: 0
+  stamina: 5
   sicknessChance: 0
   isHot: 0
   cookedResult: {fileID: 0}
   cookSeconds: 12
-  tool: 4
+  tool: 0
   toolPower: 1
-  weapon: 3
-  damage: 10
-  heavyDamage: 14
-  staminaCost: 8
-  maxDurability: 80
+  weapon: 0
+  damage: 0
+  heavyDamage: 0
+  staminaCost: 12
+  maxDurability: 0
   ammo: {fileID: 0}
   waterCharges: 0
   placePrefab: {fileID: 0}

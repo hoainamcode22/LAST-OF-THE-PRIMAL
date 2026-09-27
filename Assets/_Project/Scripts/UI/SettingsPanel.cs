@@ -37,6 +37,7 @@ namespace PrimalFrontier.UI
             Toggle("Fullscreen", () => GameSettings.Fullscreen ? "ON" : "OFF", () => GameSettings.Fullscreen = !GameSettings.Fullscreen);
             Toggle("VSync", () => GameSettings.VSync ? "ON" : "OFF", () => GameSettings.VSync = !GameSettings.VSync);
             Toggle("Blood effects", () => GameSettings.BloodNames[(int)GameSettings.Blood], () => GameSettings.Blood = (BloodLevel)(((int)GameSettings.Blood + 1) % 3));
+            Toggle("Touch controls", () => GameSettings.TouchNames[GameSettings.TouchControls], () => GameSettings.TouchControls = (GameSettings.TouchControls + 1) % 3);
             UIFactory.Button(p, "Back", "BACK", () => onBack?.Invoke(), new Vector2(0.5f, 0), new Vector2(0.5f, 0), new Vector2(0.5f, 0), new Vector2(0, 30), new Vector2(260, 54), 24);
             return p;
         }

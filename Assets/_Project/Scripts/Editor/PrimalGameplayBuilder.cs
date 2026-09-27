@@ -278,7 +278,7 @@ namespace PrimalFrontier.EditorTools
             R("bow", RecipeCategory.Weapons, "bow", 1, 6f, CraftStation.None, true, null, ("wood", 3), ("rope", 2));
             R("arrows", RecipeCategory.Weapons, "arrow", 5, 3f, CraftStation.None, true, null, ("wood", 2), ("stone", 1), ("fiber", 1));
             R("torch", RecipeCategory.Survival, "torch", 1, 2f, CraftStation.None, true, null, ("wood", 1), ("fiber", 2));
-            R("water_container", RecipeCategory.Survival, "water_container", 1, 4f, CraftStation.None, false, "Needs a hide to seal it.", ("hide", 1), ("rope", 1));
+            R("water_container", RecipeCategory.Water, "water_container", 1, 4f, CraftStation.None, false, "Needs a hide to seal it.", ("hide", 1), ("rope", 1));
             R("cooked_meat", RecipeCategory.Food, "cooked_meat", 1, 10f, CraftStation.Campfire, true, null, ("raw_meat", 1));
             R("campfire", RecipeCategory.Structures, "campfire", 1, 3f, CraftStation.None, true, null, ("wood", 4), ("stone", 5));
             R("shelter", RecipeCategory.Structures, "shelter", 1, 6f, CraftStation.None, true, null, ("wood", 8), ("fiber", 6), ("rope", 2));

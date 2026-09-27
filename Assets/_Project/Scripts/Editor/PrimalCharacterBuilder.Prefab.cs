@@ -64,7 +64,7 @@ namespace PrimalFrontier.EditorTools
             }
             if (lodRenderers.Count < 2) { L("LOD: single LOD"); return; }
             var lg = go.GetComponent<LODGroup>(); if (lg == null) lg = go.AddComponent<LODGroup>();
-            var thresholds = spec.Humanoid ? new[] { 0.25f, 0.02f } : lodRenderers.Count >= 4 ? new[] { 0.42f, 0.16f, 0.05f, 0.01f } : new[] { 0.35f, 0.12f, 0.02f };
+            var thresholds = spec.Humanoid ? new[] { 0.25f, 0.08f, 0.01f } : lodRenderers.Count >= 4 ? new[] { 0.42f, 0.16f, 0.05f, 0.01f } : new[] { 0.35f, 0.12f, 0.02f };
             var lods = lodRenderers.Select((kv, i) => new LOD(thresholds[Mathf.Min(i, thresholds.Length - 1)], kv.Value.ToArray())).ToArray();
             lg.SetLODs(lods); lg.RecalculateBounds(); lg.fadeMode = LODFadeMode.None; lg.animateCrossFading = false;
             // cheaper skinning on the far levels, no skinned motion vectors
@@ -152,7 +152,9 @@ namespace PrimalFrontier.EditorTools
                     line += $" loopGap={gap * 100:F1}cm";
                     if (gap > 0.03f) F($"{clip.name}: loop not seamless ({gap * 100:F1} cm)");
                 }
-                if (cm != null && cm.speed > 0.01f && lf.Count > 4)
+                bool vertical = clip.name.StartsWith("Climb");           // climbing moves up the trunk; the ground foot-slide check does not apply
+                if (vertical && cm != null) line += $" (vertical {cm.speed:F2}m/s, foot-slide check skipped)";
+                if (cm != null && cm.speed > 0.01f && lf.Count > 4 && !vertical)
                 {
                     var exp = ExpectedFootVelocity(clip.name, cm.speed);
                     float slide = Math.Max(FootSlide(lf, clip.length / n, exp, minY, out var vl, out int cl), FootSlide(rf, clip.length / n, exp, minY, out var vr, out int cr));
@@ -305,6 +307,7 @@ namespace PrimalFrontier.EditorTools
             sheet.Apply();
             Directory.CreateDirectory("Documentation/CharacterTests");
             File.WriteAllBytes($"Documentation/CharacterTests/{spec.Id}_clips.png", sheet.EncodeToPNG());
+            cam.targetTexture = null; RenderTexture.active = null;
             File.WriteAllText($"Documentation/CharacterTests/{spec.Id}_clips_order.txt", string.Join("\n", picks.Select((c, i) => $"{i}: {c.name}")));
             L($"Screenshots: Documentation/CharacterTests/{spec.Id}_clips.png ({picks.Count} clips, 3/4 front view, character faces +Z)");
             UnityEngine.Object.DestroyImmediate(rt);
