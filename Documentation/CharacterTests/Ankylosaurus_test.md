@@ -3,7 +3,7 @@
 Result: **PASS**
 
 ```
-=== Ankylosaurus === 2026-09-27 15:40:39
+=== Ankylosaurus === 2026-09-27 18:03:08
 Avatar: valid=True human=False
 Importer: 16 clips configured (10 loops, 9 events)
 Materials: M_Dino_Ankylosaurus

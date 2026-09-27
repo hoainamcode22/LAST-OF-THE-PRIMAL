@@ -9,9 +9,9 @@ namespace PrimalFrontier.UI
     {
         public static RectTransform Build(Transform parent, System.Action onBack)
         {
-            var p = UIFactory.Image(parent, "Settings", UIStyle.Leather, Color.white, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(820, 760), true).rectTransform;
+            var p = UIFactory.Image(parent, "Settings", UIStyle.Leather, Color.white, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(820, 860), true).rectTransform;
             UIFactory.Label(p, "Title", "SETTINGS", 40, UIStyle.Text, TextAnchor.UpperCenter, UIStyle.Head, new Vector2(0, 1), new Vector2(1, 1), new Vector2(0.5f, 1), new Vector2(0, -30), new Vector2(0, 50));
-            float y = 250;
+            float y = 290;
             void SliderRow(string label, float min, float max, float v, System.Action<float> set)
             {
                 UIFactory.Label(p, label, label, 22, UIStyle.Text, TextAnchor.MiddleLeft, UIStyle.Body, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0, 0.5f), new Vector2(-330, y), new Vector2(260, 36));
@@ -35,6 +35,7 @@ namespace PrimalFrontier.UI
             Toggle("Resolution", () => $"{UnityEngine.Screen.width} x {UnityEngine.Screen.height}", () => GameSettings.CycleResolution());
             Toggle("Fullscreen", () => GameSettings.Fullscreen ? "ON" : "OFF", () => GameSettings.Fullscreen = !GameSettings.Fullscreen);
             Toggle("VSync", () => GameSettings.VSync ? "ON" : "OFF", () => GameSettings.VSync = !GameSettings.VSync);
+            Toggle("Blood effects", () => GameSettings.BloodNames[(int)GameSettings.Blood], () => GameSettings.Blood = (BloodLevel)(((int)GameSettings.Blood + 1) % 3));
             UIFactory.Button(p, "Back", "BACK", () => onBack?.Invoke(), new Vector2(0.5f, 0), new Vector2(0.5f, 0), new Vector2(0.5f, 0), new Vector2(0, 30), new Vector2(260, 54), 24);
             return p;
         }

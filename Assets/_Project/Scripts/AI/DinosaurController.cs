@@ -88,6 +88,8 @@ namespace PrimalFrontier.AI
         }
 
         // ------------------------------------------------------------------ brain
+        Transform[] _bones; float _nextDrip;
+
         void Update()
         {
             if (def == null) return;
@@ -104,6 +106,12 @@ namespace PrimalFrontier.AI
             Move(dt);
             if (_anim && _anim.enabled) _anim.SetFloat(SpeedH, _speed, 0.12f, dt);
             if (_pendingHit && Time.time >= _hitAt) ResolveHit();
+            // badly hurt: a blood trail behind it while it moves
+            if (lod == 0 && _speed > 0.5f && Health < def.maxHealth * 0.4f && Time.time > _nextDrip)
+            {
+                _nextDrip = Time.time + Random.Range(0.5f, 1.1f);
+                BloodFX.Drip(transform.position - transform.forward * def.bodyRadius * 0.3f + transform.right * Random.Range(-0.3f, 0.3f) * def.bodyRadius, def.bodyRadius * 0.6f, transform);
+            }
             if (Time.time > _nextCall && lod == 0 && State != DinoState.Chase) { _nextCall = Time.time + Random.Range(15f, 40f); PlayClip(def.calls, 0.8f); }
         }
 
@@ -273,7 +281,8 @@ namespace PrimalFrontier.AI
             if (State == DinoState.Dead) return;
             Health -= hit.damage;
             _provoked = true; if (hit.attacker) _threat = hit.attacker.transform.position;
-            VfxPool.Instance.Play(hit.heavy ? VfxId.HitHeavy : VfxId.HitLight, hit.point, -hit.direction, null, Mathf.Clamp(def.bodyRadius * 0.6f, 0.6f, 2f));
+            if (_bones == null) { var smr = GetComponentInChildren<SkinnedMeshRenderer>(); _bones = smr ? smr.bones : new Transform[0]; }
+            BloodFX.Hit(hit.point, hit.direction, Mathf.Clamp(def.bodyRadius * 0.6f, 0.6f, 2.2f), hit.heavy || hit.damage > def.maxHealth * 0.15f, transform, _bones);
             if (Health <= 0f) { Die(); return; }
             if (_anim) _anim.SetTrigger(HurtH);
             PlayClip(def.hurts, 1f);
@@ -286,6 +295,7 @@ namespace PrimalFrontier.AI
             Health = 0f; Enter(DinoState.Dead); _speed = 0f; _pendingHit = false;
             if (_anim) { _anim.enabled = true; _anim.SetBool(DeadH, true); _anim.SetFloat(SpeedH, 0f); }
             PlayClip(def.deaths, 1f);
+            BloodFX.Death(transform.position + transform.forward * def.bodyRadius * 0.4f, Mathf.Clamp(def.bodyRadius * 1.1f, 0.8f, 3.5f), transform);
             GameEvents.Raise(GameEventType.CreatureKilled, def.id, 1, transform.position);
             // loot next to the body
             var db = ItemDatabase.Instance;

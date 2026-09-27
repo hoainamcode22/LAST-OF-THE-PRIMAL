@@ -13,6 +13,7 @@ namespace PrimalFrontier.VFX
         FireIgnite, FireExtinguish, CookSmoke,
         SpearImpact, ArrowImpact,
         DinoFootDust, DinoImpactDust,
+        BloodSpray, BloodSprayHeavy, HitDust,          // appended: ids are serialised as ints in the library
     }
 
     /// <summary>
@@ -64,6 +65,7 @@ namespace PrimalFrontier.VFX
         /// <summary>play an effect; parent keeps it attached (bleeding, steam on food). Returns null if unavailable / capped.</summary>
         public PooledEffect Play(VfxId id, Vector3 pos, Quaternion rot, Transform parent = null, float scale = 1f)
         {
+            id = BloodFilter(id, ref scale);
             if (id == VfxId.None || !_prefabs.ContainsKey(id)) return null;
             if (ActiveCount >= MaxActive) return null;
             var stack = _free[id];
@@ -78,6 +80,22 @@ namespace PrimalFrontier.VFX
 
         public PooledEffect Play(VfxId id, Vector3 pos, Vector3 normal, Transform parent = null, float scale = 1f) =>
             Play(id, pos, normal.sqrMagnitude > 1e-6f ? Quaternion.LookRotation(normal) : Quaternion.identity, parent, scale);
+
+        /// <summary>the blood setting: Off swaps every blood effect for a neutral impact puff, Reduced shrinks them</summary>
+        static VfxId BloodFilter(VfxId id, ref float scale)
+        {
+            bool blood = id == VfxId.HitLight || id == VfxId.HitHeavy || id == VfxId.Bleed || id == VfxId.BloodSpray || id == VfxId.BloodSprayHeavy;
+            if (!blood) return id;
+            var lvl = PrimalFrontier.Core.GameSettings.Blood;
+            if (lvl == PrimalFrontier.Core.BloodLevel.Off) return id == VfxId.Bleed ? VfxId.None : VfxId.HitDust;
+            if (lvl == PrimalFrontier.Core.BloodLevel.Reduced)
+            {
+                scale *= 0.6f;
+                if (id == VfxId.BloodSprayHeavy) return VfxId.BloodSpray;
+                if (id == VfxId.HitHeavy) return VfxId.HitLight;
+            }
+            return id;
+        }
 
         internal void Return(PooledEffect pe)
         {

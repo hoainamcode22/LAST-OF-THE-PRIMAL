@@ -3,7 +3,7 @@
 Result: **PASS**
 
 ```
-=== Carnotaurus === 2026-09-27 15:40:50
+=== Carnotaurus === 2026-09-27 18:03:30
 Avatar: valid=True human=False
 Importer: 15 clips configured (9 loops, 7 events)
 Materials: M_Dino_Carnotaurus

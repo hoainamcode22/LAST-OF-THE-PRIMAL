@@ -3,7 +3,7 @@
 Result: **PASS**
 
 ```
-=== Velociraptor === 2026-09-27 15:41:17
+=== Velociraptor === 2026-09-27 18:04:25
 Avatar: valid=True human=False
 Importer: 15 clips configured (9 loops, 7 events)
 Materials: M_Dino_Velociraptor

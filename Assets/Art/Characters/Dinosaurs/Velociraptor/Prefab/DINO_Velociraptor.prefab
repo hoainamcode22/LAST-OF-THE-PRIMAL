@@ -118,15 +118,27 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -6568609302409949964, guid: 2cbe2bde22b76674eb3312bbac3e7827, type: 3}
       propertyPath: m_Quality
-      value: 4
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -6568609302409949964, guid: 2cbe2bde22b76674eb3312bbac3e7827, type: 3}
+      propertyPath: m_SkinnedMotionVectors
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -2315305980981906625, guid: 2cbe2bde22b76674eb3312bbac3e7827, type: 3}
       propertyPath: m_Quality
-      value: 4
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: -2315305980981906625, guid: 2cbe2bde22b76674eb3312bbac3e7827, type: 3}
+      propertyPath: m_SkinnedMotionVectors
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -2235793517658771059, guid: 2cbe2bde22b76674eb3312bbac3e7827, type: 3}
       propertyPath: m_Quality
       value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: -2235793517658771059, guid: 2cbe2bde22b76674eb3312bbac3e7827, type: 3}
+      propertyPath: m_SkinnedMotionVectors
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 2cbe2bde22b76674eb3312bbac3e7827, type: 3}
       propertyPath: m_Name

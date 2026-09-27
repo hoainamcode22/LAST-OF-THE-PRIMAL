@@ -85,3 +85,12 @@ MonoBehaviour:
   - id: 24
     prefab: {fileID: 5760446184299342369, guid: 34e8d36bb596474408275102be1b60c6, type: 3}
     prewarm: 2
+  - id: 25
+    prefab: {fileID: 1967176988306874241, guid: 4a3ea7baaf783ad44a784c11d22fb90e, type: 3}
+    prewarm: 3
+  - id: 26
+    prefab: {fileID: 448598154075612759, guid: 92ad80b4a7c922047a35abd9331609f7, type: 3}
+    prewarm: 2
+  - id: 27
+    prefab: {fileID: 3159890649291632607, guid: 5029067be893e7342a7e1ce033b52ab8, type: 3}
+    prewarm: 3

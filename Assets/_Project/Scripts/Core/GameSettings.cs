@@ -2,6 +2,8 @@ using UnityEngine;
 
 namespace PrimalFrontier.Core
 {
+    public enum BloodLevel { Off = 0, Reduced = 1, Normal = 2 }
+
     /// <summary>Player preferences (PlayerPrefs): volumes, mouse, quality preset, resolution, fullscreen, VSync, hints.</summary>
     public static class GameSettings
     {
@@ -11,10 +13,13 @@ namespace PrimalFrontier.Core
         public static float Ambience { get => PlayerPrefs.GetFloat("pf_amb", 0.9f); set { PlayerPrefs.SetFloat("pf_amb", value); Apply(); } }
         public static float MouseSensitivity { get => PlayerPrefs.GetFloat("pf_mouse", 0.12f); set { PlayerPrefs.SetFloat("pf_mouse", value); Apply(); } }
         public static bool InvertY { get => PlayerPrefs.GetInt("pf_invy", 0) == 1; set { PlayerPrefs.SetInt("pf_invy", value ? 1 : 0); Apply(); } }
-        public static int Quality { get => PlayerPrefs.GetInt("pf_quality", Mathf.Clamp(QualitySettings.GetQualityLevel(), 0, 3)); set { PlayerPrefs.SetInt("pf_quality", value); ApplyQuality(); } }
+        public static int Quality { get => PlayerPrefs.GetInt("pf_quality", Application.isMobilePlatform ? 0 : 2); set { PlayerPrefs.SetInt("pf_quality", value); ApplyQuality(); } }
         public static bool VSync { get => PlayerPrefs.GetInt("pf_vsync", 1) == 1; set { PlayerPrefs.SetInt("pf_vsync", value ? 1 : 0); ApplyQuality(); } }
         public static bool Fullscreen { get => UnityEngine.Screen.fullScreen; set { UnityEngine.Screen.fullScreen = value; } }
         public static bool Hints { get => PlayerPrefs.GetInt("pf_hints", 1) == 1; set => PlayerPrefs.SetInt("pf_hints", value ? 1 : 0); }
+        /// <summary>blood effects: Off (dust puffs instead), Reduced (small sprays, no pools / trails), Normal</summary>
+        public static BloodLevel Blood { get => (BloodLevel)Mathf.Clamp(PlayerPrefs.GetInt("pf_blood", (int)BloodLevel.Normal), 0, 2); set => PlayerPrefs.SetInt("pf_blood", (int)value); }
+        public static readonly string[] BloodNames = { "OFF", "REDUCED", "NORMAL" };
         public static readonly string[] QualityNames = { "Low", "Medium", "High", "Ultra" };
 
         public static void Apply()
@@ -32,7 +37,8 @@ namespace PrimalFrontier.Core
             int lvl = Mathf.Clamp(Mathf.RoundToInt(Quality / 3f * (n - 1)), 0, n - 1);
             QualitySettings.SetQualityLevel(lvl, true);
             QualitySettings.vSyncCount = VSync ? 1 : 0;
-            Application.targetFrameRate = VSync ? -1 : 144;
+            Application.targetFrameRate = Application.isMobilePlatform ? 30 : VSync ? -1 : 144;
+            TerrainQuality.Apply(Quality);
         }
 
         public static void CycleResolution()

@@ -3,7 +3,7 @@
 Result: **PASS**
 
 ```
-=== Pteranodon === 2026-09-27 15:41:03
+=== Pteranodon === 2026-09-27 18:03:52
 Avatar: valid=True human=False
 Importer: 11 clips configured (5 loops, 2 events)
 Materials: M_Dino_Pteranodon

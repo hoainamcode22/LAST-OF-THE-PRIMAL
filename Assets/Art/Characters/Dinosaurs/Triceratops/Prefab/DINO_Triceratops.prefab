@@ -118,15 +118,27 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -5612058564591349133, guid: af8ae9ae5b04e71448aa449dc9a0fa6c, type: 3}
       propertyPath: m_Quality
-      value: 4
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: -5612058564591349133, guid: af8ae9ae5b04e71448aa449dc9a0fa6c, type: 3}
+      propertyPath: m_SkinnedMotionVectors
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -5282336649518503197, guid: af8ae9ae5b04e71448aa449dc9a0fa6c, type: 3}
       propertyPath: m_Quality
       value: 4
       objectReference: {fileID: 0}
+    - target: {fileID: -5282336649518503197, guid: af8ae9ae5b04e71448aa449dc9a0fa6c, type: 3}
+      propertyPath: m_SkinnedMotionVectors
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: -627745626078098897, guid: af8ae9ae5b04e71448aa449dc9a0fa6c, type: 3}
       propertyPath: m_Quality
-      value: 4
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -627745626078098897, guid: af8ae9ae5b04e71448aa449dc9a0fa6c, type: 3}
+      propertyPath: m_SkinnedMotionVectors
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: af8ae9ae5b04e71448aa449dc9a0fa6c, type: 3}
       propertyPath: m_Name

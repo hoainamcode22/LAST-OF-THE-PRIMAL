@@ -64,9 +64,18 @@ namespace PrimalFrontier.EditorTools
             }
             if (lodRenderers.Count < 2) { L("LOD: single LOD"); return; }
             var lg = go.GetComponent<LODGroup>(); if (lg == null) lg = go.AddComponent<LODGroup>();
-            var thresholds = spec.Humanoid ? new[] { 0.25f, 0.02f } : new[] { 0.35f, 0.12f, 0.02f };
+            var thresholds = spec.Humanoid ? new[] { 0.25f, 0.02f } : lodRenderers.Count >= 4 ? new[] { 0.42f, 0.16f, 0.05f, 0.01f } : new[] { 0.35f, 0.12f, 0.02f };
             var lods = lodRenderers.Select((kv, i) => new LOD(thresholds[Mathf.Min(i, thresholds.Length - 1)], kv.Value.ToArray())).ToArray();
-            lg.SetLODs(lods); lg.RecalculateBounds();
+            lg.SetLODs(lods); lg.RecalculateBounds(); lg.fadeMode = LODFadeMode.None; lg.animateCrossFading = false;
+            // cheaper skinning on the far levels, no skinned motion vectors
+            foreach (var kv in lodRenderers)
+                foreach (var r in kv.Value)
+                    if (r is SkinnedMeshRenderer smr)
+                    {
+                        smr.quality = kv.Key == 0 ? SkinQuality.Bone4 : kv.Key == 1 ? SkinQuality.Bone2 : SkinQuality.Bone1;
+                        smr.skinnedMotionVectors = false; smr.updateWhenOffscreen = false;
+                        if (kv.Key >= 2) smr.shadowCastingMode = kv.Key >= 3 ? ShadowCastingMode.Off : ShadowCastingMode.On;
+                    }
             L($"LOD: {lods.Length} levels ({string.Join(", ", lodRenderers.Select(kv => $"LOD{kv.Key}:{kv.Value.Sum(r => TriCount(r))} tris"))})");
         }
 

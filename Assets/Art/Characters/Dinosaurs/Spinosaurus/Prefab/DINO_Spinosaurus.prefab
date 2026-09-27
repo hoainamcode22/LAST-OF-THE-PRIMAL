@@ -122,7 +122,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1471938078833793387, guid: 9553530740d7b03469390401a6997513, type: 3}
       propertyPath: m_Quality
-      value: 4
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1471938078833793387, guid: 9553530740d7b03469390401a6997513, type: 3}
+      propertyPath: m_SkinnedMotionVectors
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4742473837712756890, guid: 9553530740d7b03469390401a6997513, type: 3}
       propertyPath: m_LODs.Array.data[0].screenRelativeHeight
@@ -140,13 +144,21 @@ PrefabInstance:
       propertyPath: m_Quality
       value: 4
       objectReference: {fileID: 0}
+    - target: {fileID: 5129352154346858151, guid: 9553530740d7b03469390401a6997513, type: 3}
+      propertyPath: m_SkinnedMotionVectors
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5866666021909216657, guid: 9553530740d7b03469390401a6997513, type: 3}
       propertyPath: m_Controller
       value: 
       objectReference: {fileID: 9100000, guid: fe5d126241391364690605f3a81e8410, type: 2}
     - target: {fileID: 7478427707987314420, guid: 9553530740d7b03469390401a6997513, type: 3}
       propertyPath: m_Quality
-      value: 4
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 7478427707987314420, guid: 9553530740d7b03469390401a6997513, type: 3}
+      propertyPath: m_SkinnedMotionVectors
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

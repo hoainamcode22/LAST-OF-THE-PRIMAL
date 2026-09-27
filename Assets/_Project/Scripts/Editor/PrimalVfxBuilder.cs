@@ -120,11 +120,69 @@ namespace PrimalFrontier.EditorTools
             Add(VfxId.DinoFootDust, 4, g => Puff(g, "Dust", dirt, 8, 0.3f, 0.7f, 1.4f, 1.2f, 0.9f));
             Add(VfxId.DinoImpactDust, 2, g => { Puff(g, "Dust", dirt, 14, 0.4f, 1.0f, 1.8f, 2.4f, 1.2f); Chips(g, "Debris", _chip, stone, new Color(0.35f, 0.3f, 0.25f, 1), 10, 2f, 4.5f, 0.03f, 0.07f, 1f); });
 
+            // blood: a directional spray (droplet streaks + mist + a few heavy drops) sized to the creature; dust stand-in for "blood off"
+            Add(VfxId.BloodSpray, 3, g =>
+            {
+                var ps = Drops(g, "Spray", blood, blood2, 26, 2.2f, 5.0f, 0.012f, 0.035f, 0.7f, 16f); var sh = ps.shape; sh.radius = 0.05f;
+                Drops(g, "Heavy", blood, blood, 6, 1.0f, 2.4f, 0.03f, 0.06f, 0.8f, 30f);
+                Puff(g, "Mist", new Color(0.42f, 0.04f, 0.03f, 0.45f), 4, 0.12f, 0.28f, 0.45f, 0.5f, 2.2f);
+            });
+            Add(VfxId.BloodSprayHeavy, 2, g =>
+            {
+                var ps = Drops(g, "Spray", blood, blood2, 48, 3.0f, 7.5f, 0.015f, 0.05f, 0.9f, 20f); var sh = ps.shape; sh.radius = 0.08f; var m = ps.main; m.maxParticles = 64;
+                Drops(g, "Heavy", blood, blood, 12, 1.2f, 3.2f, 0.035f, 0.08f, 1.0f, 35f);
+                Puff(g, "Mist", new Color(0.42f, 0.04f, 0.03f, 0.5f), 6, 0.18f, 0.4f, 0.6f, 0.7f, 2.4f);
+            });
+            Add(VfxId.HitDust, 3, g => { Puff(g, "Dust", new Color(0.55f, 0.5f, 0.45f, 0.5f), 6, 0.1f, 0.25f, 0.6f, 0.8f); Chips(g, "Bits", _chip, stone, new Color(0.45f, 0.4f, 0.35f, 1), 4, 1.2f, 2.5f, 0.01f, 0.025f, 0.5f); });
+            BuildBloodLibrary();
+
             BuildCampfire();
             const string libPath = "Assets/_Project/Resources/VfxLibrary.asset";
             AssetDatabase.DeleteAsset(libPath); AssetDatabase.CreateAsset(lib, libPath);
             AssetDatabase.SaveAssets();
             Debug.Log($"[PrimalVfxBuilder] {lib.entries.Count} effects -> {libPath}");
+        }
+
+        /// <summary>ground blood: four splat shapes and a pool, wet dark red (URP Lit transparent), Resources/BloodLibrary</summary>
+        static void BuildBloodLibrary()
+        {
+            float Noise(float u, float v, float f, float o) => Mathf.PerlinNoise(u * f + o, v * f + o * 0.7f);
+            Texture2D SplatTex(string name, int seed, bool pool)
+            {
+                var rnd = new System.Random(seed); var drops = new List<Vector3>();
+                int nd = pool ? 6 : 14;
+                for (int i = 0; i < nd; i++) { float a = (float)rnd.NextDouble() * 6.283f, r = pool ? 0.6f + 0.2f * (float)rnd.NextDouble() : 0.45f + 0.45f * (float)rnd.NextDouble(); drops.Add(new Vector3(Mathf.Cos(a) * r, Mathf.Sin(a) * r, 0.04f + 0.08f * (float)rnd.NextDouble())); }
+                return Tex(name, pool ? 256 : 128, (u, v) =>
+                {
+                    float r = Len(u, v);
+                    float edge = (pool ? 0.62f : 0.42f) + 0.22f * (Noise(u, v, 3.2f, seed) - 0.5f) + 0.1f * (Noise(u, v, 9f, seed + 5) - 0.5f);
+                    float a = Mathf.Clamp01((edge - r) * 14f);
+                    foreach (var d in drops) a = Mathf.Max(a, Mathf.Clamp01((d.z - Len(u - d.x, v - d.y)) * 60f));
+                    float shade = 0.75f + 0.25f * Noise(u, v, 6f, seed + 9) - 0.25f * Mathf.Clamp01(1 - r / Mathf.Max(edge, 0.05f));   // darker, thicker centre
+                    return new Color(shade, shade, shade, a);
+                });
+            }
+            Material Lit(string name, Texture2D tex, Color col)
+            {
+                string path = $"{Root}/Materials/{name}.mat";
+                var sh = Shader.Find("Universal Render Pipeline/Lit");
+                var m = AssetDatabase.LoadAssetAtPath<Material>(path);
+                if (m == null) { m = new Material(sh); AssetDatabase.CreateAsset(m, path); }
+                m.shader = sh; m.SetTexture("_BaseMap", tex); m.SetColor("_BaseColor", col);
+                m.SetFloat("_Smoothness", 0.82f); m.SetFloat("_Metallic", 0f);
+                m.SetFloat("_Surface", 1f); m.SetFloat("_Blend", 0f);
+                m.SetFloat("_SrcBlend", (float)BlendMode.SrcAlpha); m.SetFloat("_DstBlend", (float)BlendMode.OneMinusSrcAlpha); m.SetFloat("_ZWrite", 0f);
+                m.SetOverrideTag("RenderType", "Transparent"); m.renderQueue = (int)RenderQueue.Transparent - 10;
+                m.EnableKeyword("_SURFACE_TYPE_TRANSPARENT"); m.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+                m.enableInstancing = true; EditorUtility.SetDirty(m); return m;
+            }
+            var col = new Color(0.32f, 0.02f, 0.015f, 0.92f);
+            var lib = ScriptableObject.CreateInstance<BloodLibrary>();
+            lib.splats = new Material[4];
+            for (int i = 0; i < 4; i++) lib.splats[i] = Lit($"M_Blood_Splat_{i}", SplatTex($"T_Blood_Splat_{i}", 17 + i * 31, false), col);
+            lib.pool = Lit("M_Blood_Pool", SplatTex("T_Blood_Pool", 211, true), new Color(0.26f, 0.015f, 0.01f, 0.95f));
+            const string path2 = "Assets/_Project/Resources/BloodLibrary.asset";
+            AssetDatabase.DeleteAsset(path2); AssetDatabase.CreateAsset(lib, path2);
         }
 
         /// <summary>persistent (not pooled) campfire effect: flames, smoke, embers, flickering light, crackle loop</summary>

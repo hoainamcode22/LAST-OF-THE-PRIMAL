@@ -116,6 +116,7 @@ namespace PrimalFrontier.Player
             if (_face) _face.OnHit(heavy);
             Vector3 chest = Chest; Vector3 dir = source - chest; dir.y = 0; dir = dir.sqrMagnitude > 1e-4f ? dir.normalized : transform.forward;
             Fx.Play(heavy ? VfxId.HitHeavy : VfxId.HitLight, chest + dir * 0.16f, dir + Vector3.up * 0.3f);
+            if (heavy) BloodDecals.Instance.Splat(chest - dir * 0.4f, 0.35f, transform, 60f);
             Sfx.Play(heavy ? SfxId.HitHeavy : SfxId.HitFlesh, chest);
             DamageOverlay.Instance.ShowHit(dir, heavy);
             var cam = Camera.main ? Camera.main.GetComponent<ThirdPersonCamera>() : null;

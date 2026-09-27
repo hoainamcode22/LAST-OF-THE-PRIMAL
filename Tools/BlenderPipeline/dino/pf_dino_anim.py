@@ -14,6 +14,40 @@ def qa(axis, deg): return Quaternion(Vector(axis).normalized(), math.radians(deg
 X, Y, Z = Vector((1, 0, 0)), Vector((0, 1, 0)), Vector((0, 0, 1))
 FWD = Vector((0, -1, 0))
 
+class _Track(dict):
+    def __setitem__(self, k, v):
+        dict.__setitem__(self, k, v)
+        if hasattr(self, "touched"): self.touched.add(k)
+
+
+def face_extra(r):
+    """eyelids and tongue on rigs that have them: blinks in calm loops, squint when attacking / roaring, eyes shut when
+    hurt, half closed in death; tongue lifts when roaring and moves while eating"""
+    if "Eyelid_Upper_L" not in r.names and "Tongue_01" not in r.names: return
+    name, t = getattr(r, "clip", ""), getattr(r, "t", 0.0)
+    bump = lambda x, w: max(0.0, 1 - (x / w) ** 2)
+    close = 0.0
+    if name in ("Idle", "Idle_Variation", "Walk", "Look", "Alert", "Eat", "Drink", "Turn_Left", "Turn_Right"):
+        for c in (0.31, 0.77) if name.startswith("Idle") else (0.55,):
+            close = max(close, bump(t - c, 0.035 if name.startswith("Idle") else 0.07))
+    elif name in ("Roar", "Attack", "Heavy_Attack", "Charge"): close = 0.35 * math.sin(math.pi * t)
+    elif name == "Hurt": close = 0.9 * math.sin(math.pi * min(1, t * 1.6))
+    elif name == "Death": close = 0.62 * min(1.0, t * 1.3)
+    hd = (r.tail0["Head"] - r.head0["Head"]).normalized() if "Head" in r.names else Vector((0, -1, 0))
+    for side, s in (("L", 1), ("R", -1)):
+        if f"Eyelid_Upper_{side}" in r.names: r.follow(f"Eyelid_Upper_{side}", Quaternion(hd, math.radians(-s * 68 * close)))
+        if f"Eyelid_Lower_{side}" in r.names: r.follow(f"Eyelid_Lower_{side}", Quaternion(hd, math.radians(s * 22 * close)))
+    if "Tongue_01" in r.names:
+        curl = 0.0; yaw = 0.0
+        if name == "Roar": curl = 22 * math.sin(math.pi * t)
+        elif name == "Eat": curl = 10 * math.sin(2 * math.pi * t * 4); yaw = 8 * math.sin(2 * math.pi * t * 2)
+        elif name == "Drink": curl = 14 * max(0.0, math.sin(2 * math.pi * t * 3))
+        elif name == "Death": curl = -8 * min(1.0, t * 1.2); yaw = 10 * min(1.0, t * 1.2)
+        elif name in ("Attack", "Heavy_Attack"): curl = 12 * math.sin(math.pi * t)
+        for i, nm in enumerate(("Tongue_01", "Tongue_02", "Tongue_03")):
+            if nm in r.names: r.follow(nm, qa(Z, yaw * (0.3 + 0.35 * i)) @ qa(X, curl * (0.25 + 0.4 * i)))
+
+
 class Rig:
     def __init__(self, arm, spec):
         self.arm = arm; self.sp = spec; self.bones = arm.data.bones
@@ -36,7 +70,7 @@ class Rig:
         self.reset()
 
     def reset(self):
-        self.D = {n: Quaternion() for n in self.order}; self.off = Vector()   # pelvis translation (armature space)
+        self.D = _Track({n: Quaternion() for n in self.order}); self.D.touched = set(); self.off = Vector()   # pelvis translation (armature space)
 
     # ---- forward kinematics of rest-relative deltas
     def posed_head(self, name, cache):
@@ -59,6 +93,10 @@ class Rig:
 
     def write(self, frame):
         pb = self.arm.pose.bones
+        if getattr(self, "extra", None): self.extra(self)
+        for n in self.order:                                   # untouched bones keep their rest pose relative to the parent
+            if n not in self.D.touched:
+                p = self.parent[n]; dict.__setitem__(self.D, n, self.D[p] if p else Quaternion())
         for n in self.order:
             p = self.parent[n]
             Dp = self.D[p] if p else Quaternion()
@@ -196,8 +234,9 @@ def locomotion(rig, name, speed, cycle, duty, lift_k, run=False):
     lift = lift_k * (1.3 if run else 1.0)
     offs = gait_offsets(rig, run)
     L = rig.L; bob = (0.012 if not run else 0.03) * L * (0.6 if rig.quad else 1.0)
+    rig.clip = name
     for f in range(frames + 1):
-        ph = f / frames
+        ph = f / frames; rig.t = ph
         rig.reset()
         steps = 2 if not rig.quad else 2
         rig.pelvis(Vector((0, 0, -bob * 0.5 * (1 + math.cos(4 * math.pi * ph)) * (0.7 if rig.quad else 1.0))),
@@ -220,8 +259,9 @@ def locomotion(rig, name, speed, cycle, duty, lift_k, run=False):
 
 def pose_clip(rig, name, frames, fn, loop):
     arm = rig.arm; act = new_action(arm, name)
+    rig.clip = name
     for f in range(frames + 1):
-        t = f / frames; rig.reset(); fn(rig, t); rig.write(f + 1)
+        t = f / frames; rig.t = t; rig.reset(); fn(rig, t); rig.write(f + 1)
     act.frame_range = (1, frames + 1)
     return dict(name=name, frames=frames, loop=loop, speed=0.0)
 
@@ -312,7 +352,7 @@ def build_swimmer(rig, spec):
     return metas
 
 def build_clips(arm, spec):
-    rig = Rig(arm, spec); kind = spec["kind"]; g = spec["gait"]; sp = spec["speeds"]
+    rig = Rig(arm, spec); rig.extra = face_extra; kind = spec["kind"]; g = spec["gait"]; sp = spec["speeds"]
     if kind in ("flyer", "swimmer"):
         metas = build_flyer(rig, spec) if kind == "flyer" else build_swimmer(rig, spec)
         arm.animation_data.action = None

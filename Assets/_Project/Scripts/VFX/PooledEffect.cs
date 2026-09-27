@@ -19,7 +19,7 @@ namespace PrimalFrontier.VFX
 
         public void Begin()
         {
-            _t = 0f; _running = true; _deadline = -1f;
+            _t = 0f; _running = true; _deadline = -1f; _stopAt = -1f;
             if (_ps) { _ps.Clear(true); _ps.Play(true); }
             var light = GetComponentInChildren<Light>(true); if (light) light.enabled = true;
         }
@@ -30,12 +30,16 @@ namespace PrimalFrontier.VFX
             if (_ps) _ps.Stop(true, ParticleSystemStopBehavior.StopEmitting);
             _deadline = _t + 3f;                                  // safety: return even if the callback never comes
         }
-        float _deadline = -1f;
+        float _deadline = -1f, _stopAt = -1f;
+
+        /// <summary>looping effect that stops emitting by itself after 'seconds' (a wound that bleeds for a while)</summary>
+        public void StopAfter(float seconds) { _stopAt = _t + seconds; }
 
         void Update()
         {
             if (!_running) return;
             _t += Time.deltaTime;
+            if (_stopAt > 0f && _t > _stopAt) { _stopAt = -1f; StopEmitting(); }
             if (maxLifetime > 0f && _t > maxLifetime) Finish();
             else if (_deadline > 0f && _t > _deadline) Finish();
             else if (_ps && !_ps.main.loop && _t > _ps.main.duration + 0.5f && !_ps.IsAlive(true)) Finish();   // missed callback

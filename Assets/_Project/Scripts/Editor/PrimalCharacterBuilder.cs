@@ -269,6 +269,7 @@ namespace PrimalFrontier.EditorTools
                 var mat = AssetDatabase.LoadAssetAtPath<Material>(path);
                 if (mat == null) { mat = new Material(Lit) { name = n }; AssetDatabase.CreateAsset(mat, path); }
                 string tex = n.StartsWith("M_") ? n.Substring(2) : n;
+                tex = SharedTextureSet(spec.Folder, tex);
                 var d = AssetDatabase.LoadAssetAtPath<Texture2D>($"{spec.Folder}/Textures/T_{tex}_D.png");
                 var nm = AssetDatabase.LoadAssetAtPath<Texture2D>($"{spec.Folder}/Textures/T_{tex}_N.png");
                 var m = AssetDatabase.LoadAssetAtPath<Texture2D>($"{spec.Folder}/Textures/T_{tex}_M.png");
@@ -299,6 +300,23 @@ namespace PrimalFrontier.EditorTools
             return res;
         }
 
+        /// <summary>older dinosaur exports ship the eye / membrane sets as byte copies of the skin atlas; share the skin
+        /// textures instead of loading the same 2048 maps two or three times</summary>
+        static string SharedTextureSet(string folder, string tex)
+        {
+            int k = tex.LastIndexOf('_'); if (k < 0) return tex;
+            string suffix = tex.Substring(k + 1); if (suffix != "Eye" && suffix != "Membrane") return tex;
+            string baseTex = tex.Substring(0, k);
+            string a = $"{folder}/Textures/T_{tex}_D.png", b = $"{folder}/Textures/T_{baseTex}_D.png";
+            if (!File.Exists(a)) return File.Exists(b) ? baseTex : tex;
+            if (!File.Exists(b)) return tex;
+            var fa = new FileInfo(a); var fb = new FileInfo(b);
+            if (fa.Length != fb.Length) return tex;
+            using (var md5 = System.Security.Cryptography.MD5.Create())
+                return BitConverter.ToString(md5.ComputeHash(File.ReadAllBytes(a))) == BitConverter.ToString(md5.ComputeHash(File.ReadAllBytes(b))) ? baseTex : tex;
+        }
+
+        /// <summary>PC keeps the authored size (hero creatures ship 4096 skin atlases), phones get a 1024 ASTC copy</summary>
         static void FixTexture(string path, bool normal = false, bool linear = false, bool alpha = false)
         {
             var ti = AssetImporter.GetAtPath(path) as TextureImporter;
@@ -307,7 +325,26 @@ namespace PrimalFrontier.EditorTools
             if (normal && ti.textureType != TextureImporterType.NormalMap) { ti.textureType = TextureImporterType.NormalMap; dirty = true; }
             if (linear && ti.sRGBTexture) { ti.sRGBTexture = false; dirty = true; }
             if (alpha && !ti.alphaIsTransparency) { ti.alphaIsTransparency = true; ti.mipMapsPreserveCoverage = true; ti.alphaTestReferenceValue = 0.45f; dirty = true; }
-            if (ti.maxTextureSize > 2048) { ti.maxTextureSize = 2048; dirty = true; }
+            int src = 2048;
+            try
+            {   // PNG header: width / height big-endian at bytes 16..23
+                var b = new byte[24]; using (var fs = File.OpenRead(path)) fs.Read(b, 0, 24);
+                int w = (b[16] << 24) | (b[17] << 16) | (b[18] << 8) | b[19], h = (b[20] << 24) | (b[21] << 16) | (b[22] << 8) | b[23];
+                if (w > 0 && h > 0) src = Mathf.Max(w, h);
+            }
+            catch { }
+            int pc = Mathf.Clamp(Mathf.NextPowerOfTwo(src), 256, 4096);
+            if (ti.maxTextureSize != pc) { ti.maxTextureSize = pc; dirty = true; }
+            int mobile = Mathf.Min(pc, path.Contains("_Eye_") ? 256 : path.Contains("_Mouth_") ? 512 : 1024);
+            foreach (var plat in new[] { "Android", "iPhone" })
+            {
+                var ps = ti.GetPlatformTextureSettings(plat);
+                if (!ps.overridden || ps.maxTextureSize != mobile || ps.format != TextureImporterFormat.ASTC_6x6)
+                {
+                    ps.overridden = true; ps.maxTextureSize = mobile; ps.format = TextureImporterFormat.ASTC_6x6; ps.compressionQuality = 50;
+                    ti.SetPlatformTextureSettings(ps); dirty = true;
+                }
+            }
             if (dirty) ti.SaveAndReimport();
         }
 

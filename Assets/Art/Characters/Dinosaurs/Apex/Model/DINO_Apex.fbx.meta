@@ -9,6 +9,16 @@ ModelImporter:
       assembly: UnityEngine.CoreModule
       name: M_Dino_Apex
     second: {fileID: 2100000, guid: fedf869b2e57c2f49b7290cff1ccbe21, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: M_Dino_Apex_Eye
+    second: {fileID: 2100000, guid: 49db387e79f7b7446974fe1f182decb9, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: M_Dino_Apex_Mouth
+    second: {fileID: 2100000, guid: 4e4d0c0c2ef13fc4a8d7849f08e3650a, type: 2}
   materials:
     materialImportMode: 1
     materialName: 0
@@ -524,6 +534,7 @@ ModelImporter:
     lODScreenPercentages:
     - 0.25
     - 0.125
+    - 0.0625
     - 0.01
     globalScale: 1
     meshCompression: 0

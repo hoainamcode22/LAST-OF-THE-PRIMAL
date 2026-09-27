@@ -8,6 +8,7 @@ using PrimalFrontier.AI;
 using PrimalFrontier.Combat;
 using PrimalFrontier.Core;
 using PrimalFrontier.Player;
+using PrimalFrontier.VFX;
 
 namespace PrimalFrontier.Tests
 {
@@ -73,6 +74,47 @@ namespace PrimalFrontier.Tests
             GameEvents.Raise(GameEventType.PredatorWarning, "test");
             yield return null;
             Assert.AreEqual(DinoState.Flee, para.State, "herd flees on the predator warning");
+        }
+
+        [UnityTest] public IEnumerator Hits_Spray_Blood_Death_Leaves_A_Pool_And_Blood_Can_Be_Turned_Off()
+        {
+            var saved = GameSettings.Blood;
+            try
+            {
+                yield return LoadIsland();
+                GameSettings.Blood = BloodLevel.Normal;
+                var tri = DinosaurController.All.First(d => d.def.id == "triceratops");
+                var player = _gm.Player;
+                player.GetComponent<PlayerMotor>().Warp(tri.transform.position + tri.transform.right * 30f + Vector3.up * 2f, Quaternion.identity);
+                yield return new WaitForSeconds(0.3f);
+                BloodDecals.Instance.ClearAll();
+                int pools = BloodDecals.Instance.PoolCount;
+                var side = tri.transform.position + Vector3.up * tri.def.bodyRadius + tri.transform.right * tri.def.bodyRadius;
+                tri.TakeHit(new HitInfo { damage = 10f, point = side, direction = -tri.transform.right, attacker = player, heavy = true });
+                yield return null;
+                string fx = VfxPool.Instance.ActiveNames();
+                StringAssert.Contains("BloodSpray", fx, "spray on hit: " + fx);
+                Assert.Greater(BloodDecals.Instance.ActiveCount, 0, "blood on the ground");
+                StringAssert.Contains("Bleed(attached)", fx, "wound keeps bleeding on the body: " + fx);
+                tri.TakeHit(new HitInfo { damage = 5000f, point = side, direction = -tri.transform.right, attacker = player });
+                yield return new WaitForSeconds(0.2f);
+                Assert.AreEqual(DinoState.Dead, tri.State);
+                Assert.AreEqual(pools + 1, BloodDecals.Instance.PoolCount, "blood pool under the body");
+                // blood off: dust instead, no ground blood
+                GameSettings.Blood = BloodLevel.Off;
+                yield return null;
+                Assert.AreEqual(0, BloodDecals.Instance.ActiveCount, "decals cleared when blood is switched off");
+                var para = DinosaurController.All.First(d => d.def.id == "parasaurolophus" && d.State != DinoState.Dead);
+                var p2 = para.transform.position + Vector3.up * para.def.bodyRadius;
+                player.GetComponent<PlayerMotor>().Warp(para.transform.position + para.transform.right * 30f + Vector3.up * 2f, Quaternion.identity);
+                yield return new WaitForSeconds(0.3f);
+                para.TakeHit(new HitInfo { damage = 5f, point = p2, direction = Vector3.forward, attacker = player });
+                yield return null;
+                fx = VfxPool.Instance.ActiveNames();
+                StringAssert.Contains("HitDust", fx, "neutral impact when blood is off: " + fx);
+                Assert.AreEqual(0, BloodDecals.Instance.ActiveCount, "no ground blood when off");
+            }
+            finally { GameSettings.Blood = saved; }
         }
     }
 }
