@@ -49,7 +49,7 @@ namespace PrimalFrontier.Tests
 
         static void ResetSim() { var s = PlayerInputReader.Sim; s.Move = s.Look = Vector2.zero; s.Sprint = s.Walk = s.Aim = s.Jump = s.Crouch = s.Interact = s.Attack = false; }
         bool InState(string n) { var a = _anim.GetCurrentAnimatorStateInfo(0); var b = _anim.GetNextAnimatorStateInfo(0); return a.IsName(n) || (_anim.IsInTransition(0) && b.IsName(n)); }
-        static readonly string[] Known = { "Locomotion", "Crouch", "TurnInPlace", "Jump", "Fall", "Land", "Pickup", "Gather_Wood", "Gather_Stone", "Gather_Plant", "Interact", "Craft", "Eat", "Drink",
+        static readonly string[] Known = { "Locomotion", "Idle_Variation", "Crouch", "TurnInPlace", "Jump", "Fall", "Land", "Pickup", "Gather_Wood", "Gather_Stone", "Gather_Plant", "Interact", "Craft", "Eat", "Drink",
             "Build", "Use_Item", "Sleep", "Wake_Up", "Get_Up", "Unconscious", "Attack_Spear", "Attack_Spear_Heavy", "Throw_Spear", "Hurt", "Hurt_Heavy", "Death" };
         string Name(AnimatorStateInfo s) { foreach (var k in Known) if (s.IsName(k)) return k; return "?"; }
         string Diag() => $"[cur {Name(_anim.GetCurrentAnimatorStateInfo(0))} next {(_anim.IsInTransition(0) ? Name(_anim.GetNextAnimatorStateInfo(0)) : "-")} Action={_anim.GetInteger(AnimParams.Action)} IsAtk={_anim.GetBool(AnimParams.IsAttacking)} Grounded={_anim.GetBool(AnimParams.IsGrounded)} vy={_anim.GetFloat(AnimParams.VerticalVelocity):F1} pos={_player.transform.position}]";

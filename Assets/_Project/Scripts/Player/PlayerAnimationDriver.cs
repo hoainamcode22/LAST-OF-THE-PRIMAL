@@ -14,6 +14,9 @@ namespace PrimalFrontier.Player
     {
         public Animator animator;
         public float speedDamp = 0.08f;
+        [Tooltip("seconds of standing still before an idle variation (look around, shift weight) plays; random in this range")]
+        public Vector2 idleVariationEvery = new Vector2(7f, 14f);
+        float _idleT, _idleNext = 9f; int _hasIdleVariant = -1;
 
         PlayerMotor _motor;
         int _pendingAction = PlayerActions.None; bool _pendingIsOneShot; float _pendingTime;
@@ -31,6 +34,7 @@ namespace PrimalFrontier.Player
         {
             _motor = GetComponent<PlayerMotor>();
             if (!animator) animator = GetComponentInChildren<Animator>();
+            if (animator && !animator.GetComponent<PlayerIK>()) animator.gameObject.AddComponent<PlayerIK>();   // feet on the ground, head looks, lean
         }
 
         void Update()
@@ -50,7 +54,7 @@ namespace PrimalFrontier.Player
             bool inTrans = animator.IsInTransition(0);
             IsBusy = inTrans ? actionTag(nx) : actionTag(st);          // blending out of an action already gives control back
             IsAttackingState = st.IsTag("Attack") || nx.IsTag("Attack");
-            animator.SetBool(AnimParams.IsAttacking, _pendingAction >= PlayerActions.AttackSpear && _pendingAction <= PlayerActions.ThrowSpear || IsAttackingState);
+            animator.SetBool(AnimParams.IsAttacking, PlayerActions.IsAttack(_pendingAction) || IsAttackingState);
 
             // clear one-shot actions once the state has been entered (or give up after 1 s)
             if (_pendingIsOneShot && _pendingAction != PlayerActions.None)
@@ -81,6 +85,16 @@ namespace PrimalFrontier.Player
                 int a = CurrentAction; CurrentAction = PlayerActions.None; ActionFinished?.Invoke(a);
             }
             _motor.CanMove = !IsDead && !(IsBusy && !st.IsTag("Hurt"));
+
+            // idle life: after standing still for a while, look around / shift weight (Idle_Variation), then back
+            bool still = _motor.PlanarSpeed < 0.05f && _motor.IsGrounded && !IsBusy && !IsDead && !_motor.IsCrouching && st.IsName("Locomotion") && !inTrans;
+            _idleT = still ? _idleT + dt : 0f;
+            if (_idleT > _idleNext)
+            {
+                if (_hasIdleVariant < 0) { _hasIdleVariant = 0; foreach (var prm in animator.parameters) if (prm.nameHash == AnimParams.IdleVariant) _hasIdleVariant = 1; }
+                if (_hasIdleVariant == 1) animator.SetTrigger(AnimParams.IdleVariant);
+                _idleT = 0f; _idleNext = UnityEngine.Random.Range(idleVariationEvery.x, idleVariationEvery.y);
+            }
         }
 
         /// <summary>start a full-body or upper-body action (PlayerActions id)</summary>

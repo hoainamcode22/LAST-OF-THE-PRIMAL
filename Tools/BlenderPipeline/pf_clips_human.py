@@ -9,8 +9,8 @@ LR = ("L", "R")
 BASE = dict(
     pel=(0.0, 0.0, 0.0), pelr=(0.0, 0.0, 0.0),
     sp=(2.0, 0.0, 0.0), spu=(1.0, 0.0, 0.0), ch=(-2.0, 0.0, 0.0), nk=(4.0, 0.0, 0.0), hd=(-3.0, 0.0, 0.0),
-    aL=(4.0, -40.0, 0.0, 0.0), aR=(4.0, -40.0, 0.0, 0.0), eL=14.0, eR=14.0,
-    wL=(0.0, 0.0, 0.0), wR=(0.0, 0.0, 0.0), cL=(0.0, 0.0), cR=(0.0, 0.0), fL=(18.0, 12.0), fR=(18.0, 12.0),
+    aL=(6.0, -35.0, 0.0, 0.0), aR=(6.0, -35.0, 0.0, 0.0), eL=22.0, eR=22.0,
+    wL=(4.0, 0.0, 0.0), wR=(4.0, 0.0, 0.0), cL=(0.0, 0.0), cR=(0.0, 0.0), fL=(24.0, 15.0), fR=(24.0, 15.0),
     # feet: (dx, dy, dz, pitch, yaw, toebend) relative to rest, IK
     ftL=(0.0, 0.0, 0.0, 0.0, 0.0, 0.0), ftR=(0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
     # FK legs (used when fk=1): (hip flex, hip abduct, knee flex, ankle)
@@ -190,17 +190,26 @@ def gait_fn(rig, frames, D, S, step_h, strike, toeoff, lean, arm_amp, elbow0, el
         feet_t = {}
         for sd, ph0 in (("L", 0.0), ("R", 0.5)):
             feet_t[sd] = foot(sd, (t + ph0) % 1.0)
+        # pelvis turns with the forward leg, the chest counter-rotates (shoulders swing against the hips), the neck
+        # cancels the chest so the head stays pointed where the body travels
+        tl = turn * 0.08 if turn else 0.0            # turning on the spot: chest / head lead the feet
         p["pel"] = (x, 0.0, z)
         p["pelr"] = (lean * 0.4, pel_side, pel_tw + leg_yaw)
-        p["sp"] = (2 + lean * 0.3, -pel_side * 0.4, twist * 0.2 * c - leg_yaw * 0.3)
-        p["spu"] = (1 + lean * 0.3, -pel_side * 0.3, twist * 0.4 * c - leg_yaw * 0.3)
-        p["ch"] = (-2 + lean * 0.2, 0.0, twist * 0.6 * c - leg_yaw * 0.25)
-        p["nk"] = (4 - lean * 0.4, 0.0, -twist * 0.3 * c - leg_yaw * 0.15)
-        p["hd"] = (-3 - lean * 0.5, 0.0, 0.0)
-        aL = -arm_amp * c; aR = arm_amp * c
-        p["aL"] = (4 + aL, -40 + arm_amp * 0.1, 0.0, 0.0); p["aR"] = (4 + aR, -40 + arm_amp * 0.1, 0.0, 0.0)
-        p["eL"] = elbow0 + elbow_amp * (0.5 + 0.5 * max(-1, min(1, aL / max(1, arm_amp))))
-        p["eR"] = elbow0 + elbow_amp * (0.5 + 0.5 * max(-1, min(1, aR / max(1, arm_amp))))
+        p["sp"] = (2 + lean * 0.3, -pel_side * 0.4, twist * 0.3 * c - leg_yaw * 0.3 + tl * 0.3)
+        p["spu"] = (1 + lean * 0.3, -pel_side * 0.3, twist * 0.5 * c - leg_yaw * 0.3 + tl * 0.4)
+        p["ch"] = (-2 + lean * 0.2, pel_side * 0.15, twist * 0.7 * c - leg_yaw * 0.25 + tl * 0.5)
+        p["nk"] = (4 - lean * 0.4, -pel_side * 0.2, -twist * 0.6 * c - leg_yaw * 0.15 + tl * 0.8)
+        p["hd"] = (-3 - lean * 0.5 + 1.5 * math.cos(2 * TAU * (t - D * 0.5)) * min(1.0, bob / 0.03), 0.0, -twist * 0.35 * c + tl * 0.6)
+        # arms: opposite to the legs, swing further forward than back; forearm and hand trail the upper arm
+        def fwd(ph): return -math.cos(TAU * ph)                 # +1 = left arm fully forward (right leg forward)
+        def asym(v): return v if v > 0 else v * 0.72
+        sL, sLe, sLw = fwd(t), fwd(t - 0.06), fwd(t - 0.12)
+        for sd, k in (("L", 1.0), ("R", -1.0)):
+            s0, se, sw = k * sL, k * sLe, k * sLw
+            p["a" + sd] = (6 + arm_amp * asym(s0), -35 + arm_amp * 0.08 + 1.5 * abs(s0), 0.0, arm_amp * 0.12 * s0)
+            p["e" + sd] = elbow0 + elbow_amp * (0.5 + 0.5 * se)
+            p["w" + sd] = (4 - 6.0 * math.sin(TAU * (t - 0.12)) * k * min(1.0, arm_amp / 20.0), 0.0, 0.0)
+            p["c" + sd] = (0.8 * math.cos(2 * TAU * (t - D * 0.5)) * min(1.0, bob / 0.03), 0.12 * arm_amp * s0)
         if elbow0 > 50:
             p["fL"] = (55.0, 35.0); p["fR"] = (55.0, 35.0)
         for sd in LR:
@@ -219,28 +228,39 @@ def build_all(rig, which=None):
     def want(n): return which is None or n in which
     # ---- idle
     if want("Idle"):
-        def idle(f, N=90):
+        def idle(f, N=180):
             t = f / N
-            br = math.sin(TAU * t)
-            p = add(BASE, spu=(1.2 * br, 0, 0), ch=(0.8 * br, 0, 0), cL=(1.2 * br, 0), cR=(1.2 * br, 0),
-                    pel=(0.006 * math.sin(TAU * t), 0, -0.003 + 0.002 * br), hd=(-0.6 * br, 0, 0), aL=(1.0 * br, 0, 0, 0), aR=(1.0 * br, 0, 0, 0))
+            br = math.sin(TAU * 3 * t)                     # three breaths per loop (2 s each)
+            ws = math.sin(TAU * t)                         # weight over the left leg, then the right
+            w2 = math.sin(TAU * 2 * t + 0.7)
+            lk = math.sin(TAU * t + 1.3); lk2 = math.sin(TAU * 2 * t + 2.1)
+            p = add(BASE, pel=(0.022 * ws, 0.0, -0.012 - 0.008 * ws * ws), pelr=(0.0, -2.2 * ws, 1.5 * w2),
+                    sp=(0.4 * br, 0.9 * ws, -0.6 * w2), spu=(1.5 * br, 0.7 * ws, -0.4 * w2), ch=(1.8 * br, 0.3 * ws, -0.3 * w2),
+                    nk=(0.8 * lk2, -0.6 * ws, 2.5 * lk), hd=(-1.2 * br + 1.0 * lk2, -0.8 * ws, 2.0 * lk),
+                    cL=(1.6 * br, 0.4 * ws), cR=(1.6 * br, -0.4 * ws),
+                    aL=(1.5 * w2, 1.0 * br, 0, 0), aR=(-1.5 * w2, 1.0 * br, 0, 0), eL=3.0 * w2, eR=-3.0 * w2,
+                    wL=(2.0 * lk2, 0, 0), wR=(-2.0 * lk2, 0, 0), fL=(3.0 * lk, 2.0 * lk), fR=(-3.0 * lk, -2.0 * lk))
             return apply(rig, p)
-        B.bake("Idle", 90, True, idle, notes="breathing, slight weight shift")
+        B.bake("Idle", 180, True, idle, notes="breathing, weight shift leg to leg, soft knees, head and hand life")
     if want("Idle_Variation"):
         N = 150
         K = [(0, P(), "smooth"), (30, P(nk=(2, 0, 25), hd=(-6, 0, 20), ch=(-2, 0, 8)), "inout"), (60, P(nk=(2, 0, 25), hd=(-6, 0, 20), ch=(-2, 0, 8)), "smooth"),
              (85, P(nk=(2, 0, -22), hd=(-2, 0, -20), ch=(-2, 0, -8)), "inout"), (105, P(nk=(8, 0, -10), hd=(6, 0, -8), aL=(10, -30, 0, 0), eL=40, wL=(20, 0, 0), cL=(4, 0)), "inout"),
              (125, P(sp=(4, 0, 0), aR=(8, -35, 0, 0)), "smooth"), (150, P(), "smooth")]
-        B.bake("Idle_Variation", N, True, lambda f: apply(rig, interp(K, f)), notes="looks left/right, rubs arm")
+        def idle_var(f):
+            t = f / N; br = math.sin(TAU * 3 * t); ws = math.sin(TAU * t)
+            return apply(rig, add(interp(K, f), pel=(0.018 * ws, 0.0, -0.012 - 0.006 * ws * ws), pelr=(0.0, -1.8 * ws, 0.0),
+                                  sp=(0.4 * br, 0.7 * ws, 0.0), spu=(1.4 * br, 0.5 * ws, 0.0), ch=(1.6 * br, 0.0, 0.0), cL=(1.4 * br, 0.0), cR=(1.4 * br, 0.0)))
+        B.bake("Idle_Variation", N, True, idle_var, notes="looks left/right, rubs arm, shifts weight")
     # ---- locomotion (speed in m/s for gameplay sync)
     loco = {
-        "Walk": dict(frames=30, D=0.56, speed=1.35, step_h=0.09, strike=14, toeoff=55, heel_off=0.4, heel_ease="smooth", lean=3, arm_amp=16, elbow0=12, elbow_amp=14, bob=0.035, sway=0.014, twist=5, roll=3, move=(0, -1), center_back=0.1),
-        "Walk_Backward": dict(frames=30, D=0.58, speed=1.05, step_h=0.07, strike=-14, toeoff=-25, heel_off=0.5, heel_ease="smooth", lean=-2, arm_amp=10, elbow0=14, elbow_amp=10, bob=0.025, sway=0.012, twist=3, roll=2, move=(0, 1), center_back=0.04),
+        "Walk": dict(frames=30, D=0.56, speed=1.35, step_h=0.09, strike=14, toeoff=55, heel_off=0.4, heel_ease="smooth", lean=3, arm_amp=24, elbow0=18, elbow_amp=24, bob=0.035, sway=0.014, twist=6, roll=3, move=(0, -1), center_back=0.1),
+        "Walk_Backward": dict(frames=30, D=0.58, speed=1.05, step_h=0.07, strike=-14, toeoff=-25, heel_off=0.5, heel_ease="smooth", lean=-2, arm_amp=14, elbow0=18, elbow_amp=12, bob=0.025, sway=0.012, twist=3, roll=2, move=(0, 1), center_back=0.04),
         "Walk_Left": dict(frames=24, D=0.56, speed=1.1, step_h=0.07, strike=0, toeoff=30, heel_off=0.5, heel_ease="smooth", lean=0, arm_amp=6, elbow0=14, elbow_amp=6, bob=0.02, sway=0.004, twist=2, roll=2, move=(1, 0), center_back=0.0, leg_yaw=50.0, track=0.06),
         "Walk_Right": dict(frames=24, D=0.56, speed=1.1, step_h=0.07, strike=0, toeoff=30, heel_off=0.5, heel_ease="smooth", lean=0, arm_amp=6, elbow0=14, elbow_amp=6, bob=0.02, sway=0.004, twist=2, roll=2, move=(-1, 0), center_back=0.0, leg_yaw=-50.0, track=0.06),
-        "Run": dict(frames=20, D=0.32, speed=3.8, step_h=0.16, strike=4, toeoff=60, heel_off=0.4, heel_ease="smooth", lean=9, arm_amp=38, elbow0=78, elbow_amp=18, bob=-0.045, sway=0.01, twist=8, roll=4, move=(0, -1), kick=0.12, center_back=0.1),
-        "Sprint": dict(frames=14, D=0.24, speed=6.2, step_h=0.2, strike=0, toeoff=70, heel_off=0.3, heel_ease="smooth", lean=15, arm_amp=55, elbow0=85, elbow_amp=15, bob=-0.05, sway=0.008, twist=10, roll=4, move=(0, -1), kick=0.22, center_back=0.1),
-        "Crouch_Walk": dict(frames=40, D=0.68, speed=0.95, step_h=0.08, strike=8, toeoff=20, lean=22, arm_amp=12, elbow0=35, elbow_amp=12, bob=0.02, sway=0.018, twist=4, roll=2, move=(0, -1), crouch=0.3),
+        "Run": dict(frames=20, D=0.32, speed=3.8, step_h=0.16, strike=4, toeoff=60, heel_off=0.4, heel_ease="smooth", lean=9, arm_amp=42, elbow0=80, elbow_amp=20, bob=-0.045, sway=0.01, twist=11, roll=4, move=(0, -1), kick=0.12, center_back=0.1),
+        "Sprint": dict(frames=14, D=0.24, speed=6.2, step_h=0.2, strike=0, toeoff=70, heel_off=0.3, heel_ease="smooth", lean=15, arm_amp=60, elbow0=86, elbow_amp=16, bob=-0.05, sway=0.008, twist=13, roll=4, move=(0, -1), kick=0.22, center_back=0.1),
+        "Crouch_Walk": dict(frames=40, D=0.68, speed=0.95, step_h=0.08, strike=8, toeoff=20, lean=22, arm_amp=14, elbow0=38, elbow_amp=14, bob=0.02, sway=0.018, twist=4, roll=2, move=(0, -1), crouch=0.3),
         "Turn_Left": dict(frames=30, D=0.6, speed=0.0, step_h=0.06, strike=0, toeoff=10, lean=1, arm_amp=6, elbow0=14, elbow_amp=6, bob=0.015, sway=0.012, twist=3, roll=2, move=(0, 0), turn=90.0),
         "Turn_Right": dict(frames=30, D=0.6, speed=0.0, step_h=0.06, strike=0, toeoff=10, lean=1, arm_amp=6, elbow0=14, elbow_amp=6, bob=0.015, sway=0.012, twist=3, roll=2, move=(0, 0), turn=-90.0),
     }
@@ -334,11 +354,12 @@ def build_all(rig, which=None):
         thrust = add(spear_ready, pel=(0, -0.1, -0.04), pelr=(6, 0, 25), sp=(6, 0, 10), ch=(4, 0, 18), aR=(45, 5, 0, 0), eR=-80, aL=(15, 5, 0, 0), eL=-25, ftL=(0, -0.06, 0, 0, 0, 0), ftR=(0, 0.0, 0, 25, 0, 25))
         K = [(0, spear_ready, "smooth"), (8, wind, "inout"), (12, thrust, "in"), (16, add(thrust, aR=(3, 0, 0, 0)), "out"), (30, spear_ready, "inout")]
         B.bake("Attack_Spear", 30, False, lambda f: apply(rig, interp(K, f)), events=[(12, "OnAttackHit", "spear_thrust")])
-    if want("_ATTACK_SPEAR_ALT") and False:
+    if want("Spear_Attack_2"):
         up = add(spear_ready, pelr=(0, 0, 10), ch=(-6, 0, 12), aR=(95, 20, 0, 0), eR=40, aL=(75, 5, 0, 0), eL=20)
         down = add(spear_ready, pel=(0, -0.08, -0.1), pelr=(14, 0, 0), sp=(14, 0, 0), ch=(8, 0, 0), aR=(40, 0, 0, 0), eR=-60, aL=(30, 0, 0, 0), eL=-20, ftR=(0, 0.0, 0, 20, 0, 20))
         K = [(0, spear_ready, "smooth"), (10, up, "inout"), (14, down, "in"), (18, add(down, sp=(2, 0, 0)), "out"), (34, spear_ready, "inout")]
-        B.bake("_ATTACK_SPEAR_ALT", 34, False, lambda f: apply(rig, interp(K, f)), events=[(14, "OnAttackHit", "spear_downstab")])
+        B.bake("Spear_Attack_2", 34, False, lambda f: apply(rig, interp(K, f)), events=[(14, "OnAttackHit", "spear_downstab")],
+               notes="combo follow-up: overhead wind-up, downward stab, recovery")
     if want("Throw_Spear"):
         aim = add(spear_ready, pelr=(-2, 0, -20), ch=(-8, 0, -20), aR=(60, 60, 0, -40), eR=90, wR=(-20, 0, 0), aL=(70, -5, 0, 20), eL=10, fL=(10, 5))
         release = add(spear_ready, pel=(0, -0.12, -0.04), pelr=(10, 0, 25), sp=(10, 0, 12), ch=(8, 0, 20), aR=(110, 20, 0, 0), eR=-40, wR=(30, 0, 0), aL=(20, -30, 0, 0), eL=30, fR=(5, 5),
@@ -481,4 +502,75 @@ def build_all(rig, which=None):
             return apply(rig, interp(IK, f))
         B.bake("Wake_Up", 180, False, wake, events=[(60, "OnWakeUp", "sit"), (146, "OnWakeUp", "stand"), (180, "OnWakeUp", "done")],
                notes="opening: lying on the back -> prop on elbow -> sit, hand to head -> kneel -> stand -> look around")
+    # ================================================================== phase 2: knife, dodge, climbing, fruit
+    if want("Knife_Attack"):
+        ready = P(pel=(0, 0.02, -0.06), pelr=(4, 0, -15), sp=(6, 0, -5), ch=(0, 0, -8), aR=(40, -10, 0, 20), eR=90, wR=(-10, 0, 0), fR=(70, 50),
+                  aL=(35, -25, 0, 20), eL=70, fL=(40, 30), ftL=(0.02, -0.12, 0, 0, 15, 0), ftR=(-0.02, 0.12, 0, 0, -25, 0))
+        wind = add(ready, pelr=(0, 0, -15), ch=(-4, 0, -15), aR=(-20, 50, 0, -40), eR=25, wR=(-25, 0, 0), aL=(10, 0, 0, 10))
+        slash = add(ready, pel=(0, -0.06, -0.03), pelr=(6, 0, 25), sp=(6, 0, 10), ch=(4, 0, 22), aR=(35, -5, 0, 70), eR=-60, wR=(25, 0, 0), aL=(-10, 0, 0, -10), ftR=(0, 0.0, 0, 20, 0, 20))
+        follow = add(slash, aR=(-4, 0, 0, 12), ch=(0, 0, 4))
+        K = [(0, ready, "smooth"), (7, wind, "inout"), (10, slash, "in"), (13, follow, "out"), (26, ready, "inout")]
+        B.bake("Knife_Attack", 26, False, lambda f: apply(rig, interp(K, f)), events=[(10, "OnAttackHit", "knife_slash")],
+               notes="anticipation (cock back), fast slash across, follow-through, recovery")
+    if want("Dodge"):
+        crouch = P(pel=(0, 0.02, -0.12), pelr=(10, 0, 0), sp=(8, 0, 0), aL=(20, -30, 0, 0), aR=(20, -30, 0, 0), eL=40, eR=40)
+        air = P(pel=(0, 0.06, 0.02), pelr=(-8, 0, 0), sp=(-6, 0, 0), ch=(-4, 0, 0), aL=(35, -10, 0, 0), aR=(35, -10, 0, 0), eL=50, eR=50,
+                ftL=(0, -0.1, 0.12, -10, 0, 0), ftR=(0, 0.05, 0.08, -5, 0, 0))
+        land = P(pel=(0, 0.04, -0.16), pelr=(12, 0, 0), sp=(10, 0, 0), aL=(25, -25, 0, 0), aR=(25, -25, 0, 0), eL=40, eR=40,
+                 ftL=(0, -0.08, 0, 0, 0, 0), ftR=(0, 0.1, 0, 15, 0, 15))
+        K = [(0, P(), "smooth"), (4, crouch, "out"), (8, air, "inout"), (13, land, "in"), (22, P(), "inout")]
+        B.bake("Dodge", 22, False, lambda f: apply(rig, interp(K, f)), events=[(4, "OnDodge", "start"), (13, "OnFootstep", "L")],
+               notes="short hop back: crouch, push, air, land; the motor moves the body (burst)")
+    # ---- climbing (facing the trunk, the body is moved along the trunk by code; legs in FK, no ground snap)
+    def grip_pose(t=0.0, reachR=0.0, pullL=0.0, legL=0.0):
+        """t: breathing phase; reachR / pullL / legL in -1..1 move one arm up and the other down, one leg up"""
+        return P(fk=1.0, pel=(0, 0.02, 0.0), pelr=(6, 0, 0), sp=(8, 0, 0), spu=(4 + 1.0 * math.sin(TAU * t), 0, 0), ch=(2, 0, 0), nk=(-6, 0, 0), hd=(-14, 0, 0),
+                 aR=(116 + 20 * reachR, 4, 0, 52 - 10 * reachR), eR=88 - 34 * reachR, wR=(24, 0, 0), fR=(80, 60),
+                 aL=(116 + 20 * pullL, 4, 0, 52 - 10 * pullL), eL=88 - 34 * pullL, wL=(24, 0, 0), fL=(80, 60),
+                 cR=(5 + 5 * reachR, 6), cL=(5 + 5 * pullL, 6),
+                 lL=(70 + 20 * legL, 26, 100 + 16 * legL, 22), lR=(70 - 20 * legL, 26, 100 - 16 * legL, 22))
+    def no_ground(fn): fn.ground = False; return fn
+    if want("Climb_Idle"):
+        B.bake("Climb_Idle", 60, True, no_ground(lambda f: apply(rig, grip_pose(f / 60.0))), notes="hanging on the trunk, breathing")
+    def climb_cycle(f, N, direction):
+        t = (f / N) if direction > 0 else 1.0 - f / N
+        s = math.sin(TAU * t)
+        p = grip_pose(t, reachR=s, pullL=-s, legL=-s)
+        p["pel"] = (0.0, 0.02, 0.03 * math.cos(2 * TAU * t)); p["pelr"] = (6, 2.5 * s, 3 * s); p["hd"] = (-14, 0, -4 * s)
+        return apply(rig, p)
+    if want("Climb_Up"):
+        B.bake("Climb_Up", 36, True, no_ground(lambda f: climb_cycle(f, 36, 1)), speed=0.6,
+               events=[(9, "OnClimbStep", "R"), (27, "OnClimbStep", "L")], notes="in place; the body moves up at speed m/s")
+    if want("Climb_Down"):
+        B.bake("Climb_Down", 36, True, no_ground(lambda f: climb_cycle(f, 36, -1)), speed=-0.5,
+               events=[(9, "OnClimbStep", "L"), (27, "OnClimbStep", "R")], notes="in place; the body moves down at speed m/s")
+    if want("Climb_Start"):
+        reach = P(pel=(0, -0.02, -0.14), pelr=(8, 0, 0), sp=(6, 0, 0), hd=(-18, 0, 0), aR=(150, 10, 0, 15), eR=35, aL=(140, 10, 0, 15), eL=45, fR=(40, 30), fL=(40, 30))
+        def start(f):
+            if f <= 12: return apply(rig, interp([(0, P(), "smooth"), (12, reach, "inout")], f))
+            k = ease((f - 12) / 12.0, "inout"); g = grip_pose(0.0)
+            p = {kk: lerp(reach[kk], g[kk], k) for kk in g}; p["fk"] = 1.0 if k > 0.3 else 0.0
+            return apply(rig, p)
+        start.ground = False
+        B.bake("Climb_Start", 24, False, start, events=[(12, "OnClimbGrab", "")], notes="reach up, jump onto the trunk (code lifts the body)")
+    if want("Climb_End"):
+        crouch = P(pel=(0, 0.04, -0.2), pelr=(14, 0, 0), sp=(12, 0, 0), aL=(25, -25, 0, 0), aR=(25, -25, 0, 0), eL=45, eR=45, ftL=(0, -0.05, 0, 0, 0, 0), ftR=(0, 0.08, 0, 10, 0, 10))
+        def end(f):
+            if f <= 10:
+                k = ease(f / 10.0); g = grip_pose(0.0)
+                drop = dict(g); drop["aR"] = (100, 0, 0, 10); drop["aL"] = (100, 0, 0, 10); drop["eR"] = 40; drop["eL"] = 40; drop["lL"] = (30, 10, 40, 10); drop["lR"] = (30, 10, 40, 10)
+                return apply(rig, {kk: lerp(g[kk], drop[kk], k) for kk in g})
+            return apply(rig, interp([(10, crouch, "out"), (16, crouch, "smooth"), (28, P(), "inout")], f))
+        end.ground = False
+        B.bake("Climb_End", 28, False, end, events=[(10, "OnLand", "")], notes="let go, drop and land (code lowers the body to the ground)")
+    if want("Harvest_Fruit"):
+        def harvest(f, N=44):
+            g = grip_pose(f / N)
+            reach = dict(g); reach["aR"] = (125, 35, 0, 5); reach["eR"] = 18; reach["wR"] = (-10, 0, 0); reach["fR"] = (10, 10); reach["hd"] = (-24, 0, -20); reach["nk"] = (-8, 0, -15)
+            grab = dict(reach); grab["fR"] = (70, 50)
+            back = dict(g); back["aR"] = (70, -10, 0, 30); back["eR"] = 115; back["fR"] = (70, 50); back["hd"] = (-6, 0, 0)
+            K = [(0, g, "smooth"), (14, reach, "inout"), (20, grab, "smooth"), (32, back, "inout"), (44, g, "inout")]
+            return apply(rig, interp(K, f))
+        harvest.ground = False
+        B.bake("Harvest_Fruit", 44, False, harvest, events=[(22, "OnHarvest", "fruit")], notes="one hand holds the trunk, the other reaches out, picks, brings it in")
     return B

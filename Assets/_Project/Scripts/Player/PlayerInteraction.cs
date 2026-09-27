@@ -43,8 +43,10 @@ namespace PrimalFrontier.Player
         public static void Notify(string msg) => Message?.Invoke(msg);
         /// <summary>world systems that are not in the Interactable list (terrain trees, ocean)</summary>
         public static readonly System.Collections.Generic.List<Func<PlayerInteraction, Interactable>> ExtraProviders = new System.Collections.Generic.List<Func<PlayerInteraction, Interactable>>();
-        /// <summary>true while a menu / build mode owns the input</summary>
+        /// <summary>true while a menu / build mode / climbing owns the input</summary>
         public bool Suspended { get; set; }
+        /// <summary>while suspended, a system that owns the player (climbing) can still show its own prompt</summary>
+        public Func<(string prompt, string sub)> ExternalPrompt;
 
         class RunningAction
         {
@@ -92,7 +94,12 @@ namespace PrimalFrontier.Player
             bool dead = Health && Health.IsDead;
             UpdateAction();
             UpdateCraftAnimation();
-            if (dead || Suspended || _in == null) { ClearPrompt(); return; }
+            if (dead || Suspended || _in == null)
+            {
+                if (!dead && Suspended && ExternalPrompt != null) { var (pr, sb) = ExternalPrompt(); Prompt = pr; PromptSub = sb; PromptEnabled = pr != null; HoldLabel = null; HoldProgress = 0f; }
+                else ClearPrompt();
+                return;
+            }
 
             // hotbar
             if (_in.HotbarPressed >= 0) Inventory.SetActiveSlot(_in.HotbarPressed);
@@ -279,9 +286,11 @@ namespace PrimalFrontier.Player
                 return DoOneShot(PlayerActions.Drink, "OnDrink", () =>
                 {
                     var s = Inventory.Get(slot); if (s == null || s.item != item || s.water <= 0) return;
-                    s.water--; Inventory.ForceNotify();
+                    bool dirty = s.dirty;
+                    s.water--; if (s.water <= 0) s.dirty = false; Inventory.ForceNotify();
                     Survival.Consume(0f, 30f, 0f, 5f);
-                    GameEvents.Raise(GameEventType.Drank, item.id, 1, transform.position);
+                    if (dirty && UnityEngine.Random.value < WaterSource.DirtySickChance) Survival.MakeSick(60f, "Your stomach cramps. That water should have been boiled.");
+                    GameEvents.Raise(GameEventType.Drank, dirty ? "dirty_water" : "clean_water", 1, transform.position);
                 }, null, 2.0f);
             }
             if (item.IsFood) return Eat(item);

@@ -20,6 +20,10 @@ namespace PrimalFrontier.Player
         public event Action Died, Revived;
 
         float _bleedUntil; bool _wasBleeding;
+        /// <summary>no damage from hits until this time (dodge window)</summary>
+        public float InvulnerableUntil { get; set; }
+        public bool Invulnerable => Time.time < InvulnerableUntil;
+        public event Action<Vector3> Evaded;
 
         void Awake() { Health = maxHealth; }
 
@@ -33,6 +37,7 @@ namespace PrimalFrontier.Player
         public void TakeDamage(float amount, Vector3 source, bool heavy = false, float bleedSeconds = 0f)
         {
             if (IsDead || amount <= 0f) return;
+            if (Invulnerable) { Evaded?.Invoke(source); return; }         // dodged
             ApplyRaw(amount);
             if (bleedSeconds > 0f) _bleedUntil = Mathf.Max(_bleedUntil, Time.time + bleedSeconds);
             Damaged?.Invoke(amount, source, heavy);

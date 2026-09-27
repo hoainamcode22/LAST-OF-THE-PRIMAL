@@ -27,6 +27,7 @@ namespace PrimalFrontier.Animation
         public static readonly int UpperBody = Animator.StringToHash("UpperBody");         // int 0 none, 1 carry, 2 bow idle, 3 bow draw, 4 bow release
         public static readonly int HealthState = Animator.StringToHash("HealthState");     // int (PlayerHealthStates)
         public static readonly int TurnSpeed = Animator.StringToHash("TurnSpeed");         // deg/s, + = left (turn in place)
+        public static readonly int IdleVariant = Animator.StringToHash("IdleVariant");     // trigger: play Idle_Variation once
         // dinosaur
         public static readonly int Alert = Animator.StringToHash("Alert");                 // bool
     }
@@ -36,9 +37,11 @@ namespace PrimalFrontier.Animation
     {
         public const int None = 0, Pickup = 1, GatherWood = 2, GatherStone = 3, GatherPlant = 4, Interact = 5, Craft = 6, Eat = 7, Drink = 8,
             Build = 9, UseItem = 10, Sleep = 11, WakeUp = 12, GetUp = 13,
-            AttackSpear = 20, AttackSpearHeavy = 21, ThrowSpear = 22,
+            AttackSpear = 20, AttackSpearHeavy = 21, ThrowSpear = 22, SpearAttack2 = 23, KnifeAttack = 24,
+            Dodge = 25,
             BowAim = 30, BowDraw = 31, BowRelease = 32, CarryItem = 40;
         public static bool IsLooping(int a) => a == GatherWood || a == GatherStone || a == GatherPlant || a == Craft || a == Build || a == Sleep;
+        public static bool IsAttack(int a) => a >= AttackSpear && a <= KnifeAttack;
         public static bool IsUpperBody(int a) => a >= BowAim && a <= CarryItem;
     }
 

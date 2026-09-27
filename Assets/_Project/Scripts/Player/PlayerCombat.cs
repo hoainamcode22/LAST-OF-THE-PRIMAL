@@ -10,9 +10,10 @@ using PrimalFrontier.VFX;
 namespace PrimalFrontier.Player
 {
     /// <summary>
-    /// Primary / aim buttons with the active item: spear thrust (tap), heavy thrust (hold), throw (aim + attack),
-    /// bow (aim, hold to draw, release to shoot), melee with stone tools, eat / drink / place otherwise.
-    /// Damage is applied on the clip's hit event; stamina, timing and distance matter.
+    /// Primary / aim buttons with the active item: spear thrust (tap), a second tap inside the combo window chains the
+    /// overhead stab (Spear_Attack_2), heavy thrust (hold), throw (aim + attack), bow (aim, hold to draw, release),
+    /// knife / stone tools slash (Knife_Attack), dodge (V / pad north / touch button: short hop back with a brief
+    /// invulnerable window). Damage is applied once, on the clip's hit event; stamina, timing and distance matter.
     /// </summary>
     public class PlayerCombat : MonoBehaviour
     {
@@ -20,12 +21,23 @@ namespace PrimalFrontier.Player
         public float spearReach = 2.1f, heavyReach = 2.4f;
         public float throwSpeed = 22f, arrowSpeed = 38f;
         public float bowFullDraw = 0.9f;
+        [Header("Combo / knife")]
+        [Tooltip("a second tap this soon after the first thrust starts chains the overhead stab")] public float comboWindow = 1.0f;
+        public float knifeReach = 1.35f;
+        [Header("Dodge")]
+        public float dodgeSpeed = 5.2f, dodgeTime = 0.32f, dodgeStamina = 14f, dodgeCooldown = 0.55f;
+        [Tooltip("seconds after the start of the dodge during which hits miss")] public Vector2 dodgeInvulnerable = new Vector2(0.04f, 0.34f);
 
         PlayerInputReader _in; PlayerAnimationDriver _drv; PlayerMotor _motor; PlayerInteraction _pi; PlayerSurvival _sv;
         InventorySystem _inv; PlayerEquipment _eq; ThirdPersonCamera _cam; CharacterAnimationEvents _ev;
         float _pressT = -1f; bool _heavyFired; float _drawStart = -1f; bool _aimingBow;
-        int _pendingAttack; ItemDefinition _attackItem;
+        int _pendingAttack; ItemDefinition _attackItem; int _pendingAnim;
+        float _lastThrust = -10f; int _comboStep; float _nextDodge;
+        PlayerHealth _hp;
         public bool Aiming { get; private set; }
+        /// <summary>fighting right now (struck or was hit in the last few seconds): the camera tightens a little</summary>
+        public bool InCombat => Time.time - _lastCombat < 4f;
+        float _lastCombat = -99f;
         public float DrawProgress => _drawStart < 0 ? 0f : Mathf.Clamp01((Time.time - _drawStart) / bowFullDraw);
         /// <summary>Build mode takes over the buttons (set by BuildSystem)</summary>
         public System.Func<bool> PrimaryBlocked = () => false;
@@ -34,7 +46,7 @@ namespace PrimalFrontier.Player
         {
             _drv = GetComponent<PlayerAnimationDriver>(); _motor = GetComponent<PlayerMotor>(); _pi = GetComponent<PlayerInteraction>();
             _sv = GetComponent<PlayerSurvival>(); _inv = GetComponent<InventorySystem>(); _eq = GetComponent<PlayerEquipment>();
-            _ev = GetComponentInChildren<CharacterAnimationEvents>();
+            _ev = GetComponentInChildren<CharacterAnimationEvents>(); _hp = GetComponent<PlayerHealth>();
         }
         void OnEnable() { if (_ev) _ev.AnimationEventRaised += OnAnimEvent; }
         void OnDisable() { if (_ev) _ev.AnimationEventRaised -= OnAnimEvent; }
@@ -46,6 +58,7 @@ namespace PrimalFrontier.Player
             if (_in == null || _drv == null || _drv.IsDead || (_pi && (_pi.Suspended || _pi.InAction)) || PrimaryBlocked()) { SetAim(false); _pressT = -1f; return; }
             var item = _inv ? _inv.ActiveItem : null;
             var weapon = item ? item.weapon : WeaponKind.None;
+            if (_in.DodgePressed) TryDodge();
 
             // aiming: spear (to throw) and bow
             bool wantAim = _in.Aim && (weapon == WeaponKind.Spear || weapon == WeaponKind.Bow);
@@ -65,7 +78,33 @@ namespace PrimalFrontier.Player
             if (item == null) return;
             if (item.IsFood || item.IsWaterContainer) { _pi.UseActiveConsumable(); return; }
             if (item.IsPlaceable) { Building.BuildSystem.Instance?.Begin(item); return; }
-            if (item.damage > 0f) Melee(item, false);                     // stone tools strike (weak)
+            if (item.damage > 0f) Melee(item, false);                     // knife / stone tools slash
+        }
+
+        // ------------------------------------------------------------------ dodge
+        public bool TryDodge()
+        {
+            if (Time.time < _nextDodge || _drv.IsDead || (_motor && !_motor.IsGrounded)) return false;
+            if (_drv.IsBusy && !_drv.IsAttackingState) return false;                   // not out of eating / crafting
+            if (_sv && _sv.Stamina < dodgeStamina * 0.6f) { PlayerInteraction.Notify("Too tired to dodge."); return false; }
+            _sv?.UseStamina(dodgeStamina);
+            _nextDodge = Time.time + dodgeCooldown;
+            Vector3 dir = -transform.forward;                                          // hop back; sideways with a stick push
+            var mv = _in.Move;
+            if (mv.sqrMagnitude > 0.2f && _motor && _motor.CameraTransform)
+            {
+                Vector3 f = Vector3.ProjectOnPlane(_motor.CameraTransform.forward, Vector3.up).normalized, r = Vector3.Cross(Vector3.up, f);
+                Vector3 want = (f * mv.y + r * mv.x).normalized;
+                if (Vector3.Dot(want, transform.forward) < 0.5f) dir = want;           // pushing forward still hops back (keeps facing the threat)
+            }
+            _pendingAttack = 0;
+            _drv.PlayAction(PlayerActions.Dodge);
+            _motor?.Burst(dir * dodgeSpeed, dodgeTime);
+            if (_hp) _hp.InvulnerableUntil = Time.time + dodgeInvulnerable.y;
+            VfxPool.Instance.Play(VfxId.LandDust, transform.position, Vector3.up);
+            SfxPlayer.Instance.Play(SfxId.FootDirt, transform.position, 0.9f);
+            GameEvents.Raise(GameEventType.PlayerDodged, "dodge", 1, transform.position);
+            return true;
         }
 
         void SetAim(bool on)
@@ -80,14 +119,24 @@ namespace PrimalFrontier.Player
         }
 
         // ------------------------------------------------------------------ melee
+        /// <summary>which clip a strike uses: spear thrust / combo stab / heavy lunge, or the one-hand slash for knives and tools</summary>
+        int AttackAnim(ItemDefinition item, bool heavy)
+        {
+            if (item.weapon != WeaponKind.Spear) return PlayerActions.KnifeAttack;
+            if (heavy) { _comboStep = 0; return PlayerActions.AttackSpearHeavy; }
+            bool chain = _comboStep == 1 && Time.time - _lastThrust < comboWindow;
+            _comboStep = chain ? 2 : 1; _lastThrust = Time.time;
+            return chain ? PlayerActions.SpearAttack2 : PlayerActions.AttackSpear;
+        }
+
         void Melee(ItemDefinition item, bool heavy)
         {
-            if (_drv.IsBusy) { _drv.Attack(heavy ? PlayerActions.AttackSpearHeavy : PlayerActions.AttackSpear); _pendingAttack = heavy ? 2 : 1; _attackItem = item; return; }
             float cost = item.staminaCost * (heavy ? 1.8f : 1f);
             if (_sv && _sv.Stamina < cost * 0.5f) { PlayerInteraction.Notify("Too tired to strike."); return; }
+            int anim = AttackAnim(item, heavy);
             _sv?.UseStamina(cost);
-            _pendingAttack = heavy ? 2 : 1; _attackItem = item;
-            _drv.Attack(heavy ? PlayerActions.AttackSpearHeavy : PlayerActions.AttackSpear);
+            _pendingAttack = heavy ? 2 : 1; _attackItem = item; _pendingAnim = anim; _lastCombat = Time.time;
+            _drv.Attack(anim);                                   // buffered by the driver while the previous swing finishes
         }
 
         void OnAnimEvent(string fn, string param)
@@ -99,7 +148,8 @@ namespace PrimalFrontier.Player
         {
             if (item == null) return;
             float reach = heavy ? heavyReach : spearReach;
-            if (item.weapon != WeaponKind.Spear) reach = 1.5f;
+            if (item.weapon != WeaponKind.Spear) reach = knifeReach;
+            bool combo = _pendingAnim == PlayerActions.SpearAttack2;
             Vector3 origin = transform.position + Vector3.up * 1.1f;
             Vector3 fwd = transform.forward;
             var hits = Physics.OverlapSphere(origin + fwd * reach * 0.6f, reach * 0.55f, ~LayerMask.GetMask("Player"), QueryTriggerInteraction.Collide);
@@ -114,7 +164,8 @@ namespace PrimalFrontier.Player
             var zone = bestC.GetComponent<HitZone>();
             float mult = zone ? zone.DamageMultiplier : 1f;
             Vector3 pt = bestC.ClosestPoint(origin + fwd * 0.5f);
-            best.TakeHit(new HitInfo { damage = (heavy ? item.heavyDamage : item.damage) * mult, point = pt, direction = fwd, attacker = gameObject, weapon = item.weapon, heavy = heavy, zoneMultiplier = mult });
+            float dmg = (heavy ? item.heavyDamage : item.damage * (combo ? 1.25f : 1f)) * mult;
+            best.TakeHit(new HitInfo { damage = dmg, point = pt, direction = combo ? Vector3.down * 0.5f + fwd : fwd, attacker = gameObject, weapon = item.weapon, heavy = heavy || combo, zoneMultiplier = mult });
             VfxPool.Instance.Play(VfxId.SpearImpact, pt, -fwd);
             SfxPlayer.Instance.Play(SfxId.SpearImpact, pt);
             if (_cam) _cam.AddShake(heavy ? 0.06f : 0.03f, 0.12f);

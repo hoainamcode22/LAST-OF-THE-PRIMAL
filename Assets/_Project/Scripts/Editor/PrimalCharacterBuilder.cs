@@ -107,6 +107,7 @@ namespace PrimalFrontier.EditorTools
         [MenuItem("Primal Frontier/Advanced (overwrites hand edits)/Re-import Player Model + Test", priority = 110)]
         public static void MenuPlayer() { if (PrimalSceneBaker.ConfirmRegenerate("The player model prefab (from the Blender export)")) BuildAndTest("Player"); }
 
+        [PrimalBridgeCommand]
         public static bool BuildAndTest(string id)
         {
             Log.Clear(); _fails = 0;
@@ -384,7 +385,8 @@ namespace PrimalFrontier.EditorTools
                 ("Speed", AnimatorControllerParameterType.Float), ("IsGrounded", AnimatorControllerParameterType.Bool),
                 ("VerticalVelocity", AnimatorControllerParameterType.Float), ("IsCrouching", AnimatorControllerParameterType.Bool),
                 ("IsAttacking", AnimatorControllerParameterType.Bool), ("Action", AnimatorControllerParameterType.Int),
-                ("HealthState", AnimatorControllerParameterType.Int), ("TurnSpeed", AnimatorControllerParameterType.Float) })
+                ("HealthState", AnimatorControllerParameterType.Int), ("TurnSpeed", AnimatorControllerParameterType.Float),
+                ("IdleVariant", AnimatorControllerParameterType.Trigger) })
                 ac.AddParameter(n, t);
             var p = ac.parameters; foreach (var x in p) if (x.name == "IsGrounded") x.defaultBool = true; ac.parameters = p;
             var sm = ac.layers[0].stateMachine;
@@ -393,12 +395,19 @@ namespace PrimalFrontier.EditorTools
             bt.blendType = BlendTreeType.Simple1D; bt.blendParameter = "Speed"; bt.useAutomaticThresholds = false;
             bt.AddChild(Clip(clips, "Idle"), 0f); bt.AddChild(Clip(clips, "Walk"), 1.35f); bt.AddChild(Clip(clips, "Run"), 3.8f); bt.AddChild(Clip(clips, "Sprint"), 6.2f);
             sm.defaultState = loco;
+            loco.iKOnFeet = true;                        // humanoid foot IK: planted feet stay where the clip put them
+            // idle life: the driver fires IdleVariant after standing still for a while
+            var idleVar = sm.AddState("Idle_Variation"); idleVar.motion = Clip(clips, "Idle_Variation"); idleVar.iKOnFeet = true;
+            var tiv = T(loco, idleVar, 0.4f); tiv.AddCondition(AnimatorConditionMode.If, 0, "IdleVariant"); tiv.AddCondition(AnimatorConditionMode.Less, 0.05f, "Speed");
+            T(idleVar, loco, 0.5f, true, 0.92f);
+            T(idleVar, loco, 0.2f).AddCondition(AnimatorConditionMode.Greater, 0.1f, "Speed");
             var crouch = ac.CreateBlendTreeInController("Crouch", out var ct, 0);
             ct.blendType = BlendTreeType.Simple1D; ct.blendParameter = "Speed"; ct.useAutomaticThresholds = false;
             ct.AddChild(Clip(clips, "Crouch"), 0f); ct.AddChild(Clip(clips, "Crouch_Walk"), 0.95f);
             var turn = ac.CreateBlendTreeInController("TurnInPlace", out var tt, 0);
             tt.blendType = BlendTreeType.Simple1D; tt.blendParameter = "TurnSpeed"; tt.useAutomaticThresholds = false;
             tt.AddChild(Clip(clips, "Turn_Right"), -90f); tt.AddChild(Clip(clips, "Idle"), 0f); tt.AddChild(Clip(clips, "Turn_Left"), 90f);
+            crouch.iKOnFeet = true;
             T(loco, crouch, 0.25f).AddCondition(AnimatorConditionMode.If, 0, "IsCrouching");
             T(crouch, loco, 0.25f).AddCondition(AnimatorConditionMode.IfNot, 0, "IsCrouching");
             foreach (var sign in new[] { 1, -1 })
@@ -412,7 +421,7 @@ namespace PrimalFrontier.EditorTools
             var jump = sm.AddState("Jump"); jump.motion = Clip(clips, "Jump");
             var fall = sm.AddState("Fall"); fall.motion = Clip(clips, "Fall");
             var land = sm.AddState("Land"); land.motion = Clip(clips, "Land");
-            foreach (var from in new[] { loco, crouch, turn })
+            foreach (var from in new[] { loco, crouch, turn, idleVar })
             {
                 var tj = T(from, jump, 0.1f); tj.AddCondition(AnimatorConditionMode.IfNot, 0, "IsGrounded"); tj.AddCondition(AnimatorConditionMode.Greater, 1.0f, "VerticalVelocity");
                 var tf = T(from, fall, 0.25f); tf.AddCondition(AnimatorConditionMode.IfNot, 0, "IsGrounded"); tf.AddCondition(AnimatorConditionMode.Less, -3f, "VerticalVelocity");
@@ -430,7 +439,7 @@ namespace PrimalFrontier.EditorTools
             foreach (var (id, clipName, loop) in actions)
             {
                 var s = sm.AddState(clipName); s.motion = Clip(clips, clipName); s.tag = "Action"; actionStates[id] = s;
-                foreach (var from in new[] { loco, crouch, turn })
+                foreach (var from in new[] { loco, crouch, turn, idleVar })
                     T(from, s, 0.2f).AddCondition(AnimatorConditionMode.Equals, id, "Action");
                 if (loop && id != PA.Sleep) T(s, loco, 0.3f).AddCondition(AnimatorConditionMode.NotEqual, id, "Action");
                 else if (!loop) T(s, loco, 0.25f, true, 0.94f);
@@ -440,15 +449,29 @@ namespace PrimalFrontier.EditorTools
             var uncon = sm.AddState("Unconscious"); uncon.motion = Clip(clips, "Wake_Up"); uncon.speed = 0f; uncon.tag = "Action";
             T(uncon, actionStates[PA.WakeUp], 0.05f).AddCondition(AnimatorConditionMode.Equals, PA.WakeUp, "Action");
             // attacks: IsAttacking + Action id
-            foreach (var (id, clipName) in new (int, string)[] { (PA.AttackSpear, "Attack_Spear"), (PA.AttackSpearHeavy, "Attack_Spear_Heavy"), (PA.ThrowSpear, "Throw_Spear") })
+            foreach (var (id, clipName) in new (int, string)[] { (PA.AttackSpear, "Attack_Spear"), (PA.AttackSpearHeavy, "Attack_Spear_Heavy"), (PA.ThrowSpear, "Throw_Spear"),
+                                                                 (PA.SpearAttack2, "Spear_Attack_2"), (PA.KnifeAttack, "Knife_Attack") })
             {
                 var s = sm.AddState(clipName); s.motion = Clip(clips, clipName); s.tag = "Attack";
-                foreach (var from in new[] { loco, crouch, turn })
+                foreach (var from in new[] { loco, crouch, turn, idleVar })
                 {
                     var tin = T(from, s, 0.1f); tin.AddCondition(AnimatorConditionMode.If, 0, "IsAttacking"); tin.AddCondition(AnimatorConditionMode.Equals, id, "Action");
                 }
                 T(s, loco, 0.2f, true, 0.9f);
             }
+            // dodge: from anywhere (also cancels an attack's recovery), short blends
+            var dodge = sm.AddState("Dodge"); dodge.motion = Clip(clips, "Dodge"); dodge.tag = "Action";
+            var ad0 = sm.AddAnyStateTransition(dodge); ad0.duration = 0.06f; ad0.canTransitionToSelf = false; ad0.AddCondition(AnimatorConditionMode.Equals, PA.Dodge, "Action");
+            T(dodge, loco, 0.15f, true, 0.9f);
+            // climbing: driven by PlayerClimb (CrossFade), tag Climb; start / pick / end hand over by exit time
+            var climbStates = new Dictionary<string, AnimatorState>();
+            foreach (var cn in new[] { "Climb_Start", "Climb_Idle", "Climb_Up", "Climb_Down", "Harvest_Fruit", "Climb_End" })
+            {
+                var s = sm.AddState(cn); s.motion = Clip(clips, cn); s.tag = cn == "Climb_End" ? "ClimbEnd" : "Climb"; climbStates[cn] = s;
+            }
+            T(climbStates["Climb_Start"], climbStates["Climb_Idle"], 0.2f, true, 0.95f);
+            T(climbStates["Harvest_Fruit"], climbStates["Climb_Idle"], 0.25f, true, 0.95f);
+            T(climbStates["Climb_End"], loco, 0.2f, true, 0.9f);
             // health: HealthState 1 = light hit, 2 = heavy hit (pulses, reset by gameplay), 3 = dead, back to 0 on respawn
             var hurt = sm.AddState("Hurt"); hurt.motion = Clip(clips, "Hurt"); hurt.tag = "Hurt";
             var hurtH = sm.AddState("Hurt_Heavy"); hurtH.motion = Clip(clips, "Hurt_Heavy"); hurtH.tag = "Hurt";
@@ -482,8 +505,10 @@ namespace PrimalFrontier.EditorTools
                 var o2 = s.AddTransition(empty); o2.duration = 0.25f; o2.AddCondition(AnimatorConditionMode.Greater, PA.CarryItem, "Action");
                 var o3 = s.AddTransition(empty); o3.duration = 0.25f; o3.AddCondition(AnimatorConditionMode.Greater, PA.BowRelease, "Action"); o3.AddCondition(AnimatorConditionMode.Less, PA.CarryItem, "Action");
             }
+            // IK pass on the base layer: PlayerIK places the feet on the ground, turns the head, leans into turns
+            var ls = ac.layers; ls[0].iKPass = true; ac.layers = ls;
             EditorUtility.SetDirty(ac);
-            L($"Controller: {path} (states: {sm.states.Length} base + {usm.states.Length} upper body, params {ac.parameters.Length})");
+            L($"Controller: {path} (states: {sm.states.Length} base + {usm.states.Length} upper body, params {ac.parameters.Length}, IK pass on)");
             return ac;
         }
     }

@@ -26,7 +26,9 @@ namespace PrimalFrontier.Player
         public float acceleration = 10f;
         public float deceleration = 14f;
         [Range(0, 1)] public float airControl = 0.25f;
-        public float turnSpeed = 600f;           // deg/s towards the move direction
+        public float turnSpeed = 600f;           // deg/s towards the move direction (max)
+        [Tooltip("seconds to settle on a new heading: the body swings round and eases in / out instead of snapping")]
+        public float turnSmoothTime = 0.09f;
         public float gravity = -22f;
         public float jumpHeight = 0.95f;
         public float coyoteTime = 0.12f;
@@ -58,7 +60,11 @@ namespace PrimalFrontier.Player
         public event System.Action Jumped;
         public event System.Action<float> Landed;                  // impact speed (m/s)
 
-        Vector3 _vel; float _vy; float _lastGrounded; float _jumpQueued = -1f; float _prevYaw;
+        Vector3 _vel; float _vy; float _lastGrounded; float _jumpQueued = -1f; float _prevYaw; float _yawVel;
+        Vector3 _burst; float _burstUntil, _burstDur;
+        /// <summary>short forced movement (dodge): velocity eases out over the duration, input and CanMove ignored</summary>
+        public void Burst(Vector3 velocity, float seconds) { velocity.y = 0f; _burst = velocity; _burstDur = Mathf.Max(0.05f, seconds); _burstUntil = Time.time + _burstDur; }
+        public bool Bursting => Time.time < _burstUntil;
         PlayerInputReader _in;
 
         void Awake()
@@ -115,6 +121,7 @@ namespace PrimalFrontier.Player
                 planar += down * slideSpeed * dt * 10f; planar = Vector3.ClampMagnitude(planar, Mathf.Max(top, slideSpeed));
             }
             _vel = new Vector3(planar.x, 0, planar.z);
+            if (Bursting) { float k = (_burstUntil - Time.time) / _burstDur; _vel = _burst * (0.3f + 0.7f * k * k); }
 
             // gravity / jump
             if (_in != null && CanMove && _in.JumpPressed) _jumpQueued = Time.time;
@@ -149,12 +156,15 @@ namespace PrimalFrontier.Player
 
             // facing
             Vector3 face = AimMode ? fwd : new Vector3(_vel.x, 0, _vel.z);
-            if (face.sqrMagnitude > 0.04f || AimMode)
+            if ((face.sqrMagnitude > 0.04f || AimMode) && !Bursting)
             {
                 var want = Quaternion.LookRotation(face.sqrMagnitude > 1e-4f ? face.normalized : transform.forward, Vector3.up);
                 float ts = IsSprinting ? turnSpeed * 0.75f : turnSpeed;
-                transform.rotation = Quaternion.RotateTowards(transform.rotation, want, ts * dt);
+                float smooth = AimMode ? 0.03f : turnSmoothTime * (IsSprinting ? 1.5f : 1f);
+                float y = Mathf.SmoothDampAngle(transform.eulerAngles.y, want.eulerAngles.y, ref _yawVel, smooth, ts, dt);
+                transform.rotation = Quaternion.Euler(0f, y, 0f);
             }
+            else _yawVel = 0f;
             float yaw = transform.eulerAngles.y;
             TurnRate = Mathf.Lerp(TurnRate, -Mathf.DeltaAngle(_prevYaw, yaw) / dt, 1f - Mathf.Exp(-10f * dt));
             _prevYaw = yaw;

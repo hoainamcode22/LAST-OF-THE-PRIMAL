@@ -8,7 +8,15 @@ namespace PrimalFrontier.World
     /// Anything the player can use with the interact key. Registered in a static list (no physics queries);
     /// PlayerInteraction picks the best one in front of the player and shows its prompt.
     /// </summary>
-    public abstract class Interactable : MonoBehaviour
+    /// <summary>the one interaction contract (water, trees, resources, fires, storage, shelters, climbable trees, wreck)</summary>
+    public interface IInteractable
+    {
+        string GetPrompt(PlayerInteraction p, out string sub);
+        bool CanInteract(PlayerInteraction p);
+        void Interact(PlayerInteraction p);
+    }
+
+    public abstract class Interactable : MonoBehaviour, IInteractable
     {
         public static readonly List<Interactable> Active = new List<Interactable>(256);
 

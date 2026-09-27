@@ -36,6 +36,13 @@ namespace PrimalFrontier.Player
         public bool InputEnabled { get; set; } = true;
 
         Camera _cam; Vector3 _pivotVel; Vector3 _pivot; float _curDist; float _blend;
+        [Header("Situations (extra distance m, pitch bias deg)")]
+        public Vector2 climbOffset = new Vector2(0.8f, -8f);
+        public Vector2 buildOffset = new Vector2(1.2f, 10f);
+        public Vector2 combatOffset = new Vector2(-0.35f, 0f);
+        /// <summary>manual extra offset (cinematics), added to the automatic ones</summary>
+        public Vector2 ModeOffset { get; set; }
+        Vector2 _mode; PlayerClimb _climb; PlayerCombat _combat;
         float _shakeAmp, _shakeTime, _shakeDur;
 
         /// <summary>short, damped positional shake (hits, heavy footsteps nearby)</summary>
@@ -78,7 +85,15 @@ namespace PrimalFrontier.Player
             }
             _blend = Mathf.MoveTowards(_blend, Aiming ? 1f : 0f, dt * 5f);
             float b = _blend * _blend * (3f - 2f * _blend);
-            float wantDist = Mathf.Lerp(distance, aimDistance, b);
+            // situation offsets ease in and out (never snap): climbing looks up the trunk, building pulls back, combat tightens
+            if (!_climb) _climb = target.GetComponent<PlayerClimb>();
+            if (!_combat) _combat = target.GetComponent<PlayerCombat>();
+            Vector2 want = ModeOffset;
+            if (_climb && _climb.IsClimbing) want += climbOffset;
+            else if (Building.BuildSystem.Instance && Building.BuildSystem.Instance.Active) want += buildOffset;
+            else if (_combat && _combat.InCombat) want += combatOffset;
+            _mode = Vector2.Lerp(_mode, want, 1f - Mathf.Exp(-3.5f * dt));
+            float wantDist = Mathf.Lerp(Mathf.Max(minDistance * 0.7f, distance + _mode.x), aimDistance, b);
             float sh = Mathf.Lerp(shoulder, aimShoulder, b);
             if (_cam) _cam.fieldOfView = Mathf.Lerp(fov, aimFov, b);
 
@@ -86,7 +101,7 @@ namespace PrimalFrontier.Player
             _pivot = Vector3.SmoothDamp(_pivot, goal, ref _pivotVel, followSmooth);
             if ((goal - _pivot).sqrMagnitude > 25f) _pivot = goal;                   // teleports
 
-            var rot = Quaternion.Euler(Pitch, Yaw, 0f);
+            var rot = Quaternion.Euler(Mathf.Clamp(Pitch + _mode.y * (1f - b), minPitch, maxPitch), Yaw, 0f);
             Vector3 shoulderPos = _pivot + rot * new Vector3(sh, 0f, 0f);
             // keep the shoulder offset itself out of walls
             var mask = collisionMask & ~ignoreMask;

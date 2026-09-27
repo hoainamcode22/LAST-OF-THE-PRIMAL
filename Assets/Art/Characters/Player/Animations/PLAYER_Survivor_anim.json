@@ -5,10 +5,10 @@
  "clips": [
   {
    "name": "Idle",
-   "frames": 90,
+   "frames": 180,
    "loop": true,
    "speed": 0.0,
-   "notes": "breathing, slight weight shift",
+   "notes": "breathing, weight shift leg to leg, soft knees, head and hand life",
    "events": []
   },
   {
@@ -16,7 +16,7 @@
    "frames": 150,
    "loop": true,
    "speed": 0.0,
-   "notes": "looks left/right, rubs arm",
+   "notes": "looks left/right, rubs arm, shifts weight",
    "events": []
   },
   {
@@ -554,6 +554,141 @@
      "frame": 180,
      "function": "OnWakeUp",
      "param": "done"
+    }
+   ]
+  },
+  {
+   "name": "Spear_Attack_2",
+   "frames": 34,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "combo follow-up: overhead wind-up, downward stab, recovery",
+   "events": [
+    {
+     "frame": 14,
+     "function": "OnAttackHit",
+     "param": "spear_downstab"
+    }
+   ]
+  },
+  {
+   "name": "Knife_Attack",
+   "frames": 26,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "anticipation (cock back), fast slash across, follow-through, recovery",
+   "events": [
+    {
+     "frame": 10,
+     "function": "OnAttackHit",
+     "param": "knife_slash"
+    }
+   ]
+  },
+  {
+   "name": "Dodge",
+   "frames": 22,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "short hop back: crouch, push, air, land; the motor moves the body (burst)",
+   "events": [
+    {
+     "frame": 4,
+     "function": "OnDodge",
+     "param": "start"
+    },
+    {
+     "frame": 13,
+     "function": "OnFootstep",
+     "param": "L"
+    }
+   ]
+  },
+  {
+   "name": "Climb_Idle",
+   "frames": 60,
+   "loop": true,
+   "speed": 0.0,
+   "notes": "hanging on the trunk, breathing",
+   "events": []
+  },
+  {
+   "name": "Climb_Up",
+   "frames": 36,
+   "loop": true,
+   "speed": 0.6,
+   "notes": "in place; the body moves up at speed m/s",
+   "events": [
+    {
+     "frame": 9,
+     "function": "OnClimbStep",
+     "param": "R"
+    },
+    {
+     "frame": 27,
+     "function": "OnClimbStep",
+     "param": "L"
+    }
+   ]
+  },
+  {
+   "name": "Climb_Down",
+   "frames": 36,
+   "loop": true,
+   "speed": -0.5,
+   "notes": "in place; the body moves down at speed m/s",
+   "events": [
+    {
+     "frame": 9,
+     "function": "OnClimbStep",
+     "param": "L"
+    },
+    {
+     "frame": 27,
+     "function": "OnClimbStep",
+     "param": "R"
+    }
+   ]
+  },
+  {
+   "name": "Climb_Start",
+   "frames": 24,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "reach up, jump onto the trunk (code lifts the body)",
+   "events": [
+    {
+     "frame": 12,
+     "function": "OnClimbGrab",
+     "param": ""
+    }
+   ]
+  },
+  {
+   "name": "Climb_End",
+   "frames": 28,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "let go, drop and land (code lowers the body to the ground)",
+   "events": [
+    {
+     "frame": 10,
+     "function": "OnLand",
+     "param": ""
+    }
+   ]
+  },
+  {
+   "name": "Harvest_Fruit",
+   "frames": 44,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "one hand holds the trunk, the other reaches out, picks, brings it in",
+   "events": [
+    {
+     "frame": 22,
+     "function": "OnHarvest",
+     "param": "fruit"
     }
    ]
   }
