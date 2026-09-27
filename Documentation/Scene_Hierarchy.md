@@ -1,41 +1,32 @@
-# Scene bake (2026-09-27 20:16)
+# Scene bake (2026-09-27 21:48)
 
-UI textures re-imported as sprites: 37
+UI textures re-imported as sprites: 0
 
 ## Systems
-- Time: added
-- Weather: added
-- Ambience: added
-- Journal: added
-- Tutorial: added
-- Intro: added
-- Build: added
-- OceanShore: added
-- Trees: added
-- Input: added
-- VfxPool: added
-- SfxPlayer: added
-- BloodDecals: added
-- EventSystem: added
+- Time: kept ([Systems]/Time)
+- Weather: kept ([Systems]/Weather)
+- Ambience: kept ([Systems]/Ambience)
+- Journal: kept ([Systems]/Journal)
+- Tutorial: kept ([Systems]/Tutorial)
+- Intro: kept ([Systems]/Intro)
+- Build: kept ([Systems]/Build)
+- OceanShore: kept ([Systems]/OceanShore)
+- Trees: kept ([Systems]/Trees)
+- Input: kept ([Systems]/Input)
+- VfxPool: kept ([Systems]/VfxPool)
+- SfxPlayer: kept ([Systems]/SfxPlayer)
+- BloodDecals: kept ([Systems]/BloodDecals)
+- EventSystem: kept
 
 ## Player and camera
-- Player: added at (-20.00, 1.49, 211.00) (prefab Assets/_Project/Prefabs/Player/PFB_Player.prefab)
-- Main Camera: third-person rig added
+- Player: kept (Player)
+- Main Camera: third-person rig kept
 
 ## Dinosaurs
-- Triceratops: 2 (Defensive)
-- Parasaurolophus: 3 (Passive)
-- Ankylosaurus: 1 (Defensive)
-- Velociraptor: 2 (Predator)
-- Carnotaurus: 1 (Territorial)
-- Spinosaurus: 1 (Territorial)
-- Rift Tyrant: 1 (Territorial)
-- Pteranodon: 3 (AmbientFlyer)
-- Mosasaurus: 1 (AmbientSwimmer)
-- 15 creatures placed under [Gameplay]/[Dinosaurs]; the random entries stay as a fallback
+- 15 creatures already placed under [Gameplay]/[Dinosaurs]: kept
 
 ## UI
-- [UI]: added, 655 objects (654 new). Canvases: [Death] (hidden until opened), [Title] (hidden until opened), [Pause] (hidden until opened), [Journal] (hidden until opened), [Inventory] (hidden until opened), [HUD], [HUD Top]
+- [UI]: kept, 713 objects (22 new). Canvases: [Touch] (hidden until opened), [Death] (hidden until opened), [Title] (hidden until opened), [Pause] (hidden until opened), [Journal] (hidden until opened), [Inventory] (hidden until opened), [HUD], [HUD Top]
 
 Scene saved: Assets/_Project/Scenes/Island_VerticalSlice.unity
 
@@ -56,7 +47,7 @@ Scene saved: Assets/_Project/Scenes/Island_VerticalSlice.unity
     SfxPlayer
     BloodDecals
     EventSystem
-[Gameplay]  (584 objects inside)
+[Gameplay]  (633 objects inside)
     CaptainsLog
     Pickup_wood
     Pickup_stone
@@ -67,10 +58,12 @@ Scene saved: Assets/_Project/Scenes/Island_VerticalSlice.unity
     [Zones]
     [Game]
     [Dinosaurs]
+    FruitTrees
 Player  (60 objects inside)
     Model
 Main Camera  (0 objects inside)
-[UI]  (654 objects inside)
+[UI]  (712 objects inside)
+    [Touch]  (off)
     [Death]  (off)
     [Title]  (off)
     [Pause]  (off)

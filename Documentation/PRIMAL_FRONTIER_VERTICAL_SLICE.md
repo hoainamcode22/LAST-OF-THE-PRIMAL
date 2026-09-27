@@ -22,7 +22,7 @@ Scope: one small island, first night. No multiplayer. Every asset in this slice 
 | Inventory / crafting / journal / pause | Tab or I / Q / J / Esc |
 | Drop / rotate building piece | G / R |
 
-Gamepad bindings exist for movement, camera, jump, crouch, interact, attack, aim and pause (NOT TESTED with a real gamepad). Phone touch controls are **not implemented** (the phone quality level, texture sizes and Android player settings are prepared).
+Gamepad bindings exist for movement, camera, jump, crouch, interact, attack, aim, dodge and pause (NOT TESTED with a real gamepad). Phase 2 added dodge (V), the big map (M), climbing (W / S / E / Space on a fruit tree) and phone touch controls (see `PRIMAL_FRONTIER_MOBILE_GUIDE.md`, NOT TESTED on a device). Phase 2 overview: `PRIMAL_FRONTIER_SYSTEMS.md`.
 
 ## What is in the slice
 
