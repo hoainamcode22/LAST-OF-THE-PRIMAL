@@ -14,7 +14,7 @@ namespace PrimalFrontier.UI
     /// short notifications, crafting progress, crosshair when aiming / building, subtitles, chapter banner,
     /// fade and lightning flash. Minimal and dark so the island stays the star.
     /// </summary>
-    public class HUDManager : MonoBehaviour
+    public class HUDManager : MonoBehaviour, IBakeableUI
     {
         public static HUDManager Instance { get; private set; }
 
@@ -34,7 +34,23 @@ namespace PrimalFrontier.UI
         bool _hudVisible = true;
         readonly Dictionary<string, (int n, float t, Text txt, CanvasGroup g)> _stacked = new Dictionary<string, (int, float, Text, CanvasGroup)>();
 
-        void Awake() { Instance = this; Build(); }
+        void Awake()
+        {
+            Instance = this; Build();
+            // texts the game fills in while playing (the saved scene may hold sample text for layout work)
+            foreach (var t in new[] { _objText, _objHint, _prompt, _promptSub, _hotbarName, _subtitle, _bannerTitle, _bannerSub, _markerDist, _status }) if (t) t.text = "";
+        }
+
+        /// <summary>editor baker: write the HUD into the scene, with sample text so the hidden parts can be laid out</summary>
+        public void BakeLayout()
+        {
+            Build();
+            foreach (var g in new[] { _objGroup, _promptGroup, _craftGroup, _subGroup, _bannerGroup }) if (g) g.alpha = 1f;
+            void Sample(Text t, string v) { if (t && string.IsNullOrEmpty(t.text)) t.text = v; }
+            Sample(_objText, "Collect wood (2/4)"); Sample(_objHint, "Driftwood lies along the beach. Press E next to it.");
+            Sample(_prompt, "Pick up Driftwood"); Sample(_promptSub, "Hold E: gather"); Sample(_hotbarName, "Stone Axe");
+            Sample(_subtitle, "What was that?"); Sample(_bannerTitle, "DAY 1"); Sample(_bannerSub, "Dawn"); Sample(_markerDist, "120 m");
+        }
         void OnDestroy() { if (Instance == this) Instance = null; PlayerInteraction.Message -= Notify; GameEvents.Raised -= OnEvent; }
 
         public void Bind(GameObject player)
@@ -55,7 +71,13 @@ namespace PrimalFrontier.UI
         // ================================================================== build
         void Build()
         {
-            _canvas = UIFactory.Canvas("[HUD]", 10); _canvas.transform.SetParent(transform, false);
+            UIFactory.BeginBuild();
+            try { BuildLayout(); } finally { UIFactory.EndBuild(); }
+        }
+
+        void BuildLayout()
+        {
+            _canvas = UIFactory.Canvas("[HUD]", 10, transform);
             _hudGroup = UIFactory.Group(_canvas.gameObject); _hudGroup.interactable = false; _hudGroup.blocksRaycasts = false;
             var root = _canvas.transform;
 
@@ -78,7 +100,7 @@ namespace PrimalFrontier.UI
 
             // ---- compass + clock (top right)
             var comp = UIFactory.Image(root, "Compass", UIStyle.PanelDark, new Color(1, 1, 1, 0.8f), new Vector2(1, 1), new Vector2(1, 1), new Vector2(1, 1), new Vector2(-24, -24), new Vector2(360, 44));
-            var mask = UIFactory.Stretch(comp.transform, "Mask", 6f); mask.gameObject.AddComponent<RectMask2D>();
+            var mask = UIFactory.Stretch(comp.transform, "Mask", 6f); mask.gameObject.GetOrAdd<RectMask2D>();
             _compassStrip = UIFactory.Rect(mask, "Strip", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(1440 * 2, 40));
             string[] labels = { "N", "NE", "E", "SE", "S", "SW", "W", "NW" };
             for (int rep = -1; rep <= 1; rep++)
@@ -91,7 +113,7 @@ namespace PrimalFrontier.UI
                 }
             UIFactory.Image(comp.transform, "Needle", null, UIStyle.Accent, new Vector2(0.5f, 0), new Vector2(0.5f, 0), new Vector2(0.5f, 0), new Vector2(0, 2), new Vector2(3, 8));
             _marker = UIFactory.Image(mask, "Objective", null, UIStyle.Accent, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(12, 12));
-            _marker.rectTransform.localRotation = Quaternion.Euler(0, 0, 45f);
+            if (UIFactory.Fresh(_marker)) _marker.rectTransform.localRotation = Quaternion.Euler(0, 0, 45f);
             _markerDist = UIFactory.Label(root, "ObjectiveDist", "", 16, UIStyle.Accent, TextAnchor.UpperCenter, UIStyle.Body, new Vector2(1, 1), new Vector2(1, 1), new Vector2(0.5f, 1), new Vector2(-204, -70), new Vector2(120, 22));
             _clock = UIFactory.Label(root, "Clock", "Day 1  09:00", 18, UIStyle.TextDim, TextAnchor.UpperRight, UIStyle.Body, new Vector2(1, 1), new Vector2(1, 1), new Vector2(1, 1), new Vector2(-28, -74), new Vector2(300, 26));
 
@@ -111,10 +133,11 @@ namespace PrimalFrontier.UI
             {
                 var bg = UIFactory.Image(hb, "Slot" + i, UIStyle.Slot, Color.white, new Vector2(0, 0.5f), new Vector2(0, 0.5f), new Vector2(0, 0.5f), new Vector2(12 + i * 76, 0), new Vector2(70, 70));
                 var icon = UIFactory.Image(bg.transform, "Icon", null, Color.white, Vector2.zero, Vector2.one, new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero);
-                icon.rectTransform.offsetMin = new Vector2(8, 8); icon.rectTransform.offsetMax = new Vector2(-8, -8); icon.preserveAspect = true; icon.enabled = false;
+                if (UIFactory.Fresh(icon)) { icon.rectTransform.offsetMin = new Vector2(8, 8); icon.rectTransform.offsetMax = new Vector2(-8, -8); }
+                icon.preserveAspect = true; icon.enabled = false;
                 UIFactory.Label(bg.transform, "Key", (i + 1).ToString(), 14, UIStyle.TextDim, TextAnchor.UpperLeft, UIStyle.Body, Vector2.zero, Vector2.one, new Vector2(0, 1), new Vector2(5, -2), Vector2.zero);
                 var cnt = UIFactory.Label(bg.transform, "Count", "", 16, UIStyle.Text, TextAnchor.LowerRight, UIStyle.Body, Vector2.zero, Vector2.one, new Vector2(1, 0), new Vector2(-5, 3), Vector2.zero);
-                cnt.rectTransform.offsetMin = new Vector2(0, 2); cnt.rectTransform.offsetMax = new Vector2(-6, 0);
+                if (UIFactory.Fresh(cnt)) { cnt.rectTransform.offsetMin = new Vector2(0, 2); cnt.rectTransform.offsetMax = new Vector2(-6, 0); }
                 var dur = UIFactory.Image(bg.transform, "Dur", UIStyle.BarFill, UIStyle.Good, new Vector2(0, 0), new Vector2(1, 0), new Vector2(0, 0), new Vector2(8, 5), new Vector2(-16, 4));
                 dur.type = Image.Type.Filled; dur.fillMethod = Image.FillMethod.Horizontal; dur.enabled = false;
                 _slotBg.Add(bg); _slotIcon.Add(icon); _slotCount.Add(cnt); _slotDur.Add(dur);
@@ -148,7 +171,7 @@ namespace PrimalFrontier.UI
             _cross.enabled = false;
 
             // ---- top canvas: subtitle, banner, fade, flash (above menus)
-            _top = UIFactory.Canvas("[HUD Top]", 100); _top.transform.SetParent(transform, false);
+            _top = UIFactory.Canvas("[HUD Top]", 100, transform);
             var tg = UIFactory.Group(_top.gameObject); tg.interactable = false; tg.blocksRaycasts = false;
             _fade = UIFactory.Fill(_top.transform, "Fade", null, Color.black); _fade.color = new Color(0, 0, 0, 0);
             _flash = UIFactory.Fill(_top.transform, "Flash", null, new Color(0.85f, 0.9f, 1f, 0));

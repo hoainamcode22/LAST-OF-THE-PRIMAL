@@ -45,8 +45,8 @@ namespace PrimalFrontier.EditorTools
         [Serializable] class Marker { public string name; public string group; public float x, y, z, r, yaw; }
         [Serializable] class LayoutMeta { public float ext; public int res; public float pond_water_level; public float cave_floor; }
 
-        [MenuItem("Primal Frontier/Build Island Scene")]
-        public static void BuildMenu() => Build();
+        [MenuItem("Primal Frontier/Advanced (overwrites hand edits)/Regenerate Island Scene", priority = 100)]
+        public static void BuildMenu() { if (PrimalSceneBaker.ConfirmRegenerate("The whole island scene (terrain, rocks, props, markers)")) Build(); }
 
         public static void BuildFromCommandLine()
         {

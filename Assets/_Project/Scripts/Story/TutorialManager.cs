@@ -23,8 +23,12 @@ namespace PrimalFrontier.Story
             public Action onBegin;
         }
 
+        [Serializable] public class StepText { public string id; public string objective; [TextArea(1, 3)] public string hint; }
+
         public static TutorialManager Instance { get; private set; }
         public readonly List<Step> steps = new List<Step>();
+        [Tooltip("Objective / hint shown for each step. Edit the text freely (the step logic stays in code); an empty field uses the built-in text.")]
+        public List<StepText> texts = new List<StepText>();
         public int Index { get; private set; } = -1;
         public bool Running => Index >= 0 && Index < steps.Count;
         public bool Completed { get; private set; }
@@ -85,6 +89,23 @@ namespace PrimalFrontier.Story
               begin: () => { GameEvents.Raise(GameEventType.PredatorWarning, "roar"); PredatorWarningCue?.Invoke(); });
             S("shelter", "Build a shelter before nightfall", "Craft a Basic Shelter and place it near the fire.", e => Is(e, GameEventType.StructurePlaced, "shelter"));
             S("night", "Survive the night", "Stay warm by the fire. A bedroll lets you sleep until dawn.", e => Is(e, GameEventType.DayStarted));
+            // text edited in the Inspector wins
+            foreach (var t in texts)
+            {
+                if (t == null || string.IsNullOrEmpty(t.id)) continue;
+                var st = steps.Find(x => x.id == t.id); if (st == null) continue;
+                if (!string.IsNullOrEmpty(t.objective)) st.objective = t.objective;
+                if (!string.IsNullOrEmpty(t.hint)) st.hint = t.hint;
+            }
+        }
+
+        /// <summary>fill the text list with every step (keeps what was already edited). Inspector: right click the component.</summary>
+        [ContextMenu("Fill step texts")]
+        public void SyncTexts()
+        {
+            Build();
+            foreach (var st in steps)
+                if (!texts.Exists(t => t != null && t.id == st.id)) texts.Add(new StepText { id = st.id, objective = st.objective, hint = st.hint });
         }
 
         /// <summary>set by the dinosaur system once creatures exist in the world</summary>

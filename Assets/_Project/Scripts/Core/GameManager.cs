@@ -16,8 +16,10 @@ namespace PrimalFrontier.Core
 
     /// <summary>
     /// Game flow for the island scene: title, new game (intro + tutorial), continue (load), save, sleep, death and
-    /// respawn. Creates every runtime system and the UI, wires the survival environment hooks (air temperature,
-    /// rain, heat), and never depends on a particular scene hierarchy beyond the spawn point and the player prefab.
+    /// respawn. Wires the survival environment hooks (air temperature, rain, heat).
+    /// Scene first: the player, the systems ([Systems]/...) and the UI ([UI]) placed in the scene are used as they are,
+    /// with their Inspector values. Anything missing is created here from the fallback fields below, so an empty
+    /// scene still runs.
     /// </summary>
     [DefaultExecutionOrder(-80)]
     public class GameManager : MonoBehaviour
@@ -25,10 +27,13 @@ namespace PrimalFrontier.Core
         public static GameManager Instance { get; private set; }
 
         [Header("Setup")]
-        public GameObject playerPrefab;
+        [Tooltip("only used when the scene has no object tagged Player")] public GameObject playerPrefab;
         public Transform spawnPoint;
+        [Tooltip("the Player placed in the scene starts (and respawns on a new game) where it stands in the editor; off = at the spawn point")]
+        public bool startWherePlayerIsPlaced = true;
         public Transform titleCameraFocus;
         public ItemDatabase database;
+        [Header("Fallbacks (only fill what the scene objects leave empty)")]
         public GameObject torchFlamePrefab;
         public Material ghostValid, ghostInvalid, rainMaterial;
         public AudioClip ambOcean, ambForest, ambNight, ambWind, ambRain, ambStorm;
@@ -36,7 +41,7 @@ namespace PrimalFrontier.Core
         public bool showTitle = true;
         public bool playIntro = true;
         public float startHour = 9f;
-        public float secondsPerHour = 100f;
+        [Tooltip("only used when the scene has no TimeManager; otherwise edit [Systems]/Time")] public float secondsPerHour = 100f;
         [Header("Habitats (tutorial fallback when no creature exists)")]
         public Vector3 herbivoreHabitat; public float herbivoreHabitatRadius = 25f;
         public Vector3 campArea; public float campRadius = 30f;
@@ -60,30 +65,39 @@ namespace PrimalFrontier.Core
         void Awake()
         {
             Instance = this;
-            GameClock.SecondsPerHour = secondsPerHour;
             if (!database) database = ItemDatabase.Instance;
             _zones = FindFirstObjectByType<ZoneManager>();
-            _time = Ensure<TimeManager>("[Time]"); _time.secondsPerHour = secondsPerHour;
-            _weather = Ensure<WeatherManager>("[Weather]"); if (rainMaterial) _weather.rainMaterial = rainMaterial;
-            _amb = Ensure<AmbienceManager>("[Ambience]");
-            _amb.ocean = ambOcean; _amb.forest = ambForest; _amb.night = ambNight; _amb.wind = ambWind; _amb.rain = ambRain; _amb.storm = ambStorm;
-            _journal = Ensure<JournalSystem>("[Journal]");
-            _tutorial = Ensure<TutorialManager>("[Tutorial]");
-            _intro = Ensure<IntroSequence>("[Intro]");
-            _build = Ensure<BuildSystem>("[Build]"); _build.ghostValid = ghostValid; _build.ghostInvalid = ghostInvalid;
-            if (!FindFirstObjectByType<OceanShore>()) new GameObject("[OceanShore]").AddComponent<OceanShore>();
-            if (!FindFirstObjectByType<TreeHarvest>()) { var th = new GameObject("[Trees]").AddComponent<TreeHarvest>(); th.wood = database ? database.Item("wood") : null; th.fiber = database ? database.Item("fiber") : null; }
-            // UI
-            var uiRoot = new GameObject("[UI]");
-            _ui = uiRoot.AddComponent<UIManager>();
-            _hud = uiRoot.AddComponent<HUDManager>();
-            uiRoot.AddComponent<InventoryUI>(); uiRoot.AddComponent<JournalUI>(); uiRoot.AddComponent<PauseMenuUI>(); uiRoot.AddComponent<TitleScreenUI>();
-            _death = uiRoot.AddComponent<DeathScreenUI>();
+            _time = Ensure<TimeManager>("[Time]", out bool newTime); if (newTime) _time.secondsPerHour = secondsPerHour;
+            GameClock.SecondsPerHour = _time.secondsPerHour;
+            _weather = Ensure<WeatherManager>("[Weather]", out _); if (!_weather.rainMaterial) _weather.rainMaterial = rainMaterial;
+            _amb = Ensure<AmbienceManager>("[Ambience]", out _);
+            if (!_amb.ocean) _amb.ocean = ambOcean; if (!_amb.forest) _amb.forest = ambForest; if (!_amb.night) _amb.night = ambNight;
+            if (!_amb.wind) _amb.wind = ambWind; if (!_amb.rain) _amb.rain = ambRain; if (!_amb.storm) _amb.storm = ambStorm;
+            _journal = Ensure<JournalSystem>("[Journal]", out _);
+            _tutorial = Ensure<TutorialManager>("[Tutorial]", out _);
+            _intro = Ensure<IntroSequence>("[Intro]", out _);
+            _build = Ensure<BuildSystem>("[Build]", out _); if (!_build.ghostValid) _build.ghostValid = ghostValid; if (!_build.ghostInvalid) _build.ghostInvalid = ghostInvalid;
+            Ensure<OceanShore>("[OceanShore]", out _);
+            var th = Ensure<TreeHarvest>("[Trees]", out _);
+            if (!th.wood && database) th.wood = database.Item("wood");
+            if (!th.fiber && database) th.fiber = database.Item("fiber");
+            // UI: the [UI] object in the scene (its canvases are saved there too), or a new one
+            var sceneUi = FindFirstObjectByType<UIManager>();
+            var uiRoot = sceneUi ? sceneUi.gameObject : new GameObject("[UI]");
+            _ui = uiRoot.GetOrAdd<UIManager>();
+            _hud = uiRoot.GetOrAdd<HUDManager>();
+            uiRoot.GetOrAdd<InventoryUI>(); uiRoot.GetOrAdd<JournalUI>(); uiRoot.GetOrAdd<PauseMenuUI>(); uiRoot.GetOrAdd<TitleScreenUI>();
+            _death = uiRoot.GetOrAdd<DeathScreenUI>();
             SaveSystem.Track();
             foreach (var p in FindObjectsByType<WorldPickup>(FindObjectsInactive.Include, FindObjectsSortMode.None)) _scenePickups.Add(p);
         }
 
-        T Ensure<T>(string name) where T : Component { var c = FindFirstObjectByType<T>(); return c ? c : new GameObject(name).AddComponent<T>(); }
+        /// <summary>the scene's component of this type, or a new object with it (created = true)</summary>
+        T Ensure<T>(string name, out bool created) where T : Component
+        {
+            var c = FindFirstObjectByType<T>(); created = !c;
+            return c ? c : new GameObject(name).AddComponent<T>();
+        }
 
         void OnDestroy() { if (Instance == this) Instance = null; Time.timeScale = 1f; }
 
@@ -101,18 +115,25 @@ namespace PrimalFrontier.Core
         void SpawnPlayer()
         {
             Player = GameObject.FindGameObjectWithTag("Player");
+            if (Player && startWherePlayerIsPlaced)
+            {
+                // the Player placed in the scene decides where the game starts
+                if (!spawnPoint) spawnPoint = new GameObject("[PlayerStart]").transform;
+                spawnPoint.SetPositionAndRotation(Player.transform.position, Player.transform.rotation);
+            }
             Vector3 pos = spawnPoint ? spawnPoint.position : Vector3.up; Quaternion rot = spawnPoint ? spawnPoint.rotation : Quaternion.identity;
             if (!Player && playerPrefab) Player = Instantiate(playerPrefab, pos, rot);
             if (!Player) { Debug.LogError("[GameManager] no player"); return; }
             Player.name = "Player";
             if (!PlayerInputReader.Instance) new GameObject("[Input]").AddComponent<PlayerInputReader>();
-            // gameplay components (the prefab normally has them already)
-            var inv = Player.GetOrAdd<InventorySystem>();
-            inv.slotCount = 32; inv.hotbarSize = 8; inv.EnsureSlots();
-            var craft = Player.GetOrAdd<CraftingSystem>(); craft.inventory = inv;
+            // gameplay components (the prefab has them already; Inspector values on the Player are kept)
+            var inv = Player.GetComponent<InventorySystem>();
+            if (!inv) { inv = Player.AddComponent<InventorySystem>(); inv.slotCount = 32; inv.hotbarSize = 8; }
+            inv.EnsureSlots();
+            var craft = Player.GetOrAdd<CraftingSystem>(); if (!craft.inventory) craft.inventory = inv;
             if (!Player.GetComponent<PlayerSurvival>()) Player.AddComponent<PlayerSurvival>();
             if (!Player.GetComponent<PlayerInteraction>()) Player.AddComponent<PlayerInteraction>();
-            var eq = Player.GetOrAdd<PlayerEquipment>(); if (torchFlamePrefab) eq.torchFlamePrefab = torchFlamePrefab;
+            var eq = Player.GetOrAdd<PlayerEquipment>(); if (!eq.torchFlamePrefab && torchFlamePrefab) eq.torchFlamePrefab = torchFlamePrefab;
             if (!Player.GetComponent<PlayerCombat>()) Player.AddComponent<PlayerCombat>();
             PlayerLocator.Player = Player.transform;
             // camera

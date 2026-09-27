@@ -9,21 +9,35 @@ namespace PrimalFrontier.VFX
     /// time. Splats from hits and drips, a growing pool under a dead creature. Hard caps keep it cheap on phones; the
     /// oldest decal is reused first. Nothing is created after warm-up.
     /// </summary>
+    [DefaultExecutionOrder(-200)]
     public class BloodDecals : MonoBehaviour
     {
         static BloodDecals _inst;
+        /// <summary>the [BloodDecals] placed in the scene (under [Systems]); created on first use if the scene has none</summary>
         public static BloodDecals Instance
         {
             get
             {
                 if (_inst == null)
                 {
-                    var go = new GameObject("[BloodDecals]"); _inst = go.AddComponent<BloodDecals>();
+                    var go = new GameObject("[BloodDecals]");
                     if (Application.isPlaying) DontDestroyOnLoad(go);
-                    _inst.Init(Resources.Load<BloodLibrary>("BloodLibrary"));
+                    var c = go.AddComponent<BloodDecals>();          // Awake registers it while playing
+                    if (_inst == null) c.Register();
                 }
                 return _inst;
             }
+        }
+
+        [Tooltip("Blood splat / pool textures. Empty = Resources/BloodLibrary.")] public BloodLibrary library;
+
+        void Awake() => Register();
+        void Register()
+        {
+            if (_inst == this) return;
+            if (_inst != null) { var old = _inst; _inst = null; if (Application.isPlaying) Destroy(old.gameObject); else DestroyImmediate(old.gameObject); }
+            _inst = this;
+            Init(library ? library : Resources.Load<BloodLibrary>("BloodLibrary"));
         }
 
         class Decal { public Transform t; public MeshRenderer r; public float born, life, size, grow, growTime; public bool active; public Color col; }

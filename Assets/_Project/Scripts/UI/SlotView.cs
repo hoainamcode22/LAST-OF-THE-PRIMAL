@@ -23,12 +23,13 @@ namespace PrimalFrontier.UI
         public static SlotView Create(Transform parent, InventorySystem inv, int index, Vector2 pos, float size, string keyLabel = null)
         {
             var bgImg = UIFactory.Image(parent, "Slot" + index, UIStyle.Slot, Color.white, new Vector2(0, 1), new Vector2(0, 1), new Vector2(0, 1), pos, new Vector2(size, size), true);
-            var v = bgImg.gameObject.AddComponent<SlotView>();
+            var v = bgImg.gameObject.GetOrAdd<SlotView>();
             v.inventory = inv; v.index = index; v.bg = bgImg;
             v.icon = UIFactory.Image(bgImg.transform, "Icon", null, Color.white, Vector2.zero, Vector2.one, new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero);
-            v.icon.rectTransform.offsetMin = new Vector2(7, 7); v.icon.rectTransform.offsetMax = new Vector2(-7, -7); v.icon.preserveAspect = true;
+            if (UIFactory.Fresh(v.icon)) { v.icon.rectTransform.offsetMin = new Vector2(7, 7); v.icon.rectTransform.offsetMax = new Vector2(-7, -7); }
+            v.icon.preserveAspect = true;
             v.count = UIFactory.Label(bgImg.transform, "Count", "", 16, UIStyle.Text, TextAnchor.LowerRight, UIStyle.Body);
-            v.count.rectTransform.offsetMin = new Vector2(0, 3); v.count.rectTransform.offsetMax = new Vector2(-6, 0);
+            if (UIFactory.Fresh(v.count)) { v.count.rectTransform.offsetMin = new Vector2(0, 3); v.count.rectTransform.offsetMax = new Vector2(-6, 0); }
             v.dur = UIFactory.Image(bgImg.transform, "Dur", UIStyle.BarFill, UIStyle.Good, new Vector2(0, 0), new Vector2(1, 0), new Vector2(0, 0), new Vector2(7, 4), new Vector2(-14, 4));
             v.dur.type = Image.Type.Filled; v.dur.fillMethod = Image.FillMethod.Horizontal;
             if (keyLabel != null) v.key = UIFactory.Label(bgImg.transform, "Key", keyLabel, 13, UIStyle.TextDim, TextAnchor.UpperLeft, UIStyle.Body, Vector2.zero, Vector2.one, new Vector2(0, 1), new Vector2(5, -2), Vector2.zero);

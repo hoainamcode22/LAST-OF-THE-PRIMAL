@@ -11,7 +11,7 @@ namespace PrimalFrontier.UI
     /// chosen section (SURVIVAL, CREATURES, CRAFTING, WORLD) with an undiscovered count; right page shows the sketch
     /// and the handwritten note. Pages slide in when an entry changes.
     /// </summary>
-    public class JournalUI : MonoBehaviour
+    public class JournalUI : MonoBehaviour, IBakeableUI
     {
         Canvas _canvas; RectTransform _list, _page; CanvasGroup _pageGroup;
         Text _count, _title, _text; Image _sketch;
@@ -20,18 +20,25 @@ namespace PrimalFrontier.UI
         float _anim;
 
         void Awake() { Build(); _canvas.gameObject.SetActive(false); }
+        public void BakeLayout() { Build(); _canvas.gameObject.SetActive(false); }
         void Start() { if (UIManager.Instance) UIManager.Instance.Changed += OnScreen; var j = JournalSystem.Instance; if (j) j.Unlocked += e => { if (_canvas.gameObject.activeSelf) Refresh(); }; }
 
         void Build()
         {
-            _canvas = UIFactory.Canvas("[Journal]", 31); _canvas.transform.SetParent(transform, false);
+            UIFactory.BeginBuild();
+            try { BuildLayout(); } finally { UIFactory.EndBuild(); }
+        }
+
+        void BuildLayout()
+        {
+            _canvas = UIFactory.Canvas("[Journal]", 31, transform);
             var root = _canvas.transform;
             UIFactory.Fill(root, "Dim", null, new Color(0, 0, 0, 0.6f), true);
             var book = UIFactory.Image(root, "Cover", UIStyle.Leather, Color.white, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(1500, 900), true).rectTransform;
             var left = UIFactory.Image(book, "LeftPage", UIStyle.Paper, Color.white, new Vector2(0, 0), new Vector2(0.5f, 1), new Vector2(0, 0.5f), Vector2.zero, Vector2.zero).rectTransform;
-            left.offsetMin = new Vector2(46, 40); left.offsetMax = new Vector2(-6, -40);
+            if (UIFactory.Fresh(left)) { left.offsetMin = new Vector2(46, 40); left.offsetMax = new Vector2(-6, -40); }
             var right = UIFactory.Image(book, "RightPage", UIStyle.Paper, Color.white, new Vector2(0.5f, 0), new Vector2(1, 1), new Vector2(1, 0.5f), Vector2.zero, Vector2.zero).rectTransform;
-            right.offsetMin = new Vector2(6, 40); right.offsetMax = new Vector2(-46, -40);
+            if (UIFactory.Fresh(right)) { right.offsetMin = new Vector2(6, 40); right.offsetMax = new Vector2(-46, -40); }
             UIFactory.Image(book, "Spine", null, new Color(0.12f, 0.07f, 0.04f, 0.9f), new Vector2(0.5f, 0), new Vector2(0.5f, 1), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(12, -60));
 
             UIFactory.Label(left, "Heading", "SURVIVAL JOURNAL", 34, UIStyle.TextDark, TextAnchor.UpperCenter, UIStyle.Head, new Vector2(0, 1), new Vector2(1, 1), new Vector2(0.5f, 1), new Vector2(0, -28), new Vector2(0, 44), false);
@@ -43,7 +50,7 @@ namespace PrimalFrontier.UI
                 _tabs.Add(b);
             }
             _list = UIFactory.Rect(left, "List", new Vector2(0, 0), new Vector2(1, 1), new Vector2(0.5f, 1), Vector2.zero, Vector2.zero);
-            _list.offsetMin = new Vector2(40, 70); _list.offsetMax = new Vector2(-40, -150);
+            if (UIFactory.Fresh(_list)) { _list.offsetMin = new Vector2(40, 70); _list.offsetMax = new Vector2(-40, -150); }
             _count = UIFactory.Label(left, "Count", "", 18, new Color(0.45f, 0.3f, 0.18f), TextAnchor.LowerCenter, UIStyle.Hand, new Vector2(0, 0), new Vector2(1, 0), new Vector2(0.5f, 0), new Vector2(0, 26), new Vector2(0, 30), false);
 
             _page = UIFactory.Rect(right, "Page", Vector2.zero, Vector2.one, new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero);

@@ -5,7 +5,8 @@ namespace PrimalFrontier.UI
 {
     /// <summary>
     /// Readable, non-intrusive hit feedback: a soft red edge vignette (never covers the centre) and a short directional
-    /// arc pointing at the attacker. Built in code on its own overlay canvas.
+    /// arc pointing at the attacker. Built in code on its own overlay canvas (its textures are generated, so only the
+    /// component itself is saved in the scene).
     /// </summary>
     public class DamageOverlay : MonoBehaviour
     {
@@ -14,9 +15,19 @@ namespace PrimalFrontier.UI
         {
             get
             {
-                if (_inst == null) { var go = new GameObject("[DamageOverlay]"); _inst = go.AddComponent<DamageOverlay>(); _inst.Build(); }
+                if (_inst == null) { var go = new GameObject("[DamageOverlay]"); var d = go.AddComponent<DamageOverlay>(); if (_inst == null) d.Register(); }
                 return _inst;
             }
+        }
+
+        /// <summary>a [DamageOverlay] placed in the scene is used; otherwise one is created on the first hit</summary>
+        void Awake() => Register();
+        void OnDestroy() { if (_inst == this) _inst = null; }
+        void Register()
+        {
+            if (_inst == this) return;
+            if (_inst != null) { var old = _inst; _inst = null; Destroy(old.gameObject); }
+            _inst = this; Build();
         }
 
         Image _vignette; RectTransform _arcPivot; Image _arc; Image _heal;
@@ -24,8 +35,10 @@ namespace PrimalFrontier.UI
 
         void Build()
         {
-            var canvas = gameObject.AddComponent<Canvas>(); canvas.renderMode = RenderMode.ScreenSpaceOverlay; canvas.sortingOrder = 50;
-            gameObject.AddComponent<CanvasScaler>().uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            var canvas = GetComponent<Canvas>();
+            if (!canvas) { canvas = gameObject.AddComponent<Canvas>(); canvas.renderMode = RenderMode.ScreenSpaceOverlay; canvas.sortingOrder = 50; }
+            if (!GetComponent<CanvasScaler>()) gameObject.AddComponent<CanvasScaler>().uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            for (int i = transform.childCount - 1; i >= 0; i--) Destroy(transform.GetChild(i).gameObject);   // the images are generated at run time
             _vignette = MakeImage("Vignette", VignetteSprite(), transform); Stretch(_vignette.rectTransform);
             _vignette.color = new Color(0.55f, 0f, 0f, 0f); _vignette.raycastTarget = false;
             _heal = MakeImage("Heal", VignetteSprite(), transform); Stretch(_heal.rectTransform);

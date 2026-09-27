@@ -26,7 +26,9 @@ namespace PrimalFrontier.EditorTools
             EditorApplication.Exit(code);
         }
 
-        [MenuItem("Primal Frontier/VFX/Build VFX Library")]
+        [MenuItem("Primal Frontier/Advanced (overwrites hand edits)/Regenerate VFX Library", priority = 111)]
+        public static void BuildMenu() { if (PrimalSceneBaker.ConfirmRegenerate("Every effect prefab, material and texture in Assets/_Project/VFX")) Build(); }
+
         public static void Build()
         {
             foreach (var d in new[] { Root, Root + "/Textures", Root + "/Materials", Root + "/Prefabs", "Assets/_Project/Resources" }) Directory.CreateDirectory(d);

@@ -20,21 +20,35 @@ namespace PrimalFrontier.Audio
     }
 
     /// <summary>Pooled 3D one-shots with variant + pitch randomisation (never the same sample twice in a row).</summary>
+    [DefaultExecutionOrder(-200)]
     public class SfxPlayer : MonoBehaviour
     {
         static SfxPlayer _inst;
+        /// <summary>the [SfxPlayer] placed in the scene (under [Systems]); created on first use if the scene has none</summary>
         public static SfxPlayer Instance
         {
             get
             {
                 if (_inst == null)
                 {
-                    var go = new GameObject("[SfxPlayer]"); _inst = go.AddComponent<SfxPlayer>();
+                    var go = new GameObject("[SfxPlayer]");
                     if (Application.isPlaying) DontDestroyOnLoad(go);
-                    _inst.Init(Resources.Load<SfxLibrary>("SfxLibrary"));
+                    var c = go.AddComponent<SfxPlayer>();          // Awake registers it while playing
+                    if (_inst == null) c.Register();
                 }
                 return _inst;
             }
+        }
+
+        [Tooltip("Sound clips by id. Empty = Resources/SfxLibrary.")] public SfxLibrary library;
+
+        void Awake() => Register();
+        void Register()
+        {
+            if (_inst == this) return;
+            if (_inst != null) { var old = _inst; _inst = null; if (Application.isPlaying) Destroy(old.gameObject); else DestroyImmediate(old.gameObject); }
+            _inst = this;
+            Init(library ? library : Resources.Load<SfxLibrary>("SfxLibrary"));
         }
 
         readonly Dictionary<SfxId, SfxLibrary.Entry> _map = new Dictionary<SfxId, SfxLibrary.Entry>();

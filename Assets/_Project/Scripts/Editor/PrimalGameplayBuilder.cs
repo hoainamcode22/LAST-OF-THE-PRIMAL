@@ -32,8 +32,8 @@ namespace PrimalFrontier.EditorTools
         static void Log(string s) { Report.AppendLine(s); Debug.Log("[PrimalGameplayBuilder] " + s); }
         static void Err(string s) { _errors++; Report.AppendLine("ERROR: " + s); Debug.LogError("[PrimalGameplayBuilder] " + s); }
 
-        [MenuItem("Primal Frontier/Build Gameplay (items, prefabs, island)")]
-        public static void BuildMenu() => Build();
+        [MenuItem("Primal Frontier/Advanced (overwrites hand edits)/Regenerate Gameplay (items, recipes, prefabs, [Gameplay])", priority = 101)]
+        public static void BuildMenu() { if (PrimalSceneBaker.ConfirmRegenerate("Items, recipes, gameplay prefabs and the [Gameplay] object (with the dinosaurs placed in it)")) Build(); }
 
         public static void BuildFromCommandLine()
         {

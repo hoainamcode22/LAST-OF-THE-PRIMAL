@@ -28,6 +28,7 @@ namespace PrimalFrontier.UI
                 UIFactory.Label(p, label, label, 22, UIStyle.Text, TextAnchor.MiddleLeft, UIStyle.Body, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0, 0.5f), new Vector2(-330, y), new Vector2(260, 36));
                 Button b = null;
                 b = UIFactory.Button(p, label + "Btn", text(), () => { click(); UIFactory.SetLabel(b, text()); }, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(110, y), new Vector2(380, 44), 20);
+                UIFactory.SetLabel(b, text());      // the saved scene holds the value from when it was baked
                 y -= 56; return b;
             }
             Toggle("Invert mouse Y", () => GameSettings.InvertY ? "ON" : "OFF", () => GameSettings.InvertY = !GameSettings.InvertY);

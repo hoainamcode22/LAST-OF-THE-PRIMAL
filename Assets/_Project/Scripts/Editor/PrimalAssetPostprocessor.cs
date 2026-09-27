@@ -13,6 +13,23 @@ namespace PrimalFrontier.EditorTools
         const string ModelsRoot = "Assets/_Project/Art/Models/";
         const string TexturesRoot = "Assets/_Project/Art/Textures/";
         const string TerrainRoot = "Assets/_Project/Art/Terrain/";
+        public const string UiRoot = "Assets/_Project/Resources/UI/";
+
+        /// <summary>9-slice border (px) of each UI texture, the same numbers UIStyle uses</summary>
+        public static int UiBorder(string file)
+        {
+            switch (file)
+            {
+                case "ui_panel": return 28;
+                case "ui_leather": case "ui_paper": return 40;
+                case "ui_wood": case "ui_stone": return 20;
+                case "ui_slot": case "ui_slot_active": return 14;
+                case "ui_button": return 16;
+                case "ui_bar_back": return 6;
+                case "ui_bar_fill": return 3;
+                default: return 0;
+            }
+        }
 
         void OnPreprocessModel()
         {
@@ -72,6 +89,18 @@ namespace PrimalFrontier.EditorTools
                     if (file.Contains("FoliageAtlas")) ti.mipMapsPreserveCoverage = true;
                     if (file.Contains("FoliageAtlas")) ti.alphaTestReferenceValue = 0.5f;
                 }
+            }
+            else if (assetPath.StartsWith(UiRoot))
+            {
+                // UI textures are sprites so the UI saved in the scene can reference them (UIStyle loads them as Sprite)
+                string file = System.IO.Path.GetFileNameWithoutExtension(assetPath);
+                int b = UiBorder(file);
+                ti.textureType = TextureImporterType.Sprite;
+                var st = new TextureImporterSettings(); ti.ReadTextureSettings(st);
+                st.spriteMode = (int)SpriteImportMode.Single; st.spriteMeshType = SpriteMeshType.FullRect; st.spriteAlignment = (int)SpriteAlignment.Center;
+                st.spritePixelsPerUnit = 100f; st.spriteBorder = new Vector4(b, b, b, b); st.spriteGenerateFallbackPhysicsShape = false;
+                st.mipmapEnabled = false; st.alphaIsTransparency = true; st.wrapMode = TextureWrapMode.Clamp;
+                ti.SetTextureSettings(st);
             }
             else if (assetPath.StartsWith(TerrainRoot))
             {

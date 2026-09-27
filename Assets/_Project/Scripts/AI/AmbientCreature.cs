@@ -12,6 +12,7 @@ namespace PrimalFrontier.AI
     public class AmbientCreature : MonoBehaviour, IDamageable
     {
         public DinosaurDefinition def;
+        [Tooltip("middle of the circle it patrols. (0,0,0) = where it is placed in the scene (a flyer placed in the air circles at that height)")]
         public Vector3 center; public float radius = 40f; public float altitude = 25f;
         public bool swimmer;
         float _a, _dir = 1f, _h; Animator _anim; bool _dead; float _glideT; bool _gliding;
@@ -20,6 +21,7 @@ namespace PrimalFrontier.AI
 
         void Start()
         {
+            if (center == Vector3.zero) center = swimmer ? transform.position : transform.position - Vector3.up * altitude;
             _anim = GetComponent<Animator>(); _a = Random.Range(0f, Mathf.PI * 2f); _dir = Random.value < 0.5f ? 1f : -1f;
             _health = def ? def.maxHealth : 60f;
             if (_anim && !swimmer) { _anim.SetInteger(AnimParams.ActionType, 20); _anim.SetTrigger(AnimParams.Action); }
@@ -53,6 +55,16 @@ namespace PrimalFrontier.AI
             }
             else if (swimmer && _anim) _anim.SetFloat(AnimParams.Speed, def ? def.walkSpeed : 2f);
         }
+
+#if UNITY_EDITOR
+        void OnDrawGizmosSelected()
+        {
+            Vector3 c = Application.isPlaying || center != Vector3.zero ? center : (swimmer ? transform.position : transform.position - Vector3.up * altitude);
+            if (!swimmer) c.y += altitude;
+            Gizmos.color = swimmer ? new Color(0.2f, 0.6f, 1f) : new Color(0.9f, 0.9f, 0.3f);
+            DinosaurSpawner.DrawCircle(c, radius);
+        }
+#endif
 
         void Fall()
         {

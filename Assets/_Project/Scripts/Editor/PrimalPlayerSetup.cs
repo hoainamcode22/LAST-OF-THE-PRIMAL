@@ -33,7 +33,9 @@ namespace PrimalFrontier.EditorTools
             foreach (var t in go.GetComponentsInChildren<Transform>(true)) t.gameObject.layer = layer;
         }
 
-        [MenuItem("Primal Frontier/Player/Build Gameplay Prefab")]
+        [MenuItem("Primal Frontier/Advanced (overwrites hand edits)/Regenerate Player Gameplay Prefab", priority = 112)]
+        static void BuildGameplayPrefabMenu() { if (PrimalSceneBaker.ConfirmRegenerate("The PFB_Player prefab (components and their values)")) BuildGameplayPrefab(); }
+
         public static GameObject BuildGameplayPrefab()
         {
             var art = AssetDatabase.LoadAssetAtPath<GameObject>(ArtPrefab);
@@ -74,7 +76,7 @@ namespace PrimalFrontier.EditorTools
             finally { Object.DestroyImmediate(root); }
         }
 
-        [MenuItem("Primal Frontier/Player/Build Controller Test Scene")]
+        [MenuItem("Primal Frontier/Advanced (overwrites hand edits)/Regenerate Controller Test Scene", priority = 113)]
         public static void BuildTestScene()
         {
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(GameplayPrefab) ?? BuildGameplayPrefab();

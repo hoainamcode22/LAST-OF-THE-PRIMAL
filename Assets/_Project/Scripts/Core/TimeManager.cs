@@ -48,7 +48,9 @@ namespace PrimalFrontier.Core
             Apply();
         }
 
-        void Defaults()
+        /// <summary>built-in sun / sky / fog colours (Inspector: right click the component)</summary>
+        [ContextMenu("Reset colours to defaults")]
+        public void Defaults()
         {
             Gradient G(params (float t, Color c)[] k)
             {

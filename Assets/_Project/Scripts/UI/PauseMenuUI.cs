@@ -5,16 +5,23 @@ using PrimalFrontier.Core;
 namespace PrimalFrontier.UI
 {
     /// <summary>Esc: resume, save, load, settings, quit to title, quit game. Time is stopped while open.</summary>
-    public class PauseMenuUI : MonoBehaviour
+    public class PauseMenuUI : MonoBehaviour, IBakeableUI
     {
         Canvas _canvas; RectTransform _main, _settings; Text _info;
 
         void Awake() { Build(); _canvas.gameObject.SetActive(false); }
+        public void BakeLayout() { Build(); _settings.gameObject.SetActive(false); _canvas.gameObject.SetActive(false); }
         void Start() { if (UIManager.Instance) UIManager.Instance.Changed += (a, b) => { _canvas.gameObject.SetActive(b == UIScreen.Pause); if (b == UIScreen.Pause) ShowMain(); }; }
 
         void Build()
         {
-            _canvas = UIFactory.Canvas("[Pause]", 40); _canvas.transform.SetParent(transform, false);
+            UIFactory.BeginBuild();
+            try { BuildLayout(); } finally { UIFactory.EndBuild(); }
+        }
+
+        void BuildLayout()
+        {
+            _canvas = UIFactory.Canvas("[Pause]", 40, transform);
             UIFactory.Fill(_canvas.transform, "Dim", UIStyle.Vignette, new Color(0, 0, 0, 0.75f), true);
             _main = UIFactory.Image(_canvas.transform, "Main", UIStyle.Leather, Color.white, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(520, 640), true).rectTransform;
             UIFactory.Label(_main, "Title", "PAUSED", 44, UIStyle.Text, TextAnchor.UpperCenter, UIStyle.Head, new Vector2(0, 1), new Vector2(1, 1), new Vector2(0.5f, 1), new Vector2(0, -34), new Vector2(0, 56));

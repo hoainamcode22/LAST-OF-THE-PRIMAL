@@ -22,6 +22,7 @@ namespace PrimalFrontier.AI
     public class DinosaurController : MonoBehaviour, IDamageable
     {
         public DinosaurDefinition def;
+        [Tooltip("centre of its territory. (0,0,0) = where it is placed in the scene")]
         public Vector3 home; public float homeRadius = 40f;
         public DinoState State { get; private set; } = DinoState.Idle;
         public float Health { get; private set; }
@@ -58,6 +59,16 @@ namespace PrimalFrontier.AI
             Snap();
             Enter(Random.value < 0.5f ? DinoState.Eat : DinoState.Idle);
         }
+
+#if UNITY_EDITOR
+        void OnDrawGizmosSelected()
+        {
+            Vector3 c = home != Vector3.zero ? home : transform.position;
+            Gizmos.color = def && (def.temperament == Temperament.Predator || def.temperament == Temperament.Territorial) ? new Color(1f, 0.3f, 0.2f) : new Color(0.3f, 1f, 0.4f);
+            DinosaurSpawner.DrawCircle(c, homeRadius);
+            if (def && def.sightRange > 0f) { Gizmos.color = new Color(1f, 1f, 1f, 0.25f); DinosaurSpawner.DrawCircle(transform.position, def.sightRange); }
+        }
+#endif
 
         // ------------------------------------------------------------------ perception
         bool FindPlayer()

@@ -26,9 +26,17 @@ namespace PrimalFrontier.UI
 
         public static void EnsureEventSystem()
         {
-            if (EventSystem.current != null) return;
+            if (EventSystem.current != null || FindFirstObjectByType<EventSystem>(FindObjectsInactive.Include) != null) return;   // the scene's own ([Systems]/EventSystem)
+            CreateEventSystem(null);
+        }
+
+        /// <summary>an EventSystem driven by the Input System (also used by the editor baker)</summary>
+        public static GameObject CreateEventSystem(Transform parent)
+        {
             var go = new GameObject("EventSystem", typeof(EventSystem));
+            if (parent) go.transform.SetParent(parent, false);
             go.AddComponent<UnityEngine.InputSystem.UI.InputSystemUIInputModule>();
+            return go;
         }
 
         public void Open(UIScreen s)

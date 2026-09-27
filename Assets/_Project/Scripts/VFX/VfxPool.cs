@@ -20,21 +20,35 @@ namespace PrimalFrontier.VFX
     /// Pooled one-shot and timed particle effects. Effects return to the pool when their particle system stops
     /// (stopAction = Callback), so nothing is instantiated or destroyed during gameplay after warm-up.
     /// </summary>
+    [DefaultExecutionOrder(-200)]
     public class VfxPool : MonoBehaviour
     {
         static VfxPool _inst;
+        /// <summary>the [VfxPool] placed in the scene (under [Systems]); created on first use if the scene has none</summary>
         public static VfxPool Instance
         {
             get
             {
                 if (_inst == null)
                 {
-                    var go = new GameObject("[VfxPool]"); _inst = go.AddComponent<VfxPool>();
+                    var go = new GameObject("[VfxPool]");
                     if (Application.isPlaying) DontDestroyOnLoad(go);
-                    _inst.Init(Resources.Load<VfxLibrary>("VfxLibrary"));
+                    var c = go.AddComponent<VfxPool>();          // Awake registers it while playing
+                    if (_inst == null) c.Register();
                 }
                 return _inst;
             }
+        }
+
+        [Tooltip("Particle effect prefabs by id. Empty = Resources/VfxLibrary.")] public VfxLibrary library;
+
+        void Awake() => Register();
+        void Register()
+        {
+            if (_inst == this) return;
+            if (_inst != null) { var old = _inst; _inst = null; if (Application.isPlaying) Destroy(old.gameObject); else DestroyImmediate(old.gameObject); }
+            _inst = this;
+            Init(library ? library : Resources.Load<VfxLibrary>("VfxLibrary"));
         }
 
         readonly Dictionary<VfxId, GameObject> _prefabs = new Dictionary<VfxId, GameObject>();

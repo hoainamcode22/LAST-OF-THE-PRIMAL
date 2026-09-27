@@ -5,7 +5,9 @@ Scope: one small island, first night. No multiplayer. Every asset in this slice 
 
 ## How to play (PC)
 
-1. Open the project in Unity 6000.3.10f1, open `Assets/_Project/Scenes/Island_VerticalSlice.unity`, press Play.
+1. Open the project folder `E:\LAST OF THE PRIMAL` in Unity 6000.3.10f1. The editor opens `Assets/_Project/Scenes/Island_VerticalSlice.unity`
+   by itself when it starts on an empty or template scene (menu `Primal Frontier > Scene > Open Island Scene` also does it).
+   First time: `Primal Frontier > Scene > Bake Everything Into Scene` (or "Bake now" in the startup prompt), then press Play.
    A Windows player can also be built with `Primal Frontier > Build > Windows` (output `Builds/Windows/PrimalFrontier.exe`).
 2. Title screen > New Game > intro (skippable with Space / Esc) > tutorial.
 
@@ -73,6 +75,15 @@ Gamepad bindings exist for movement, camera, jump, crouch, interact, attack, aim
 - Hit: directional spray sized to the creature, droplets on the ground, a bleeding wound attached to the nearest bone.
 - Badly hurt creatures leave a blood trail; a blood pool spreads under a dead creature.
 - Off: neutral dust impacts instead, no ground blood. Pooled decals with hard caps (48 on Normal, 16 on Reduced).
+
+## Editing the game by hand
+Everything is a scene object in `Island_VerticalSlice`: `[Systems]` (time, weather, ambience, journal, tutorial texts, VFX /
+sound / blood pools, input, event system), `[Gameplay]` (game manager, zones, every dinosaur as a placed prefab instance),
+`Player`, `Main Camera` (third-person rig), `[UI]` (all canvases: HUD, inventory, journal, pause, title, death), `World`,
+`Markers`, `Water`, terrain and lights. Code reads what is in the scene and only creates what is missing. The UI screens
+find their pieces by name, so layout / colours / fonts / fixed texts edited by hand are kept. Placed dinosaurs are put
+back where they stand on a new game. Generators that rebuild content live under `Primal Frontier > Advanced (overwrites
+hand edits)` and ask before running. Maintenance guide (Vietnamese): `Documentation/HUONG_DAN_BAO_TRI.md`.
 
 ## Technical notes
 - Code: `Assets/_Project/Scripts` (runtime), `Scripts/Editor` (builders), `Tests/PlayMode`.

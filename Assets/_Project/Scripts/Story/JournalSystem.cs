@@ -21,7 +21,8 @@ namespace PrimalFrontier.Story
         }
 
         public static JournalSystem Instance { get; private set; }
-        public readonly List<Entry> entries = new List<Entry>();
+        [Tooltip("Every journal page: title, text, sketch and what unlocks it. Edit the texts freely. Empty list = built-in pages.")]
+        public List<Entry> entries = new List<Entry>();
         readonly HashSet<string> _unlocked = new HashSet<string>();
         readonly List<string> _order = new List<string>();
         public IReadOnlyList<string> UnlockedInOrder => _order;
@@ -53,6 +54,10 @@ namespace PrimalFrontier.Story
 
         void Add(string id, JournalCategory c, string title, GameEventType t, string tid, string sketch, string text) =>
             entries.Add(new Entry { id = id, category = c, title = title, trigger = t, triggerId = tid, sketch = sketch, text = text });
+
+        /// <summary>replace the pages with the built-in ones (Inspector: right click the component)</summary>
+        [ContextMenu("Reset pages to the built-in text")]
+        public void ResetToDefaults() { entries.Clear(); DefaultEntries(); }
 
         void DefaultEntries()
         {

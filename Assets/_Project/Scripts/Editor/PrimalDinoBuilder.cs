@@ -41,7 +41,9 @@ namespace PrimalFrontier.EditorTools
         [Serializable] class MarkerFile { public Marker[] markers; }
         [Serializable] class Marker { public string name; public string group; public float x, y, z, r, yaw; }
 
-        [MenuItem("Primal Frontier/Dinosaurs/Build Definitions + Spawner")]
+        [MenuItem("Primal Frontier/Advanced (overwrites hand edits)/Regenerate Dinosaur Definitions + Spawner", priority = 102)]
+        public static void BuildMenu() { if (PrimalSceneBaker.ConfirmRegenerate("Dinosaur stats (DINO_*.asset) and the spawner's random entries (dinosaurs placed in the scene are kept)")) Build(); }
+
         public static void Build()
         {
             Directory.CreateDirectory(DataDir); AssetDatabase.Refresh();
@@ -83,9 +85,10 @@ namespace PrimalFrontier.EditorTools
             var mj = AssetDatabase.LoadAssetAtPath<TextAsset>("Assets/_Project/Data/World/markers.json");
             if (mj != null) foreach (var m in JsonUtility.FromJson<MarkerFile>(mj.text).markers) markers[m.name] = m;
             Vector3 MP(string n) { if (!markers.TryGetValue(n, out var m)) return Vector3.zero; var p = BlenderSpace.ToUnityPosition(m.x, m.y, m.z); if (terrain) p.y = terrain.SampleHeight(p) + terrain.transform.position.y; return p; }
-            var old = GameObject.Find("[Dinosaurs]"); if (old) UnityEngine.Object.DestroyImmediate(old);
-            var go = new GameObject("[Dinosaurs]"); var gp = GameObject.Find("[Gameplay]"); if (gp) go.transform.SetParent(gp.transform);
-            var sp = go.AddComponent<DinosaurSpawner>();
+            // keep the [Dinosaurs] object and everything placed in it by hand; only the random entries are rebuilt
+            var go = GameObject.Find("[Dinosaurs]");
+            if (!go) { go = new GameObject("[Dinosaurs]"); var gp = GameObject.Find("[Gameplay]"); if (gp) go.transform.SetParent(gp.transform); }
+            var sp = go.GetOrAdd<DinosaurSpawner>(); sp.entries.Clear();
             foreach (var (d, r) in defs)
             {
                 Vector3 c;

@@ -16,7 +16,7 @@ namespace PrimalFrontier.UI
     /// storage side panel) and CRAFTING (categories, recipes, requirements with have / need, craft time, station,
     /// queue with cancel). Drag & drop between slots, shift-click to transfer, drag outside to drop on the ground.
     /// </summary>
-    public class InventoryUI : MonoBehaviour
+    public class InventoryUI : MonoBehaviour, IBakeableUI
     {
         public static InventoryUI Instance { get; private set; }
         public int Tab { get; private set; }
@@ -37,6 +37,7 @@ namespace PrimalFrontier.UI
         readonly List<Button> _catButtons = new List<Button>();
 
         void Awake() { Instance = this; Build(); _canvas.gameObject.SetActive(false); }
+        public void BakeLayout() { Build(); _canvas.gameObject.SetActive(false); }
         void OnDestroy() { if (Instance == this) Instance = null; if (_rt) _rt.Release(); SlotView.Dropped -= OnSlotDropped; }
 
         public void Bind(GameObject player)
@@ -58,10 +59,16 @@ namespace PrimalFrontier.UI
         // ================================================================== build
         void Build()
         {
-            _canvas = UIFactory.Canvas("[Inventory]", 30); _canvas.transform.SetParent(transform, false);
+            UIFactory.BeginBuild();
+            try { BuildLayout(); } finally { UIFactory.EndBuild(); }
+        }
+
+        void BuildLayout()
+        {
+            _canvas = UIFactory.Canvas("[Inventory]", 30, transform);
             var root = _canvas.transform;
             var dim = UIFactory.Fill(root, "Dim", null, new Color(0, 0, 0, 0.55f), true);
-            dim.gameObject.AddComponent<DropZone>().Dropped = OnDropOutside;
+            dim.gameObject.GetOrAdd<DropZone>().Dropped = OnDropOutside;
             _win = UIFactory.Image(root, "Window", UIStyle.Leather, Color.white, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(1560, 860), true).rectTransform;
             var header = UIFactory.Image(_win, "Header", UIStyle.Wood, Color.white, new Vector2(0, 1), new Vector2(1, 1), new Vector2(0.5f, 1), new Vector2(0, -14), new Vector2(-40, 64));
             _tabInv = UIFactory.Button(header.transform, "TabInv", "INVENTORY", () => ShowTab(0), new Vector2(0, 0.5f), new Vector2(0, 0.5f), new Vector2(0, 0.5f), new Vector2(20, 0), new Vector2(240, 48), 26);
@@ -70,22 +77,23 @@ namespace PrimalFrontier.UI
             UIFactory.Button(header.transform, "Close", "X", () => UIManager.Instance?.Close(), new Vector2(1, 0.5f), new Vector2(1, 0.5f), new Vector2(1, 0.5f), new Vector2(-12, 0), new Vector2(48, 48), 26);
 
             _invTab = UIFactory.Rect(_win, "InventoryTab", Vector2.zero, Vector2.one, new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero);
-            _invTab.offsetMin = new Vector2(30, 30); _invTab.offsetMax = new Vector2(-30, -92);
+            if (UIFactory.Fresh(_invTab)) { _invTab.offsetMin = new Vector2(30, 30); _invTab.offsetMax = new Vector2(-30, -92); }
             _craftTab = UIFactory.Rect(_win, "CraftingTab", Vector2.zero, Vector2.one, new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero);
-            _craftTab.offsetMin = new Vector2(30, 30); _craftTab.offsetMax = new Vector2(-30, -92);
+            if (UIFactory.Fresh(_craftTab)) { _craftTab.offsetMin = new Vector2(30, 30); _craftTab.offsetMax = new Vector2(-30, -92); }
             BuildInventoryTab(); BuildCraftTab();
 
             _tooltip = UIFactory.Image(root, "Tooltip", UIStyle.PanelDark, new Color(1, 1, 1, 0.95f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0, 1), Vector2.zero, new Vector2(320, 120)).rectTransform;
-            _tipText = UIFactory.Label(_tooltip, "Text", "", 17, UIStyle.Text, TextAnchor.UpperLeft, UIStyle.Body); _tipText.rectTransform.offsetMin = new Vector2(14, 10); _tipText.rectTransform.offsetMax = new Vector2(-14, -10);
+            _tipText = UIFactory.Label(_tooltip, "Text", "", 17, UIStyle.Text, TextAnchor.UpperLeft, UIStyle.Body);
+            if (UIFactory.Fresh(_tipText)) { _tipText.rectTransform.offsetMin = new Vector2(14, 10); _tipText.rectTransform.offsetMax = new Vector2(-14, -10); }
             _tooltip.gameObject.SetActive(false);
-            SlotView.Dropped += OnSlotDropped;
+            if (Application.isPlaying) SlotView.Dropped += OnSlotDropped;
         }
 
         void BuildInventoryTab()
         {
             // left: preview + status
             var left = UIFactory.Image(_invTab, "Left", UIStyle.PanelDark, new Color(1, 1, 1, 0.8f), new Vector2(0, 0), new Vector2(0, 1), new Vector2(0, 0.5f), Vector2.zero, new Vector2(360, 0)).rectTransform;
-            _preview = UIFactory.Rect(left, "Preview", new Vector2(0, 1), new Vector2(1, 1), new Vector2(0.5f, 1), new Vector2(0, -12), new Vector2(-24, 400)).gameObject.AddComponent<RawImage>();
+            _preview = UIFactory.Rect(left, "Preview", new Vector2(0, 1), new Vector2(1, 1), new Vector2(0.5f, 1), new Vector2(0, -12), new Vector2(-24, 400)).gameObject.GetOrAdd<RawImage>();
             _preview.raycastTarget = false;
             _statText = UIFactory.Label(left, "Stats", "", 18, UIStyle.Text, TextAnchor.UpperLeft, UIStyle.Body, new Vector2(0, 0), new Vector2(1, 0), new Vector2(0, 0), new Vector2(20, 70), new Vector2(-40, 220));
             _weightText = UIFactory.Label(left, "Weight", "", 18, UIStyle.Text, TextAnchor.LowerLeft, UIStyle.Body, new Vector2(0, 0), new Vector2(1, 0), new Vector2(0, 0), new Vector2(20, 36), new Vector2(-40, 26));
@@ -145,8 +153,9 @@ namespace PrimalFrontier.UI
             }
             var mid = UIFactory.Image(_craftTab, "Recipes", UIStyle.PanelDark, new Color(1, 1, 1, 0.65f), new Vector2(0, 0), new Vector2(0, 1), new Vector2(0, 0.5f), new Vector2(246, 0), new Vector2(700, 0)).rectTransform;
             var scroll = UIFactory.Stretch(mid, "Scroll", 14f);
-            var sr = scroll.gameObject.AddComponent<ScrollRect>(); sr.horizontal = false; sr.scrollSensitivity = 30f;
-            var vp = UIFactory.Stretch(scroll, "Viewport"); vp.gameObject.AddComponent<RectMask2D>(); var vpImg = vp.gameObject.AddComponent<Image>(); vpImg.color = new Color(0, 0, 0, 0.01f);
+            var sr = scroll.GetComponent<ScrollRect>(); if (!sr) { sr = scroll.gameObject.AddComponent<ScrollRect>(); sr.horizontal = false; sr.scrollSensitivity = 30f; }
+            var vp = UIFactory.Stretch(scroll, "Viewport"); vp.gameObject.GetOrAdd<RectMask2D>();
+            if (!vp.GetComponent<Image>()) { var vpImg = vp.gameObject.AddComponent<Image>(); vpImg.color = new Color(0, 0, 0, 0.01f); }
             _tileRoot = UIFactory.Rect(vp, "Content", new Vector2(0, 1), new Vector2(1, 1), new Vector2(0.5f, 1), Vector2.zero, new Vector2(0, 600));
             sr.viewport = vp; sr.content = _tileRoot;
 
@@ -165,9 +174,9 @@ namespace PrimalFrontier.UI
             {
                 int k = i;
                 var q = UIFactory.Image(right, "Q" + i, UIStyle.Slot, Color.white, new Vector2(0, 0), new Vector2(0, 0), new Vector2(0, 0), new Vector2(34 + i * 72, 22), new Vector2(66, 66), true);
-                var ic = UIFactory.Image(q.transform, "Icon", null, Color.white, Vector2.zero, Vector2.one, new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero); ic.rectTransform.offsetMin = new Vector2(8, 8); ic.rectTransform.offsetMax = new Vector2(-8, -8); ic.preserveAspect = true;
+                var ic = UIFactory.Image(q.transform, "Icon", null, Color.white, Vector2.zero, Vector2.one, new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero); if (UIFactory.Fresh(ic)) { ic.rectTransform.offsetMin = new Vector2(8, 8); ic.rectTransform.offsetMax = new Vector2(-8, -8); } ic.preserveAspect = true;
                 var bar = UIFactory.Image(q.transform, "Bar", UIStyle.BarFill, UIStyle.Accent, new Vector2(0, 0), new Vector2(1, 0), new Vector2(0, 0), new Vector2(6, 4), new Vector2(-12, 5)); bar.type = Image.Type.Filled; bar.fillMethod = Image.FillMethod.Horizontal;
-                var btn = q.gameObject.AddComponent<Button>(); btn.onClick.AddListener(() => { _craft?.Cancel(k); });
+                var btn = q.gameObject.GetOrAdd<Button>(); if (Application.isPlaying) btn.onClick.AddListener(() => { _craft?.Cancel(k); });
                 _queueIcons.Add(ic); _queueBars.Add(bar);
             }
         }

@@ -104,8 +104,8 @@ namespace PrimalFrontier.EditorTools
             EditorApplication.Exit(code);
         }
 
-        [MenuItem("Primal Frontier/Characters/Build + Test Player")]
-        public static void MenuPlayer() => BuildAndTest("Player");
+        [MenuItem("Primal Frontier/Advanced (overwrites hand edits)/Re-import Player Model + Test", priority = 110)]
+        public static void MenuPlayer() { if (PrimalSceneBaker.ConfirmRegenerate("The player model prefab (from the Blender export)")) BuildAndTest("Player"); }
 
         public static bool BuildAndTest(string id)
         {
