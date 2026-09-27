@@ -81,7 +81,8 @@ namespace PrimalFrontier.VFX
         {
             id = BloodFilter(id, ref scale);
             if (id == VfxId.None || !_prefabs.ContainsKey(id)) return null;
-            if (ActiveCount >= MaxActive) return null;
+            if (ActiveCount >= Mathf.Min(MaxActive, PrimalFrontier.Core.GameSettings.MaxVfx)) return null;
+            if (PrimalFrontier.Core.GameSettings.Quality == 0 && Cosmetic(id) && FarFromCamera(pos, 22f)) return null;   // Low: skip small far-away puffs
             var stack = _free[id];
             var pe = stack.Count > 0 ? stack.Pop() : Create(id);
             var t = pe.transform;
@@ -94,6 +95,15 @@ namespace PrimalFrontier.VFX
 
         public PooledEffect Play(VfxId id, Vector3 pos, Vector3 normal, Transform parent = null, float scale = 1f) =>
             Play(id, pos, normal.sqrMagnitude > 1e-6f ? Quaternion.LookRotation(normal) : Quaternion.identity, parent, scale);
+
+        static bool Cosmetic(VfxId id) => id == VfxId.FootSand || id == VfxId.FootDirt || id == VfxId.FootMud || id == VfxId.FootRock ||
+                                          id == VfxId.DinoFootDust || id == VfxId.WaterDrops || id == VfxId.FoodCrumbs;
+        static Camera _cam;
+        static bool FarFromCamera(Vector3 p, float d)
+        {
+            if (!_cam) _cam = Camera.main;
+            return _cam && (p - _cam.transform.position).sqrMagnitude > d * d;
+        }
 
         /// <summary>the blood setting: Off swaps every blood effect for a neutral impact puff, Reduced shrinks them</summary>
         static VfxId BloodFilter(VfxId id, ref float scale)

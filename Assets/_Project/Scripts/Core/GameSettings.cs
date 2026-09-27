@@ -40,8 +40,46 @@ namespace PrimalFrontier.Core
             int lvl = Mathf.Clamp(Mathf.RoundToInt(Quality / 3f * (n - 1)), 0, n - 1);
             QualitySettings.SetQualityLevel(lvl, true);
             QualitySettings.vSyncCount = VSync ? 1 : 0;
-            Application.targetFrameRate = Application.isMobilePlatform ? 30 : VSync ? -1 : 144;
+            Application.targetFrameRate = Application.isMobilePlatform ? (Quality >= 2 ? 60 : 30) : VSync ? -1 : 144;
             TerrainQuality.Apply(Quality);
+            ApplyRenderPreset(Mathf.Clamp(Quality, 0, 3));
+        }
+
+        // ---- per preset render cost (Low / Medium / High / Ultra) on top of the Mobile / PC quality level
+        static readonly float[] RenderScale = { 0.75f, 0.9f, 1f, 1f };
+        static readonly float[] ShadowDistance = { 30f, 45f, 70f, 110f };
+        static readonly int[] Msaa = { 1, 2, 4, 4 };
+        static readonly int[] Cascades = { 1, 2, 2, 4 };
+        static readonly float[] LodBias = { 0.7f, 1.0f, 1.5f, 2.0f };
+        static readonly int[] MaxEffects = { 24, 40, 64, 96 };
+        /// <summary>how many pooled particle effects may play at once for the current preset</summary>
+        public static int MaxVfx => MaxEffects[Mathf.Clamp(Quality, 0, 3)];
+        // one private copy of the pipeline asset per quality level (made once, changed on every apply)
+        static readonly System.Collections.Generic.Dictionary<int, UnityEngine.Rendering.Universal.UniversalRenderPipelineAsset> _rpCopy =
+            new System.Collections.Generic.Dictionary<int, UnityEngine.Rendering.Universal.UniversalRenderPipelineAsset>();
+
+        /// <summary>
+        /// Render scale, shadow distance / cascades, MSAA and LOD bias per preset. Builds only: in the editor these
+        /// would be written into the project's pipeline / quality assets, so the editor keeps the asset values.
+        /// A private copy of the pipeline asset is changed, never the asset on disk.
+        /// </summary>
+        static void ApplyRenderPreset(int q)
+        {
+            if (Application.isEditor) return;
+            QualitySettings.lodBias = LodBias[q];
+            int lvl = QualitySettings.GetQualityLevel();
+            if (!_rpCopy.TryGetValue(lvl, out var copy) || !copy)
+            {
+                var src = QualitySettings.renderPipeline != null ? QualitySettings.renderPipeline : UnityEngine.Rendering.GraphicsSettings.defaultRenderPipeline;
+                if (!(src is UnityEngine.Rendering.Universal.UniversalRenderPipelineAsset urp)) return;
+                copy = Object.Instantiate(urp); copy.name = urp.name + " (runtime)";
+                _rpCopy[lvl] = copy;
+            }
+            copy.renderScale = RenderScale[q];
+            copy.shadowDistance = ShadowDistance[q];
+            copy.shadowCascadeCount = Cascades[q];
+            copy.msaaSampleCount = Msaa[q];
+            if (QualitySettings.renderPipeline != copy) QualitySettings.renderPipeline = copy;
         }
 
         public static void CycleResolution()

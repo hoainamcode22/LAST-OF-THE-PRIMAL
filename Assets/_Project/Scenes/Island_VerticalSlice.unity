@@ -15,14 +15,14 @@ RenderSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 10
   m_Fog: 1
-  m_FogColor: {r: 0.68, g: 0.74, b: 0.78, a: 1}
+  m_FogColor: {r: 0.6699998, g: 0.70833254, b: 0.73666555, a: 1}
   m_FogMode: 3
-  m_FogDensity: 0.0016
+  m_FogDensity: 0.0017407404
   m_LinearFogStart: 0
   m_LinearFogEnd: 300
-  m_AmbientSkyColor: {r: 0.212, g: 0.227, b: 0.259, a: 1}
-  m_AmbientEquatorColor: {r: 0.114, g: 0.125, b: 0.133, a: 1}
-  m_AmbientGroundColor: {r: 0.047, g: 0.043, b: 0.035, a: 1}
+  m_AmbientSkyColor: {r: 0.5550007, g: 0.6250007, b: 0.7240006, a: 1}
+  m_AmbientEquatorColor: {r: 0.4333329, g: 0.42999923, b: 0.40833253, a: 1}
+  m_AmbientGroundColor: {r: 0.21700026, g: 0.19250065, b: 0.16250065, a: 1}
   m_AmbientIntensity: 1
   m_AmbientMode: 0
   m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
@@ -229,6 +229,8 @@ MonoBehaviour:
   hideWhenEmpty: 1
   toolWear: 1
   radius: 0.4
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &5249882
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -343,6 +345,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.7981155
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &7178683
 GameObject:
   m_ObjectHideFlags: 0
@@ -607,6 +611,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.5734069
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &9850860
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -721,6 +727,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.820256
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &14374578
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -835,6 +843,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.3095394
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &15600743
 GameObject:
   m_ObjectHideFlags: 0
@@ -1145,6 +1155,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.88689446
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &18124199
 GameObject:
   m_ObjectHideFlags: 0
@@ -1764,6 +1776,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.8382354
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &22023277
 GameObject:
   m_ObjectHideFlags: 0
@@ -1978,6 +1992,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.0758225
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &28634606
 GameObject:
   m_ObjectHideFlags: 0
@@ -2242,6 +2258,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.8447723
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &32209104
 GameObject:
   m_ObjectHideFlags: 0
@@ -2462,6 +2480,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.2547623
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &34923297
 GameObject:
   m_ObjectHideFlags: 0
@@ -2730,6 +2750,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.92844
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &39645748
 GameObject:
   m_ObjectHideFlags: 0
@@ -3135,6 +3157,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.57191
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &44200852
 GameObject:
   m_ObjectHideFlags: 0
@@ -3575,6 +3599,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.1845493
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &48748667
 GameObject:
   m_ObjectHideFlags: 0
@@ -4130,6 +4156,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.4853197
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &53108223
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -4244,6 +4272,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.0617737
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &53419092
 GameObject:
   m_ObjectHideFlags: 0
@@ -4638,6 +4668,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.6612868
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &58502336
 GameObject:
   m_ObjectHideFlags: 0
@@ -4847,6 +4879,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.8617298
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &60526729
 GameObject:
   m_ObjectHideFlags: 0
@@ -5007,6 +5041,7 @@ MonoBehaviour:
   def: {fileID: 11400000, guid: d1e608b06e8ee0f4fae2fe0d730addc9, type: 2}
   home: {x: 0, y: 0, z: 0}
   homeRadius: 30
+  attackTell: {x: 0.32, y: 0.55}
 --- !u!1001 &63291844
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -5121,6 +5156,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.4322493
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &65772983
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -5235,6 +5272,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.75307846
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &68247394
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -5349,6 +5388,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.0705558
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &69069974
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -5463,6 +5504,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 3.878064
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &69428303
 GameObject:
   m_ObjectHideFlags: 0
@@ -5652,6 +5695,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.2587448
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &71043780
 GameObject:
   m_ObjectHideFlags: 0
@@ -5936,6 +5981,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.2630466
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &72036982
 GameObject:
   m_ObjectHideFlags: 0
@@ -6125,6 +6172,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.9665737
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &73308788
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -6239,6 +6288,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.2708915
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &74411301
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -6431,6 +6482,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.93896025
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &78232948
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -6545,6 +6598,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.0732132
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &78306815
 GameObject:
   m_ObjectHideFlags: 0
@@ -6734,6 +6789,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 3.5972738
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &80026621
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -6848,6 +6905,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.9618697
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &80747149
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -6962,6 +7021,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.3721374
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &81687959
 GameObject:
   m_ObjectHideFlags: 0
@@ -7233,6 +7294,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.3486816
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &86821970
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -7347,6 +7410,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.2317528
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &89760957
 GameObject:
   m_ObjectHideFlags: 0
@@ -7797,6 +7862,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 3.7747512
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &95529555
 GameObject:
   m_ObjectHideFlags: 0
@@ -8081,6 +8148,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.3433257
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &98996081
 GameObject:
   m_ObjectHideFlags: 0
@@ -8590,6 +8659,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.6455597
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &104393271
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -8704,6 +8775,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.8091156
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &106802586
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -8892,6 +8965,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.4
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &107427470
 GameObject:
   m_ObjectHideFlags: 0
@@ -9156,6 +9231,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.429802
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &110253664
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -9818,6 +9895,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.5020199
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &113488191
 GameObject:
   m_ObjectHideFlags: 0
@@ -10131,6 +10210,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.0140038
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &114777111
 GameObject:
   m_ObjectHideFlags: 0
@@ -10340,6 +10421,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.4178405
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &119183618
 GameObject:
   m_ObjectHideFlags: 0
@@ -10616,6 +10699,38 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 122539957}
   m_CullTransparentMesh: 1
+--- !u!1 &123407719
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 123407720}
+  m_Layer: 0
+  m_Name: Landmarks
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &123407720
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 123407719}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 702025806}
+  m_Father: {fileID: 1630282980}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &125857709
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -10730,6 +10845,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.8753494
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &127481599
 GameObject:
   m_ObjectHideFlags: 0
@@ -10880,6 +10997,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.5825493
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &129991798
 GameObject:
   m_ObjectHideFlags: 0
@@ -11225,6 +11344,8 @@ MonoBehaviour:
   hideWhenEmpty: 1
   toolWear: 1
   radius: 0.4
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &135191791
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -11339,6 +11460,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.48817
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &135337960
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -11453,6 +11576,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.3507278
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &138009249
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -11567,6 +11692,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.474633
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &138780960
 GameObject:
   m_ObjectHideFlags: 0
@@ -12033,6 +12160,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 3.085771
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &147066404
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -12420,6 +12549,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.4966898
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &152175241
 GameObject:
   m_ObjectHideFlags: 0
@@ -12675,6 +12806,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.5264267
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &157144957
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -12760,6 +12893,7 @@ MonoBehaviour:
   def: {fileID: 11400000, guid: 1c83541960f5eba4cbcbb06ca3fda709, type: 2}
   home: {x: 0, y: 0, z: 0}
   homeRadius: 30
+  attackTell: {x: 0.32, y: 0.55}
 --- !u!1001 &158109064
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -12870,6 +13004,8 @@ MonoBehaviour:
   hideWhenEmpty: 1
   toolWear: 1
   radius: 0.4
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &160927024
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -12984,6 +13120,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 4.906796
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &162321179
 GameObject:
   m_ObjectHideFlags: 0
@@ -13288,6 +13426,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.7520485
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &169638677
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -13402,6 +13542,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.86018825
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &171766691
 GameObject:
   m_ObjectHideFlags: 0
@@ -13859,6 +14001,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.68976283
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &176194890
 GameObject:
   m_ObjectHideFlags: 0
@@ -14244,6 +14388,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.85525817
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &180695464
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -14358,6 +14504,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.4466796
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &183280091
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -14521,6 +14669,7 @@ MonoBehaviour:
   def: {fileID: 11400000, guid: 8249d54e496277f418146019b7a912c9, type: 2}
   home: {x: 0, y: 0, z: 0}
   homeRadius: 30
+  attackTell: {x: 0.32, y: 0.55}
 --- !u!1001 &188078111
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -14606,6 +14755,7 @@ MonoBehaviour:
   def: {fileID: 11400000, guid: 57e6200f01215ac409be568edcf4815c, type: 2}
   home: {x: 0, y: 0, z: 0}
   homeRadius: 40
+  attackTell: {x: 0.32, y: 0.55}
 --- !u!1 &188277409
 GameObject:
   m_ObjectHideFlags: 0
@@ -14841,6 +14991,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.4706123
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &191510601
 GameObject:
   m_ObjectHideFlags: 0
@@ -15030,6 +15182,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.5725967
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &199315537
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -15144,6 +15298,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.4294617
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &199530482
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -15336,6 +15492,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.2582779
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &201299089
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -15603,6 +15761,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 3.0140853
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &206361100
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -15717,6 +15877,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.6073616
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &206856978
 GameObject:
   m_ObjectHideFlags: 0
@@ -16336,6 +16498,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.3664794
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &214175309
 GameObject:
   m_ObjectHideFlags: 0
@@ -16561,6 +16725,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.2549438
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &217551009
 GameObject:
   m_ObjectHideFlags: 0
@@ -16865,6 +17031,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.5115882
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &221799679
 GameObject:
   m_ObjectHideFlags: 0
@@ -17074,6 +17242,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 3.321112
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &222693514
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -17188,6 +17358,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.2414414
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &224622087
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -17298,6 +17470,8 @@ MonoBehaviour:
   hideWhenEmpty: 1
   toolWear: 1
   radius: 0.4
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &225517215
 GameObject:
   m_ObjectHideFlags: 0
@@ -17574,6 +17748,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.82476425
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &228843271
 GameObject:
   m_ObjectHideFlags: 0
@@ -17782,6 +17958,8 @@ MonoBehaviour:
   hideWhenEmpty: 1
   toolWear: 1
   radius: 0.4
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &229129404
 GameObject:
   m_ObjectHideFlags: 0
@@ -17991,6 +18169,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.2005734
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &230193009
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -18101,6 +18281,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.4
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &230716987
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -18293,6 +18475,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.68600005
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &233451945
 GameObject:
   m_ObjectHideFlags: 0
@@ -18338,8 +18522,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: PrimalFrontier.Runtime::PrimalFrontier.Core.WeatherManager
   allowRandom: 1
+  cloudChancePerHour: 0.12
   rainChancePerHour: 0.08
+  cloudHours: {x: 1.5, y: 4}
   rainHours: {x: 1, y: 3}
+  windDirection: {x: 0.8, y: 0.6}
+  calmWind: 0.35
+  stormWind: 1.4
+  lightningColor: {r: 0.8, g: 0.86, b: 1, a: 1}
+  lightningIntensity: 2.6
   rainMaterial: {fileID: 2100000, guid: 31772ab0f7c313640858c68ee7fee33f, type: 2}
   maxParticles: 1400
 --- !u!1 &233453977
@@ -18597,6 +18788,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.7769531
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &235674734
 GameObject:
   m_ObjectHideFlags: 0
@@ -18920,6 +19113,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.322287
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &241778413
 GameObject:
   m_ObjectHideFlags: 0
@@ -19155,6 +19350,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.3967223
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &243251642
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -19269,6 +19466,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 3.7534378
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &243497159
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -19383,6 +19582,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.4937286
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &246366751
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -19497,6 +19698,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.3890839
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &249991607
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -19611,6 +19814,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.2663699
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &250875754
 GameObject:
   m_ObjectHideFlags: 0
@@ -19820,6 +20025,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.8605208
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &253236481
 GameObject:
   m_ObjectHideFlags: 0
@@ -20291,6 +20498,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.2752792
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &260150065
 GameObject:
   m_ObjectHideFlags: 0
@@ -20500,6 +20709,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.1732231
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &264078258
 GameObject:
   m_ObjectHideFlags: 0
@@ -20689,6 +20900,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.8998519
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &265003650
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -20803,6 +21016,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.094101
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &265361420
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -20917,6 +21132,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.8608062
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &266453914
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -21282,6 +21499,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.288655
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &272849329
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -21396,6 +21615,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.75935096
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &273695329
 GameObject:
   m_ObjectHideFlags: 0
@@ -21771,6 +21992,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.9090972
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &278373078
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -21963,6 +22186,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.0396392
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &280212412
 GameObject:
   m_ObjectHideFlags: 0
@@ -22172,6 +22397,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.9854453
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &283981334
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -22554,6 +22781,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.5934737
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &291017454
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -22668,6 +22897,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.0265694
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &292322311
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -22782,6 +23013,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.3155509
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &293393676
 GameObject:
   m_ObjectHideFlags: 0
@@ -23284,6 +23517,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.5891685
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &298565124
 GameObject:
   m_ObjectHideFlags: 0
@@ -23473,6 +23708,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.7570267
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &303427539
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -23587,6 +23824,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.76967466
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &303495749
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -23701,6 +23940,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 3.5322554
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &306449986
 GameObject:
   m_ObjectHideFlags: 0
@@ -23890,6 +24131,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.7391906
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &309564365
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -24218,6 +24461,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.0086823
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &317183098
 GameObject:
   m_ObjectHideFlags: 0
@@ -24607,6 +24852,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.3964202
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &325458325
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -24770,6 +25017,7 @@ MonoBehaviour:
   def: {fileID: 11400000, guid: bf9f9fc06ab4dad49b89e744d7c93654, type: 2}
   home: {x: 0, y: 0, z: 0}
   homeRadius: 25
+  attackTell: {x: 0.32, y: 0.55}
 --- !u!1001 &327264310
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -24884,6 +25132,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 3.3909507
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &328306036
 GameObject:
   m_ObjectHideFlags: 0
@@ -25073,6 +25323,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.8078856
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &331306838
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -25187,6 +25439,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.192923
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &334349997
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -25301,6 +25555,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.0570084
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &334507470
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -25415,6 +25671,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.1520813
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &336157983
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -25529,6 +25787,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.9577117
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &339379227
 GameObject:
   m_ObjectHideFlags: 0
@@ -25738,6 +25998,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.6487427
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &341038754
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -25930,6 +26192,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.1114044
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &344265317
 GameObject:
   m_ObjectHideFlags: 0
@@ -26296,6 +26560,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.029364
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &351756727
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -26410,6 +26676,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.77940184
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &352319165
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -26524,6 +26792,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.3708878
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &357192795
 GameObject:
   m_ObjectHideFlags: 0
@@ -26808,6 +27078,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.87540436
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &362642044
 GameObject:
   m_ObjectHideFlags: 0
@@ -27284,6 +27556,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.0927345
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &368064833
 GameObject:
   m_ObjectHideFlags: 0
@@ -27493,6 +27767,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.335141
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &371223049
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -27607,6 +27883,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.0057328
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &375318250
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -27721,6 +27999,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.9201187
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &377669597
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -27835,6 +28115,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.7238411
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &380763587
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -28258,6 +28540,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 3.2930555
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &388827379
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -28372,6 +28656,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 3.2695312
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &391156437
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -28649,6 +28935,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.4674506
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &396158548
 GameObject:
   m_ObjectHideFlags: 0
@@ -29025,6 +29313,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.8160679
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &401136842
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -29135,6 +29425,8 @@ MonoBehaviour:
   hideWhenEmpty: 1
   toolWear: 1
   radius: 0.4
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &401621781
 GameObject:
   m_ObjectHideFlags: 0
@@ -29610,6 +29902,8 @@ MonoBehaviour:
   hideWhenEmpty: 1
   toolWear: 1
   radius: 0.4
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &413230241
 GameObject:
   m_ObjectHideFlags: 0
@@ -29996,6 +30290,8 @@ MonoBehaviour:
   hideWhenEmpty: 1
   toolWear: 1
   radius: 0.4
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &417273014
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -30110,6 +30406,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.4783065
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &417668131
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -30224,6 +30522,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.3019022
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &418376863
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -30416,6 +30716,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 3.33181
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &423134288
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -30608,6 +30910,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.1817306
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &425117298
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -30722,6 +31026,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.89733577
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &425388772
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -31175,6 +31481,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.4406921
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &429757353
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -31289,6 +31597,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.1222397
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &430568720
 GameObject:
   m_ObjectHideFlags: 0
@@ -31604,6 +31914,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.0171554
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &436149206
 GameObject:
   m_ObjectHideFlags: 0
@@ -31984,6 +32296,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.8672058
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &442232746
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -32098,6 +32412,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 3.3828688
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &442301340
 GameObject:
   m_ObjectHideFlags: 0
@@ -32619,6 +32935,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.4294684
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &445855614
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -32905,6 +33223,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.1746856
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &451102563
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -33019,6 +33339,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.0747238
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &452757745
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -33211,6 +33533,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.1226654
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &456599922
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -33403,6 +33727,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.79720914
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &457249243
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -33517,6 +33843,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.9489784
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &457853296
 GameObject:
   m_ObjectHideFlags: 0
@@ -33824,6 +34152,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 3.6384032
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &466887466
 GameObject:
   m_ObjectHideFlags: 0
@@ -34033,6 +34363,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.2931045
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &470042232
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -34147,6 +34479,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.8615675
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &471797783
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -34261,6 +34595,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.1347641
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &473812059
 GameObject:
   m_ObjectHideFlags: 0
@@ -34473,6 +34809,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.63779753
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &474559041
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -34587,6 +34925,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.521335
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &475045383
 GameObject:
   m_ObjectHideFlags: 0
@@ -34891,6 +35231,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.92871547
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &476822707
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -35161,6 +35503,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.2462066
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &479149915
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -35275,6 +35619,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.6795486
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &479788444
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -35389,6 +35735,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 3.475154
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &480742666
 GameObject:
   m_ObjectHideFlags: 0
@@ -35561,6 +35909,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 3.9825163
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &481191643
 GameObject:
   m_ObjectHideFlags: 0
@@ -35825,6 +36175,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 3.1395216
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &483950428
 GameObject:
   m_ObjectHideFlags: 0
@@ -36014,6 +36366,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.65494305
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &484600675
 GameObject:
   m_ObjectHideFlags: 0
@@ -36203,6 +36557,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.8964217
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &485765451
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -36317,6 +36673,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.2225616
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &485871314
 GameObject:
   m_ObjectHideFlags: 0
@@ -36789,6 +37147,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.3057662
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &495161750
 GameObject:
   m_ObjectHideFlags: 0
@@ -36943,6 +37303,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.932251
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &496182760
 GameObject:
   m_ObjectHideFlags: 0
@@ -37328,6 +37690,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.2412765
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &499090227
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -37442,6 +37806,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.0186111
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &501643718
 GameObject:
   m_ObjectHideFlags: 0
@@ -37651,6 +38017,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.8350708
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &502075624
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -37765,6 +38133,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.9160125
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &502747082
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -37879,6 +38249,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.6679747
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &504672488
 GameObject:
   m_ObjectHideFlags: 0
@@ -38088,6 +38460,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.588414
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &504811466
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -38198,6 +38572,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.4
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &506818634
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -38312,6 +38688,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.4629836
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &507813239
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -38426,6 +38804,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.4584243
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &508054400
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -38540,6 +38920,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 3.0460348
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &508334454
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -38650,6 +39032,8 @@ MonoBehaviour:
   hideWhenEmpty: 1
   toolWear: 1
   radius: 0.4
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &508612428
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -38764,6 +39148,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.320584
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &512430986
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -38956,6 +39342,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.0529228
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &513290113
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -39070,6 +39458,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.98081815
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &513820372
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -39337,6 +39727,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.8371719
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &517572670
 GameObject:
   m_ObjectHideFlags: 0
@@ -40156,6 +40548,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.91148
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &525855337
 GameObject:
   m_ObjectHideFlags: 0
@@ -40322,6 +40716,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.81663436
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &529421761
 GameObject:
   m_ObjectHideFlags: 0
@@ -40629,6 +41025,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.0746689
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &534133186
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -40743,6 +41141,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.5578411
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &534410995
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -40857,6 +41257,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.4018451
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &535020202
 GameObject:
   m_ObjectHideFlags: 0
@@ -41245,6 +41647,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.2280518
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &538875626
 GameObject:
   m_ObjectHideFlags: 0
@@ -41405,6 +41809,7 @@ MonoBehaviour:
   def: {fileID: 11400000, guid: d1e608b06e8ee0f4fae2fe0d730addc9, type: 2}
   home: {x: 0, y: 0, z: 0}
   homeRadius: 30
+  attackTell: {x: 0.32, y: 0.55}
 --- !u!1001 &540325802
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -41519,6 +41924,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.0131592
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &544254159
 GameObject:
   m_ObjectHideFlags: 0
@@ -41844,6 +42251,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 3.177658
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &550569731
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -41958,6 +42367,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.9293747
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &550649828
 GameObject:
   m_ObjectHideFlags: 0
@@ -42357,6 +42768,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.0150268
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &554751209
 GameObject:
   m_ObjectHideFlags: 0
@@ -42546,6 +42959,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.2208467
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &560880468
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -42660,6 +43075,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 3.0699472
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &562862674
 GameObject:
   m_ObjectHideFlags: 0
@@ -42895,6 +43312,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.4942917
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &565548372
 GameObject:
   m_ObjectHideFlags: 0
@@ -43225,6 +43644,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.8972122
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &571700666
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -43339,6 +43760,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.1105804
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &574225139
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -43453,6 +43876,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.0267684
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &574591494
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -43723,6 +44148,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.2590469
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &578476838
 GameObject:
   m_ObjectHideFlags: 0
@@ -44193,6 +44620,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.8290482
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &582037601
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -44303,6 +44732,8 @@ MonoBehaviour:
   hideWhenEmpty: 1
   toolWear: 1
   radius: 0.4
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &582226580
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -44417,6 +44848,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 3.312893
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &583818684
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -44531,6 +44964,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.5313323
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &583960392
 GameObject:
   m_ObjectHideFlags: 0
@@ -45034,6 +45469,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.2460693
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &587615360
 GameObject:
   m_ObjectHideFlags: 0
@@ -45520,6 +45957,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.939543
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &597817159
 GameObject:
   m_ObjectHideFlags: 0
@@ -45794,6 +46233,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.212355
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &600756461
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -45986,6 +46427,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.2223938
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &603995564
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -46100,6 +46543,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.75964963
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &604603177
 GameObject:
   m_ObjectHideFlags: 0
@@ -46617,6 +47062,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.7732071
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &609514291
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -47441,6 +47888,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.7741327
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &619128465
 GameObject:
   m_ObjectHideFlags: 0
@@ -47882,6 +48331,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.800669
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &635134959
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -47996,6 +48447,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 4.498132
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &636191579
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -48110,6 +48563,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.3148193
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &637285651
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -48224,6 +48679,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.6339935
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &637494934
 GameObject:
   m_ObjectHideFlags: 0
@@ -48491,6 +48948,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.1530391
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &639197142
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -48605,6 +49064,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.5673301
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &639669451
 GameObject:
   m_ObjectHideFlags: 0
@@ -48964,6 +49425,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.7407317
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &645686431
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -49078,6 +49541,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.918875
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &646296866
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -49192,6 +49657,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.3396865
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &646437104
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -49306,6 +49773,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.5316482
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &646963439
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -49505,6 +49974,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.3638153
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &650692790
 GameObject:
   m_ObjectHideFlags: 0
@@ -50010,6 +50481,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.68240887
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &657204946
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -50198,6 +50671,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.6118758
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &658009185
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -50312,6 +50787,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.281771
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &658059420
 GameObject:
   m_ObjectHideFlags: 0
@@ -50591,6 +51068,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.0764266
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &660333349
 GameObject:
   m_ObjectHideFlags: 0
@@ -50855,6 +51334,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.9075548
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &663911460
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -50969,6 +51450,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.0487
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &664954681
 GameObject:
   m_ObjectHideFlags: 0
@@ -51335,6 +51818,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.2434648
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &668434340
 GameObject:
   m_ObjectHideFlags: 0
@@ -51524,6 +52009,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.5362457
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &672349680
 GameObject:
   m_ObjectHideFlags: 0
@@ -51808,6 +52295,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.3432777
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &674523211
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -51922,6 +52411,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 3.861351
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &674684382
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -52036,6 +52527,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.7417488
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &674975738
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -52150,6 +52643,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.6827865
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &675555038
 GameObject:
   m_ObjectHideFlags: 0
@@ -52339,6 +52834,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.0502994
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &677568595
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -52453,6 +52950,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.5098648
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &678231674
 GameObject:
   m_ObjectHideFlags: 0
@@ -52865,6 +53364,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.0216736
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &681330061
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -52979,6 +53480,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.0020012
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &683609284
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -53093,6 +53596,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.0324745
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &685999295
 GameObject:
   m_ObjectHideFlags: 0
@@ -53239,6 +53744,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 3.6886802
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &688101809
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -53353,6 +53860,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.96497035
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &689983572
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -53467,6 +53976,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.3499982
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &690744119
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -53581,6 +54092,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 3.750801
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &691991223
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -53999,6 +54512,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.97071415
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &695739057
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -54262,6 +54777,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.2962182
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &697287399
 GameObject:
   m_ObjectHideFlags: 0
@@ -54482,6 +54999,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.7126724
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &701251270
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -54592,6 +55111,70 @@ MonoBehaviour:
   hideWhenEmpty: 1
   toolWear: 1
   radius: 0.4
+  hitWobble: 0.07
+  emptyScale: 0.7
+--- !u!1001 &702025805
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 123407720}
+    m_Modifications:
+    - target: {fileID: 5185287258155870453, guid: c0b0a7bb2bffc944fbb7ab39e8e49855, type: 3}
+      propertyPath: m_Name
+      value: Volcano
+      objectReference: {fileID: 0}
+    - target: {fileID: 7233500288681026500, guid: c0b0a7bb2bffc944fbb7ab39e8e49855, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -360
+      objectReference: {fileID: 0}
+    - target: {fileID: 7233500288681026500, guid: c0b0a7bb2bffc944fbb7ab39e8e49855, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -2
+      objectReference: {fileID: 0}
+    - target: {fileID: 7233500288681026500, guid: c0b0a7bb2bffc944fbb7ab39e8e49855, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 640
+      objectReference: {fileID: 0}
+    - target: {fileID: 7233500288681026500, guid: c0b0a7bb2bffc944fbb7ab39e8e49855, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7233500288681026500, guid: c0b0a7bb2bffc944fbb7ab39e8e49855, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7233500288681026500, guid: c0b0a7bb2bffc944fbb7ab39e8e49855, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7233500288681026500, guid: c0b0a7bb2bffc944fbb7ab39e8e49855, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7233500288681026500, guid: c0b0a7bb2bffc944fbb7ab39e8e49855, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7233500288681026500, guid: c0b0a7bb2bffc944fbb7ab39e8e49855, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7233500288681026500, guid: c0b0a7bb2bffc944fbb7ab39e8e49855, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: c0b0a7bb2bffc944fbb7ab39e8e49855, type: 3}
+--- !u!4 &702025806 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 7233500288681026500, guid: c0b0a7bb2bffc944fbb7ab39e8e49855, type: 3}
+  m_PrefabInstance: {fileID: 702025805}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &705029179
 GameObject:
   m_ObjectHideFlags: 0
@@ -54882,6 +55465,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.0293366
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &708383364
 GameObject:
   m_ObjectHideFlags: 0
@@ -55205,6 +55790,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.7655136
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &712828740
 GameObject:
   m_ObjectHideFlags: 0
@@ -55394,6 +55981,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.779425
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &713784187
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -55785,6 +56374,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.0253471
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &721105284
 GameObject:
   m_ObjectHideFlags: 0
@@ -56214,6 +56805,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.8247848
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &726117237
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -56328,6 +56921,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 3.266812
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &726267891
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -56442,6 +57037,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.6849289
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &726474579
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -56813,6 +57410,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.7781479
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &731331057
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -56927,6 +57526,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.84193724
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &731799347
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -57268,6 +57869,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.4
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &735039753
 GameObject:
   m_ObjectHideFlags: 0
@@ -57480,6 +58083,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.4087524
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &736575870
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -57594,6 +58199,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.0560058
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &736585529
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -57956,6 +58563,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 3.2319717
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &742018714
 GameObject:
   m_ObjectHideFlags: 0
@@ -58191,6 +58800,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 3.477667
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &744836773
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -58305,6 +58916,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.9377303
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &745198946
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -58419,6 +59032,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.81416243
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &745574511
 GameObject:
   m_ObjectHideFlags: 0
@@ -58976,6 +59591,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.75590056
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &753668458
 GameObject:
   m_ObjectHideFlags: 0
@@ -59373,6 +59990,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.69621044
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &773292467
 GameObject:
   m_ObjectHideFlags: 0
@@ -59582,6 +60201,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.9634109
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &775935105
 GameObject:
   m_ObjectHideFlags: 0
@@ -59771,6 +60392,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.75823516
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &777083166
 GameObject:
   m_ObjectHideFlags: 0
@@ -60101,6 +60724,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.87503356
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &777732310
 GameObject:
   m_ObjectHideFlags: 0
@@ -60612,6 +61237,8 @@ MonoBehaviour:
   hideWhenEmpty: 1
   toolWear: 1
   radius: 0.4
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &788993161
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -60726,6 +61353,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.9528923
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &791344251
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -60840,6 +61469,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.938562
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &792297293
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -60954,6 +61585,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.85571134
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &792745250
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -61177,6 +61810,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.0414764
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &794938823
 GameObject:
   m_ObjectHideFlags: 0
@@ -61442,6 +62077,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.9964668
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &799833882
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -61556,6 +62193,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.9212478
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &800065614
 GameObject:
   m_ObjectHideFlags: 0
@@ -62359,6 +62998,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.9035165
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &819823538
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -62473,6 +63114,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.9241905
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &822743310
 GameObject:
   m_ObjectHideFlags: 0
@@ -62952,6 +63595,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.89072514
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &828110269
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -63066,6 +63711,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.1408478
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &828910415
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -63180,6 +63827,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.5196495
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &831800041
 GameObject:
   m_ObjectHideFlags: 0
@@ -63373,6 +64022,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.9831081
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &837078715
 GameObject:
   m_ObjectHideFlags: 0
@@ -63887,6 +64538,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.3061087
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &853506773
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -64001,6 +64654,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.6092255
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &853974349
 GameObject:
   m_ObjectHideFlags: 0
@@ -64190,6 +64845,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 3.136885
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &856852284
 GameObject:
   m_ObjectHideFlags: 0
@@ -64733,6 +65390,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.3349516
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &869886820
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -64847,6 +65506,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.84088326
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &871733850
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -64957,6 +65618,8 @@ MonoBehaviour:
   hideWhenEmpty: 1
   toolWear: 1
   radius: 0.4
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &872241261
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -65071,6 +65734,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.3524444
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &874149045
 GameObject:
   m_ObjectHideFlags: 0
@@ -65260,6 +65925,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.0460358
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &875855854
 GameObject:
   m_ObjectHideFlags: 0
@@ -65567,6 +66234,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.92757565
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &877218498
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -65759,6 +66428,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.1976471
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &878145018
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -66120,6 +66791,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.162968
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &881821615
 GameObject:
   m_ObjectHideFlags: 0
@@ -66404,6 +67077,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.93251264
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &883855662
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -66518,6 +67193,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.0022827
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &883855819
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -66632,6 +67309,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.2324089
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &886455145
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -66746,6 +67425,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.94724077
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &891629268
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -66860,6 +67541,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.81833035
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &891643546
 GameObject:
   m_ObjectHideFlags: 0
@@ -67144,6 +67827,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.83410263
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &893735148
 GameObject:
   m_ObjectHideFlags: 0
@@ -67333,6 +68018,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.520195
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &894184498
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -67604,6 +68291,8 @@ MonoBehaviour:
   hideWhenEmpty: 1
   toolWear: 1
   radius: 0.4
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &895415576
 GameObject:
   m_ObjectHideFlags: 0
@@ -68037,6 +68726,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.9985988
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &902683187
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -68151,6 +68842,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.8997726
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &903727123
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -68265,6 +68958,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.6404785
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &906710669
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -68379,6 +69074,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.3184512
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &906746511
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -68493,6 +69190,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.3623871
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &907551928
 GameObject:
   m_ObjectHideFlags: 0
@@ -68712,6 +69411,8 @@ MonoBehaviour:
   hideWhenEmpty: 1
   toolWear: 1
   radius: 0.4
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &908669047
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -68797,6 +69498,7 @@ MonoBehaviour:
   def: {fileID: 11400000, guid: bf9f9fc06ab4dad49b89e744d7c93654, type: 2}
   home: {x: 0, y: 0, z: 0}
   homeRadius: 25
+  attackTell: {x: 0.32, y: 0.55}
 --- !u!1 &909668601
 GameObject:
   m_ObjectHideFlags: 0
@@ -69032,6 +69734,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.5606933
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &918362141
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -69146,6 +69850,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.103817
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &918947486
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -69260,6 +69966,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.1733673
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &918981906
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -69452,6 +70160,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.9166168
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &921130258
 GameObject:
   m_ObjectHideFlags: 0
@@ -69673,6 +70383,8 @@ MonoBehaviour:
   hideWhenEmpty: 1
   toolWear: 1
   radius: 0.4
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &922342648
 GameObject:
   m_ObjectHideFlags: 0
@@ -70232,6 +70944,8 @@ MonoBehaviour:
   hideWhenEmpty: 1
   toolWear: 1
   radius: 0.4
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &927889926
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -70346,6 +71060,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.6425079
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &932969822
 GameObject:
   m_ObjectHideFlags: 0
@@ -70741,6 +71457,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.5533432
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &940729437
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -70855,6 +71573,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.1762269
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &941666020
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -71047,6 +71767,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.0910041
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &944712141
 GameObject:
   m_ObjectHideFlags: 0
@@ -71357,6 +72079,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.5585372
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &950402662
 GameObject:
   m_ObjectHideFlags: 0
@@ -71739,6 +72463,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 3.3902297
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &954974443
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -71853,6 +72579,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 3.6810515
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &956168450
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -72157,6 +72885,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.7301376
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &958983622
 GameObject:
   m_ObjectHideFlags: 0
@@ -72425,6 +73155,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.0362442
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &961930570
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -72539,6 +73271,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.3508818
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &962255714
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -72826,6 +73560,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.9539871
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &965063874
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -73018,6 +73754,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.90620726
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &965604783
 GameObject:
   m_ObjectHideFlags: 0
@@ -73478,6 +74216,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 3.5517836
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &972869810
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -73592,6 +74332,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 3.2590117
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &973312280
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -73706,6 +74448,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.6650221
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &973655751
 GameObject:
   m_ObjectHideFlags: 0
@@ -73989,6 +74733,8 @@ MonoBehaviour:
   hideWhenEmpty: 1
   toolWear: 1
   radius: 0.4
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &979286170
 GameObject:
   m_ObjectHideFlags: 0
@@ -74293,6 +75039,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.0885597
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &984675958
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -74407,6 +75155,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.7617292
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &985276652
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -74599,6 +75349,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.1773598
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &987844901
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -74709,6 +75461,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.4
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &988241595
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -74823,6 +75577,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.9963844
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &989343823
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -74937,6 +75693,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.1851089
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &989784948
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -75051,6 +75809,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.7164352
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &992143073
 GameObject:
   m_ObjectHideFlags: 0
@@ -75339,6 +76099,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.62328184
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &997435129
 GameObject:
   m_ObjectHideFlags: 0
@@ -75548,6 +76310,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.9725784
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &998216001
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -75662,6 +76426,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.2856643
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &998221364
 GameObject:
   m_ObjectHideFlags: 0
@@ -76200,6 +76966,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.2473053
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1006347722
 GameObject:
   m_ObjectHideFlags: 0
@@ -76412,6 +77180,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.291745
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1009268061
 GameObject:
   m_ObjectHideFlags: 0
@@ -76696,6 +77466,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.8480475
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1015117485
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -76888,6 +77660,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.846887
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1015615007
 GameObject:
   m_ObjectHideFlags: 0
@@ -77435,6 +78209,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.85588986
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1017072282
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -77549,6 +78325,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 3.2574136
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1018035708
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -77663,6 +78441,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.0813911
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1019438376
 GameObject:
   m_ObjectHideFlags: 0
@@ -78223,6 +79003,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 3.3744643
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1027093602
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -78337,6 +79119,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.1109748
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1027250386
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -78451,6 +79235,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.72325057
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1027736710
 GameObject:
   m_ObjectHideFlags: 0
@@ -78640,6 +79426,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 3.5654564
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1029485962
 GameObject:
   m_ObjectHideFlags: 0
@@ -78786,6 +79574,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.98096234
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1030425895
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -79053,6 +79843,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.63197476
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1032453807
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -79245,6 +80037,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.592375
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1041107110
 GameObject:
   m_ObjectHideFlags: 0
@@ -79610,6 +80404,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.8153658
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1046484610
 GameObject:
   m_ObjectHideFlags: 0
@@ -79819,6 +80615,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.94283295
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1051134810
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -79933,6 +80731,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.0372634
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1051384219
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -80047,6 +80847,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.8955947
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1052868562
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -80161,6 +80963,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.4958881
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1053036843
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -80353,6 +81157,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.0452667
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1058389514
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -80467,6 +81273,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 3.4250839
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1058572522
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -80577,6 +81385,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.4
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1058898942
 GameObject:
   m_ObjectHideFlags: 0
@@ -81002,6 +81812,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 3.906879
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1063420625
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -81116,6 +81928,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.6286407
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1065591937
 GameObject:
   m_ObjectHideFlags: 0
@@ -81325,6 +82139,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.5004989
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1067297599
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -81439,6 +82255,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.388198
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1067991363
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -81553,6 +82371,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.73746413
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1068366756
 GameObject:
   m_ObjectHideFlags: 0
@@ -81762,6 +82582,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.8314238
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1069414652
 GameObject:
   m_ObjectHideFlags: 0
@@ -82030,6 +82852,8 @@ MonoBehaviour:
   hideWhenEmpty: 1
   toolWear: 1
   radius: 0.4
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1071378375
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -82144,6 +82968,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.6760771
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1072300909
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -82258,6 +83084,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.0366322
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1073877091
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -82372,6 +83200,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.8069732
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1074435291
 GameObject:
   m_ObjectHideFlags: 0
@@ -82607,6 +83437,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.4388688
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1076889636
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -82721,6 +83553,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.060984
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1077646820
 GameObject:
   m_ObjectHideFlags: 0
@@ -82930,6 +83764,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.0984643
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1081606865
 GameObject:
   m_ObjectHideFlags: 0
@@ -83283,6 +84119,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.6428375
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1086139591
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -83397,6 +84235,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.84514385
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1086333834
 GameObject:
   m_ObjectHideFlags: 0
@@ -83850,6 +84690,8 @@ MonoBehaviour:
   hideWhenEmpty: 1
   toolWear: 1
   radius: 0.4
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1091690644
 GameObject:
   m_ObjectHideFlags: 0
@@ -84209,6 +85051,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.78134763
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1093746329
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -84323,6 +85167,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.3112594
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1095086226
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -84749,6 +85595,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.9423042
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1103089933
 GameObject:
   m_ObjectHideFlags: 0
@@ -85053,6 +85901,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.93475795
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1107494400
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -85167,6 +86017,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.7646408
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1110489883
 GameObject:
   m_ObjectHideFlags: 0
@@ -85534,6 +86386,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.5815643
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1114490571
 GameObject:
   m_ObjectHideFlags: 0
@@ -85743,6 +86597,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.0781596
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1115879294
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -85857,6 +86713,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.0267204
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1116764945
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -85971,6 +86829,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.760047
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1117333638
 GameObject:
   m_ObjectHideFlags: 0
@@ -86259,6 +87119,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.0842133
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1120578254
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -86373,6 +87235,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.3939521
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1122625877
 GameObject:
   m_ObjectHideFlags: 0
@@ -86582,6 +87446,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.4887848
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1125546053
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -86696,6 +87562,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.86656034
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1126158976
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -86810,6 +87678,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 4.7279663
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1126568910
 GameObject:
   m_ObjectHideFlags: 0
@@ -87092,6 +87962,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.2050148
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1131107498
 GameObject:
   m_ObjectHideFlags: 0
@@ -87454,6 +88326,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.7935974
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1146770664
 GameObject:
   m_ObjectHideFlags: 0
@@ -87796,6 +88670,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 4.296602
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1148474645
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -87910,6 +88786,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.866738
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1151598959
 GameObject:
   m_ObjectHideFlags: 0
@@ -88175,6 +89053,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.78644425
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1153445291
 GameObject:
   m_ObjectHideFlags: 0
@@ -88364,6 +89244,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.8628044
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1154281229
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -88478,6 +89360,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 4.695282
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1154912830
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -88592,6 +89476,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.3381897
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1154943585
 GameObject:
   m_ObjectHideFlags: 0
@@ -88781,6 +89667,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.4299117
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1158761069
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -88891,6 +89779,8 @@ MonoBehaviour:
   hideWhenEmpty: 1
   toolWear: 1
   radius: 0.4
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1160309819
 GameObject:
   m_ObjectHideFlags: 0
@@ -89633,6 +90523,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.063837
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1165080195
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -89747,6 +90639,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.9488531
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1166125487
 GameObject:
   m_ObjectHideFlags: 0
@@ -89940,6 +90834,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.2445068
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1167009618
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -90054,6 +90950,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.481372
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1170092742
 GameObject:
   m_ObjectHideFlags: 0
@@ -90397,6 +91295,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.2807449
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1174948984
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -90511,6 +91411,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.5303435
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1176906666
 GameObject:
   m_ObjectHideFlags: 0
@@ -90660,6 +91562,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.1620376
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1177962346
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -90774,6 +91678,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 3.5964432
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1178734279
 GameObject:
   m_ObjectHideFlags: 0
@@ -91136,6 +92042,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.7760261
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1181861905
 GameObject:
   m_ObjectHideFlags: 0
@@ -91440,6 +92348,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 3.2055016
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1185224256
 GameObject:
   m_ObjectHideFlags: 0
@@ -91799,6 +92709,8 @@ MonoBehaviour:
   hideWhenEmpty: 1
   toolWear: 1
   radius: 0.4
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1186993235
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -91913,6 +92825,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.2834601
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1190736092
 GameObject:
   m_ObjectHideFlags: 0
@@ -92138,6 +93052,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.1993362
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1193930110
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -92223,6 +93139,7 @@ MonoBehaviour:
   def: {fileID: 11400000, guid: 3bdaccc176aff8448acb6e7c4ebf03a4, type: 2}
   home: {x: 0, y: 0, z: 0}
   homeRadius: 25
+  attackTell: {x: 0.32, y: 0.55}
 --- !u!1 &1197480452
 GameObject:
   m_ObjectHideFlags: 0
@@ -92490,6 +93407,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 3.5466957
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1202359522
 GameObject:
   m_ObjectHideFlags: 0
@@ -92876,6 +93795,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.1580483
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1207696296
 GameObject:
   m_ObjectHideFlags: 0
@@ -93036,6 +93957,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.94165874
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1209283395
 GameObject:
   m_ObjectHideFlags: 0
@@ -93245,6 +94168,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.4517196
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1211045293
 GameObject:
   m_ObjectHideFlags: 0
@@ -93434,6 +94359,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.0652549
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1211626915
 GameObject:
   m_ObjectHideFlags: 0
@@ -93674,6 +94601,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.2875049
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1213220877
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -93788,6 +94717,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.0883949
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1215066298
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -93902,6 +94833,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.87695616
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1217948077
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -94016,6 +94949,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 3.0154312
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1219078833
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -94126,6 +95061,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.4
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1220623672
 GameObject:
   m_ObjectHideFlags: 0
@@ -94271,6 +95208,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.6235967
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1221633621
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -94385,6 +95324,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.694226
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1222063269
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -94499,6 +95440,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 3.2706573
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1223743629
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -94613,6 +95556,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.2423065
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1224353345
 GameObject:
   m_ObjectHideFlags: 0
@@ -94975,6 +95920,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.1286186
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1232629689
 GameObject:
   m_ObjectHideFlags: 0
@@ -95305,6 +96252,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.0872551
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1235658483
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -95419,6 +96368,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.1707443
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1239796426
 GameObject:
   m_ObjectHideFlags: 0
@@ -95896,6 +96847,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.3895096
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1248034193
 GameObject:
   m_ObjectHideFlags: 0
@@ -96329,6 +97282,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.83541155
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1251557721
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -96443,6 +97398,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.8497307
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1252074463
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -96557,6 +97514,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 3.0273514
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1252956324
 GameObject:
   m_ObjectHideFlags: 0
@@ -96761,6 +97720,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.2223526
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1256369066
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -96875,6 +97836,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 3.3017485
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1257828742
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -97241,6 +98204,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.2416503
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1260537606
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -97355,6 +98320,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.2717893
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1260894153
 GameObject:
   m_ObjectHideFlags: 0
@@ -97595,6 +98562,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.7303277
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1263278766
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -97709,6 +98678,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.99109036
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1263669467
 GameObject:
   m_ObjectHideFlags: 0
@@ -97918,6 +98889,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.76169586
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1266753578
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -98110,6 +99083,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 3.7295287
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1271015343
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -98416,6 +99391,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.77430266
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1276618028
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -98530,6 +99507,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.1917763
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1279549394
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -98644,6 +99623,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.0736939
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1279671451
 GameObject:
   m_ObjectHideFlags: 0
@@ -99355,6 +100336,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.6960862
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1290842961
 GameObject:
   m_ObjectHideFlags: 0
@@ -99760,6 +100743,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 3.4690018
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1294066429
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -99952,6 +100937,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.3676085
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1294923224
 GameObject:
   m_ObjectHideFlags: 0
@@ -100627,6 +101614,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.9373732
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1300745057
 GameObject:
   m_ObjectHideFlags: 0
@@ -100937,6 +101926,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.786458
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1304065345
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -101051,6 +102042,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.99803925
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1308130980
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -101165,6 +102158,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.94155574
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1308832980
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -101279,6 +102274,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.953015
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1310006228
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -101471,6 +102468,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 3.331851
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1310969564
 GameObject:
   m_ObjectHideFlags: 0
@@ -101680,6 +102679,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.2209604
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1311050618
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -101794,6 +102795,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.591139
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1314438335
 GameObject:
   m_ObjectHideFlags: 0
@@ -102342,6 +103345,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.69207
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1323951703
 GameObject:
   m_ObjectHideFlags: 0
@@ -102531,6 +103536,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 3.0089216
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1326029227
 GameObject:
   m_ObjectHideFlags: 0
@@ -102743,6 +103750,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.6588836
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1328850980
 GameObject:
   m_ObjectHideFlags: 0
@@ -103597,6 +104606,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.1423515
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1341003176
 GameObject:
   m_ObjectHideFlags: 0
@@ -103787,6 +104798,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.5815849
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1342235345
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -103901,6 +104914,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.79113233
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1342993311
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -104213,6 +105228,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.8493667
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1346390921
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -104327,6 +105344,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.4712684
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1350076431
 GameObject:
   m_ObjectHideFlags: 0
@@ -104709,6 +105728,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.2875183
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1357132808
 GameObject:
   m_ObjectHideFlags: 0
@@ -105020,6 +106041,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.1886855
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1361192758
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -105134,6 +106157,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.4916412
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1364701384
 GameObject:
   m_ObjectHideFlags: 0
@@ -105338,6 +106363,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.2120354
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1365260866
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -105448,6 +106475,8 @@ MonoBehaviour:
   hideWhenEmpty: 1
   toolWear: 1
   radius: 0.4
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1368052716
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -105562,6 +106591,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.92926824
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1371163079
 GameObject:
   m_ObjectHideFlags: 0
@@ -105751,6 +106782,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.3927505
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1376381290
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -105865,6 +106898,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.1888855
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1376431122
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -106057,6 +107092,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.7701476
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1378423538
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -106171,6 +107208,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 3.7710502
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1378859710
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -106285,6 +107324,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.869615
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1379014824
 GameObject:
   m_ObjectHideFlags: 0
@@ -106545,6 +107586,8 @@ MonoBehaviour:
   hideWhenEmpty: 1
   toolWear: 1
   radius: 0.4
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1380142892
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -106659,6 +107702,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 3.7868516
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1381685032
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -106773,6 +107818,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.3821899
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1384023719
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -106887,6 +107934,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.6000595
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1386154630
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -107001,6 +108050,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.62987363
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1386909746
 GameObject:
   m_ObjectHideFlags: 0
@@ -107364,6 +108415,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.91779095
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1389036130
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -107478,6 +108531,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.2726837
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1393357989
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -107592,6 +108647,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.8143066
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1393608370
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -107706,6 +108763,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.5229865
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1394002524
 GameObject:
   m_ObjectHideFlags: 0
@@ -107895,6 +108954,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.84813076
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1396154658
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -108009,6 +109070,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.97602534
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1396250569
 GameObject:
   m_ObjectHideFlags: 0
@@ -108218,6 +109281,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.039801
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1399206641
 GameObject:
   m_ObjectHideFlags: 0
@@ -108423,6 +109488,8 @@ MonoBehaviour:
   hideWhenEmpty: 1
   toolWear: 1
   radius: 0.4
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1403157046
 GameObject:
   m_ObjectHideFlags: 0
@@ -108664,6 +109731,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.4067237
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1407315642
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -108778,6 +109847,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.6935394
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1408083962
 GameObject:
   m_ObjectHideFlags: 0
@@ -108987,6 +110058,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.4391608
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1410670503
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -109382,6 +110455,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.7789444
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1414346490
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -109496,6 +110571,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.308818
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1414762684
 GameObject:
   m_ObjectHideFlags: 0
@@ -109731,6 +110808,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.5076258
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1415520774
 GameObject:
   m_ObjectHideFlags: 0
@@ -110128,6 +111207,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.9256805
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1430162248
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -110242,6 +111323,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.2825851
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1435299643
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -110356,6 +111439,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.8976036
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1438660740
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -110441,6 +111526,7 @@ MonoBehaviour:
   def: {fileID: 11400000, guid: f755251a1af74d5479d296b902f7fa33, type: 2}
   home: {x: 0, y: 0, z: 0}
   homeRadius: 20
+  attackTell: {x: 0.32, y: 0.55}
 --- !u!1 &1439390882
 GameObject:
   m_ObjectHideFlags: 0
@@ -110740,6 +111826,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.5546341
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1441934666
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -111007,6 +112095,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.73111266
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1450397935
 GameObject:
   m_ObjectHideFlags: 0
@@ -111216,6 +112306,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.5186676
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1451869122
 GameObject:
   m_ObjectHideFlags: 0
@@ -111710,6 +112802,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.85613704
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1458074526
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -111824,6 +112918,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.2802969
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1458525751
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -112016,6 +113112,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.9585022
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1459490342
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -112130,6 +113228,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.9436599
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1459930798
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -112244,6 +113344,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.252359
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1460704701
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -112358,6 +113460,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.91730344
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1461100685
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -112701,6 +113805,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.4706298
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1467776660
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -112968,6 +114074,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.8680298
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1471457908
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -113082,6 +114190,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.6678314
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1471557684
 GameObject:
   m_ObjectHideFlags: 0
@@ -113408,6 +114518,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.0620071
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1474768187
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -113522,6 +114634,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 3.1652572
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1475374977
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -113636,6 +114750,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.0087646
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1476007243
 GameObject:
   m_ObjectHideFlags: 0
@@ -113966,6 +115082,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.7317611
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1478121024
 GameObject:
   m_ObjectHideFlags: 0
@@ -114474,6 +115592,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.26568
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1486794730
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -114588,6 +115708,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.1962326
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1487147925
 GameObject:
   m_ObjectHideFlags: 0
@@ -114797,6 +115919,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.7165283
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1487438645
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -114911,6 +116035,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.7708755
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1488750449
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -115025,6 +116151,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.8852371
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1491393690
 GameObject:
   m_ObjectHideFlags: 0
@@ -115222,6 +116350,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.1417404
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1493694726
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -115332,6 +116462,8 @@ MonoBehaviour:
   hideWhenEmpty: 1
   toolWear: 1
   radius: 0.4
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1494592625
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -115442,6 +116574,8 @@ MonoBehaviour:
   hideWhenEmpty: 1
   toolWear: 1
   radius: 0.4
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1495432303
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -115708,6 +116842,8 @@ MonoBehaviour:
   hideWhenEmpty: 1
   toolWear: 1
   radius: 0.4
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1496252687
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -115900,6 +117036,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.811821
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1498132099
 GameObject:
   m_ObjectHideFlags: 0
@@ -116109,6 +117247,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.1207685
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1500727622
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -116223,6 +117363,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 3.9779158
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1501353672
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -116337,6 +117479,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 3.4371414
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1501647601
 GameObject:
   m_ObjectHideFlags: 0
@@ -116641,6 +117785,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.0888755
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1504064784
 GameObject:
   m_ObjectHideFlags: 0
@@ -117028,6 +118174,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.4028579
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1508586280
 GameObject:
   m_ObjectHideFlags: 0
@@ -117393,6 +118541,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 3.1862686
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1510235430
 GameObject:
   m_ObjectHideFlags: 0
@@ -117582,6 +118732,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 3.389557
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1512963470
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -117696,6 +118848,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.74132305
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1514340402
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -117986,6 +119140,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.2597058
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1517447953
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -118100,6 +119256,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 3.6234558
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1518355058
 GameObject:
   m_ObjectHideFlags: 0
@@ -118379,6 +119537,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.127156
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1521574519
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -118493,6 +119653,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.729608
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1522154312
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -118607,6 +119769,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.9967346
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1522926404
 GameObject:
   m_ObjectHideFlags: 0
@@ -118874,6 +120038,8 @@ MonoBehaviour:
   hideWhenEmpty: 1
   toolWear: 1
   radius: 0.4
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1527942697
 GameObject:
   m_ObjectHideFlags: 0
@@ -119162,6 +120328,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.2294112
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1540335527
 GameObject:
   m_ObjectHideFlags: 0
@@ -119371,6 +120539,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.79221725
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1541915051
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -119485,6 +120655,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.9588623
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1542285671
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -119599,6 +120771,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.92348325
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1545659883
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -119713,6 +120887,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.9991087
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1545856764
 GameObject:
   m_ObjectHideFlags: 0
@@ -119931,6 +121107,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.5207686
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1549138156
 GameObject:
   m_ObjectHideFlags: 0
@@ -120290,6 +121468,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 4.5090704
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1553856837
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -120404,6 +121584,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 3.2743857
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1556160423
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -120518,6 +121700,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 4.684241
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1558178227
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -120632,6 +121816,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.8002434
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1558694309
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -120746,6 +121932,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.0180836
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1558768352
 GameObject:
   m_ObjectHideFlags: 0
@@ -121114,6 +122302,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.05151
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1559625735
 GameObject:
   m_ObjectHideFlags: 0
@@ -121424,6 +122614,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.0338027
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1562722020
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -121538,6 +122730,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.0879486
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1562898747
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -121652,6 +122846,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.1391621
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1564125416
 GameObject:
   m_ObjectHideFlags: 0
@@ -122416,6 +123612,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.0345138
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1572481441
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -122608,6 +123806,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.9251857
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1578804835
 GameObject:
   m_ObjectHideFlags: 0
@@ -122797,6 +123997,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.8329559
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1581047859
 GameObject:
   m_ObjectHideFlags: 0
@@ -122986,6 +124188,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.8700652
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1583175411
 GameObject:
   m_ObjectHideFlags: 0
@@ -123346,6 +124550,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.0083835
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1587467131
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -123460,6 +124666,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 3.1235538
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1588672363
 GameObject:
   m_ObjectHideFlags: 0
@@ -123703,6 +124911,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.0975066
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1593935149
 GameObject:
   m_ObjectHideFlags: 0
@@ -124116,6 +125326,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.1638435
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1604003343
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -124230,6 +125442,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.9464202
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1604760008
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -124702,6 +125916,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.6649574
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1609567110
 GameObject:
   m_ObjectHideFlags: 0
@@ -124823,6 +126039,7 @@ MonoBehaviour:
   def: {fileID: 11400000, guid: d1e608b06e8ee0f4fae2fe0d730addc9, type: 2}
   home: {x: 0, y: 0, z: 0}
   homeRadius: 30
+  attackTell: {x: 0.32, y: 0.55}
 --- !u!1 &1610857705
 GameObject:
   m_ObjectHideFlags: 0
@@ -125301,6 +126518,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 3.1931212
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1618845663
 GameObject:
   m_ObjectHideFlags: 0
@@ -125565,6 +126784,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.82171553
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1622865491
 GameObject:
   m_ObjectHideFlags: 0
@@ -125738,6 +126959,8 @@ MonoBehaviour:
   hideWhenEmpty: 1
   toolWear: 1
   radius: 0.4
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1623544163
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -125852,6 +127075,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.88801116
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1626133099
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -125966,6 +127191,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.2713928
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1626879253
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -126340,6 +127567,7 @@ Transform:
   - {fileID: 234502400}
   - {fileID: 49047251}
   - {fileID: 273695330}
+  - {fileID: 123407720}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1630323663
@@ -126555,6 +127783,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.1338302
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1631224131
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -126669,6 +127899,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.4801913
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1632119571
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -126972,6 +128204,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.9429565
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1636724690
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -127086,6 +128320,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.1602112
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1638151404
 GameObject:
   m_ObjectHideFlags: 0
@@ -127354,6 +128590,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.6375812
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1641898431
 GameObject:
   m_ObjectHideFlags: 0
@@ -127733,6 +128971,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.2840271
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1646034733
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -127925,6 +129165,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.0345412
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1646922071
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -128117,6 +129359,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 3.7769415
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1649379859
 GameObject:
   m_ObjectHideFlags: 0
@@ -128326,6 +129570,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 3.9793854
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1649564021
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -128518,6 +129764,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.580788
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1658167890
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -128632,6 +129880,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 3.8190517
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1660064698
 GameObject:
   m_ObjectHideFlags: 0
@@ -129161,6 +130411,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.7541565
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1663035945
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -129275,6 +130527,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 4.043202
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1663697473
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -129389,6 +130643,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.5982412
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1663700639
 GameObject:
   m_ObjectHideFlags: 0
@@ -129921,6 +131177,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.6996224
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1668285923
 GameObject:
   m_ObjectHideFlags: 0
@@ -130251,6 +131509,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.2368683
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1674313872
 GameObject:
   m_ObjectHideFlags: 0
@@ -130463,6 +131723,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.107875
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1674823382
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -130726,6 +131988,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.6672615
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1681049514
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -130840,6 +132104,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.1138989
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1681396575
 GameObject:
   m_ObjectHideFlags: 0
@@ -131124,6 +132390,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.3131268
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1684643331
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -131238,6 +132506,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 3.684622
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1685816652
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -131352,6 +132622,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.0823524
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1686021207
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -131466,6 +132738,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.0614716
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1687074294
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -131737,6 +133011,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.7408552
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1689595328
 GameObject:
   m_ObjectHideFlags: 0
@@ -132068,6 +133344,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 3.4937897
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1695227018
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -132182,6 +133460,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.1973861
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1698093230
 GameObject:
   m_ObjectHideFlags: 0
@@ -132764,6 +134044,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.3582428
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1708442953
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -132878,6 +134160,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.6260314
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1709553029
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -132992,6 +134276,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.9062759
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1709572645
 GameObject:
   m_ObjectHideFlags: 0
@@ -133201,6 +134487,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.5018035
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1711356535
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -133315,6 +134603,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.2193038
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1712666100
 GameObject:
   m_ObjectHideFlags: 0
@@ -133476,6 +134766,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.43134
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1715094451
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -133668,6 +134960,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.77878904
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1720556508
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -133782,6 +135076,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.4909713
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1723554729
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -133896,6 +135192,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.0748336
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1724837103
 GameObject:
   m_ObjectHideFlags: 0
@@ -134470,6 +135768,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.550418
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1737178175
 GameObject:
   m_ObjectHideFlags: 0
@@ -134744,6 +136044,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 3.956149
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1745600479
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -134936,6 +136238,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.485997
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1746569873
 GameObject:
   m_ObjectHideFlags: 0
@@ -135458,6 +136762,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 3.7041092
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1757089059
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -135572,6 +136878,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 3.6213512
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1757178677
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -135830,6 +137138,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.6554443
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1763951208
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -135940,6 +137250,8 @@ MonoBehaviour:
   hideWhenEmpty: 1
   toolWear: 1
   radius: 0.4
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1766529604
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -136054,6 +137366,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.1725159
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1766694916
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -136164,6 +137478,8 @@ MonoBehaviour:
   hideWhenEmpty: 1
   toolWear: 1
   radius: 0.4
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1769008537
 GameObject:
   m_ObjectHideFlags: 0
@@ -136399,6 +137715,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.4969696
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1769878981
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -136513,6 +137831,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.3310348
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1771516539
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -136627,6 +137947,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.61530304
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1772023495
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -136741,6 +138063,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.88979644
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1772053545
 GameObject:
   m_ObjectHideFlags: 0
@@ -136934,6 +138258,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.7727783
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1780205859
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -137048,6 +138374,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.4151077
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1780550557
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -137133,6 +138461,7 @@ MonoBehaviour:
   def: {fileID: 11400000, guid: 8249d54e496277f418146019b7a912c9, type: 2}
   home: {x: 0, y: 0, z: 0}
   homeRadius: 30
+  attackTell: {x: 0.32, y: 0.55}
 --- !u!1 &1782644064
 GameObject:
   m_ObjectHideFlags: 0
@@ -137491,6 +138820,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.8465576
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1789463332
 GameObject:
   m_ObjectHideFlags: 0
@@ -137775,6 +139106,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.1196716
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1791046980
 GameObject:
   m_ObjectHideFlags: 0
@@ -138118,6 +139451,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.4029541
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1792672558
 GameObject:
   m_ObjectHideFlags: 0
@@ -138895,6 +140230,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.6023216
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1802049714
 GameObject:
   m_ObjectHideFlags: 0
@@ -139201,6 +140538,8 @@ MonoBehaviour:
   hideWhenEmpty: 1
   toolWear: 1
   radius: 0.4
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1804612390
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -139315,6 +140654,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.4831611
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1806114165
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -139429,6 +140770,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.2096359
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1807819635
 GameObject:
   m_ObjectHideFlags: 0
@@ -140096,6 +141439,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 3.8578901
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1813146136
 GameObject:
   m_ObjectHideFlags: 0
@@ -140476,6 +141821,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.93948895
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1820486024
 GameObject:
   m_ObjectHideFlags: 0
@@ -140855,6 +142202,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.7878356
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1822559218
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -140969,6 +142318,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.73499906
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1826293446
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -141083,6 +142434,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.6729401
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1827853782
 GameObject:
   m_ObjectHideFlags: 0
@@ -141408,6 +142761,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.3614583
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1831482172
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -141522,6 +142877,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.1154058
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1831597609
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -141714,6 +143071,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.0137222
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1836518933
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -141828,6 +143187,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.397406
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1837989981
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -141942,6 +143303,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.3518882
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1839451439
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -142307,6 +143670,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.6670477
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1844139038
 GameObject:
   m_ObjectHideFlags: 0
@@ -142496,6 +143861,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 3.315351
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1846230559
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -142688,6 +144055,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.1644714
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1847935104
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -142802,6 +144171,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.3506411
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1848610849
 GameObject:
   m_ObjectHideFlags: 0
@@ -143140,6 +144511,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.237033
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1851943124
 GameObject:
   m_ObjectHideFlags: 0
@@ -143491,6 +144864,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.4115813
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1854573565
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -143605,6 +144980,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.864936
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1855709559
 GameObject:
   m_ObjectHideFlags: 0
@@ -143731,7 +145108,7 @@ Light:
   m_Enabled: 1
   serializedVersion: 12
   m_Type: 1
-  m_Color: {r: 1, g: 0.93, b: 0.82, a: 1}
+  m_Color: {r: 1, g: 0.90625095, b: 0.7900015, a: 1}
   m_Intensity: 1.6
   m_Range: 10
   m_SpotAngle: 30
@@ -143741,7 +145118,7 @@ Light:
     m_Type: 2
     m_Resolution: -1
     m_CustomResolution: -1
-    m_Strength: 1
+    m_Strength: 0.68925446
     m_Bias: 0.05
     m_NormalBias: 0.4
     m_NearPlane: 0.2
@@ -143794,7 +145171,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1857288144}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.12458954, y: -0.8735453, z: 0.30078575, w: 0.36183432}
+  m_LocalRotation: {x: 0.13783406, y: -0.8618722, z: 0.33276084, w: 0.35699916}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -144502,6 +145879,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.3483002
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1869903673
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -144616,6 +145995,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.5589638
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1869980513
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -144730,6 +146111,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.6415527
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1870578487
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -144844,6 +146227,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.0927688
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1870902553
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -144958,6 +146343,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.6748489
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1871621732
 GameObject:
   m_ObjectHideFlags: 0
@@ -145189,6 +146576,8 @@ MonoBehaviour:
   hideWhenEmpty: 1
   toolWear: 1
   radius: 0.4
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1875802088
 GameObject:
   m_ObjectHideFlags: 0
@@ -145356,6 +146745,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 3.5964432
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1876131616
 GameObject:
   m_ObjectHideFlags: 0
@@ -145817,6 +147208,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.8245926
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1879969058
 GameObject:
   m_ObjectHideFlags: 0
@@ -146026,6 +147419,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.7690773
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1886386171
 GameObject:
   m_ObjectHideFlags: 0
@@ -146330,6 +147725,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.7728882
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1893039471
 GameObject:
   m_ObjectHideFlags: 0
@@ -146597,6 +147994,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.9609466
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1896845167
 GameObject:
   m_ObjectHideFlags: 0
@@ -146901,6 +148300,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 3.1194441
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1898839218
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -147015,6 +148416,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.0133514
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1899930398
 GameObject:
   m_ObjectHideFlags: 0
@@ -147164,6 +148567,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 4.214218
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1900287518
 GameObject:
   m_ObjectHideFlags: 0
@@ -147309,6 +148714,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 3.1150496
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1901150615
 GameObject:
   m_ObjectHideFlags: 0
@@ -147518,6 +148925,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.8807769
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1902771283
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -147632,6 +149041,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.1751114
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1903158293
 GameObject:
   m_ObjectHideFlags: 0
@@ -148285,6 +149696,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.040419
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1913478573
 GameObject:
   m_ObjectHideFlags: 0
@@ -148589,6 +150002,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.7843475
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1917502533
 GameObject:
   m_ObjectHideFlags: 0
@@ -149167,6 +150582,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 3.945094
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1923803240
 GameObject:
   m_ObjectHideFlags: 0
@@ -149376,6 +150793,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.3246932
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1926311846
 GameObject:
   m_ObjectHideFlags: 0
@@ -149565,6 +150984,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.8645708
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1930914140
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -149878,6 +151299,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.0391865
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1932639058
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -149988,6 +151411,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.4
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1932942518
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -150102,6 +151527,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.7928514
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1933408128
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -150216,6 +151643,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.225322
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1934283186
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -150330,6 +151759,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.926223
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1934541474
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -150444,6 +151875,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.88457793
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1935589902
 GameObject:
   m_ObjectHideFlags: 0
@@ -150880,6 +152313,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.87114024
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1937221282
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -151311,6 +152746,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 3.0441158
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1943852694
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -151425,6 +152862,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.9271431
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1944084394
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -151539,6 +152978,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 4.292894
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1947387783
 GameObject:
   m_ObjectHideFlags: 0
@@ -151872,6 +153313,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.0231323
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1954617847
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -151986,6 +153429,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.798712
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1961943474
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -152100,6 +153545,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.0848106
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1963700605
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -152214,6 +153661,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.0886284
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1964804544
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -152328,6 +153777,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.1587417
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1966723917
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -152438,6 +153889,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.4
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1967005316
 GameObject:
   m_ObjectHideFlags: 0
@@ -152730,6 +154183,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.3032017
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1970329901
 GameObject:
   m_ObjectHideFlags: 0
@@ -152939,6 +154394,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.65619963
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1975272102
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -153053,6 +154510,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.9937061
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1978732556
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -153167,6 +154626,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.9100037
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1981207685
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -153281,6 +154742,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.91984403
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1982707772
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -153395,6 +154858,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.4115663
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1983329244
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -153509,6 +154974,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.80741954
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1984369092
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -153623,6 +155090,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.2023987
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1985296667
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -153737,6 +155206,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.1408713
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1989392182
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -153851,6 +155322,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.1762512
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &1991067932
 GameObject:
   m_ObjectHideFlags: 0
@@ -154055,6 +155528,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.0262604
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1995319923
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -154342,6 +155817,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.3077126
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &1997885029
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -154456,6 +155933,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.1558647
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &2000331217
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -154570,6 +156049,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.8933292
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &2001142108
 GameObject:
   m_ObjectHideFlags: 0
@@ -154782,6 +156263,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.7049747
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &2005171257
 GameObject:
   m_ObjectHideFlags: 0
@@ -155587,6 +157070,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.5844035
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &2017645034
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -155701,6 +157186,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.3245803
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &2018024505
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -155893,6 +157380,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.7972975
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &2020257741
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -156007,6 +157496,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.1071746
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &2022180983
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -156121,6 +157612,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.4250946
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &2022670619
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -156235,6 +157728,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.63770485
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &2023169300
 GameObject:
   m_ObjectHideFlags: 0
@@ -156651,6 +158146,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 4.073222
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &2028737504
 GameObject:
   m_ObjectHideFlags: 0
@@ -157013,6 +158510,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 3.2353086
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &2035308837
 GameObject:
   m_ObjectHideFlags: 0
@@ -157198,6 +158697,8 @@ MonoBehaviour:
   hideWhenEmpty: 1
   toolWear: 1
   radius: 0.4
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &2037183692
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -157312,6 +158813,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.7633636
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &2037282209
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -157426,6 +158929,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 3.7529159
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &2038113042
 GameObject:
   m_ObjectHideFlags: 0
@@ -157615,6 +159120,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.2875221
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &2040146460
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -157729,6 +159236,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.713922
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &2040800938
 GameObject:
   m_ObjectHideFlags: 0
@@ -157887,6 +159396,8 @@ MonoBehaviour:
   hideWhenEmpty: 1
   toolWear: 1
   radius: 0.4
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &2041880796
 GameObject:
   m_ObjectHideFlags: 0
@@ -158032,6 +159543,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.9034126
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &2043001459
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -158146,6 +159659,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.245781
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &2043068720
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -158818,6 +160333,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.9631645
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &2053242871
 GameObject:
   m_ObjectHideFlags: 0
@@ -159167,6 +160684,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.948024
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &2056411574
 GameObject:
   m_ObjectHideFlags: 0
@@ -159372,6 +160891,8 @@ MonoBehaviour:
   hideWhenEmpty: 1
   toolWear: 1
   radius: 0.4
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &2059027744
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -159486,6 +161007,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.8259659
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &2059698943
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -159600,6 +161123,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.9942541
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &2061496558
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -159714,6 +161239,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 4.292166
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &2061762789
 GameObject:
   m_ObjectHideFlags: 0
@@ -159919,6 +161446,8 @@ MonoBehaviour:
   hideWhenEmpty: 1
   toolWear: 1
   radius: 0.4
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &2066022989
 GameObject:
   m_ObjectHideFlags: 0
@@ -160233,6 +161762,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.0773331
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &2066705018
 GameObject:
   m_ObjectHideFlags: 0
@@ -160837,6 +162368,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.1410812
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &2076022419
 GameObject:
   m_ObjectHideFlags: 0
@@ -161069,6 +162602,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.1224182
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &2077639743
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -161183,6 +162718,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.5080657
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &2077810726
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -161776,6 +163313,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.8789916
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &2084286749
 GameObject:
   m_ObjectHideFlags: 0
@@ -162131,6 +163670,8 @@ MonoBehaviour:
   hideWhenEmpty: 1
   toolWear: 1
   radius: 0.4
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &2088251647
 GameObject:
   m_ObjectHideFlags: 0
@@ -162493,6 +164034,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.2980758
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &2092379123
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -162685,6 +164228,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.9359184
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &2094322264
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -162799,6 +164344,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.2975951
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &2095392966
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -162913,6 +164460,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.4669838
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &2099470358
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -163027,6 +164576,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 4.099864
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &2100394522
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -163141,6 +164692,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.0239052
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &2101965707
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -163340,6 +164893,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.702692
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &2103698361
 GameObject:
   m_ObjectHideFlags: 0
@@ -163996,6 +165551,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 0.7338867
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &2113403124
 GameObject:
   m_ObjectHideFlags: 0
@@ -164205,6 +165762,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.396582
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &2114761367
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -165358,6 +166917,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.957135
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &2118515353
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -165472,6 +167033,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.548375
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &2119334271
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -165924,6 +167487,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.278688
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &2126798372
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -166828,6 +168393,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 2.909825
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1001 &2145661741
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -166942,6 +168509,8 @@ MonoBehaviour:
   hideWhenEmpty: 0
   toolWear: 1
   radius: 1.0590271
+  hitWobble: 0.07
+  emptyScale: 0.7
 --- !u!1 &2146172176
 GameObject:
   m_ObjectHideFlags: 0
