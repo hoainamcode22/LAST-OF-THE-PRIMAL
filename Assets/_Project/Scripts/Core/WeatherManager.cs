@@ -4,25 +4,40 @@ using PrimalFrontier.Audio;
 
 namespace PrimalFrontier.Core
 {
-    public enum WeatherState { Clear, Rain, Storm }
+    public enum WeatherState { Clear, Rain, Storm, Cloudy }      // appended only (saved by name, compared as ints)
 
     /// <summary>
-    /// Clear / rain (and the opening storm). Rain is a camera-following particle box, dims the sun, thickens fog,
-    /// cools the air, wets the player unless covered, and makes campfires burn fuel faster. Random rain can be
-    /// disabled (tutorial) and forced (story).
+    /// Clear -> Cloudy -> Rain -> Cloudy -> Clear (and the opening storm with lightning). Clouds dim the sun and
+    /// thicken the fog; rain is a camera-following particle box that cools the air, wets the player unless covered and
+    /// makes campfires burn fuel faster; storms add lightning flashes with thunder a moment later. Surfaces get wet in
+    /// the rain and dry slowly after it. Global shader values for custom shaders: _PF_Wetness (0..1),
+    /// _PF_Overcast (0..1), _PF_Wind (xy direction, z strength, w gust). Random weather can be disabled (tutorial)
+    /// and forced (story).
     /// </summary>
     public class WeatherManager : MonoBehaviour
     {
         public static WeatherManager Instance { get; private set; }
         public WeatherState State { get; private set; } = WeatherState.Clear;
-        public float Intensity { get; private set; }            // 0..1 smoothed
+        public float Intensity { get; private set; }            // rain 0..1 smoothed
+        public float Overcast { get; private set; }             // cloud cover 0..1 smoothed
+        public float Wetness { get; private set; }              // surfaces 0..1: up in the rain, dries after
         public bool allowRandom = true;
-        [Tooltip("chance per in-game hour that rain starts")] [Range(0, 1)] public float rainChancePerHour = 0.08f;
+        [Tooltip("chance per in-game hour that clouds come in on a clear day")] [Range(0, 1)] public float cloudChancePerHour = 0.12f;
+        [Tooltip("chance per in-game hour that a cloudy sky starts to rain")] [Range(0, 1)] public float rainChancePerHour = 0.25f;
+        public Vector2 cloudHours = new Vector2(1.5f, 4f);
         public Vector2 rainHours = new Vector2(1f, 3f);
+        [Header("Wind (for foliage / water shaders)")]
+        public Vector2 windDirection = new Vector2(0.8f, 0.6f);
+        public float calmWind = 0.35f, stormWind = 1.4f;
+        [Header("Lightning (storms)")]
+        public Color lightningColor = new Color(0.8f, 0.86f, 1f);
+        public float lightningIntensity = 2.6f;
         public Material rainMaterial;
         public int maxParticles = 1400;
 
-        ParticleSystem _rain; float _target; double _until = -1; double _nextRoll; float _nextThunder;
+        ParticleSystem _rain; float _target, _cloudTarget; double _until = -1; double _nextRoll; float _nextFlash = 5f;
+        Light _flash; float _flashT = -1f, _thunderAt = -1f, _thunderVol; float _gust, _gustTarget, _nextGust;
+        static readonly int WetId = Shader.PropertyToID("_PF_Wetness"), OvercastId = Shader.PropertyToID("_PF_Overcast"), WindId = Shader.PropertyToID("_PF_Wind");
         public event Action<WeatherState> Changed;
 
         void Awake() { Instance = this; }
@@ -53,23 +68,33 @@ namespace PrimalFrontier.Core
         public void SetWeather(WeatherState s, float hours = -1f, bool instant = false)
         {
             State = s;
-            _target = s == WeatherState.Clear ? 0f : s == WeatherState.Rain ? 0.75f : 1f;
+            _target = s == WeatherState.Rain ? 0.75f : s == WeatherState.Storm ? 1f : 0f;
+            _cloudTarget = s == WeatherState.Clear ? 0f : s == WeatherState.Cloudy ? 0.5f : s == WeatherState.Rain ? 0.8f : 1f;
             _until = hours > 0f ? GameClock.Now + GameClock.Hours(hours) : -1;
-            if (instant) Intensity = _target;
+            if (instant) { Intensity = _target; Overcast = _cloudTarget; if (_target > 0f) Wetness = Mathf.Max(Wetness, 0.8f); }
             Changed?.Invoke(s);
             GameEvents.Raise(GameEventType.WeatherChanged, s.ToString(), 1);
         }
 
         void Update()
         {
-            // schedule
-            if (_until > 0 && GameClock.Now >= _until) SetWeather(WeatherState.Clear);
-            if (allowRandom && State == WeatherState.Clear && GameClock.Now >= _nextRoll)
+            // schedule: clear -> cloudy -> (rain -> cloudy) -> clear
+            if (_until > 0 && GameClock.Now >= _until)
+            {
+                if (State == WeatherState.Rain || State == WeatherState.Storm) SetWeather(WeatherState.Cloudy, UnityEngine.Random.Range(0.5f, 1.5f));
+                else SetWeather(WeatherState.Clear);
+            }
+            if (allowRandom && GameClock.Now >= _nextRoll)
             {
                 _nextRoll = GameClock.Now + GameClock.Hours(1f);
-                if (UnityEngine.Random.value < rainChancePerHour) SetWeather(WeatherState.Rain, UnityEngine.Random.Range(rainHours.x, rainHours.y));
+                if (State == WeatherState.Clear && UnityEngine.Random.value < cloudChancePerHour) SetWeather(WeatherState.Cloudy, UnityEngine.Random.Range(cloudHours.x, cloudHours.y));
+                else if (State == WeatherState.Cloudy && UnityEngine.Random.value < rainChancePerHour) SetWeather(WeatherState.Rain, UnityEngine.Random.Range(rainHours.x, rainHours.y));
             }
-            Intensity = Mathf.MoveTowards(Intensity, _target, Time.deltaTime / 12f);
+            float dt = Time.deltaTime;
+            Intensity = Mathf.MoveTowards(Intensity, _target, dt / 12f);
+            Overcast = Mathf.MoveTowards(Overcast, Mathf.Max(_cloudTarget, Intensity), dt / 20f);
+            // surfaces soak in ~40 s of rain and dry in a few minutes (faster under a clear sky)
+            Wetness = Intensity > 0.2f ? Mathf.MoveTowards(Wetness, 1f, dt * Intensity / 40f) : Mathf.MoveTowards(Wetness, 0f, dt * (1.3f - Overcast) / 240f);
 
             // presentation
             var cam = Camera.main;
@@ -78,11 +103,46 @@ namespace PrimalFrontier.Core
                 if (cam) _rain.transform.position = cam.transform.position + cam.transform.forward * 6f;
                 var em = _rain.emission; em.rateOverTime = Intensity * maxParticles * 0.9f;
             }
-            var tm = TimeManager.Instance; if (tm) tm.overcast = Intensity;
-            if (State == WeatherState.Storm && Time.time > _nextThunder)
+            var tm = TimeManager.Instance; if (tm) tm.overcast = Overcast;
+            // wind: calm with slow gusts, strong in storms
+            if (Time.time > _nextGust) { _nextGust = Time.time + UnityEngine.Random.Range(3f, 9f); _gustTarget = UnityEngine.Random.Range(0f, 1f); }
+            _gust = Mathf.MoveTowards(_gust, _gustTarget, dt * 0.4f);
+            float wind = Mathf.Lerp(calmWind, stormWind, Mathf.Max(Intensity, Overcast * 0.4f));
+            var wd = windDirection.sqrMagnitude > 0.001f ? windDirection.normalized : Vector2.right;
+            Shader.SetGlobalVector(WindId, new Vector4(wd.x, wd.y, wind, _gust));
+            Shader.SetGlobalFloat(WetId, Wetness);
+            Shader.SetGlobalFloat(OvercastId, Overcast);
+            Lightning(dt);
+        }
+
+        void Lightning(float dt)
+        {
+            if (State == WeatherState.Storm && Intensity > 0.5f && Time.time > _nextFlash)
             {
-                _nextThunder = Time.time + UnityEngine.Random.Range(6f, 16f);
-                SfxPlayer.Instance.Play2D(SfxId.Thunder, UnityEngine.Random.Range(0.5f, 1f));
+                _nextFlash = Time.time + UnityEngine.Random.Range(7f, 18f);
+                _flashT = 0f;
+                float dist = UnityEngine.Random.Range(0.2f, 1f);                     // near strikes: louder, sooner
+                _thunderAt = Time.time + Mathf.Lerp(0.3f, 3f, dist); _thunderVol = Mathf.Lerp(1f, 0.45f, dist);
+                if (!_flash)
+                {
+                    var go = new GameObject("Lightning"); go.transform.SetParent(transform, false);
+                    _flash = go.AddComponent<Light>(); _flash.type = LightType.Directional; _flash.shadows = LightShadows.None;
+                    _flash.color = lightningColor; _flash.enabled = false;
+                }
+                _flash.transform.rotation = Quaternion.Euler(UnityEngine.Random.Range(35f, 70f), UnityEngine.Random.Range(0f, 360f), 0f);
+            }
+            if (_flash && _flashT >= 0f)
+            {
+                _flashT += dt;
+                // two quick pulses and a fade (~0.45 s)
+                float t = _flashT, k = t < 0.06f ? t / 0.06f : t < 0.12f ? 1f - (t - 0.06f) / 0.06f * 0.7f : t < 0.18f ? 0.3f + (t - 0.12f) / 0.06f * 0.7f : Mathf.Max(0f, 1f - (t - 0.18f) / 0.27f);
+                _flash.enabled = k > 0.01f; _flash.intensity = k * lightningIntensity;
+                if (t > 0.45f) { _flashT = -1f; _flash.enabled = false; }
+            }
+            if (_thunderAt > 0f && Time.time >= _thunderAt)
+            {
+                _thunderAt = -1f;
+                SfxPlayer.Instance.Play2D(SfxId.Thunder, _thunderVol);
             }
         }
 
