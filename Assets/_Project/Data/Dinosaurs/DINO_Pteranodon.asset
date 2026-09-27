@@ -1,0 +1,56 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: df337fc1c4a92a34c957fc6aeb9d5067, type: 3}
+  m_Name: DINO_Pteranodon
+  m_EditorClassIdentifier: PrimalFrontier.Runtime::PrimalFrontier.AI.DinosaurDefinition
+  id: pteranodon
+  displayName: Pteranodon
+  prefab: {fileID: 5176776910200802556, guid: 8b48aab14dc6b404cb46761f8101a0d3, type: 3}
+  temperament: 4
+  maxHealth: 40
+  walkSpeed: 0.8
+  runSpeed: 11
+  turnSpeed: 90
+  acceleration: 5
+  bodyRadius: 0.6
+  sightRange: 0
+  fov: 220
+  hearingRange: 0
+  observeDistance: 0
+  personalSpace: 0
+  aggroRange: 0
+  territoryRadius: 0
+  fleeDistance: 0
+  retreatHealth: 0
+  attackRange: 0
+  attackDamage: 0
+  heavyDamage: 0
+  attackCooldown: 0
+  bleedSeconds: 0
+  groupMin: 1
+  groupMax: 3
+  meat: 1
+  hide: 1
+  bone: 1
+  calls:
+  - {fileID: 8300000, guid: 50c874f098892e648a9febf7ed419552, type: 3}
+  - {fileID: 8300000, guid: b4e44701e7884a7488df2d37e3bdfbb4, type: 3}
+  roars:
+  - {fileID: 8300000, guid: aa6f0781f81bcb749ab68ffbd320e378, type: 3}
+  - {fileID: 8300000, guid: 8954e6b4a92f4424cb3738977c8c552d, type: 3}
+  hurts:
+  - {fileID: 8300000, guid: 76becffa9cd96074b94fdaed24d60bba, type: 3}
+  - {fileID: 8300000, guid: 8405acb50989bf444a9d5b5283e1601c, type: 3}
+  deaths:
+  - {fileID: 8300000, guid: 8037bb8b100892b43847405048d872d1, type: 3}
+  heavyFootsteps: 0
+  journalId: pteranodon

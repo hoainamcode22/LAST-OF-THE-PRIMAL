@@ -85,7 +85,9 @@ namespace PrimalFrontier.EditorTools
                 var toe = a.GetBoneTransform(left ? HumanBodyBones.LeftToes : HumanBodyBones.RightToes);
                 return toe != null ? toe : a.GetBoneTransform(left ? HumanBodyBones.LeftFoot : HumanBodyBones.RightFoot);
             }
-            return null;
+            // dinosaurs: the hind toe joint is the planted point
+            var tr = a.GetComponentsInChildren<Transform>(true).FirstOrDefault(t => t.name == (left ? "Toe_L" : "Toe_R"));
+            return tr;
         }
 
         static bool Test(Spec spec, GameObject prefab, List<AnimationClip> clips, AnimMeta meta)
@@ -164,6 +166,30 @@ namespace PrimalFrontier.EditorTools
                 UnityEngine.Object.DestroyImmediate(baked);
             }
             L($"Ground contact (IDLE frame 0, skinned vertices): min y {minVertY:F3} m");
+            // skin check: every vertex needs bone weights and the body must deform with the bones (unweighted vertices stay in bind pose)
+            var lod0 = go.GetComponentsInChildren<SkinnedMeshRenderer>().FirstOrDefault(s => s.name.EndsWith("_LOD0")) ?? go.GetComponentInChildren<SkinnedMeshRenderer>();
+            var moveClip = clips.FirstOrDefault(c => c.name == "Walk") ?? clips.FirstOrDefault(c => c.name == "Run");
+            if (lod0 != null && lod0.sharedMesh != null)
+            {
+                var bpv = lod0.sharedMesh.GetBonesPerVertex();
+                int noWeights = 0; foreach (var c in bpv) if (c == 0) noWeights++;
+                L($"Skin weights: {noWeights} of {bpv.Length} LOD0 vertices without bones");
+                if (noWeights > bpv.Length * 0.005f) F($"{noWeights} vertices have no skin weights");
+                if (moveClip != null)
+                {
+                    Vector3[] Baked(float t)
+                    {
+                        Sample(go, moveClip, t); var m = new Mesh(); lod0.BakeMesh(m, true); var v = m.vertices;
+                        for (int i = 0; i < v.Length; i++) v[i] = lod0.transform.TransformPoint(v[i]);
+                        UnityEngine.Object.DestroyImmediate(m); return v;
+                    }
+                    var p0 = Baked(0f); var moved = new float[p0.Length];
+                    foreach (float f in new[] { 0.25f, 0.5f, 0.75f }) { var pv = Baked(moveClip.length * f); for (int i = 0; i < pv.Length && i < p0.Length; i++) moved[i] = Mathf.Max(moved[i], (pv[i] - p0[i]).magnitude); }
+                    float frac = moved.Count(d => d > 0.003f) / (float)Mathf.Max(1, moved.Length);
+                    L($"Skin check ({moveClip.name}): {frac * 100:F1}% of LOD0 vertices move with the bones");
+                    if (frac < 0.8f) F($"only {frac * 100:F0}% of the mesh deforms in {moveClip.name} - skin weights missing");
+                }
+            }
             if (spec.Humanoid)
             {
                 var ls = anim.GetBoneTransform(HumanBodyBones.LeftUpperArm).position; var rs = anim.GetBoneTransform(HumanBodyBones.RightUpperArm).position;
@@ -172,7 +198,7 @@ namespace PrimalFrontier.EditorTools
                 L($"Facing: shoulders -> {fwd}, left foot -> toes {toeDir.normalized} (expected +Z)");
                 if (fwd.z < 0.8f) F("character does not face +Z");
             }
-            if (Mathf.Abs(minVertY) > 0.05f) F($"feet not on the ground in IDLE: min y {minVertY:F3}");
+            if (Mathf.Abs(minVertY) > 0.05f && (spec.Humanoid || FootBone(anim, spec, true) != null)) F($"feet not on the ground in IDLE: min y {minVertY:F3}");
             Screenshots(spec, go, clips);
             AnimationMode.StopAnimationMode();
             UnityEngine.Object.DestroyImmediate(go);

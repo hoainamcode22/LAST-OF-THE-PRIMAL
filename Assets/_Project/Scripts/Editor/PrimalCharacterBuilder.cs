@@ -80,7 +80,7 @@ namespace PrimalFrontier.EditorTools
                     L($"Mesh {smr.name}: tris={m.triangles.Length / 3} verts={m.vertexCount} submeshes={m.subMeshCount} bones={smr.bones.Length} blendshapes={m.blendShapeCount} bounds={smr.bounds.size}");
                 }
                 var inst = (GameObject)UnityEngine.Object.Instantiate(model);
-                var anim = inst.GetComponent<Animator>() ?? inst.AddComponent<Animator>();
+                var anim = inst.GetOrAdd<Animator>();
                 anim.avatar = AssetDatabase.LoadAllAssetsAtPath(fbx).OfType<Avatar>().FirstOrDefault();
                 if (anim.avatar != null && anim.avatar.isHuman)
                 {
@@ -110,7 +110,7 @@ namespace PrimalFrontier.EditorTools
         public static bool BuildAndTest(string id)
         {
             Log.Clear(); _fails = 0;
-            var spec = Specs[id];
+            var spec = GetSpec(id);
             L($"=== {id} === {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
             AssetDatabase.Refresh();
             string fbx = $"{spec.Folder}/Model/{spec.Fbx}.fbx";
@@ -285,6 +285,7 @@ namespace PrimalFrontier.EditorTools
                 }
                 else mat.SetFloat("_Smoothness", n.Contains("Eye") ? 0.85f : 0.3f);
                 mat.SetFloat("_Metallic", 0f);
+                if (n.Contains("Membrane")) { mat.SetFloat("_Cull", 0f); mat.doubleSidedGI = true; }
                 if (n.Contains("Hair"))
                 {
                     mat.SetFloat("_AlphaClip", 1f); mat.SetFloat("_Cutoff", 0.45f); mat.EnableKeyword("_ALPHATEST_ON");

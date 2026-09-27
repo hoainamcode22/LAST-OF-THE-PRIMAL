@@ -1,0 +1,56 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: df337fc1c4a92a34c957fc6aeb9d5067, type: 3}
+  m_Name: DINO_Ankylosaurus
+  m_EditorClassIdentifier: PrimalFrontier.Runtime::PrimalFrontier.AI.DinosaurDefinition
+  id: ankylosaurus
+  displayName: Ankylosaurus
+  prefab: {fileID: 7058792892347837844, guid: 45bf7ff6c22aa7a4f8e9984137c2ae1a, type: 3}
+  temperament: 1
+  maxHealth: 750
+  walkSpeed: 1.2
+  runSpeed: 3.2
+  turnSpeed: 40
+  acceleration: 1.5
+  bodyRadius: 1.3
+  sightRange: 30
+  fov: 220
+  hearingRange: 18
+  observeDistance: 22
+  personalSpace: 8
+  aggroRange: 0
+  territoryRadius: 30
+  fleeDistance: 30
+  retreatHealth: 0.15
+  attackRange: 4.5
+  attackDamage: 35
+  heavyDamage: 60
+  attackCooldown: 3
+  bleedSeconds: 0
+  groupMin: 1
+  groupMax: 1
+  meat: 4
+  hide: 3
+  bone: 2
+  calls:
+  - {fileID: 8300000, guid: 950f6cbe015ee524cb9f609798f5daba, type: 3}
+  - {fileID: 8300000, guid: 34b6fee169938f94cad6da76cd47e8a6, type: 3}
+  roars:
+  - {fileID: 8300000, guid: c9de65d73d1d06146bf7bc75d01b2bf3, type: 3}
+  - {fileID: 8300000, guid: 6d3d3e34036c259418e1e4e3042c86c6, type: 3}
+  hurts:
+  - {fileID: 8300000, guid: c2504c4e088d7364ab6400f8ca350e11, type: 3}
+  - {fileID: 8300000, guid: 7d4fb418d3e573848a9dd6fd88c33d65, type: 3}
+  deaths:
+  - {fileID: 8300000, guid: c29b444453eee9742960d58972d1eee5, type: 3}
+  heavyFootsteps: 1
+  journalId: ankylosaurus

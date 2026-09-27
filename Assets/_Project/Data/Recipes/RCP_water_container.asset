@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: da16c94d01ae979459249a8a00bd7eab, type: 3}
+  m_Name: RCP_water_container
+  m_EditorClassIdentifier: PrimalFrontier.Runtime::PrimalFrontier.Items.RecipeDefinition
+  id: water_container
+  category: 2
+  output: {fileID: 11400000, guid: f602a77183392ef4a951cbdc672cba43, type: 2}
+  outputCount: 1
+  ingredients:
+  - item: {fileID: 11400000, guid: 2a31c73324c38c844b057d148433dd37, type: 2}
+    count: 1
+  - item: {fileID: 11400000, guid: 16f78fa5728212b408161f8128464e02, type: 2}
+    count: 1
+  craftSeconds: 4
+  station: 0
+  knownAtStart: 0
+  hint: Needs a hide to seal it.

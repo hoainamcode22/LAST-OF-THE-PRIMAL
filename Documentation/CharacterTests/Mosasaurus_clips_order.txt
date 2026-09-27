@@ -1,0 +1,7 @@
+0: Attack
+1: Death
+2: Hurt
+3: Idle
+4: Roar
+5: Run
+6: Walk

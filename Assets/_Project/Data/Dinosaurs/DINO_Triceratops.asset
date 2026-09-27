@@ -1,0 +1,56 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: df337fc1c4a92a34c957fc6aeb9d5067, type: 3}
+  m_Name: DINO_Triceratops
+  m_EditorClassIdentifier: PrimalFrontier.Runtime::PrimalFrontier.AI.DinosaurDefinition
+  id: triceratops
+  displayName: Triceratops
+  prefab: {fileID: 4214637175058740163, guid: 1a4ae987c5155eb46a8f24baf74ac077, type: 3}
+  temperament: 1
+  maxHealth: 600
+  walkSpeed: 1.6
+  runSpeed: 5.5
+  turnSpeed: 45
+  acceleration: 2.2
+  bodyRadius: 1.5
+  sightRange: 40
+  fov: 220
+  hearingRange: 24
+  observeDistance: 32
+  personalSpace: 11
+  aggroRange: 0
+  territoryRadius: 45
+  fleeDistance: 50
+  retreatHealth: 0.3
+  attackRange: 4
+  attackDamage: 30
+  heavyDamage: 55
+  attackCooldown: 2.6
+  bleedSeconds: 0
+  groupMin: 1
+  groupMax: 2
+  meat: 5
+  hide: 2
+  bone: 3
+  calls:
+  - {fileID: 8300000, guid: 25b9f02d4ab0abe418d87e2703473a0b, type: 3}
+  - {fileID: 8300000, guid: aa41fc08ecaf34a4492d1b03f8bafcd1, type: 3}
+  roars:
+  - {fileID: 8300000, guid: 222e6a6c9da3f4a4e821dc37e96509c7, type: 3}
+  - {fileID: 8300000, guid: 81a8f3e051ebe3c45b4d9bba79525bb7, type: 3}
+  hurts:
+  - {fileID: 8300000, guid: e5145b7b1d517d849aafdae2ddcd7e6f, type: 3}
+  - {fileID: 8300000, guid: 0c94ff898a737bf45b1883943b92346d, type: 3}
+  deaths:
+  - {fileID: 8300000, guid: 78ec7ee499ce18f4ca1142a830a11e7e, type: 3}
+  heavyFootsteps: 1
+  journalId: triceratops

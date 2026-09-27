@@ -1,0 +1,56 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: df337fc1c4a92a34c957fc6aeb9d5067, type: 3}
+  m_Name: DINO_Apex
+  m_EditorClassIdentifier: PrimalFrontier.Runtime::PrimalFrontier.AI.DinosaurDefinition
+  id: apex
+  displayName: Rift Tyrant
+  prefab: {fileID: 8915489915044773590, guid: 9dc6663af98c02e4a83aac0f045d1cc2, type: 3}
+  temperament: 2
+  maxHealth: 1300
+  walkSpeed: 2
+  runSpeed: 7
+  turnSpeed: 40
+  acceleration: 2.5
+  bodyRadius: 1.8
+  sightRange: 55
+  fov: 220
+  hearingRange: 33
+  observeDistance: 0
+  personalSpace: 0
+  aggroRange: 40
+  territoryRadius: 60
+  fleeDistance: 60
+  retreatHealth: 0.05
+  attackRange: 6.5
+  attackDamage: 60
+  heavyDamage: 90
+  attackCooldown: 2.6
+  bleedSeconds: 6
+  groupMin: 1
+  groupMax: 1
+  meat: 9
+  hide: 4
+  bone: 5
+  calls:
+  - {fileID: 8300000, guid: efcabe319743370468e8fecf44336273, type: 3}
+  - {fileID: 8300000, guid: d33cdebcc4c0ec34ba60f56cf78cd646, type: 3}
+  roars:
+  - {fileID: 8300000, guid: c6ed8d516d14d4f408f6f95820c60131, type: 3}
+  - {fileID: 8300000, guid: 7871c3989675e2e4fb94de7592484b61, type: 3}
+  hurts:
+  - {fileID: 8300000, guid: a0e4820b1260cb844822f9288cc935bc, type: 3}
+  - {fileID: 8300000, guid: dfc5dbd8e8e5a654db70982811d8a517, type: 3}
+  deaths:
+  - {fileID: 8300000, guid: b2a83416ee550d340b5bb7c39b5dce22, type: 3}
+  heavyFootsteps: 1
+  journalId: apex

@@ -1,0 +1,56 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: df337fc1c4a92a34c957fc6aeb9d5067, type: 3}
+  m_Name: DINO_Velociraptor
+  m_EditorClassIdentifier: PrimalFrontier.Runtime::PrimalFrontier.AI.DinosaurDefinition
+  id: velociraptor
+  displayName: Velociraptor
+  prefab: {fileID: 2749404149078626692, guid: 1dd13309e179814419241ca4388174e7, type: 3}
+  temperament: 3
+  maxHealth: 80
+  walkSpeed: 1.5
+  runSpeed: 11
+  turnSpeed: 240
+  acceleration: 12
+  bodyRadius: 0.4
+  sightRange: 45
+  fov: 220
+  hearingRange: 27.000002
+  observeDistance: 0
+  personalSpace: 0
+  aggroRange: 28
+  territoryRadius: 60
+  fleeDistance: 60
+  retreatHealth: 0.3
+  attackRange: 1.8
+  attackDamage: 12
+  heavyDamage: 18
+  attackCooldown: 1.1
+  bleedSeconds: 4
+  groupMin: 1
+  groupMax: 2
+  meat: 1
+  hide: 1
+  bone: 1
+  calls:
+  - {fileID: 8300000, guid: a7d4fad6ef01aa548bcca4960f6654aa, type: 3}
+  - {fileID: 8300000, guid: b92b077d87f715a4297b0056354ff47b, type: 3}
+  roars:
+  - {fileID: 8300000, guid: 9d3df086203ea9c449e08d257e15fb66, type: 3}
+  - {fileID: 8300000, guid: 8ac7bbbdba756084fbcf667ac96c5615, type: 3}
+  hurts:
+  - {fileID: 8300000, guid: f72432282234b38479bf8df0386e2137, type: 3}
+  - {fileID: 8300000, guid: b0c27c953a268074cb81c31834bf28f6, type: 3}
+  deaths:
+  - {fileID: 8300000, guid: f5fbbe8c3a2356b47a8e48d5849d4380, type: 3}
+  heavyFootsteps: 0
+  journalId: velociraptor

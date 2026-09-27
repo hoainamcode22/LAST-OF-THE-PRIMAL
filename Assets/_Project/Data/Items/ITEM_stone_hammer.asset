@@ -1,0 +1,46 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 857d5e04a80595f49a772487b5593144, type: 3}
+  m_Name: ITEM_stone_hammer
+  m_EditorClassIdentifier: PrimalFrontier.Runtime::PrimalFrontier.Items.ItemDefinition
+  id: stone_hammer
+  displayName: Stone Hammer
+  description: A heavy stone lashed to a haft. Breaks rock, drives stakes.
+  icon: {fileID: 21300000, guid: 85096f1133a2a2545bba60e604357fff, type: 3}
+  category: 2
+  maxStack: 1
+  weight: 2
+  worldPrefab: {fileID: 919132149155446097, guid: b80b87942d768a647b0bd180fad366a1, type: 3}
+  worldEuler: {x: 0, y: 0, z: 0}
+  handPrefab: {fileID: 919132149155446097, guid: b80b87942d768a647b0bd180fad366a1, type: 3}
+  gripPosition: {x: 0, y: 0, z: 0}
+  gripEuler: {x: 0, y: 0, z: 0}
+  hunger: 0
+  thirst: 0
+  health: 0
+  stamina: 0
+  sicknessChance: 0
+  isHot: 0
+  cookedResult: {fileID: 0}
+  cookSeconds: 12
+  tool: 10
+  toolPower: 0.8
+  weapon: 0
+  damage: 12
+  heavyDamage: 0
+  staminaCost: 12
+  maxDurability: 90
+  ammo: {fileID: 0}
+  waterCharges: 0
+  placePrefab: {fileID: 0}
+  placeRadius: 1
+  lightRange: 0

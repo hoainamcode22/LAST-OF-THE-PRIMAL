@@ -1,0 +1,359 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using PrimalFrontier.Animation;
+using PrimalFrontier.Building;
+using PrimalFrontier.Items;
+using PrimalFrontier.Player;
+using PrimalFrontier.Story;
+using PrimalFrontier.Survival;
+using PrimalFrontier.UI;
+using PrimalFrontier.World;
+
+namespace PrimalFrontier.Core
+{
+    public enum GameState { Boot, Title, Intro, Playing, Dead, Sleeping }
+
+    /// <summary>
+    /// Game flow for the island scene: title, new game (intro + tutorial), continue (load), save, sleep, death and
+    /// respawn. Creates every runtime system and the UI, wires the survival environment hooks (air temperature,
+    /// rain, heat), and never depends on a particular scene hierarchy beyond the spawn point and the player prefab.
+    /// </summary>
+    [DefaultExecutionOrder(-80)]
+    public class GameManager : MonoBehaviour
+    {
+        public static GameManager Instance { get; private set; }
+
+        [Header("Setup")]
+        public GameObject playerPrefab;
+        public Transform spawnPoint;
+        public Transform titleCameraFocus;
+        public ItemDatabase database;
+        public GameObject torchFlamePrefab;
+        public Material ghostValid, ghostInvalid, rainMaterial;
+        public AudioClip ambOcean, ambForest, ambNight, ambWind, ambRain, ambStorm;
+        [Header("Flow")]
+        public bool showTitle = true;
+        public bool playIntro = true;
+        public float startHour = 9f;
+        public float secondsPerHour = 100f;
+        [Header("Habitats (tutorial fallback when no creature exists)")]
+        public Vector3 herbivoreHabitat; public float herbivoreHabitatRadius = 25f;
+        public Vector3 campArea; public float campRadius = 30f;
+        [Tooltip("compass marker per tutorial step id")] public List<string> targetSteps = new List<string>();
+        public List<Vector3> targetPositions = new List<Vector3>();
+
+        /// <summary>automated tests: skip the title / intro without editing the scene</summary>
+        public static bool? ForceShowTitle, ForcePlayIntro;
+        public GameState State { get; private set; } = GameState.Boot;
+        public GameObject Player { get; private set; }
+        public bool IntroDone { get; set; }
+        public float PlaySeconds { get; set; }
+        public bool HasRespawn { get; private set; }
+        public Vector3 RespawnPoint { get; private set; }
+
+        TimeManager _time; WeatherManager _weather; AmbienceManager _amb; JournalSystem _journal; TutorialManager _tutorial;
+        IntroSequence _intro; ZoneManager _zones; BuildSystem _build; UIManager _ui; HUDManager _hud; DeathScreenUI _death;
+        readonly List<WorldPickup> _scenePickups = new List<WorldPickup>();
+        float _deadTime; float _autosave; ThirdPersonCamera _cam; float _titleOrbit;
+
+        void Awake()
+        {
+            Instance = this;
+            GameClock.SecondsPerHour = secondsPerHour;
+            if (!database) database = ItemDatabase.Instance;
+            _zones = FindFirstObjectByType<ZoneManager>();
+            _time = Ensure<TimeManager>("[Time]"); _time.secondsPerHour = secondsPerHour;
+            _weather = Ensure<WeatherManager>("[Weather]"); if (rainMaterial) _weather.rainMaterial = rainMaterial;
+            _amb = Ensure<AmbienceManager>("[Ambience]");
+            _amb.ocean = ambOcean; _amb.forest = ambForest; _amb.night = ambNight; _amb.wind = ambWind; _amb.rain = ambRain; _amb.storm = ambStorm;
+            _journal = Ensure<JournalSystem>("[Journal]");
+            _tutorial = Ensure<TutorialManager>("[Tutorial]");
+            _intro = Ensure<IntroSequence>("[Intro]");
+            _build = Ensure<BuildSystem>("[Build]"); _build.ghostValid = ghostValid; _build.ghostInvalid = ghostInvalid;
+            if (!FindFirstObjectByType<OceanShore>()) new GameObject("[OceanShore]").AddComponent<OceanShore>();
+            if (!FindFirstObjectByType<TreeHarvest>()) { var th = new GameObject("[Trees]").AddComponent<TreeHarvest>(); th.wood = database ? database.Item("wood") : null; th.fiber = database ? database.Item("fiber") : null; }
+            // UI
+            var uiRoot = new GameObject("[UI]");
+            _ui = uiRoot.AddComponent<UIManager>();
+            _hud = uiRoot.AddComponent<HUDManager>();
+            uiRoot.AddComponent<InventoryUI>(); uiRoot.AddComponent<JournalUI>(); uiRoot.AddComponent<PauseMenuUI>(); uiRoot.AddComponent<TitleScreenUI>();
+            _death = uiRoot.AddComponent<DeathScreenUI>();
+            SaveSystem.Track();
+            foreach (var p in FindObjectsByType<WorldPickup>(FindObjectsInactive.Include, FindObjectsSortMode.None)) _scenePickups.Add(p);
+        }
+
+        T Ensure<T>(string name) where T : Component { var c = FindFirstObjectByType<T>(); return c ? c : new GameObject(name).AddComponent<T>(); }
+
+        void OnDestroy() { if (Instance == this) Instance = null; Time.timeScale = 1f; }
+
+        void Start()
+        {
+            SpawnPlayer();
+            HookEnvironment();
+            GameSettings.Apply(); GameSettings.ApplyQuality();
+            if (ForceShowTitle.HasValue) showTitle = ForceShowTitle.Value;
+            if (ForcePlayIntro.HasValue) playIntro = ForcePlayIntro.Value;
+            if (showTitle) EnterTitle(); else NewGame();
+        }
+
+        // ------------------------------------------------------------------ setup
+        void SpawnPlayer()
+        {
+            Player = GameObject.FindGameObjectWithTag("Player");
+            Vector3 pos = spawnPoint ? spawnPoint.position : Vector3.up; Quaternion rot = spawnPoint ? spawnPoint.rotation : Quaternion.identity;
+            if (!Player && playerPrefab) Player = Instantiate(playerPrefab, pos, rot);
+            if (!Player) { Debug.LogError("[GameManager] no player"); return; }
+            Player.name = "Player";
+            if (!PlayerInputReader.Instance) new GameObject("[Input]").AddComponent<PlayerInputReader>();
+            // gameplay components (the prefab normally has them already)
+            var inv = Player.GetOrAdd<InventorySystem>();
+            inv.slotCount = 32; inv.hotbarSize = 8; inv.EnsureSlots();
+            var craft = Player.GetOrAdd<CraftingSystem>(); craft.inventory = inv;
+            if (!Player.GetComponent<PlayerSurvival>()) Player.AddComponent<PlayerSurvival>();
+            if (!Player.GetComponent<PlayerInteraction>()) Player.AddComponent<PlayerInteraction>();
+            var eq = Player.GetOrAdd<PlayerEquipment>(); if (torchFlamePrefab) eq.torchFlamePrefab = torchFlamePrefab;
+            if (!Player.GetComponent<PlayerCombat>()) Player.AddComponent<PlayerCombat>();
+            PlayerLocator.Player = Player.transform;
+            // camera
+            var camGo = Camera.main ? Camera.main.gameObject : new GameObject("Main Camera", typeof(Camera), typeof(AudioListener)) { tag = "MainCamera" };
+            _cam = camGo.GetOrAdd<ThirdPersonCamera>();
+            _cam.target = Player.transform; _cam.ignoreMask = 1 << Player.layer;
+            Player.GetComponent<PlayerMotor>().CameraTransform = camGo.transform;
+            _build.Bind(Player); _tutorial.Bind(Player);
+            _hud.Bind(Player); InventoryUI.Instance.Bind(Player);
+            _ui.BlockPause = () => _build.Active;
+            var hp = Player.GetComponent<PlayerHealth>(); hp.Died += OnDied;
+        }
+
+        void HookEnvironment()
+        {
+            PlayerSurvival.AirTemperature = p => (_time ? _time.AirTemperature() : 24f) + (_zones ? _zones.TemperatureOffset(p) : 0f) - Mathf.Max(0f, p.y - 30f) * 0.06f;
+            PlayerSurvival.RainingAt = p => _weather && _weather.RainingAt(p);
+            PlayerSurvival.HeatAt = p =>
+            {
+                float h = Campfire.HeatAt(p) + Shelter.WarmthAt(p);
+                var eq = Player ? Player.GetComponent<PlayerEquipment>() : null; if (eq && eq.TorchLit) h += 2f;
+                return h;
+            };
+            Bedroll.Hour = () => _time ? _time.hour : 12f;
+            Bedroll.SleepRequested = (b, p) => { if (State == GameState.Playing) StartCoroutine(Sleep(b)); };
+            Shelter.Rested = s => { SetRespawn(true, s.transform.position + s.transform.forward * 1.8f); SaveGame(); };
+            _tutorial.NearCamp = p =>
+            {
+                foreach (var c in Campfire.All) if (c && (c.transform.position - p).sqrMagnitude < 12f * 12f) return true;
+                return campRadius > 0f && (p - campArea).sqrMagnitude < campRadius * campRadius && campArea != Vector3.zero;
+            };
+            _tutorial.InHerbivoreHabitat = p => herbivoreHabitat != Vector3.zero && Vector2.Distance(new Vector2(p.x, p.z), new Vector2(herbivoreHabitat.x, herbivoreHabitat.z)) < herbivoreHabitatRadius;
+            _tutorial.TargetFor = id =>
+            {
+                if (id == "return") { foreach (var c in Campfire.All) if (c) return c.transform.position; }
+                int i = targetSteps.IndexOf(id);
+                return i >= 0 && i < targetPositions.Count ? targetPositions[i] : (Vector3?)null;
+            };
+            _tutorial.PredatorWarningCue = () =>
+            {
+                Audio.SfxPlayer.Instance.Play2D(Audio.SfxId.RoarDistant, 0.9f);
+                if (_cam) _cam.AddShake(0.02f, 1.2f);
+                _hud.ShowSubtitle("What was that?", 3f, true);
+            };
+        }
+
+        // ------------------------------------------------------------------ states
+        void EnterTitle()
+        {
+            State = GameState.Title;
+            ResetWorld();
+            _ui.allowGameplayMenus = false; _ui.Open(UIScreen.Title);
+            _hud.SetHudVisible(false); _hud.Fade(1f, 0f); _hud.Fade(0f, 2f);
+            _weather.SetWeather(WeatherState.Clear, -1f, true); _weather.allowRandom = false;
+            _time.Set(1, 17.2f); _time.paused = true;
+            if (_cam) _cam.InputEnabled = false;
+            var sv = Player.GetComponent<PlayerSurvival>(); sv.Paused = true;
+        }
+
+        public void NewGame()
+        {
+            StopAllCoroutines();
+            ResetWorld();
+            SaveSystem.ResetTracking();
+            _ui.Open(UIScreen.None); _ui.allowGameplayMenus = false;
+            _time.paused = false; _time.Set(1, startHour); GameClock.Now = 0;
+            _weather.allowRandom = false; _weather.SetWeather(WeatherState.Clear, -1f, true);
+            PlaySeconds = 0f; HasRespawn = false;
+            var craft = Player.GetComponent<CraftingSystem>(); craft.InitKnown(database);
+            var motor = Player.GetComponent<PlayerMotor>();
+            if (spawnPoint) motor.Warp(spawnPoint.position, spawnPoint.rotation);
+            if (_cam) { _cam.InputEnabled = true; _cam.Yaw = Player.transform.eulerAngles.y; _cam.SnapBehindTarget(); }
+            if (playIntro)
+            {
+                State = GameState.Intro;
+                _intro.Finished -= OnIntroDone; _intro.Finished += OnIntroDone;
+                _intro.Play(Player);
+            }
+            else OnIntroDone();
+        }
+
+        void OnIntroDone()
+        {
+            IntroDone = true;
+            State = GameState.Playing;
+            _ui.allowGameplayMenus = true;
+            _hud.SetHudVisible(true); if (_hud.FadeAlpha > 0.01f) _hud.Fade(0f, 0.8f);
+            var sv = Player.GetComponent<PlayerSurvival>(); sv.Paused = false;
+            ThirdPersonCamera.LockCursor(true);
+            _tutorial.Bind(Player);
+            if (!_tutorial.Running && !_tutorial.Completed) _tutorial.Begin(0);
+            _weather.allowRandom = true;
+        }
+
+        public void ContinueGame() => LoadGame();
+
+        public void LoadGame()
+        {
+            var d = SaveSystem.Read();
+            if (d == null) { _hud.Notify("Load failed: " + SaveSystem.LastError); return; }
+            StopAllCoroutines();
+            ResetWorld();
+            _time.paused = false;
+            SaveSystem.Apply(this, d);
+            State = GameState.Playing;
+            _ui.Open(UIScreen.None); _ui.allowGameplayMenus = true;
+            _hud.SetHudVisible(true); _hud.Fade(1f, 0f); _hud.Fade(0f, 1.2f);
+            var sv = Player.GetComponent<PlayerSurvival>(); sv.Paused = false;
+            var drv = Player.GetComponent<PlayerAnimationDriver>(); drv.Respawn(); drv.StopAction();
+            if (_cam) { _cam.InputEnabled = true; _cam.Yaw = Player.transform.eulerAngles.y; _cam.SnapBehindTarget(); }
+            if (!IntroDone) IntroDone = true;
+            _weather.allowRandom = _tutorial.Completed || _tutorial.Index > 10;
+            _hud.ShowBanner("DAY " + _time.day, "", 2.5f);
+        }
+
+        public bool SaveGame()
+        {
+            if (State != GameState.Playing && State != GameState.Sleeping) return false;
+            return SaveSystem.Save(this);
+        }
+
+        public void QuitToTitle() { StopAllCoroutines(); EnterTitle(); }
+
+        /// <summary>back to the untouched island (new game / before loading)</summary>
+        public void ResetWorld()
+        {
+            Time.timeScale = 1f;
+            _build.Cancel();
+            PlacedStructure.DestroyAll();
+            WorldPickup.ClearDropped();
+            foreach (var p in _scenePickups) if (p) p.gameObject.SetActive(true);
+            foreach (var it in Interactable.Active.ToArray())
+            {
+                if (it is ResourceNode n) n.Regrow();
+                else if (it is LootContainer l) l.Restore(false);
+                else if (it is Examinable e) e.Restore(false);
+            }
+            var th = FindFirstObjectByType<TreeHarvest>(); if (th) th.RestoreAll();
+            var dinos = FindFirstObjectByType<AI.DinosaurSpawner>(); if (dinos && State != GameState.Boot) dinos.SpawnAll();
+            _journal.SetUnlocked(new string[0]);
+            if (_zones) _zones.SetVisited(new string[0]);
+            _tutorial.ResetIdle();
+            if (Player)
+            {
+                var hp = Player.GetComponent<PlayerHealth>(); hp.Revive(1f);
+                Player.GetComponent<PlayerSurvival>().SetStats(85f, 70f, 100f, 37f, 0f);
+                var craft = Player.GetComponent<CraftingSystem>(); craft.CancelAll(); craft.InitKnown(database);
+                var inv = Player.GetComponent<InventorySystem>(); inv.Clear(); inv.SetActiveSlot(0);
+                var pi = Player.GetComponent<PlayerInteraction>(); pi.StopAction(); pi.Suspended = false;
+                var drv = Player.GetComponent<PlayerAnimationDriver>(); drv.Respawn(); drv.StopAction();
+                if (spawnPoint) Player.GetComponent<PlayerMotor>().Warp(spawnPoint.position, spawnPoint.rotation);
+            }
+            IntroDone = false;
+        }
+
+        public void SetRespawn(bool has, Vector3 p) { HasRespawn = has; RespawnPoint = p; }
+
+        // ------------------------------------------------------------------ loop
+        void Update()
+        {
+            if (State == GameState.Playing) PlaySeconds += Time.deltaTime;
+            if (State == GameState.Title && _cam && titleCameraFocus)
+            {
+                _titleOrbit += Time.deltaTime * 2.5f;
+                var c = _cam.transform; var f = titleCameraFocus.position;
+                c.position = f + Quaternion.Euler(0, _titleOrbit + 200f, 0) * new Vector3(0, 7f, -26f);
+                c.rotation = Quaternion.LookRotation(f + Vector3.up * 2f - c.position);
+            }
+            if (State == GameState.Dead && Time.time - _deadTime > 3f && _ui.Current != UIScreen.Death)
+            {
+                _death.SetCause(DeathCause());
+                _ui.Open(UIScreen.Death);
+            }
+            if (State == GameState.Playing)
+            {
+                _autosave += Time.deltaTime;
+                if (_autosave > 600f && _ui.Current == UIScreen.None && !Player.GetComponent<PlayerInteraction>().InAction) { _autosave = 0f; SaveGame(); }
+            }
+        }
+
+        void LateUpdate()
+        {
+            if (State == GameState.Title && _cam && titleCameraFocus)
+            {
+                var c = _cam.transform; var f = titleCameraFocus.position;
+                c.position = f + Quaternion.Euler(0, _titleOrbit + 200f, 0) * new Vector3(0, 7f, -26f);
+                c.rotation = Quaternion.LookRotation(f + Vector3.up * 2f - c.position);
+            }
+        }
+
+        string DeathCause()
+        {
+            var sv = Player.GetComponent<PlayerSurvival>();
+            if (sv.IsDehydrated) return "Thirst took you. Fresh water is life on this island.";
+            if (sv.IsStarving) return "You starved. Berries, fish and cooked meat keep you going.";
+            if (sv.IsFreezing) return "The cold took you. Fire and shelter keep you warm at night.";
+            return "Your wounds were too much.";
+        }
+
+        void OnDied()
+        {
+            State = GameState.Dead; _deadTime = Time.time;
+            _build.Cancel();
+            GameEvents.Raise(GameEventType.PlayerDied, "player");
+        }
+
+        public void Respawn()
+        {
+            var p = HasRespawn ? RespawnPoint : (spawnPoint ? spawnPoint.position : Player.transform.position);
+            Player.GetComponent<PlayerMotor>().Warp(p + Vector3.up * 0.1f, Player.transform.rotation);
+            Player.GetComponent<PlayerHealth>().Revive(0.6f);
+            var sv = Player.GetComponent<PlayerSurvival>();
+            sv.SetStats(Mathf.Max(sv.Hunger, 40f), Mathf.Max(sv.Thirst, 40f), 60f, 36.5f, 0f);
+            _ui.Close(); State = GameState.Playing;
+            _hud.Fade(1f, 0f); _hud.Fade(0f, 1.5f);
+            GameEvents.Raise(GameEventType.PlayerRespawned, "player");
+        }
+
+        IEnumerator Sleep(Bedroll b)
+        {
+            State = GameState.Sleeping;
+            var input = PlayerInputReader.Instance; if (input) input.GameplayBlocked = true;
+            var drv = Player.GetComponent<PlayerAnimationDriver>();
+            var motor = Player.GetComponent<PlayerMotor>();
+            motor.Warp(b.transform.position + Vector3.up * 0.05f, b.transform.rotation);
+            drv.PlayAction(PlayerActions.Sleep);
+            _hud.Fade(1f, 1.6f);
+            yield return new WaitForSeconds(1.8f);
+            float hours = _time.HoursUntil(6f);
+            _time.SkipHours(hours);
+            var sv = Player.GetComponent<PlayerSurvival>();
+            sv.Consume(-Mathf.Min(sv.Hunger - 5f, hours * 2.2f), -Mathf.Min(sv.Thirst - 5f, hours * 2.8f), hours * 4f, 100f);
+            SetRespawn(true, b.transform.position + b.transform.right * 1.2f);
+            GameEvents.Raise(GameEventType.Slept, "bedroll", Mathf.RoundToInt(hours));
+            drv.StopAction();
+            yield return new WaitForSeconds(0.4f);
+            State = GameState.Playing;
+            SaveGame();
+            _hud.Fade(0f, 2f);
+            _hud.ShowBanner("DAY " + _time.day, "Dawn", 3f);
+            if (input) input.GameplayBlocked = _ui.Current != UIScreen.None;
+        }
+    }
+}

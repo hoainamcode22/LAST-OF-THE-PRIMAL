@@ -1,0 +1,56 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: df337fc1c4a92a34c957fc6aeb9d5067, type: 3}
+  m_Name: DINO_Carnotaurus
+  m_EditorClassIdentifier: PrimalFrontier.Runtime::PrimalFrontier.AI.DinosaurDefinition
+  id: carnotaurus
+  displayName: Carnotaurus
+  prefab: {fileID: 612136447180669424, guid: 2d2649e84ecdadc4e993b7f15fbfe550, type: 3}
+  temperament: 2
+  maxHealth: 500
+  walkSpeed: 1.8
+  runSpeed: 9.5
+  turnSpeed: 70
+  acceleration: 4
+  bodyRadius: 1.2
+  sightRange: 50
+  fov: 220
+  hearingRange: 30.000002
+  observeDistance: 0
+  personalSpace: 0
+  aggroRange: 35
+  territoryRadius: 55
+  fleeDistance: 60
+  retreatHealth: 0.15
+  attackRange: 4.5
+  attackDamage: 38
+  heavyDamage: 60
+  attackCooldown: 2
+  bleedSeconds: 5
+  groupMin: 1
+  groupMax: 1
+  meat: 5
+  hide: 2
+  bone: 3
+  calls:
+  - {fileID: 8300000, guid: 8a1b9ce9d37800a45be986999357ff85, type: 3}
+  - {fileID: 8300000, guid: b2890f24110b5c64cbf30ea696417c5b, type: 3}
+  roars:
+  - {fileID: 8300000, guid: 1d780503e44fe114cbc94d1c5b7a83a8, type: 3}
+  - {fileID: 8300000, guid: cef87a09af650114aa7fef5b8cfd0198, type: 3}
+  hurts:
+  - {fileID: 8300000, guid: 7ddc5b32eaa096e4ab714e1b839bac78, type: 3}
+  - {fileID: 8300000, guid: b46b9ec085dfcc540931a76e3a2f505d, type: 3}
+  deaths:
+  - {fileID: 8300000, guid: 08124452e36bada44aecc9d42f93450f, type: 3}
+  heavyFootsteps: 1
+  journalId: carnotaurus

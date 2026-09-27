@@ -56,7 +56,7 @@ namespace PrimalFrontier.VFX
         PooledEffect Create(VfxId id)
         {
             var go = Instantiate(_prefabs[id], transform); go.SetActive(false);
-            var pe = go.GetComponent<PooledEffect>() ?? go.AddComponent<PooledEffect>();
+            var pe = go.GetOrAdd<PooledEffect>();
             pe.Id = id; pe.Pool = this; CreatedCount++;
             return pe;
         }

@@ -290,3 +290,10 @@ MonoBehaviour:
     volume: 0.8
     pitchJitter: 0.05
     maxDistance: 25
+  - id: 39
+    clips:
+    - {fileID: 8300000, guid: a3f10bb9f516c0a45b2db043d3cc2e1c, type: 3}
+    - {fileID: 8300000, guid: 2997411b612b1604ea2df5f12e462d76, type: 3}
+    volume: 0.8
+    pitchJitter: 0.05
+    maxDistance: 25

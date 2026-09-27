@@ -1,0 +1,11 @@
+0: Attack
+1: Death
+2: Fly
+3: Glide
+4: Hurt
+5: Idle
+6: Idle_Variation
+7: Land
+8: Roar
+9: Takeoff
+10: Walk

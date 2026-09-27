@@ -15,6 +15,12 @@ GameObject:
   - component: {fileID: 3666476529936793126}
   - component: {fileID: 1695163248703291909}
   - component: {fileID: 1077260952122769418}
+  - component: {fileID: 9149802936861797068}
+  - component: {fileID: 8361921210375708404}
+  - component: {fileID: 3703230212114933675}
+  - component: {fileID: 5377618164992298148}
+  - component: {fileID: 4133200172657024151}
+  - component: {fileID: 5743574722694466425}
   m_Layer: 8
   m_Name: PFB_Player
   m_TagString: Player
@@ -151,6 +157,113 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: PrimalFrontier.Runtime::PrimalFrontier.Player.PlayerFeedback
   footstepMinSpeed: 0.3
+--- !u!114 &9149802936861797068
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6763676986135281109}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 10e81ca859343f545aa7faef964a03ae, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: PrimalFrontier.Runtime::PrimalFrontier.Items.InventorySystem
+  slotCount: 32
+  hotbarSize: 8
+  maxWeight: 45
+  raiseGameEvents: 1
+--- !u!114 &8361921210375708404
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6763676986135281109}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 29f0142aab709c8409547811cc27e579, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: PrimalFrontier.Runtime::PrimalFrontier.Items.CraftingSystem
+  inventory: {fileID: 9149802936861797068}
+  stationRadius: 4
+--- !u!114 &3703230212114933675
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6763676986135281109}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3a46b51700db547498851b1aae94e1c9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: PrimalFrontier.Runtime::PrimalFrontier.Survival.PlayerSurvival
+  hungerPerMinute: 2.4
+  thirstPerMinute: 3.8
+  sprintMultiplier: 1.8
+  maxStamina: 100
+  sprintCostPerSecond: 16
+  regenPerSecond: 14
+  regenDelay: 0.9
+  jumpCost: 8
+  normalBody: 37
+  coldBody: 35.2
+  freezingBody: 34.2
+  bodyResponse: 0.02
+  starveDamage: 0.25
+  dehydrateDamage: 0.35
+  freezeDamage: 0.2
+  sickDamage: 0.3
+  regenHealth: 0.12
+--- !u!114 &5377618164992298148
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6763676986135281109}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 57cce5f339318fc4588230943e38237d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: PrimalFrontier.Runtime::PrimalFrontier.Player.PlayerInteraction
+  searchRadius: 3.2
+  maxAngle: 75
+--- !u!114 &4133200172657024151
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6763676986135281109}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 08c74f8baea8ed548a72bcea0ca23d78, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: PrimalFrontier.Runtime::PrimalFrontier.Player.PlayerEquipment
+  animator: {fileID: 2695233513829595879}
+  torchFlamePrefab: {fileID: 7144867723807918951, guid: 65c309eaf3b0b5042a1d44dc283e9f6a, type: 3}
+  torchLightRange: 9
+  torchLightIntensity: 1.6
+--- !u!114 &5743574722694466425
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6763676986135281109}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fd063678b31b54546a3f3f481cc5e311, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: PrimalFrontier.Runtime::PrimalFrontier.Player.PlayerCombat
+  heavyHoldTime: 0.35
+  spearReach: 2.1
+  heavyReach: 2.4
+  throwSpeed: 22
+  arrowSpeed: 38
+  bowFullDraw: 0.9
 --- !u!1001 &966252261604975464
 PrefabInstance:
   m_ObjectHideFlags: 0

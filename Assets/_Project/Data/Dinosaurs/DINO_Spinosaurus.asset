@@ -1,0 +1,56 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: df337fc1c4a92a34c957fc6aeb9d5067, type: 3}
+  m_Name: DINO_Spinosaurus
+  m_EditorClassIdentifier: PrimalFrontier.Runtime::PrimalFrontier.AI.DinosaurDefinition
+  id: spinosaurus
+  displayName: Spinosaurus
+  prefab: {fileID: 32295296269442704, guid: ad5bcef0c5f0d1f42b6e40ddb45b1d4b, type: 3}
+  temperament: 2
+  maxHealth: 850
+  walkSpeed: 1.9
+  runSpeed: 7.5
+  turnSpeed: 45
+  acceleration: 2.5
+  bodyRadius: 1.6
+  sightRange: 40
+  fov: 220
+  hearingRange: 24
+  observeDistance: 0
+  personalSpace: 0
+  aggroRange: 26
+  territoryRadius: 30
+  fleeDistance: 60
+  retreatHealth: 0.1
+  attackRange: 6
+  attackDamage: 45
+  heavyDamage: 70
+  attackCooldown: 2.4
+  bleedSeconds: 5
+  groupMin: 1
+  groupMax: 1
+  meat: 7
+  hide: 3
+  bone: 4
+  calls:
+  - {fileID: 8300000, guid: 8bf975321201b5f418b5e663eda03027, type: 3}
+  - {fileID: 8300000, guid: 89f1b6bf6af139d42867e77a3ae2741a, type: 3}
+  roars:
+  - {fileID: 8300000, guid: d7653fe2cd36b864aa365af58c2b11da, type: 3}
+  - {fileID: 8300000, guid: db27b8017150b314185cbe6da21917c5, type: 3}
+  hurts:
+  - {fileID: 8300000, guid: 548b03331ca485647a4094d8ea45f4a1, type: 3}
+  - {fileID: 8300000, guid: f512361ee3af0634eacee01ef9caaf51, type: 3}
+  deaths:
+  - {fileID: 8300000, guid: 51d859ec58fdffa49b1fe3391f3c17ec, type: 3}
+  heavyFootsteps: 1
+  journalId: spinosaurus

@@ -18,6 +18,7 @@ namespace PrimalFrontier.Tests
         [UnitySetUp]
         public IEnumerator SetUp()
         {
+            yield return TestScenes.ClearIfGameplayLeft();
             PlayerInputReader.Simulate = true; var s = PlayerInputReader.Sim; s.Move = Vector2.zero; s.Sprint = s.Walk = s.Jump = s.Crouch = false;
             _course = TestEnvironment.Build(null);
             _input = new GameObject("Input"); _input.AddComponent<PlayerInputReader>();

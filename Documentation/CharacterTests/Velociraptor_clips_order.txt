@@ -1,0 +1,15 @@
+0: Alert
+1: Attack
+2: Death
+3: Drink
+4: Eat
+5: Heavy_Attack
+6: Hurt
+7: Idle
+8: Idle_Variation
+9: Look
+10: Roar
+11: Run
+12: Turn_Left
+13: Turn_Right
+14: Walk

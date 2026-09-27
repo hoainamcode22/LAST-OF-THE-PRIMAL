@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: da16c94d01ae979459249a8a00bd7eab, type: 3}
+  m_Name: RCP_hand_stone
+  m_EditorClassIdentifier: PrimalFrontier.Runtime::PrimalFrontier.Items.RecipeDefinition
+  id: hand_stone
+  category: 0
+  output: {fileID: 11400000, guid: 293fac87e5093674cbc243d42e574669, type: 2}
+  outputCount: 1
+  ingredients:
+  - item: {fileID: 11400000, guid: 2518013b5a7a70947a5fadec8cfec8f0, type: 2}
+    count: 2
+  craftSeconds: 2
+  station: 0
+  knownAtStart: 1
+  hint: 

@@ -61,7 +61,7 @@ namespace PrimalFrontier.Audio
             if (n > 1 && _last.TryGetValue(id, out var prev) && prev == k) k = (k + 1) % n;
             _last[id] = k;
             var src = _sources[_next]; _next = (_next + 1) % _sources.Count;
-            src.transform.position = pos; src.clip = e.clips[k]; src.volume = (e.volume > 0 ? e.volume : 1f) * volume;
+            src.transform.position = pos; src.clip = e.clips[k]; src.volume = (e.volume > 0 ? e.volume : 1f) * volume * PrimalFrontier.Core.AudioBus.Sfx;
             src.pitch = 1f + Random.Range(-e.pitchJitter, e.pitchJitter); src.spatialBlend = spatial;
             src.maxDistance = e.maxDistance > 0 ? e.maxDistance : 25f;
             src.Play();

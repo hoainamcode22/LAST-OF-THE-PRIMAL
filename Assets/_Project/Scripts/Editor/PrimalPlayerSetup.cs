@@ -50,13 +50,21 @@ namespace PrimalFrontier.EditorTools
                 var face = root.AddComponent<PlayerFacial>();
                 root.AddComponent<PlayerHealth>();
                 root.AddComponent<PlayerFeedback>();
+                // survival gameplay (phase 12)
+                var inv = root.AddComponent<PrimalFrontier.Items.InventorySystem>(); inv.slotCount = 32; inv.hotbarSize = 8; inv.maxWeight = 45f;
+                root.AddComponent<PrimalFrontier.Items.CraftingSystem>().inventory = inv;
+                root.AddComponent<PrimalFrontier.Survival.PlayerSurvival>();
+                root.AddComponent<PlayerInteraction>();
+                var eq = root.AddComponent<PlayerEquipment>();
+                eq.torchFlamePrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Project/VFX/Prefabs/VFX_CampfireLoop.prefab");
+                root.AddComponent<PlayerCombat>();
                 var model = (GameObject)PrefabUtility.InstantiatePrefab(art, root.transform);
                 model.name = "Model"; model.transform.localPosition = Vector3.zero; model.transform.localRotation = Quaternion.identity;
                 var childCC = model.GetComponent<CharacterController>();
                 if (childCC != null) Object.DestroyImmediate(childCC, true);
                 var anim = model.GetComponent<Animator>();
                 anim.applyRootMotion = false; anim.cullingMode = AnimatorCullingMode.CullUpdateTransforms;
-                drv.animator = anim; face.animator = anim;
+                drv.animator = anim; face.animator = anim; eq.animator = anim;
                 face.face = model.GetComponentsInChildren<SkinnedMeshRenderer>(true).FirstOrDefault(r => r.name.EndsWith("_LOD0"));
                 SetLayerRecursive(root, playerLayer);
                 var saved = PrefabUtility.SaveAsPrefabAsset(root, GameplayPrefab);
