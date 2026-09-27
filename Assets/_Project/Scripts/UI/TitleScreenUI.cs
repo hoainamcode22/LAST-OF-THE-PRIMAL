@@ -11,7 +11,10 @@ namespace PrimalFrontier.UI
 
         void Awake() { Build(); _canvas.gameObject.SetActive(false); }
         public void BakeLayout() { Build(); _settings.gameObject.SetActive(false); _canvas.gameObject.SetActive(false); }
-        void Start() { if (UIManager.Instance) UIManager.Instance.Changed += (a, b) => { _canvas.gameObject.SetActive(b == UIScreen.Title); if (b == UIScreen.Title) ShowMain(); }; }
+        // the game may already be on the title screen when this starts (GameManager runs first): catch up
+        void Start() { if (UIManager.Instance) { UIManager.Instance.Changed += OnScreen; OnScreen(UIScreen.None, UIManager.Instance.Current); } }
+        void OnDestroy() { if (UIManager.Instance) UIManager.Instance.Changed -= OnScreen; }
+        void OnScreen(UIScreen from, UIScreen to) { _canvas.gameObject.SetActive(to == UIScreen.Title); if (to == UIScreen.Title) ShowMain(); }
 
         void Build()
         {

@@ -189,7 +189,7 @@ namespace PrimalFrontier.Core
             _hud.SetHudVisible(false); _hud.Fade(1f, 0f); _hud.Fade(0f, 2f);
             _weather.SetWeather(WeatherState.Clear, -1f, true); _weather.allowRandom = false;
             _time.Set(1, 17.2f); _time.paused = true;
-            if (_cam) _cam.InputEnabled = false;
+            if (_cam) { _cam.InputEnabled = false; _cam.enabled = false; }     // the title orbit drives the camera
             var sv = Player.GetComponent<PlayerSurvival>(); sv.Paused = true;
         }
 
@@ -205,7 +205,7 @@ namespace PrimalFrontier.Core
             var craft = Player.GetComponent<CraftingSystem>(); craft.InitKnown(database);
             var motor = Player.GetComponent<PlayerMotor>();
             if (spawnPoint) motor.Warp(spawnPoint.position, spawnPoint.rotation);
-            if (_cam) { _cam.InputEnabled = true; _cam.Yaw = Player.transform.eulerAngles.y; _cam.SnapBehindTarget(); }
+            if (_cam) { _cam.enabled = true; _cam.InputEnabled = true; _cam.Yaw = Player.transform.eulerAngles.y; _cam.SnapBehindTarget(); }
             if (playIntro)
             {
                 State = GameState.Intro;
@@ -243,7 +243,7 @@ namespace PrimalFrontier.Core
             _hud.SetHudVisible(true); _hud.Fade(1f, 0f); _hud.Fade(0f, 1.2f);
             var sv = Player.GetComponent<PlayerSurvival>(); sv.Paused = false;
             var drv = Player.GetComponent<PlayerAnimationDriver>(); drv.Respawn(); drv.StopAction();
-            if (_cam) { _cam.InputEnabled = true; _cam.Yaw = Player.transform.eulerAngles.y; _cam.SnapBehindTarget(); }
+            if (_cam) { _cam.enabled = true; _cam.InputEnabled = true; _cam.Yaw = Player.transform.eulerAngles.y; _cam.SnapBehindTarget(); }
             if (!IntroDone) IntroDone = true;
             _weather.allowRandom = _tutorial.Completed || _tutorial.Index > 10;
             _hud.ShowBanner("DAY " + _time.day, "", 2.5f);

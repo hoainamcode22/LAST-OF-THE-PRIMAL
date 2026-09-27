@@ -21,7 +21,13 @@ namespace PrimalFrontier.UI
 
         void Awake() { Build(); _canvas.gameObject.SetActive(false); }
         public void BakeLayout() { Build(); _canvas.gameObject.SetActive(false); }
-        void Start() { if (UIManager.Instance) UIManager.Instance.Changed += OnScreen; var j = JournalSystem.Instance; if (j) j.Unlocked += e => { if (_canvas.gameObject.activeSelf) Refresh(); }; }
+        void Start()
+        {
+            if (UIManager.Instance) { UIManager.Instance.Changed += OnScreen; OnScreen(UIScreen.None, UIManager.Instance.Current); }
+            var j = JournalSystem.Instance; if (j) j.Unlocked += OnUnlocked;
+        }
+        void OnDestroy() { if (UIManager.Instance) UIManager.Instance.Changed -= OnScreen; if (JournalSystem.Instance) JournalSystem.Instance.Unlocked -= OnUnlocked; }
+        void OnUnlocked(JournalSystem.Entry e) { if (_canvas.gameObject.activeSelf) Refresh(); }
 
         void Build()
         {
