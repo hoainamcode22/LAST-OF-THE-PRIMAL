@@ -10,6 +10,8 @@ namespace PrimalFrontier.Items
         public int count;
         public float durability;
         public int water;
+        /// <summary>the water in this container has not been boiled (pond / stream water): a risk to drink</summary>
+        public bool dirty;
 
         public ItemStack(ItemDefinition item, int count)
         {
@@ -19,7 +21,7 @@ namespace PrimalFrontier.Items
         }
         public bool IsEmpty => item == null || count <= 0;
         public float Weight => IsEmpty ? 0f : item.weight * count;
-        public ItemStack Clone() => new ItemStack(item, count) { durability = durability, water = water };
+        public ItemStack Clone() => new ItemStack(item, count) { durability = durability, water = water, dirty = dirty };
         public bool CanMergeWith(ItemStack o) => o != null && !IsEmpty && !o.IsEmpty && o.item == item && item.maxStack > 1;
     }
 }

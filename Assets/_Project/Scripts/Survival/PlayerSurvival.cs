@@ -33,6 +33,7 @@ namespace PrimalFrontier.Survival
         public float dehydrateDamage = 0.35f;
         public float freezeDamage = 0.2f;
         public float sickDamage = 0.3f;
+        [Tooltip("while sick (Stomach_Sick): thirst drains faster, stamina comes back slower")] public float sickThirstMultiplier = 1.6f, sickStaminaRegen = 0.5f;
         public float regenHealth = 0.12f;
 
         public float Hunger { get; private set; } = 85f;       // 100 = full
@@ -86,7 +87,13 @@ namespace PrimalFrontier.Survival
             if (health > 0f) _hp.Heal(health); else if (health < 0f) _hp.ApplyRaw(-health);
             if (hunger > 0f) _warnMask &= ~1; if (thirst > 0f) _warnMask &= ~2;
         }
-        public void MakeSick(float seconds) { SickSeconds = Mathf.Max(SickSeconds, seconds); Warning?.Invoke("Your stomach turns. Raw meat was a risk."); }
+        /// <summary>Stomach_Sick: health drains a little, thirst faster, stamina recovers slower, for the given time</summary>
+        public void MakeSick(float seconds, string reason = "Your stomach turns. Raw meat was a risk.")
+        {
+            SickSeconds = Mathf.Max(SickSeconds, seconds); Warning?.Invoke(reason);
+            GameEvents.Raise(GameEventType.GotSick, "stomach", Mathf.RoundToInt(seconds), transform.position);
+        }
+        public bool IsSick => SickSeconds > 0f;
         public void Warm(float seconds) { BodyTemperature = Mathf.Min(normalBody, BodyTemperature + seconds * 0.05f); }
 
         public void SetStats(float hunger, float thirst, float stamina, float body, float wet)
@@ -109,11 +116,11 @@ namespace PrimalFrontier.Survival
             float dt = Time.deltaTime; float m = dt / 60f;
             float k = _sprinting ? sprintMultiplier : 1f;
             Hunger = Mathf.Max(0f, Hunger - hungerPerMinute * m * k);
-            Thirst = Mathf.Max(0f, Thirst - thirstPerMinute * m * k * (EnvironmentTemperature > 28f ? 1.3f : 1f));
+            Thirst = Mathf.Max(0f, Thirst - thirstPerMinute * m * k * (EnvironmentTemperature > 28f ? 1.3f : 1f) * (IsSick ? sickThirstMultiplier : 1f));
 
             // stamina
             float maxNow = MaxStaminaNow;
-            if (Time.time - _lastStaminaUse > regenDelay) Stamina = Mathf.Min(maxNow, Stamina + regenPerSecond * (IsCold ? 0.6f : 1f) * dt);
+            if (Time.time - _lastStaminaUse > regenDelay) Stamina = Mathf.Min(maxNow, Stamina + regenPerSecond * (IsCold ? 0.6f : 1f) * (IsSick ? sickStaminaRegen : 1f) * dt);
             else if (Stamina > maxNow) Stamina = maxNow;
 
             // wetness + temperature

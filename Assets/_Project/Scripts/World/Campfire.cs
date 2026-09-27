@@ -52,6 +52,7 @@ namespace PrimalFrontier.World
 
         void Update()
         {
+            UpdateBoil();
             if (!IsLit) return;
             bool wet = Survival.PlayerSurvival.RainingAt(transform.position + Vector3.up * 0.5f);
             Fuel -= Time.deltaTime * (wet ? 2f : 1f);
@@ -77,6 +78,34 @@ namespace PrimalFrontier.World
             GameEvents.Raise(on ? GameEventType.FireLit : GameEventType.FireOut, "campfire", 1, transform.position);
         }
 
+        [Header("Boiling water")]
+        public float boilSeconds = 8f;
+        ItemStack _boiling; float _boilT;
+        public bool Boiling => _boiling != null;
+
+        /// <summary>a container with unboiled water (the active one first)</summary>
+        ItemStack FindDirtyWater(PlayerInteraction p)
+        {
+            var a = p.ActiveStack; if (a != null && a.item.IsWaterContainer && a.dirty && a.water > 0) return a;
+            foreach (var s in p.Inventory.Slots) if (s != null && !s.IsEmpty && s.item.IsWaterContainer && s.dirty && s.water > 0) return s;
+            return null;
+        }
+
+        void UpdateBoil()
+        {
+            if (_boiling == null) return;
+            if (!IsLit) { _boiling = null; PlayerInteraction.Notify("The fire went out before the water boiled."); return; }
+            _boilT += Time.deltaTime;
+            if (_boilT < boilSeconds) return;
+            _boiling.dirty = false; _boiling = null;
+            var inv = PlayerLocator.Player ? PlayerLocator.Player.GetComponent<InventorySystem>() : null;
+            inv?.ForceNotify();
+            VFX.VfxPool.Instance.Play(VFX.VfxId.Steam, transform.position + Vector3.up * 0.4f, Vector3.up);
+            Audio.SfxPlayer.Instance.Play(Audio.SfxId.Sizzle, transform.position, 0.6f);
+            PlayerInteraction.Notify("The water has boiled. It is safe to drink.");
+            GameEvents.Raise(GameEventType.WaterBoiled, "water", 1, transform.position);
+        }
+
         ItemDefinition FindCookable(PlayerInteraction p)
         {
             var a = p.ActiveItem; if (a && a.cookedResult) return a;
@@ -93,9 +122,14 @@ namespace PrimalFrontier.World
                 if (!hasFuel) { sub = "Needs 1 " + (fuelItem ? fuelItem.displayName : "fuel"); }
                 return "Light fire";
             }
+            var water = FindDirtyWater(p);
+            if (water != null && !Boiling && p.ActiveStack == water) { sub = "Makes it safe to drink"; return "Boil water (" + water.item.displayName + ")"; }
             var cook = FindCookable(p);
             if (cook != null && _cooking.Count < 4) { sub = $"Fuel {Mathf.CeilToInt(Fuel / 60f)} min"; return "Cook " + cook.displayName; }
-            sub = $"Fuel {Mathf.CeilToInt(Fuel / 60f)} min" + (hasFuel ? "" : "  (no wood)");
+            if (water != null && !Boiling) { sub = "Makes it safe to drink"; return "Boil water (" + water.item.displayName + ")"; }
+            if (Boiling) { sub = "Boiling..."; }
+            else sub = null;
+            sub = (sub != null ? sub + "   " : "") + $"Fuel {Mathf.CeilToInt(Fuel / 60f)} min" + (hasFuel ? "" : "  (no wood)");
             return hasFuel ? "Add fuel" : "Warm up";
         }
 
@@ -103,7 +137,7 @@ namespace PrimalFrontier.World
         {
             bool hasFuel = fuelItem && p.Inventory.Has(fuelItem);
             if (!IsLit) return hasFuel;
-            return FindCookable(p) != null || hasFuel;
+            return FindCookable(p) != null || hasFuel || (!Boiling && FindDirtyWater(p) != null);
         }
 
         public override string HoldPrompt(PlayerInteraction p) => IsLit ? "Hold to put out" : null;
@@ -125,7 +159,18 @@ namespace PrimalFrontier.World
                 }, transform.position, 0.8f, this);
                 return;
             }
+            var water = Boiling ? null : FindDirtyWater(p);
             var cook = FindCookable(p);
+            if (water != null && (p.ActiveStack == water || cook == null || _cooking.Count >= 4))
+            {
+                p.DoOneShot(PlayerActions.Interact, "OnInteract", () =>
+                {
+                    if (!IsLit || water.water <= 0) return;
+                    _boiling = water; _boilT = 0f;
+                    PlayerInteraction.Notify("The water is heating over the fire.");
+                }, transform.position, 0.8f, this);
+                return;
+            }
             if (cook != null && _cooking.Count < 4)
             {
                 p.DoOneShot(PlayerActions.Interact, "OnInteract", () =>

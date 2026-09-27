@@ -69,7 +69,7 @@ namespace PrimalFrontier.Core
             for (int i = 0; i < inv.Slots.Length; i++)
             {
                 var s = inv.Slots[i]; if (s.IsEmptyOrNull()) continue;
-                l.Add(new SlotData { slot = i, item = s.item.id, count = s.count, durability = s.durability, water = s.water });
+                l.Add(new SlotData { slot = i, item = s.item.id, count = s.count, durability = s.durability, water = s.water, dirty = s.dirty });
             }
             return l;
         }
@@ -82,7 +82,7 @@ namespace PrimalFrontier.Core
             foreach (var s in data)
             {
                 var it = db.Item(s.item); if (it == null || s.count <= 0 || s.slot < 0 || s.slot >= inv.Slots.Length) continue;
-                inv.Slots[s.slot] = new ItemStack(it, Mathf.Min(s.count, it.maxStack)) { durability = s.durability, water = Mathf.Clamp(s.water, 0, it.waterCharges) };
+                inv.Slots[s.slot] = new ItemStack(it, Mathf.Min(s.count, it.maxStack)) { durability = s.durability, water = Mathf.Clamp(s.water, 0, it.waterCharges), dirty = s.dirty && s.water > 0 };
             }
             inv.ForceNotify();
         }
@@ -132,7 +132,7 @@ namespace PrimalFrontier.Core
             {
                 if (!pk || !pk.item) continue;
                 var st = pk.uniqueStack;
-                d.dropped.Add(new DropData { item = pk.item.id, count = st != null ? st.count : pk.count, durability = st != null ? st.durability : pk.item.maxDurability, water = st != null ? st.water : 0, pos = pk.transform.position });
+                d.dropped.Add(new DropData { item = pk.item.id, count = st != null ? st.count : pk.count, durability = st != null ? st.durability : pk.item.maxDurability, water = st != null ? st.water : 0, dirty = st != null && st.dirty, pos = pk.transform.position });
             }
             return d;
         }
@@ -185,7 +185,7 @@ namespace PrimalFrontier.Core
             foreach (var dr in d.dropped)
             {
                 var item = db.Item(dr.item); if (item == null) continue;
-                var st = new ItemStack(item, dr.count) { durability = dr.durability, water = dr.water };
+                var st = new ItemStack(item, dr.count) { durability = dr.durability, water = dr.water, dirty = dr.dirty };
                 WorldPickup.DropStack(st, dr.pos + Vector3.up * 0.3f);
             }
             GameEvents.Raise(GameEventType.GameLoaded, "slot");

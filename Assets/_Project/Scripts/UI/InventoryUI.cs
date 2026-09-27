@@ -283,7 +283,7 @@ namespace PrimalFrontier.UI
             if (i.health > 0) sb.Append($"Health  +{i.health:0}\n");
             if (i.sicknessChance > 0) sb.Append($"Risk of sickness  {i.sicknessChance * 100:0}%\n");
             if (i.cookedResult) sb.Append("Can be cooked on a campfire\n");
-            if (i.IsWaterContainer) sb.Append($"Water  {st.water} / {i.waterCharges} drinks\n");
+            if (i.IsWaterContainer) sb.Append($"Water  {st.water} / {i.waterCharges} drinks{(st.dirty && st.water > 0 ? "  (unboiled: boil it at a campfire)" : st.water > 0 ? "  (boiled, safe)" : "")}\n");
             if (i.damage > 0) sb.Append($"Damage  {i.damage:0}" + (i.heavyDamage > 0 ? $"  (heavy {i.heavyDamage:0})" : "") + "\n");
             if (i.tool != ToolKind.None) sb.Append("Tool  " + i.tool.ToString().Replace(",", " /") + "\n");
             if (i.HasDurability) sb.Append($"Durability  {st.durability:0} / {i.maxDurability:0}\n");

@@ -10,12 +10,17 @@ namespace PrimalFrontier.World
     /// <summary>
     /// Fresh water (pond, stream) you can drink from and fill containers at. The water surface mesh defines where:
     /// the closest vertex to the player is the drinking spot. The ocean is handled by <see cref="OceanShore"/>.
+    /// Pond / stream water is not clean: drinking it straight or from an unboiled container can make you stomach
+    /// sick. Fill a container, boil it at a lit campfire, then drink it safely. A spring can be marked clean.
     /// </summary>
     public class WaterSource : Interactable
     {
         public string displayName = "Fresh water";
         public bool fresh = true;
+        [Tooltip("spring water: safe without boiling")] public bool clean;
         public float thirstPerDrink = 28f;
+        /// <summary>chance of Stomach_Sick per drink of unboiled water</summary>
+        public static float DirtySickChance = 0.2f;
         public MeshFilter surface;
         Vector3[] _pts; Bounds _worldBounds; Vector3 _focus;
         public static readonly List<WaterSource> All = new List<WaterSource>();
@@ -74,9 +79,10 @@ namespace PrimalFrontier.World
             var st = p.ActiveStack;
             if (st != null && st.item.IsWaterContainer && fresh)
             {
-                if (st.water < st.item.waterCharges) { sub = $"{st.water}/{st.item.waterCharges} drinks"; return "Fill " + st.item.displayName; }
+                if (st.water < st.item.waterCharges) { sub = $"{st.water}/{st.item.waterCharges} drinks{(clean ? "" : "  (boil before drinking)")}"; return "Fill " + st.item.displayName; }
             }
             if (!fresh) sub = "Salt water. Drinking it will only make you thirstier.";
+            else if (!clean) sub = "Unboiled. It may upset your stomach.";
             return (fresh ? "Drink " : "Drink ") + displayName.ToLowerInvariant();
         }
 
@@ -89,8 +95,10 @@ namespace PrimalFrontier.World
                 p.DoOneShot(PlayerActions.Drink, "OnDrink", () =>
                 {
                     var s = p.Inventory.Get(slot); if (s == null || !s.item.IsWaterContainer) return;
-                    s.water = s.item.waterCharges; p.Inventory.ForceNotify();
-                    PlayerInteraction.Notify(s.item.displayName + " filled.");
+                    bool hadDirty = s.water > 0 && s.dirty;
+                    s.water = s.item.waterCharges; s.dirty = !clean || hadDirty;       // spring water keeps boiled water clean
+                    p.Inventory.ForceNotify();
+                    PlayerInteraction.Notify(s.item.displayName + (clean ? " filled." : " filled. Boil it at a campfire before drinking."));
                     GameEvents.Raise(GameEventType.WaterFilled, s.item.id, 1, transform.position);
                 }, FocusPoint, 2.0f, this);
                 return;
@@ -103,6 +111,7 @@ namespace PrimalFrontier.World
             if (fresh)
             {
                 p.Survival.Consume(0f, thirstPerDrink, 0f, 4f);
+                if (!clean && UnityEngine.Random.value < DirtySickChance) p.Survival.MakeSick(60f, "Your stomach cramps. The water was not clean.");
                 GameEvents.Raise(GameEventType.Drank, "fresh_water", 1, transform.position);
             }
             else

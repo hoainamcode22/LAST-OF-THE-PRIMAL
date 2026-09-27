@@ -8,7 +8,7 @@ namespace PrimalFrontier.Core
     [Serializable]
     public class SaveData
     {
-        public const int CurrentVersion = 1;
+        public const int CurrentVersion = 2;          // 2: water containers remember unboiled water (older saves load as clean)
         public int version = CurrentVersion;
         public string savedAt;
         public float playSeconds;
@@ -35,10 +35,10 @@ namespace PrimalFrontier.Core
         public List<DropData> dropped = new List<DropData>();
     }
 
-    [Serializable] public class SlotData { public int slot; public string item; public int count; public float durability; public int water; }
+    [Serializable] public class SlotData { public int slot; public string item; public int count; public float durability; public int water; public bool dirty; }
     [Serializable] public class NodeData { public string id; public int remaining; public double emptyUntil; }
     [Serializable] public class TreeData { public int index; public double regrowAt; }
-    [Serializable] public class DropData { public string item; public int count; public float durability; public int water; public Vector3 pos; }
+    [Serializable] public class DropData { public string item; public int count; public float durability; public int water; public bool dirty; public Vector3 pos; }
     [Serializable]
     public class StructureData
     {
