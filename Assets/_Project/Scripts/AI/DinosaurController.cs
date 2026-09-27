@@ -33,6 +33,15 @@ namespace PrimalFrontier.AI
         float _stateT, _think, _speed, _attackReady, _nextCall, _lodT;
         Vector3 _dest; Transform _player; PlayerHealth _playerHp; PlayerMotor _playerMotor;
         Vector3 _threat; bool _provoked; int _lod; bool _pendingHit; float _hitAt; bool _heavy;
+        bool _attackQueued; float _tellUntil, _tellTime;
+        /// <summary>0..1 while winding up an attack (the readable tell before the strike), else 0</summary>
+        public float Telegraph => _attackQueued && _tellTime > 0f ? Mathf.Clamp01(1f - (_tellUntil - Time.time) / _tellTime) : 0f;
+        public bool HeavyAttack => _heavy;
+        /// <summary>who / what it is looking at right now (the player while watching, chasing or attacking), else null</summary>
+        public Transform LookTarget => _player && PlayerAlive && (State == DinoState.Observe || State == DinoState.Alert || State == DinoState.Investigate ||
+                                       State == DinoState.Chase || State == DinoState.Attack) && PlayerDist < 40f ? _player : null;
+        [Tooltip("wind-up before a normal / heavy attack, seconds (time for the player to react)")]
+        public Vector2 attackTell = new Vector2(0.32f, 0.55f);
         static readonly HashSet<string> Sighted = new HashSet<string>();
         static readonly int SpeedH = AnimParams.Speed, ActionTypeH = AnimParams.ActionType, ActionH = AnimParams.Action, AttackH = AnimParams.Attack,
             AttackTypeH = AnimParams.AttackType, HurtH = AnimParams.Hurt, DeadH = AnimParams.Dead, AlertH = AnimParams.Alert;
@@ -44,6 +53,7 @@ namespace PrimalFrontier.AI
         {
             _anim = GetComponent<Animator>(); if (!_anim) _anim = GetComponentInChildren<Animator>();
             _ev = GetComponentInChildren<CharacterAnimationEvents>();
+            if (!GetComponent<DinoLife>()) gameObject.AddComponent<DinoLife>();     // head look, attack tell, eyes
             _audio = GetComponent<AudioSource>();
             if (!_audio) { _audio = gameObject.AddComponent<AudioSource>(); _audio.spatialBlend = 1f; _audio.rolloffMode = AudioRolloffMode.Linear; _audio.maxDistance = 120f; _audio.minDistance = 4f; _audio.playOnAwake = false; }
         }
@@ -203,8 +213,9 @@ namespace PrimalFrontier.AI
                     break;
                 case DinoState.Attack:
                     _speed = Mathf.MoveTowards(_speed, 0f, def.acceleration * dt * 3f);
-                    if (_player) Face(_player.position, dt * 0.6f);
-                    if (_stateT > 1.6f) Enter(PlayerAlive ? DinoState.Chase : DinoState.Return);
+                    if (_player) Face(_player.position, dt * (_attackQueued ? 1.2f : 0.6f));
+                    if (_attackQueued && Time.time >= _tellUntil) Strike();
+                    if (!_attackQueued && _stateT > 1.6f + _tellTime) Enter(PlayerAlive ? DinoState.Chase : DinoState.Return);
                     break;
                 case DinoState.Return:
                     Steer(home, def.walkSpeed * 1.2f, dt);
@@ -216,6 +227,7 @@ namespace PrimalFrontier.AI
         void Enter(DinoState s)
         {
             var old = State; State = s; _stateT = 0f;
+            if (s != DinoState.Attack) _attackQueued = false;
             if (!_anim) return;
             _anim.SetBool(AlertH, s == DinoState.Observe || s == DinoState.Alert);
             int action = s == DinoState.Eat ? DinoActions.Eat : s == DinoState.Drink ? DinoActions.Drink : s == DinoState.Rest ? DinoActions.Rest : s == DinoState.Chase && Herbivore ? 10 : DinoActions.None;
@@ -241,14 +253,22 @@ namespace PrimalFrontier.AI
             if (def.roars == null || def.roars.Length == 0) SfxPlayer.Instance.Play(SfxId.RoarDistant, transform.position, 1f);
         }
 
+        /// <summary>stop, face the player and wind up (growl, head drawn back: DinoLife), then Strike()</summary>
         void StartAttack(float dist)
         {
             Enter(DinoState.Attack);
             _attackReady = Time.time + def.attackCooldown * Random.Range(0.8f, 1.2f);
             _heavy = Random.value < 0.3f;
+            _tellTime = _heavy ? attackTell.y : attackTell.x;
+            _tellUntil = Time.time + _tellTime; _attackQueued = true;
+            PlayClip(_heavy ? def.roars : (def.calls != null && def.calls.Length > 0 ? def.calls : def.roars), _heavy ? 0.7f : 0.45f);
+        }
+
+        void Strike()
+        {
+            _attackQueued = false;
             if (_anim) { _anim.SetInteger(AttackTypeH, _heavy ? 1 : 0); _anim.SetTrigger(AttackH); }
             _pendingHit = true; _hitAt = Time.time + (_heavy ? 0.9f : 0.6f);        // fallback when the event does not arrive
-            PlayClip(def.roars, 0.6f);
         }
 
         void OnAnimEvent(string fn, string p)

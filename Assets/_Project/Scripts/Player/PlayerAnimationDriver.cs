@@ -35,6 +35,8 @@ namespace PrimalFrontier.Player
             _motor = GetComponent<PlayerMotor>();
             if (!animator) animator = GetComponentInChildren<Animator>();
             if (animator && !animator.GetComponent<PlayerIK>()) animator.gameObject.AddComponent<PlayerIK>();   // feet on the ground, head looks, lean
+            if (!GetComponent<PlayerState>()) gameObject.AddComponent<PlayerState>();                         // what the player is doing (read-only)
+            if (!GetComponent<PlayerWetLook>()) gameObject.AddComponent<PlayerWetLook>();                     // darker, shinier when wet
         }
 
         void Update()

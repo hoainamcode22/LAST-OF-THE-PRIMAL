@@ -27,6 +27,9 @@ namespace PrimalFrontier.World
         public bool hideWhenEmpty = true;
         public float toolWear = 1f;
         public float radius = 0.4f;
+        [Header("Feedback")]
+        [Tooltip("the node wobbles on every hit")] public float hitWobble = 0.07f;
+        [Tooltip("piles get smaller as they are used up (1 = no shrink)")] [Range(0.4f, 1f)] public float emptyScale = 0.7f;
 
         public int Remaining { get; private set; }
         public double EmptyUntil { get; private set; } = -1;
@@ -35,9 +38,11 @@ namespace PrimalFrontier.World
         public override float Range => 1.9f;
 
         Renderer[] _renderers; Collider[] _colliders;
+        Vector3 _baseScale; float _wobble;
 
         void Awake()
         {
+            _baseScale = transform.localScale;
             Remaining = charges;
             _renderers = GetComponentsInChildren<Renderer>(true);
             _colliders = GetComponentsInChildren<Collider>(true);
@@ -46,7 +51,16 @@ namespace PrimalFrontier.World
         void Update()
         {
             if (IsEmpty && EmptyUntil >= 0 && GameClock.Now >= EmptyUntil) Regrow();
+            if (_wobble > 0f)
+            {
+                _wobble = Mathf.Max(0f, _wobble - Time.deltaTime * 3.5f);
+                float w = Mathf.Sin(_wobble * 26f) * _wobble * hitWobble;
+                transform.localScale = Vector3.Scale(SizeNow(), new Vector3(1f + w, 1f - w, 1f + w));
+            }
         }
+
+        Vector3 SizeNow() => _baseScale * Mathf.Lerp(emptyScale, 1f, charges > 0 ? Mathf.Clamp01(Remaining / (float)charges) : 1f);
+        void ApplySize() { _wobble = 0f; transform.localScale = SizeNow(); }
 
         string EventName => "OnGatherHit";
 
@@ -88,6 +102,7 @@ namespace PrimalFrontier.World
             if (bonusItem && Random.value < bonusChance) p.GiveOrDrop(bonusItem, 1);
             if (tool != null && tool.HasDurability && p.Inventory.WearActive(toolWear)) PlayerInteraction.Notify(tool.displayName + " broke!");
             Remaining--;
+            _wobble = 1f;
             GameEvents.Raise(GameEventType.ResourceGathered, yieldItem ? yieldItem.id : "?", got, transform.position);
             if (IsEmpty) { Deplete(); return false; }
             return true;
@@ -96,12 +111,16 @@ namespace PrimalFrontier.World
         void Deplete()
         {
             EmptyUntil = GameClock.Now + GameClock.Hours(regrowHours);
-            if (hideWhenEmpty) SetVisible(false);
+            if (hideWhenEmpty)
+            {
+                VFX.VfxPool.Instance.Play(VFX.VfxId.HitDust, FocusPoint, Vector3.up);
+                SetVisible(false);
+            }
         }
 
         public void Regrow()
         {
-            Remaining = charges; EmptyUntil = -1; SetVisible(true);
+            Remaining = charges; EmptyUntil = -1; SetVisible(true); ApplySize();
         }
 
         void SetVisible(bool on)
@@ -114,7 +133,7 @@ namespace PrimalFrontier.World
         public void Restore(int remaining, double emptyUntil)
         {
             Remaining = Mathf.Clamp(remaining, 0, charges); EmptyUntil = emptyUntil;
-            SetVisible(!(IsEmpty && hideWhenEmpty));
+            SetVisible(!(IsEmpty && hideWhenEmpty)); ApplySize();
         }
     }
 }

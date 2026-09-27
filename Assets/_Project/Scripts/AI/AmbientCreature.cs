@@ -21,6 +21,7 @@ namespace PrimalFrontier.AI
 
         void Start()
         {
+            if (!GetComponent<DinoLife>()) gameObject.AddComponent<DinoLife>();     // eyes blink
             if (center == Vector3.zero) center = swimmer ? transform.position : transform.position - Vector3.up * altitude;
             _anim = GetComponent<Animator>(); _a = Random.Range(0f, Mathf.PI * 2f); _dir = Random.value < 0.5f ? 1f : -1f;
             _health = def ? def.maxHealth : 60f;
