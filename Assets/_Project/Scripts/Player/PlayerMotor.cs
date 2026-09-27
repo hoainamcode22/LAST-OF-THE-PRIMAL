@@ -33,6 +33,7 @@ namespace PrimalFrontier.Player
         public float jumpBuffer = 0.12f;
         [Header("Ground")]
         public LayerMask groundMask = ~0;
+        public float maxStepHeight = 0.42f;
         public float groundProbe = 0.25f;
         public float slideSpeed = 5f;
         [Header("Crouch")]
@@ -77,7 +78,7 @@ namespace PrimalFrontier.Player
 
         void Update()
         {
-            float dt = Time.deltaTime;
+            float dt = Mathf.Min(Time.deltaTime, 0.05f);        // a loading hitch must not integrate a huge fall
             if (dt <= 0f) return;
             if (_in == null) _in = PlayerInputReader.Instance;
             Vector2 mv = _in != null && CanMove ? _in.Move : Vector2.zero;
@@ -108,7 +109,7 @@ namespace PrimalFrontier.Player
 
             // slopes: slide down surfaces steeper than the controller allows
             float slope = Vector3.Angle(GroundNormal, Vector3.up);
-            if (IsGrounded && slope > Controller.slopeLimit + 2f)
+            if (IsGrounded && slope > Controller.slopeLimit + 2f && slope < 80f)       // < 80: ignore step edges / walls
             {
                 Vector3 down = Vector3.ProjectOnPlane(Vector3.down, GroundNormal).normalized;
                 planar += down * slideSpeed * dt * 10f; planar = Vector3.ClampMagnitude(planar, Mathf.Max(top, slideSpeed));
@@ -128,10 +129,19 @@ namespace PrimalFrontier.Player
 
             // move along the ground plane when grounded (no bouncing down slopes)
             Vector3 motion = _vel;
-            if (IsGrounded && _vy <= 0f) motion = Vector3.ProjectOnPlane(_vel, GroundNormal);
+            // follow walkable ground only; a step riser / wall normal must not cancel the forward motion (lets stepOffset work)
+            if (IsGrounded && _vy <= 0f && Vector3.Angle(GroundNormal, Vector3.up) <= Controller.slopeLimit) motion = Vector3.ProjectOnPlane(_vel, GroundNormal);
             motion.y += _vy;
             float vyBefore = _vy;
+            Vector3 p0 = transform.position;
             var flags = Controller.Move(motion * dt);
+            // blocked while walking into something low (step edge rides the round capsule bottom, so the flag can be Below)
+            if (IsGrounded && _vy <= 0f && planar.sqrMagnitude > 0.01f)
+            {
+                Vector3 moved = transform.position - p0; moved.y = 0f;
+                float wanted = planar.magnitude * dt;
+                if ((flags & CollisionFlags.Sides) != 0 || Vector3.Dot(moved, planar.normalized) < wanted * 0.5f) TryStepUp(planar.normalized);
+            }
             if ((flags & CollisionFlags.Above) != 0 && _vy > 0) _vy = 0f;
             bool wasGrounded = IsGrounded;
             ProbeGround();
@@ -157,12 +167,35 @@ namespace PrimalFrontier.Player
             if (Physics.SphereCast(origin, c.radius * 0.95f, Vector3.down, out var hit, 0.05f + groundProbe, groundMask, QueryTriggerInteraction.Ignore))
             {
                 GroundNormal = hit.normal;
+                // a sphere touching an edge reports the edge normal; ask the collider for the real face under the contact
+                if (Vector3.Angle(hit.normal, Vector3.up) > c.slopeLimit)
+                {
+                    Vector3 away = hit.point - transform.position; away.y = 0f;          // step onto the face beyond the edge
+                    Vector3 from = hit.point + Vector3.up * 0.1f + (away.sqrMagnitude > 1e-6f ? away.normalized * 0.02f : Vector3.zero);
+                    if (hit.collider.Raycast(new Ray(from, Vector3.down), out var face, 0.3f)) GroundNormal = face.normal;
+                }
                 GroundTag = hit.collider.sharedMaterial ? hit.collider.sharedMaterial.name : hit.collider.tag;
                 bool close = hit.distance <= 0.05f + (_vy > 0.5f ? 0.02f : groundProbe * 0.6f);
                 IsGrounded = (c.isGrounded || close) && _vy <= 0.5f;
             }
             else { IsGrounded = c.isGrounded && _vy <= 0.5f; GroundNormal = Vector3.up; }
             if (IsGrounded) _lastGrounded = Time.time;
+        }
+
+        /// <summary>explicit step assist: the capsule's round bottom treats small ledges as steep slopes</summary>
+        void TryStepUp(Vector3 dir)
+        {
+            var c = Controller;
+            Vector3 probe = transform.position + dir * (c.radius + 0.08f) + Vector3.up * (maxStepHeight + 0.05f);
+            if (!Physics.Raycast(probe, Vector3.down, out var hit, maxStepHeight + 0.05f, groundMask, QueryTriggerInteraction.Ignore)) return;
+            float h = hit.point.y - transform.position.y;
+            if (h < 0.02f || h > maxStepHeight || Vector3.Angle(hit.normal, Vector3.up) > c.slopeLimit) return;
+            // room for the capsule on top of the step?
+            Vector3 top = transform.position + Vector3.up * (h + 0.03f);
+            int mask = groundMask & ~(1 << gameObject.layer);        // not our own capsule
+            if (Physics.CheckCapsule(top + Vector3.up * (c.radius + 0.02f), top + Vector3.up * (c.height - c.radius), c.radius * 0.9f, mask, QueryTriggerInteraction.Ignore)) return;
+            c.Move(Vector3.up * (h + 0.03f));
+            c.Move(dir * 0.06f);
         }
 
         public bool SetCrouch(bool on)

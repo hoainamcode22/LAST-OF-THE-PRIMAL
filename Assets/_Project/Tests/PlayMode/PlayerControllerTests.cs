@@ -29,7 +29,11 @@ namespace PrimalFrontier.Tests
             _cam = new GameObject("Cam"); _cam.tag = "MainCamera"; _cam.AddComponent<Camera>();
             _tpc = _cam.AddComponent<ThirdPersonCamera>(); _tpc.target = _player.transform; _tpc.ignoreMask = 1 << _player.layer;
             _motor.CameraTransform = _cam.transform;
+            PrimalFrontier.VFX.VfxPool.Instance.ToString(); PrimalFrontier.Audio.SfxPlayer.Instance.ToString();   // warm up (no first-use hitch)
             yield return new WaitForSeconds(0.4f);
+            // spawn drop / first-frame Fall->Land must be over before a test starts (slow machines)
+            float t0 = Time.realtimeSinceStartup;
+            while (Time.realtimeSinceStartup - t0 < 4f && !(_anim.GetCurrentAnimatorStateInfo(0).IsName("Locomotion") && !_anim.IsInTransition(0))) yield return null;
             _tpc.Yaw = 0f; _tpc.Pitch = 12f;
             yield return null;
         }
@@ -44,7 +48,17 @@ namespace PrimalFrontier.Tests
 
         static void ResetSim() { var s = PlayerInputReader.Sim; s.Move = s.Look = Vector2.zero; s.Sprint = s.Walk = s.Aim = s.Jump = s.Crouch = s.Interact = s.Attack = false; }
         bool InState(string n) { var a = _anim.GetCurrentAnimatorStateInfo(0); var b = _anim.GetNextAnimatorStateInfo(0); return a.IsName(n) || (_anim.IsInTransition(0) && b.IsName(n)); }
-        IEnumerator WaitState(string n, float timeout) { float t = 0; while (t < timeout && !InState(n)) { t += Time.deltaTime; yield return null; } Assert.IsTrue(InState(n), $"state {n} not reached in {timeout}s"); }
+        static readonly string[] Known = { "Locomotion", "Crouch", "TurnInPlace", "Jump", "Fall", "Land", "Pickup", "Gather_Wood", "Gather_Stone", "Gather_Plant", "Interact", "Craft", "Eat", "Drink",
+            "Build", "Use_Item", "Sleep", "Wake_Up", "Get_Up", "Unconscious", "Attack_Spear", "Attack_Spear_Heavy", "Throw_Spear", "Hurt", "Hurt_Heavy", "Death" };
+        string Name(AnimatorStateInfo s) { foreach (var k in Known) if (s.IsName(k)) return k; return "?"; }
+        string Diag() => $"[cur {Name(_anim.GetCurrentAnimatorStateInfo(0))} next {(_anim.IsInTransition(0) ? Name(_anim.GetNextAnimatorStateInfo(0)) : "-")} Action={_anim.GetInteger(AnimParams.Action)} IsAtk={_anim.GetBool(AnimParams.IsAttacking)} Grounded={_anim.GetBool(AnimParams.IsGrounded)} vy={_anim.GetFloat(AnimParams.VerticalVelocity):F1} pos={_player.transform.position}]";
+        /// frame-rate independent wait (a loading hitch cannot eat the timeout)
+        IEnumerator WaitState(string n, float timeout)
+        {
+            float t0 = Time.realtimeSinceStartup; int frames = 0;
+            while ((Time.realtimeSinceStartup - t0 < timeout || frames < 10) && !InState(n)) { frames++; yield return null; }
+            Assert.IsTrue(InState(n), $"state {n} not reached in {timeout}s {Diag()}");
+        }
 
         IEnumerator MoveAndMeasure(float seconds, System.Action<float, float> check)
         {
@@ -89,7 +103,7 @@ namespace PrimalFrontier.Tests
             yield return new WaitForSeconds(0.2f);
             Assert.IsFalse(_motor.IsGrounded, "airborne");
             Assert.Greater(_player.transform.position.y, y0 + 0.3f, "went up");
-            Assert.IsTrue(InState("Jump") || InState("Fall"), "jump/fall state");
+            Assert.IsTrue(InState("Jump") || InState("Fall"), "jump/fall state " + Diag());
             yield return new WaitForSeconds(1.2f);
             Assert.IsTrue(_motor.IsGrounded, "landed");
             Assert.AreEqual(y0, _player.transform.position.y, 0.08f, "back on the ground");
@@ -145,14 +159,30 @@ namespace PrimalFrontier.Tests
             yield return WaitState("Locomotion", 0.8f);
         }
 
+        IEnumerator WaitSettled(string n, float timeout)
+        {
+            float t0 = Time.realtimeSinceStartup;
+            while (Time.realtimeSinceStartup - t0 < timeout && !(_anim.GetCurrentAnimatorStateInfo(0).IsName(n) && !_anim.IsInTransition(0))) yield return null;
+            Assert.IsTrue(_anim.GetCurrentAnimatorStateInfo(0).IsName(n) && !_anim.IsInTransition(0), $"not settled in {n} {Diag()}");
+        }
+
         [UnityTest] public IEnumerator Attacks_Light_And_Heavy()
         {
             _drv.Attack(PlayerActions.AttackSpear);
             yield return WaitState("Attack_Spear", 0.4f);
-            yield return WaitState("Locomotion", 2.0f);
+            yield return WaitSettled("Locomotion", 2.0f);
             _drv.Attack(PlayerActions.AttackSpearHeavy);
             yield return WaitState("Attack_Spear_Heavy", 0.4f);
-            yield return WaitState("Locomotion", 2.6f);
+            yield return WaitSettled("Locomotion", 2.6f);
+        }
+
+        [UnityTest] public IEnumerator Attack_Buffered_During_Previous_Swing()
+        {
+            _drv.Attack(PlayerActions.AttackSpear);
+            yield return WaitState("Attack_Spear", 0.4f);
+            yield return new WaitForSeconds(0.3f);
+            _drv.Attack(PlayerActions.AttackSpearHeavy);                      // pressed mid-swing -> queued
+            yield return WaitState("Attack_Spear_Heavy", 1.4f);
         }
 
         [UnityTest] public IEnumerator Hurt_Death_Respawn()
@@ -171,6 +201,7 @@ namespace PrimalFrontier.Tests
             _drv.Respawn();
             yield return WaitState("Get_Up", 0.6f);
             yield return WaitState("Locomotion", 3.5f);
+            yield return new WaitForSeconds(0.3f);
             Assert.IsTrue(_motor.CanMove);
         }
 
@@ -183,6 +214,7 @@ namespace PrimalFrontier.Tests
             _drv.PlayAction(PlayerActions.WakeUp);
             yield return WaitState("Wake_Up", 0.4f);
             yield return WaitState("Locomotion", 8.5f);
+            yield return new WaitForSeconds(0.3f);
             Assert.IsTrue(_motor.CanMove, "control returns after waking up");
         }
 
@@ -192,6 +224,15 @@ namespace PrimalFrontier.Tests
             _tpc.Yaw = 0f; _tpc.Pitch = 10f; _tpc.SnapBehindTarget();
             yield return new WaitForSeconds(0.6f);
             Assert.Greater(_cam.transform.position.z, -11.75f + 0.05f, "camera stays in front of the wall");
+        }
+
+        [UnityTest] public IEnumerator Stairs_StepUp()
+        {
+            _motor.Warp(new Vector3(15f, 0.05f, 6f), Quaternion.identity);
+            _tpc.Yaw = 0f; yield return null;
+            PlayerInputReader.Sim.Move = new Vector2(0, 1); PlayerInputReader.Sim.Walk = true;
+            yield return new WaitForSeconds(3.2f);
+            Assert.Greater(_player.transform.position.y, 1.0f, "walks up 0.2 m steps " + Diag());
         }
 
         [UnityTest] public IEnumerator Face_Blinks()

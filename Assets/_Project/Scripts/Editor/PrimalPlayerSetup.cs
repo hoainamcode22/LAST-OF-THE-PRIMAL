@@ -48,6 +48,8 @@ namespace PrimalFrontier.EditorTools
                 var motor = root.AddComponent<PlayerMotor>();
                 var drv = root.AddComponent<PlayerAnimationDriver>();
                 var face = root.AddComponent<PlayerFacial>();
+                root.AddComponent<PlayerHealth>();
+                root.AddComponent<PlayerFeedback>();
                 var model = (GameObject)PrefabUtility.InstantiatePrefab(art, root.transform);
                 model.name = "Model"; model.transform.localPosition = Vector3.zero; model.transform.localRotation = Quaternion.identity;
                 var childCC = model.GetComponent<CharacterController>();

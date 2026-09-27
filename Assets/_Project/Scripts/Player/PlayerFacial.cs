@@ -38,7 +38,9 @@ namespace PrimalFrontier.Player
 
         void LateUpdate()
         {
-            if (!face || !face.isVisible) return;
+            if (!face) return;
+            var cam = Camera.main;                                   // skip far away (LOD1/2 have no blendshapes anyway)
+            if (cam && (cam.transform.position - face.transform.position).sqrMagnitude > 900f) return;
             float dt = Time.deltaTime;
             float tBlink = 0, tAngry = 0, tShout = 0, tPain = 0, tEffort = 0, tSquint = 0.15f, tJaw = 0;
             bool eyesClosed = false;

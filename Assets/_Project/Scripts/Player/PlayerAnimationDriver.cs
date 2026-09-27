@@ -17,7 +17,9 @@ namespace PrimalFrontier.Player
 
         PlayerMotor _motor;
         int _pendingAction = PlayerActions.None; bool _pendingIsOneShot; float _pendingTime;
-        int _pendingHealth; float _healthTime;
+        int _pendingHealth; float _healthTime; int _pendingHealthState;
+        int _queuedAttack; float _queuedAttackTime;
+        static readonly int HurtHash = Animator.StringToHash("Hurt"), HurtHeavyHash = Animator.StringToHash("Hurt_Heavy"), DeathHash = Animator.StringToHash("Death");
         public int CurrentAction { get; private set; }
         public bool IsDead { get; private set; }
         /// <summary>true while a full-body action / attack / hurt / death state owns the body</summary>
@@ -45,7 +47,8 @@ namespace PrimalFrontier.Player
             var nx = animator.IsInTransition(0) ? animator.GetNextAnimatorStateInfo(0) : st;
             bool actionTag(AnimatorStateInfo s) => s.IsTag("Action") || s.IsTag("Attack") || s.IsTag("Hurt") || s.IsTag("Dead");
             bool wasBusy = IsBusy;
-            IsBusy = actionTag(st) || actionTag(nx);
+            bool inTrans = animator.IsInTransition(0);
+            IsBusy = inTrans ? actionTag(nx) : actionTag(st);          // blending out of an action already gives control back
             IsAttackingState = st.IsTag("Attack") || nx.IsTag("Attack");
             animator.SetBool(AnimParams.IsAttacking, _pendingAction >= PlayerActions.AttackSpear && _pendingAction <= PlayerActions.ThrowSpear || IsAttackingState);
 
@@ -58,9 +61,20 @@ namespace PrimalFrontier.Player
                     animator.SetInteger(AnimParams.Action, PlayerActions.None); _pendingAction = PlayerActions.None;
                 }
             }
-            if (_pendingHealth != 0 && Time.time - _healthTime > 0.1f && _pendingHealth != PlayerHealthStates.Dead)
+            // hurt pulses stay set until the Animator has actually entered the reaction state (or 1 s passed)
+            if (_pendingHealth != 0 && _pendingHealth != PlayerHealthStates.Dead)
             {
-                animator.SetInteger(AnimParams.HealthState, PlayerHealthStates.Normal); _pendingHealth = 0;
+                bool entered = st.shortNameHash == _pendingHealthState || (inTrans && nx.shortNameHash == _pendingHealthState);
+                if (entered || Time.time - _healthTime > 1f)
+                {
+                    animator.SetInteger(AnimParams.HealthState, PlayerHealthStates.Normal); _pendingHealth = 0;
+                }
+            }
+            // buffered attack (pressed during the previous swing)
+            if (_queuedAttack != 0 && !IsBusy && !IsDead)
+            {
+                int q = _queuedAttack; _queuedAttack = 0;
+                if (Time.time - _queuedAttackTime < 1.2f) PlayAction(q);       // generous: slow frames must not drop a press
             }
             if (wasBusy && !IsBusy && CurrentAction != PlayerActions.None && !PlayerActions.IsLooping(CurrentAction) && !PlayerActions.IsUpperBody(CurrentAction))
             {
@@ -92,7 +106,8 @@ namespace PrimalFrontier.Player
 
         public void Attack(int id)
         {
-            if (IsDead || IsBusy) return;
+            if (IsDead) return;
+            if (IsBusy) { _queuedAttack = id; _queuedAttackTime = Time.time; return; }   // buffer one attack
             PlayAction(id);
         }
 
@@ -100,6 +115,7 @@ namespace PrimalFrontier.Player
         {
             if (IsDead || !animator) return;
             _pendingHealth = heavy ? PlayerHealthStates.HurtHeavy : PlayerHealthStates.HurtLight; _healthTime = Time.time;
+            _pendingHealthState = heavy ? HurtHeavyHash : HurtHash;
             animator.SetInteger(AnimParams.HealthState, _pendingHealth);
             if (PlayerActions.IsLooping(CurrentAction)) StopAction();
         }

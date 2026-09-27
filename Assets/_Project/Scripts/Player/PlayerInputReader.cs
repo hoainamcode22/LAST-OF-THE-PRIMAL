@@ -29,7 +29,10 @@ namespace PrimalFrontier.Player
         public bool CraftPressed { get; private set; }
         public bool PausePressed { get; private set; }
         public int HotbarPressed { get; private set; } = -1;   // 0..7, -1 none
-        public float HotbarScroll { get; private set; }
+        public float HotbarScroll { get; private set; }         // mouse wheel: hotbar / build rotation (camera zoom is on +/-)
+        public bool DropPressed { get; private set; }
+        public bool RotatePressed { get; private set; }
+        public bool CancelPressed { get; private set; }         // right mouse / Esc in build mode
 
         [Tooltip("degrees per mouse pixel")] public float mouseSensitivity = 0.12f;
         [Tooltip("degrees per second at full stick")] public float stickSensitivity = 160f;
@@ -39,10 +42,10 @@ namespace PrimalFrontier.Player
 
         /// <summary>Automated tests / cutscenes drive the character through this instead of devices.</summary>
         public static bool Simulate;
-        public class SimState { public Vector2 Move, Look; public bool Sprint, Walk, Aim, Jump, Crouch, Interact, Attack; }
+        public class SimState { public Vector2 Move, Look; public bool Sprint, Walk, Aim, Jump, Crouch, Interact, InteractHold, Attack, AttackHold, Inventory, Journal, Craft, Pause, Drop; public int Hotbar = -1; }
         public static readonly SimState Sim = new SimState();
 
-        InputAction _move, _look, _lookStick, _zoom, _sprint, _walk, _aim, _jump, _crouch, _interact, _attack, _inv, _journal, _craft, _pause;
+        InputAction _move, _look, _lookStick, _zoom, _zoomKeys, _drop, _rotate, _sprint, _walk, _aim, _jump, _crouch, _interact, _attack, _inv, _journal, _craft, _pause;
         readonly InputAction[] _hot = new InputAction[8];
 
         void Awake()
@@ -54,7 +57,12 @@ namespace PrimalFrontier.Player
             _move.AddBinding("<Gamepad>/leftStick");
             _look = new InputAction("Look", InputActionType.Value, "<Mouse>/delta");
             _lookStick = new InputAction("LookStick", InputActionType.Value, "<Gamepad>/rightStick");
-            _zoom = new InputAction("Zoom", InputActionType.Value, "<Mouse>/scroll/y");
+            _zoom = new InputAction("Scroll", InputActionType.Value, "<Mouse>/scroll/y");
+            _zoomKeys = new InputAction("ZoomKeys", InputActionType.Value);
+            _zoomKeys.AddCompositeBinding("1DAxis").With("Positive", "<Keyboard>/equals").With("Negative", "<Keyboard>/minus");
+            _zoomKeys.AddCompositeBinding("1DAxis").With("Positive", "<Keyboard>/numpadPlus").With("Negative", "<Keyboard>/numpadMinus");
+            _drop = new InputAction("Drop", InputActionType.Button, "<Keyboard>/g");
+            _rotate = new InputAction("Rotate", InputActionType.Button, "<Keyboard>/r");
             _sprint = new InputAction("Sprint", InputActionType.Button, "<Keyboard>/leftShift"); _sprint.AddBinding("<Gamepad>/leftStickPress");
             _walk = new InputAction("Walk", InputActionType.Button, "<Keyboard>/leftAlt");
             _aim = new InputAction("Aim", InputActionType.Button, "<Mouse>/rightButton"); _aim.AddBinding("<Gamepad>/leftTrigger");
@@ -87,7 +95,7 @@ namespace PrimalFrontier.Player
 
         System.Collections.Generic.IEnumerable<InputAction> All()
         {
-            yield return _move; yield return _look; yield return _lookStick; yield return _zoom; yield return _sprint; yield return _walk; yield return _aim;
+            yield return _move; yield return _look; yield return _lookStick; yield return _zoom; yield return _zoomKeys; yield return _drop; yield return _rotate; yield return _sprint; yield return _walk; yield return _aim;
             yield return _jump; yield return _crouch; yield return _interact; yield return _attack; yield return _inv; yield return _journal; yield return _craft; yield return _pause;
             foreach (var h in _hot) yield return h;
         }
@@ -95,23 +103,26 @@ namespace PrimalFrontier.Player
         void Update()
         {
             // menu keys work even while gameplay is blocked
-            InventoryPressed = _inv.WasPressedThisFrame();
-            JournalPressed = _journal.WasPressedThisFrame();
-            CraftPressed = _craft.WasPressedThisFrame();
-            PausePressed = _pause.WasPressedThisFrame();
+            InventoryPressed = _inv.WasPressedThisFrame() || (Simulate && Sim.Inventory);
+            JournalPressed = _journal.WasPressedThisFrame() || (Simulate && Sim.Journal);
+            CraftPressed = _craft.WasPressedThisFrame() || (Simulate && Sim.Craft);
+            PausePressed = _pause.WasPressedThisFrame() || (Simulate && Sim.Pause);
+            if (Simulate) Sim.Inventory = Sim.Journal = Sim.Craft = Sim.Pause = false;
+            CancelPressed = PausePressed || (!Simulate && Mouse.current != null && Mouse.current.rightButton.wasPressedThisFrame);
             if (GameplayBlocked)
             {
                 Move = Vector2.zero; Look = Vector2.zero; Zoom = 0; Sprint = Walk = Aim = false;
-                JumpPressed = CrouchPressed = InteractPressed = InteractHeld = AttackPressed = AttackHeld = false;
+                JumpPressed = CrouchPressed = InteractPressed = InteractHeld = AttackPressed = AttackHeld = DropPressed = RotatePressed = false;
                 HotbarPressed = -1; HotbarScroll = 0;
                 return;
             }
             if (Simulate)
             {
                 Move = Vector2.ClampMagnitude(Sim.Move, 1f); Look = Sim.Look; Zoom = 0; Sprint = Sim.Sprint; Walk = Sim.Walk; Aim = Sim.Aim;
-                JumpPressed = Sim.Jump; CrouchPressed = Sim.Crouch; InteractPressed = Sim.Interact; InteractHeld = Sim.Interact;
-                AttackPressed = Sim.Attack; AttackHeld = Sim.Attack; HotbarPressed = -1; HotbarScroll = 0;
-                Sim.Jump = Sim.Crouch = Sim.Interact = Sim.Attack = false;       // one-frame buttons
+                JumpPressed = Sim.Jump; CrouchPressed = Sim.Crouch; InteractPressed = Sim.Interact; InteractHeld = Sim.Interact || Sim.InteractHold;
+                AttackPressed = Sim.Attack; AttackHeld = Sim.Attack || Sim.AttackHold; HotbarPressed = Sim.Hotbar; HotbarScroll = 0;
+                DropPressed = Sim.Drop; RotatePressed = false;
+                Sim.Jump = Sim.Crouch = Sim.Interact = Sim.Attack = Sim.Drop = false; Sim.Hotbar = -1;       // one-frame buttons
                 return;
             }
             Move = Vector2.ClampMagnitude(_move.ReadValue<Vector2>(), 1f);
@@ -119,14 +130,15 @@ namespace PrimalFrontier.Player
             var sd = _lookStick.ReadValue<Vector2>() * stickSensitivity * Time.unscaledDeltaTime;
             var look = md + sd; if (invertY) look.y = -look.y;
             Look = Cursor.lockState == CursorLockMode.Locked || sd.sqrMagnitude > 0 ? look : Vector2.zero;
-            Zoom = _zoom.ReadValue<float>();
+            Zoom = _zoomKeys.ReadValue<float>() * 6f;
             Sprint = _sprint.IsPressed(); Walk = _walk.IsPressed(); Aim = _aim.IsPressed();
             JumpPressed = _jump.WasPressedThisFrame(); CrouchPressed = _crouch.WasPressedThisFrame();
             InteractPressed = _interact.WasPressedThisFrame(); InteractHeld = _interact.IsPressed();
             AttackPressed = _attack.WasPressedThisFrame(); AttackHeld = _attack.IsPressed();
             HotbarPressed = -1;
             for (int i = 0; i < 8; i++) if (_hot[i].WasPressedThisFrame()) HotbarPressed = i;
-            HotbarScroll = Zoom;
+            HotbarScroll = _zoom.ReadValue<float>();
+            DropPressed = _drop.WasPressedThisFrame(); RotatePressed = _rotate.WasPressedThisFrame();
         }
     }
 }

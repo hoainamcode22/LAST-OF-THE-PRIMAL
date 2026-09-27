@@ -23,7 +23,7 @@ namespace PrimalFrontier.Player
             // 55 deg slope rising along -X, starting at x = -6
             float a2 = 55f;
             Box("Slope55", new Vector3(-6 - Mathf.Cos(a2 * Mathf.Deg2Rad) * 3f, Mathf.Sin(a2 * Mathf.Deg2Rad) * 3f - 0.25f, 0), new Vector3(6, 0.5f, 4), new Vector3(0, 0, -a2));
-            for (int i = 0; i < 6; i++) Box("Step" + i, new Vector3(0, (i + 1) * 0.1f, 8 + i * 0.35f + 0.175f), new Vector3(3, (i + 1) * 0.2f, 0.35f), Vector3.zero);
+            for (int i = 0; i < 6; i++) Box("Step" + i, new Vector3(15, (i + 1) * 0.1f, 8 + i * 0.35f + 0.175f), new Vector3(3, (i + 1) * 0.2f, 0.35f), Vector3.zero);
             Box("Wall", new Vector3(0, 2, -12), new Vector3(10, 4, 0.5f), Vector3.zero);
             var sun = new GameObject("Sun"); sun.transform.SetParent(root.transform, false);
             var l = sun.AddComponent<Light>(); l.type = LightType.Directional; l.intensity = 1.2f; sun.transform.rotation = Quaternion.Euler(45, 30, 0);

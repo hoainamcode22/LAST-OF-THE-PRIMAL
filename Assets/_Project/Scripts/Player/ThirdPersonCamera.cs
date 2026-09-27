@@ -36,6 +36,13 @@ namespace PrimalFrontier.Player
         public bool InputEnabled { get; set; } = true;
 
         Camera _cam; Vector3 _pivotVel; Vector3 _pivot; float _curDist; float _blend;
+        float _shakeAmp, _shakeTime, _shakeDur;
+
+        /// <summary>short, damped positional shake (hits, heavy footsteps nearby)</summary>
+        public void AddShake(float amplitude, float duration)
+        {
+            _shakeAmp = Mathf.Max(_shakeAmp * (_shakeTime / Mathf.Max(0.01f, _shakeDur)), amplitude); _shakeDur = duration; _shakeTime = duration;
+        }
         PlayerInputReader _in;
 
         void Start()
@@ -90,7 +97,13 @@ namespace PrimalFrontier.Player
             if (Physics.SphereCast(shoulderPos, collisionRadius, back, out var hit, wantDist, mask, QueryTriggerInteraction.Ignore))
                 allowed = Mathf.Max(0.3f, hit.distance - 0.05f);
             _curDist = allowed < _curDist ? allowed : Mathf.MoveTowards(_curDist, allowed, returnSpeed * dt);
-            transform.SetPositionAndRotation(shoulderPos + back * _curDist, rot);
+            Vector3 shake = Vector3.zero;
+            if (_shakeTime > 0f)
+            {
+                _shakeTime -= dt; float k = Mathf.Clamp01(_shakeTime / _shakeDur) * _shakeAmp; float t = Time.time * 28f;
+                shake = rot * new Vector3(Mathf.PerlinNoise(t, 0.3f) - 0.5f, Mathf.PerlinNoise(0.7f, t) - 0.5f, 0f) * 2f * k;
+            }
+            transform.SetPositionAndRotation(shoulderPos + back * _curDist + shake, rot);
         }
     }
 }
