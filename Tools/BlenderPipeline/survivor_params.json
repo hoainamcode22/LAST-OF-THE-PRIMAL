@@ -1,0 +1,131 @@
+{
+ "gender": 1.0,
+ "age": 0.53,
+ "muscle": 0.95,
+ "weight": 0.5,
+ "height": 0.58,
+ "proportions": 0.85,
+ "race": {
+  "african": 0.3,
+  "asian": 0.35,
+  "caucasian": 0.35
+ },
+ "modifiers": {
+  "torso/torso-vshape": 0.45,
+  "torso/torso-muscle-pectoral": 0.45,
+  "torso/torso-muscle-dorsi": 0.5,
+  "neck/neck-scale-horiz": 0.3,
+  "measure/measure-neck-circ": 0.5,
+  "head/head-square": 0.3,
+  "head/head-age": 0.1,
+  "forehead/forehead-trans": -0.3,
+  "forehead/forehead-scale-vert": -0.25,
+  "eyebrows/eyebrows-trans": 0.7,
+  "eyebrows/eyebrows-angle": -0.2,
+  "chin/chin-width": 0.35,
+  "chin/chin-bones": 0.45,
+  "chin/chin-prominent": 0.3,
+  "chin/chin-prognathism": 0.15,
+  "chin/chin-height": 0.1,
+  "nose/nose-flaring": 0.25,
+  "nose/nose-width2": 0.2,
+  "nose/nose-volume": 0.15,
+  "nose/nose-hump": 0.2,
+  "nose/nose-point-width": 0.2,
+  "mouth/mouth-lowerlip-volume": 0.15,
+  "mouth/mouth-upperlip-volume": 0.1,
+  "stomach/stomach-pregnant": -0.35,
+  "measure/measure-thigh-circ": 0.3,
+  "measure/measure-calf-circ": 0.3,
+  "measure/measure-upperarm-circ": 0.25,
+  "armslegs/l-upperarm-muscle": 0.6,
+  "armslegs/l-upperarm-shoulder-muscle": 0.6,
+  "armslegs/l-lowerarm-muscle": 0.6,
+  "armslegs/l-upperleg-muscle": 0.75,
+  "armslegs/l-lowerleg-muscle": 0.65,
+  "cheek/l-cheek-bones": 0.5,
+  "cheek/l-cheek-volume": -0.25,
+  "armslegs/r-upperarm-muscle": 0.6,
+  "armslegs/r-upperarm-shoulder-muscle": 0.6,
+  "armslegs/r-lowerarm-muscle": 0.6,
+  "armslegs/r-upperleg-muscle": 0.75,
+  "armslegs/r-lowerleg-muscle": 0.65,
+  "cheek/r-cheek-bones": 0.5,
+  "cheek/r-cheek-volume": -0.25,
+  "eyes/l-eye-scale": 0.15,
+  "eyes/r-eye-scale": 0.15
+ },
+ "expression": {
+  "eyebrows-left-down": 0.22,
+  "eyebrows-right-down": 0.3,
+  "eyebrows-left-up": 0.06,
+  "eye-left-slit": 0.14,
+  "eye-right-slit": 0.18,
+  "mouth-compression": 0.12,
+  "nose-left-dilatation": 0.08,
+  "nose-right-dilatation": 0.08
+ },
+ "shapes": {
+  "Blink": {
+   "eye-left-closure": 1.0,
+   "eye-right-closure": 1.0
+  },
+  "Blink_L": {
+   "eye-left-closure": 1.0
+  },
+  "Blink_R": {
+   "eye-right-closure": 1.0
+  },
+  "Squint": {
+   "eye-left-slit": 0.6,
+   "eye-right-slit": 0.6,
+   "nose-left-elevation": 0.2,
+   "nose-right-elevation": 0.2
+  },
+  "Angry": {
+   "eyebrows-left-down": 0.7,
+   "eyebrows-right-down": 0.7,
+   "eye-left-slit": 0.3,
+   "eye-right-slit": 0.3,
+   "nose-compression": 0.4,
+   "mouth-compression": 0.4
+  },
+  "Shout": {
+   "mouth-open": 0.85,
+   "eyebrows-left-down": 0.6,
+   "eyebrows-right-down": 0.6,
+   "nose-left-elevation": 0.4,
+   "nose-right-elevation": 0.4,
+   "mouth-upward-retraction": 0.3,
+   "eye-left-slit": 0.35,
+   "eye-right-slit": 0.35
+  },
+  "Pain": {
+   "eyebrows-left-inner-up": 0.8,
+   "eyebrows-right-inner-up": 0.8,
+   "eye-left-slit": 0.55,
+   "eye-right-slit": 0.55,
+   "mouth-upward-retraction": 0.5,
+   "mouth-open": 0.25,
+   "nose-left-elevation": 0.3,
+   "nose-right-elevation": 0.3
+  },
+  "Smile": {
+   "mouth-corner-puller": 0.6,
+   "eye-left-slit": 0.2,
+   "eye-right-slit": 0.2
+  },
+  "Effort": {
+   "mouth-compression": 0.7,
+   "eyebrows-left-down": 0.5,
+   "eyebrows-right-down": 0.5,
+   "eye-left-slit": 0.4,
+   "eye-right-slit": 0.4,
+   "nose-left-dilatation": 0.4,
+   "nose-right-dilatation": 0.4
+  },
+  "JawOpen": {
+   "mouth-open": 1.0
+  }
+ }
+}

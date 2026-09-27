@@ -57,6 +57,51 @@ namespace PrimalFrontier.EditorTools
             EditorApplication.Exit(code);
         }
 
+        /// <summary>Phase-1 rig check: import the rigged model (no clips needed), validate the humanoid avatar, report meshes.</summary>
+        public static void RigCheckFromCommandLine()
+        {
+            var args = Environment.GetCommandLineArgs();
+            int i = Array.IndexOf(args, "-character");
+            string id = i >= 0 && i + 1 < args.Length ? args[i + 1] : "Player";
+            int code = 0;
+            try
+            {
+                Log.Clear(); _fails = 0;
+                var spec = Specs[id];
+                AssetDatabase.Refresh();
+                string fbx = $"{spec.Folder}/Model/{spec.Fbx}.fbx";
+                ConfigureImporter(spec, fbx, null);
+                var model = AssetDatabase.LoadAssetAtPath<GameObject>(fbx);
+                foreach (var smr in model.GetComponentsInChildren<SkinnedMeshRenderer>(true))
+                {
+                    var m = smr.sharedMesh;
+                    L($"Mesh {smr.name}: tris={m.triangles.Length / 3} verts={m.vertexCount} submeshes={m.subMeshCount} bones={smr.bones.Length} blendshapes={m.blendShapeCount} bounds={smr.bounds.size}");
+                }
+                var inst = (GameObject)UnityEngine.Object.Instantiate(model);
+                var anim = inst.GetComponent<Animator>() ?? inst.AddComponent<Animator>();
+                anim.avatar = AssetDatabase.LoadAllAssetsAtPath(fbx).OfType<Avatar>().FirstOrDefault();
+                if (anim.avatar != null && anim.avatar.isHuman)
+                {
+                    foreach (HumanBodyBones hb in new[] { HumanBodyBones.Hips, HumanBodyBones.Head, HumanBodyBones.LeftHand, HumanBodyBones.RightFoot, HumanBodyBones.LeftIndexDistal })
+                        L($"  {hb} -> {(anim.GetBoneTransform(hb) ? anim.GetBoneTransform(hb).name : "NONE")}");
+                    var hd = anim.GetBoneTransform(HumanBodyBones.Head).position; var ft = anim.GetBoneTransform(HumanBodyBones.LeftFoot).position;
+                    L($"  head y {hd.y:F3}, left foot y {ft.y:F3}, left hand x {anim.GetBoneTransform(HumanBodyBones.LeftHand).position.x:F3}");
+                    var ls = anim.GetBoneTransform(HumanBodyBones.LeftUpperArm).position; var rs = anim.GetBoneTransform(HumanBodyBones.RightUpperArm).position;
+                    var fwd = Vector3.Cross(Vector3.up, ls - rs).normalized;
+                    var toe = anim.GetBoneTransform(HumanBodyBones.LeftToes).position - anim.GetBoneTransform(HumanBodyBones.LeftFoot).position; toe.y = 0;
+                    L($"  facing (shoulders) {fwd}, foot->toe {toe.normalized}");
+                    if (fwd.z < 0.8f) F("character does not face +Z");
+                }
+                UnityEngine.Object.DestroyImmediate(inst);
+                Directory.CreateDirectory("Documentation/CharacterTests");
+                File.WriteAllText($"Documentation/CharacterTests/{id}_rig_check.md", $"# {id} rig check\n\nResult: **{(_fails == 0 ? "PASS" : "FAIL")}**\n\n```\n{Log}```\n");
+                L(_fails == 0 ? "RESULT: PASS" : $"RESULT: FAIL ({_fails})");
+                if (_fails > 0) code = 2;
+            }
+            catch (Exception e) { Debug.LogError("[PrimalCharacterBuilder] " + e); code = 1; }
+            EditorApplication.Exit(code);
+        }
+
         [MenuItem("Primal Frontier/Characters/Build + Test Player")]
         public static void MenuPlayer() => BuildAndTest("Player");
 
@@ -99,16 +144,16 @@ namespace PrimalFrontier.EditorTools
             (HumanBodyBones.RightShoulder, "Clavicle_R"), (HumanBodyBones.RightUpperArm, "UpperArm_R"), (HumanBodyBones.RightLowerArm, "LowerArm_R"), (HumanBodyBones.RightHand, "Hand_R"),
             (HumanBodyBones.LeftUpperLeg, "Thigh_L"), (HumanBodyBones.LeftLowerLeg, "Calf_L"), (HumanBodyBones.LeftFoot, "Foot_L"), (HumanBodyBones.LeftToes, "Toe_L"),
             (HumanBodyBones.RightUpperLeg, "Thigh_R"), (HumanBodyBones.RightLowerLeg, "Calf_R"), (HumanBodyBones.RightFoot, "Foot_R"), (HumanBodyBones.RightToes, "Toe_R"),
-            (HumanBodyBones.LeftThumbProximal, "Thumb_01_L"), (HumanBodyBones.LeftThumbIntermediate, "Thumb_02_L"),
-            (HumanBodyBones.LeftIndexProximal, "Index_01_L"), (HumanBodyBones.LeftIndexIntermediate, "Index_02_L"),
-            (HumanBodyBones.LeftMiddleProximal, "Middle_01_L"), (HumanBodyBones.LeftMiddleIntermediate, "Middle_02_L"),
-            (HumanBodyBones.LeftRingProximal, "Ring_01_L"), (HumanBodyBones.LeftRingIntermediate, "Ring_02_L"),
-            (HumanBodyBones.LeftLittleProximal, "Pinky_01_L"), (HumanBodyBones.LeftLittleIntermediate, "Pinky_02_L"),
-            (HumanBodyBones.RightThumbProximal, "Thumb_01_R"), (HumanBodyBones.RightThumbIntermediate, "Thumb_02_R"),
-            (HumanBodyBones.RightIndexProximal, "Index_01_R"), (HumanBodyBones.RightIndexIntermediate, "Index_02_R"),
-            (HumanBodyBones.RightMiddleProximal, "Middle_01_R"), (HumanBodyBones.RightMiddleIntermediate, "Middle_02_R"),
-            (HumanBodyBones.RightRingProximal, "Ring_01_R"), (HumanBodyBones.RightRingIntermediate, "Ring_02_R"),
-            (HumanBodyBones.RightLittleProximal, "Pinky_01_R"), (HumanBodyBones.RightLittleIntermediate, "Pinky_02_R"),
+            (HumanBodyBones.LeftThumbProximal, "Thumb_01_L"), (HumanBodyBones.LeftThumbIntermediate, "Thumb_02_L"), (HumanBodyBones.LeftThumbDistal, "Thumb_03_L"),
+            (HumanBodyBones.LeftIndexProximal, "Index_01_L"), (HumanBodyBones.LeftIndexIntermediate, "Index_02_L"), (HumanBodyBones.LeftIndexDistal, "Index_03_L"),
+            (HumanBodyBones.LeftMiddleProximal, "Middle_01_L"), (HumanBodyBones.LeftMiddleIntermediate, "Middle_02_L"), (HumanBodyBones.LeftMiddleDistal, "Middle_03_L"),
+            (HumanBodyBones.LeftRingProximal, "Ring_01_L"), (HumanBodyBones.LeftRingIntermediate, "Ring_02_L"), (HumanBodyBones.LeftRingDistal, "Ring_03_L"),
+            (HumanBodyBones.LeftLittleProximal, "Pinky_01_L"), (HumanBodyBones.LeftLittleIntermediate, "Pinky_02_L"), (HumanBodyBones.LeftLittleDistal, "Pinky_03_L"),
+            (HumanBodyBones.RightThumbProximal, "Thumb_01_R"), (HumanBodyBones.RightThumbIntermediate, "Thumb_02_R"), (HumanBodyBones.RightThumbDistal, "Thumb_03_R"),
+            (HumanBodyBones.RightIndexProximal, "Index_01_R"), (HumanBodyBones.RightIndexIntermediate, "Index_02_R"), (HumanBodyBones.RightIndexDistal, "Index_03_R"),
+            (HumanBodyBones.RightMiddleProximal, "Middle_01_R"), (HumanBodyBones.RightMiddleIntermediate, "Middle_02_R"), (HumanBodyBones.RightMiddleDistal, "Middle_03_R"),
+            (HumanBodyBones.RightRingProximal, "Ring_01_R"), (HumanBodyBones.RightRingIntermediate, "Ring_02_R"), (HumanBodyBones.RightRingDistal, "Ring_03_R"),
+            (HumanBodyBones.RightLittleProximal, "Pinky_01_R"), (HumanBodyBones.RightLittleIntermediate, "Pinky_02_R"), (HumanBodyBones.RightLittleDistal, "Pinky_03_R"),
         };
 
         static void ConfigureImporter(Spec spec, string fbx, AnimMeta meta)
@@ -116,7 +161,7 @@ namespace PrimalFrontier.EditorTools
             var mi = AssetImporter.GetAtPath(fbx) as ModelImporter;
             if (mi == null) throw new Exception("model not found: " + fbx);
             mi.globalScale = 1f; mi.useFileScale = true; mi.bakeAxisConversion = true;
-            mi.importCameras = false; mi.importLights = false; mi.importVisibility = false; mi.importBlendShapes = false;
+            mi.importCameras = false; mi.importLights = false; mi.importVisibility = false; mi.importBlendShapes = true; mi.importBlendShapeNormals = ModelImporterNormals.Calculate;
             mi.importNormals = ModelImporterNormals.Import; mi.importTangents = ModelImporterTangents.CalculateMikk;
             mi.materialImportMode = ModelImporterMaterialImportMode.ImportStandard;
             mi.materialLocation = ModelImporterMaterialLocation.InPrefab;
