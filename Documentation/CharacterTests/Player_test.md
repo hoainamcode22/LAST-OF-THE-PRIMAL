@@ -3,19 +3,21 @@
 Result: **PASS**
 
 ```
-=== Player === 2026-09-27 21:27:55
+=== Player === 2026-09-28 14:34:40
+Twist bones LowerArmTwist_L/R found: avatar lowerArmTwist = 0 (TwistBoneDriver spreads the wrist twist)
 Avatar: valid=True human=True
-Importer: 47 clips configured (24 loops, 55 events)
+Importer: 58 clips configured (29 loops, 90 events)
 Materials: M_Player_Cloth, M_Player_Eye, M_Player_Hair, M_Player_Skin
-Clips in FBX: 47 (meta: 47)
-Controller: Assets/Art/Characters/Player/Animations/PlayerAnimator.controller (states: 36 base + 5 upper body, params 9, IK pass on)
+Clips in FBX: 58 (meta: 58)
+Controller: Assets/Art/Characters/Player/Animations/PlayerAnimator.controller (states: 41 base + 9 upper body, params 17, IK pass on)
+Controller: new states StrafeLocomotion (2D VelX/VelZ, on Strafe), Sword_Attack_1/2/3 + Sword_Heavy (Attack, speed x AttackSpeed); upper body Sword_Idle, Sword_Block, Sword_Equip, Sword_Unequip
+TwistBoneDriver on the model (LowerArmTwist bones found)
 LOD: 3 levels (LOD0:72952 tris, LOD1:17107 tris, LOD2:5668 tris)
 Prefab: Assets/Art/Characters/Player/Prefab/PFB_Player_Survivor.prefab
-Scale: bounds size (0.96, 1.89, 1.02), min y -0,073
+Scale: bounds size (0.78, 1.89, 0.99), min y -0,073
 Collider: CharacterController h=1,8 r=0,3 (mesh height 1,89)
-Clips not referenced by the controller: Walk_Backward, Walk_Left, Walk_Right
-Attack_Spear       1,00s loop=N events=1
-Attack_Spear_Heavy 1,53s loop=N events=2
+Attack_Spear       1,00s loop=N events=4
+Attack_Spear_Heavy 1,53s loop=N events=5
 Bow_Aim            2,00s loop=Y events=0 loopGap=0,0cm
 Bow_Draw           0,87s loop=N events=1
 Bow_Release        0,93s loop=N events=1
@@ -49,9 +51,20 @@ Knife_Attack       0,87s loop=N events=1
 Land               0,67s loop=N events=1
 Pickup             1,33s loop=N events=1
 Run                0,67s loop=Y events=2 loopGap=0,0cm footSlide=0,02m/s (1% of 3,80) contactVel L(0.00, 0.00, -3.79) (7f) R(0.00, 0.00, -3.79) (7f)
+Run_Backward       0,80s loop=Y events=2 loopGap=0,0cm footSlide=0,02m/s (1% of 2,40) contactVel L(0.00, 0.00, 2.39) (7f) R(0.00, 0.00, 2.40) (7f)
 Sleep              4,00s loop=Y events=0 loopGap=0,0cm
-Spear_Attack_2     1,13s loop=N events=1
+Spear_Attack_2     1,13s loop=N events=4
 Sprint             0,47s loop=Y events=2 loopGap=0,0cm footSlide=0,01m/s (0% of 6,20) contactVel L(0.00, 0.00, -6.20) (3f) R(0.00, 0.00, -6.20) (3f)
+Strafe_Run_L       0,60s loop=Y events=2 loopGap=0,0cm footSlide=0,02m/s (1% of 3,00) contactVel L(3.00, 0.00, 0.00) (8f) R(3.00, 0.00, 0.00) (8f)
+Strafe_Run_R       0,60s loop=Y events=2 loopGap=0,0cm footSlide=0,02m/s (1% of 3,00) contactVel L(-3.00, 0.00, 0.00) (8f) R(-3.00, 0.00, 0.00) (8f)
+Sword_Attack_1     1,00s loop=N events=4
+Sword_Attack_2     0,93s loop=N events=4
+Sword_Attack_3     1,13s loop=N events=5
+Sword_Block        1,33s loop=Y events=0 loopGap=0,0cm
+Sword_Equip        0,73s loop=N events=1
+Sword_Heavy        1,53s loop=N events=5
+Sword_Idle         2,00s loop=Y events=0 loopGap=0,0cm
+Sword_Unequip      0,73s loop=N events=1
 Throw_Spear        1,53s loop=N events=1
 Turn_Left          1,00s loop=Y events=2 loopGap=0,0cm
 Turn_Right         1,00s loop=Y events=2 loopGap=0,0cm
@@ -66,6 +79,6 @@ Ground contact (IDLE frame 0, skinned vertices): min y 0,000 m
 Skin weights: 0 of 62418 LOD0 vertices without bones
 Skin check (Walk): 100,0% of LOD0 vertices move with the bones
 Facing: shoulders -> (0.00, 0.00, 1.00), left foot -> toes (-0.04, 0.00, 1.00) (expected +Z)
-Screenshots: Documentation/CharacterTests/Player_clips.png (47 clips, 3/4 front view, character faces +Z)
+Screenshots: Documentation/CharacterTests/Player_clips.png (58 clips, 3/4 front view, character faces +Z)
 RESULT: PASS
 ```

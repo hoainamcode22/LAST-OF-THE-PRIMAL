@@ -87,19 +87,35 @@ class HumanRig:
         s = 1 if sd == "L" else -1
         self.set_rot(f"Clavicle_{sd}", q_axis((0, 0, 1), fwd * s) @ q_axis((0, 1, 0), -shrug * s))
 
-    def fingers(self, sd, curl=20, thumb=15, spread=0):
+    # relaxed hands: curl grows from the index to the little finger; at low curl the middle joint bends most
+    # (proximal and distal less), closing into an even fist as curl rises
+    FINGER_GRAD = {"Index": 0.8, "Middle": 0.94, "Ring": 1.08, "Pinky": 1.22}
+    FINGER_SPREAD = {"Index": 1.0, "Middle": 0.3, "Ring": -0.35, "Pinky": -1.0}
+
+    THUMB_ADDUCT = 0.0      # degrees: thumb metacarpal swung towards the index (relaxed hand), set by the clip library
+
+    def fingers(self, sd, curl=20, thumb=15, spread=3.0):
         d, n = self.hand[sd]
+        s = 1 if sd == "L" else -1
+        k = max(0.0, min(1.0, (curl - 20.0) / 45.0))          # 0 relaxed .. 1 fist
+        segw = (("01", 0.55 + 0.45 * k), ("02", 1.18), ("03", 0.85 + 0.1 * k))
+        spr = spread * (1.0 - k)
         for f in ("Index", "Middle", "Ring", "Pinky"):
-            for seg, k in (("01", 1.0), ("02", 1.15), ("03", 0.8)):
+            g = 1.0 + (self.FINGER_GRAD[f] - 1.0) * (1.0 - 0.6 * k)
+            for seg, w in segw:
                 b = f"{f}_{seg}_{sd}"
                 if b not in self.rest: continue
                 fd = self.rest[b].col[1].xyz.normalized()
-                self.set_rot(b, q_axis(fd.cross(n), curl * k))
-        for seg, k in (("01", 0.6), ("02", 0.9), ("03", 0.7)):
+                q = q_axis(fd.cross(n), curl * g * w)
+                if seg == "01" and spr: q = q_axis(n, spr * self.FINGER_SPREAD[f] * s) @ q
+                self.set_rot(b, q)
+        for seg, k2 in (("01", 0.6), ("02", 0.9), ("03", 0.7)):
             b = f"Thumb_{seg}_{sd}"
             if b not in self.rest: continue
             fd = self.rest[b].col[1].xyz.normalized()
-            self.set_rot(b, q_axis(fd.cross(n), thumb * k))
+            q = q_axis(fd.cross(n), thumb * k2)
+            if seg == "01" and self.THUMB_ADDUCT: q = q_axis(n, self.THUMB_ADDUCT * s) @ q
+            self.set_rot(b, q)
 
     def pelvis(self, loc=(0, 0, 0), bend=0, side=0, twist=0):
         pb = self.obj.pose.bones["Pelvis"]

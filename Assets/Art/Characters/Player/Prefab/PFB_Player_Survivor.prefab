@@ -113,6 +113,9 @@ PrefabInstance:
       addedObject: {fileID: 7182488283360409255}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: a1e4ee4c8a7174c4daa2574dfa479694, type: 3}
       insertIndex: -1
+      addedObject: {fileID: 7735729339771273128}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: a1e4ee4c8a7174c4daa2574dfa479694, type: 3}
+      insertIndex: -1
       addedObject: {fileID: 2462980668024448357}
   m_SourcePrefab: {fileID: 100100000, guid: a1e4ee4c8a7174c4daa2574dfa479694, type: 3}
 --- !u!1 &8476981426617981263 stripped
@@ -133,6 +136,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: PrimalFrontier.Runtime::PrimalFrontier.Animation.CharacterAnimationEvents
   logEvents: 0
+--- !u!114 &7735729339771273128
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8476981426617981263}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 51022b7f31e14314a8f7b546c329dc81, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: PrimalFrontier.Runtime::PrimalFrontier.Animation.TwistBoneDriver
+  share: 0.6
+  maxAngle: 120
 --- !u!143 &2462980668024448357
 CharacterController:
   m_ObjectHideFlags: 0

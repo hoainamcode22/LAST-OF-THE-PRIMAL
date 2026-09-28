@@ -134,6 +134,63 @@
    ]
   },
   {
+   "name": "Run_Backward",
+   "frames": 24,
+   "loop": true,
+   "speed": 2.4,
+   "notes": "in place; stance travel 0.806 m; turn 0 deg/s",
+   "events": [
+    {
+     "frame": 0,
+     "function": "OnFootstep",
+     "param": "L"
+    },
+    {
+     "frame": 12,
+     "function": "OnFootstep",
+     "param": "R"
+    }
+   ]
+  },
+  {
+   "name": "Strafe_Run_L",
+   "frames": 18,
+   "loop": true,
+   "speed": 3.0,
+   "notes": "in place; stance travel 0.648 m; turn 0 deg/s",
+   "events": [
+    {
+     "frame": 0,
+     "function": "OnFootstep",
+     "param": "L"
+    },
+    {
+     "frame": 9,
+     "function": "OnFootstep",
+     "param": "R"
+    }
+   ]
+  },
+  {
+   "name": "Strafe_Run_R",
+   "frames": 18,
+   "loop": true,
+   "speed": 3.0,
+   "notes": "in place; stance travel 0.648 m; turn 0 deg/s",
+   "events": [
+    {
+     "frame": 0,
+     "function": "OnFootstep",
+     "param": "L"
+    },
+    {
+     "frame": 9,
+     "function": "OnFootstep",
+     "param": "R"
+    }
+   ]
+  },
+  {
    "name": "Crouch_Walk",
    "frames": 40,
    "loop": true,
@@ -343,70 +400,6 @@
    ]
   },
   {
-   "name": "Attack_Spear",
-   "frames": 30,
-   "loop": false,
-   "speed": 0.0,
-   "notes": "",
-   "events": [
-    {
-     "frame": 12,
-     "function": "OnAttackHit",
-     "param": "spear_thrust"
-    }
-   ]
-  },
-  {
-   "name": "Throw_Spear",
-   "frames": 46,
-   "loop": false,
-   "speed": 0.0,
-   "notes": "",
-   "events": [
-    {
-     "frame": 24,
-     "function": "OnThrowRelease",
-     "param": "spear"
-    }
-   ]
-  },
-  {
-   "name": "Bow_Aim",
-   "frames": 60,
-   "loop": true,
-   "speed": 0.0,
-   "notes": "",
-   "events": []
-  },
-  {
-   "name": "Bow_Draw",
-   "frames": 26,
-   "loop": false,
-   "speed": 0.0,
-   "notes": "",
-   "events": [
-    {
-     "frame": 4,
-     "function": "OnBowDrawStart",
-     "param": ""
-    }
-   ]
-  },
-  {
-   "name": "Bow_Release",
-   "frames": 28,
-   "loop": false,
-   "speed": 0.0,
-   "notes": "",
-   "events": [
-    {
-     "frame": 1,
-     "function": "OnBowRelease",
-     "param": ""
-    }
-   ]
-  },
-  {
    "name": "Hurt",
    "frames": 24,
    "loop": false,
@@ -501,25 +494,6 @@
    ]
   },
   {
-   "name": "Attack_Spear_Heavy",
-   "frames": 46,
-   "loop": false,
-   "speed": 0.0,
-   "notes": "wind-up, lunge step, full-body thrust",
-   "events": [
-    {
-     "frame": 21,
-     "function": "OnFootstep",
-     "param": "L"
-    },
-    {
-     "frame": 24,
-     "function": "OnAttackHit",
-     "param": "spear_heavy"
-    }
-   ]
-  },
-  {
    "name": "Use_Item",
    "frames": 40,
    "loop": false,
@@ -554,20 +528,6 @@
      "frame": 180,
      "function": "OnWakeUp",
      "param": "done"
-    }
-   ]
-  },
-  {
-   "name": "Spear_Attack_2",
-   "frames": 34,
-   "loop": false,
-   "speed": 0.0,
-   "notes": "combo follow-up: overhead wind-up, downward stab, recovery",
-   "events": [
-    {
-     "frame": 14,
-     "function": "OnAttackHit",
-     "param": "spear_downstab"
     }
    ]
   },
@@ -689,6 +649,318 @@
      "frame": 22,
      "function": "OnHarvest",
      "param": "fruit"
+    }
+   ]
+  },
+  {
+   "name": "Sword_Idle",
+   "frames": 60,
+   "loop": true,
+   "speed": 0.0,
+   "notes": "sword held low-forward, edge towards the enemy, breathing",
+   "events": []
+  },
+  {
+   "name": "Sword_Attack_1",
+   "frames": 30,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "diagonal cut from over the right shoulder down to the left hip, weight onto the front foot, follow-through",
+   "events": [
+    {
+     "frame": 8,
+     "function": "OnAttackStart",
+     "param": "sword_1"
+    },
+    {
+     "frame": 10,
+     "function": "OnAttackActive",
+     "param": "sword_1"
+    },
+    {
+     "frame": 13,
+     "function": "OnAttackHit",
+     "param": "sword_1"
+    },
+    {
+     "frame": 16,
+     "function": "OnAttackEnd",
+     "param": "sword_1"
+    }
+   ]
+  },
+  {
+   "name": "Sword_Attack_2",
+   "frames": 28,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "horizontal back-hand cut from the left side across to the right",
+   "events": [
+    {
+     "frame": 7,
+     "function": "OnAttackStart",
+     "param": "sword_2"
+    },
+    {
+     "frame": 9,
+     "function": "OnAttackActive",
+     "param": "sword_2"
+    },
+    {
+     "frame": 11,
+     "function": "OnAttackHit",
+     "param": "sword_2"
+    },
+    {
+     "frame": 14,
+     "function": "OnAttackEnd",
+     "param": "sword_2"
+    }
+   ]
+  },
+  {
+   "name": "Sword_Attack_3",
+   "frames": 34,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "overhead finisher with a step: sword raised behind the head, straight down cut",
+   "events": [
+    {
+     "frame": 11,
+     "function": "OnAttackStart",
+     "param": "sword_3"
+    },
+    {
+     "frame": 13,
+     "function": "OnAttackActive",
+     "param": "sword_3"
+    },
+    {
+     "frame": 15,
+     "function": "OnAttackHit",
+     "param": "sword_3"
+    },
+    {
+     "frame": 18,
+     "function": "OnAttackEnd",
+     "param": "sword_3"
+    },
+    {
+     "frame": 14,
+     "function": "OnFootstep",
+     "param": "L"
+    }
+   ]
+  },
+  {
+   "name": "Sword_Heavy",
+   "frames": 46,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "charged two-handed overhead blow: long wind-up, lunge step, heavy follow-through",
+   "events": [
+    {
+     "frame": 16,
+     "function": "OnAttackStart",
+     "param": "sword_heavy"
+    },
+    {
+     "frame": 23,
+     "function": "OnAttackActive",
+     "param": "sword_heavy"
+    },
+    {
+     "frame": 26,
+     "function": "OnAttackHit",
+     "param": "sword_heavy"
+    },
+    {
+     "frame": 30,
+     "function": "OnAttackEnd",
+     "param": "sword_heavy"
+    },
+    {
+     "frame": 24,
+     "function": "OnFootstep",
+     "param": "L"
+    }
+   ]
+  },
+  {
+   "name": "Sword_Block",
+   "frames": 40,
+   "loop": true,
+   "speed": 0.0,
+   "notes": "blade held across the body in front of the face, off hand guarding",
+   "events": []
+  },
+  {
+   "name": "Sword_Equip",
+   "frames": 22,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "reach over the right shoulder, draw the sword from the back, bring it to the ready pose",
+   "events": [
+    {
+     "frame": 9,
+     "function": "OnEquip",
+     "param": "draw"
+    }
+   ]
+  },
+  {
+   "name": "Sword_Unequip",
+   "frames": 22,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "sword back over the right shoulder onto the back, hand returns",
+   "events": [
+    {
+     "frame": 13,
+     "function": "OnEquip",
+     "param": "sheathe"
+    }
+   ]
+  },
+  {
+   "name": "Attack_Spear",
+   "frames": 30,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "two-handed thrust: pull back, drive forward from the hips, recover",
+   "events": [
+    {
+     "frame": 8,
+     "function": "OnAttackStart",
+     "param": "spear_thrust"
+    },
+    {
+     "frame": 11,
+     "function": "OnAttackActive",
+     "param": "spear_thrust"
+    },
+    {
+     "frame": 12,
+     "function": "OnAttackHit",
+     "param": "spear_thrust"
+    },
+    {
+     "frame": 17,
+     "function": "OnAttackEnd",
+     "param": "spear_thrust"
+    }
+   ]
+  },
+  {
+   "name": "Spear_Attack_2",
+   "frames": 34,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "combo follow-up: spear raised to the shoulder, downward stab, recovery",
+   "events": [
+    {
+     "frame": 10,
+     "function": "OnAttackStart",
+     "param": "spear_downstab"
+    },
+    {
+     "frame": 13,
+     "function": "OnAttackActive",
+     "param": "spear_downstab"
+    },
+    {
+     "frame": 14,
+     "function": "OnAttackHit",
+     "param": "spear_downstab"
+    },
+    {
+     "frame": 19,
+     "function": "OnAttackEnd",
+     "param": "spear_downstab"
+    }
+   ]
+  },
+  {
+   "name": "Attack_Spear_Heavy",
+   "frames": 46,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "wind-up, lunge step, full-body two-handed thrust",
+   "events": [
+    {
+     "frame": 14,
+     "function": "OnAttackStart",
+     "param": "spear_heavy"
+    },
+    {
+     "frame": 21,
+     "function": "OnFootstep",
+     "param": "L"
+    },
+    {
+     "frame": 22,
+     "function": "OnAttackActive",
+     "param": "spear_heavy"
+    },
+    {
+     "frame": 24,
+     "function": "OnAttackHit",
+     "param": "spear_heavy"
+    },
+    {
+     "frame": 30,
+     "function": "OnAttackEnd",
+     "param": "spear_heavy"
+    }
+   ]
+  },
+  {
+   "name": "Throw_Spear",
+   "frames": 46,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "overhand throw: spear drawn back over the shoulder, off arm points, whip release",
+   "events": [
+    {
+     "frame": 24,
+     "function": "OnThrowRelease",
+     "param": "spear"
+    }
+   ]
+  },
+  {
+   "name": "Bow_Aim",
+   "frames": 60,
+   "loop": true,
+   "speed": 0.0,
+   "notes": "bow held low in the left hand, arrow nocked, ready to raise",
+   "events": []
+  },
+  {
+   "name": "Bow_Draw",
+   "frames": 26,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "raise the bow, push the bow arm out, draw the string to the cheek",
+   "events": [
+    {
+     "frame": 4,
+     "function": "OnBowDrawStart",
+     "param": ""
+    }
+   ]
+  },
+  {
+   "name": "Bow_Release",
+   "frames": 28,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "string released: draw hand flies back past the ear, bow arm holds, settle",
+   "events": [
+    {
+     "frame": 1,
+     "function": "OnBowRelease",
+     "param": ""
     }
    ]
   }

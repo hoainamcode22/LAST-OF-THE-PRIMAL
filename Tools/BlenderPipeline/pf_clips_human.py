@@ -5,12 +5,13 @@ from pf_anim import HumanRig, ease, lerp, FPS
 
 TAU = math.tau
 LR = ("L", "R")
+HumanRig.THUMB_ADDUCT = -30.0     # relaxed thumb lies along the index instead of pointing forward (see renders/characters/hands_thumb.png)
 
 BASE = dict(
     pel=(0.0, 0.0, 0.0), pelr=(0.0, 0.0, 0.0),
     sp=(2.0, 0.0, 0.0), spu=(1.0, 0.0, 0.0), ch=(-2.0, 0.0, 0.0), nk=(4.0, 0.0, 0.0), hd=(-3.0, 0.0, 0.0),
     aL=(6.0, -35.0, 0.0, 0.0), aR=(6.0, -35.0, 0.0, 0.0), eL=22.0, eR=22.0,
-    wL=(4.0, 0.0, 0.0), wR=(4.0, 0.0, 0.0), cL=(0.0, 0.0), cR=(0.0, 0.0), fL=(24.0, 15.0), fR=(24.0, 15.0),
+    wL=(4.0, 0.0, 0.0), wR=(4.0, 0.0, 0.0), cL=(0.0, 0.0), cR=(0.0, 0.0), fL=(18.0, 16.0), fR=(18.0, 16.0),
     # feet: (dx, dy, dz, pitch, yaw, toebend) relative to rest, IK
     ftL=(0.0, 0.0, 0.0, 0.0, 0.0, 0.0), ftR=(0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
     # FK legs (used when fk=1): (hip flex, hip abduct, knee flex, ankle)
@@ -225,7 +226,8 @@ def foot_events(frames, D):
 # ------------------------------------------------------------------ clip library
 def build_all(rig, which=None):
     B = Baker(rig)
-    def want(n): return which is None or n in which
+    import pf_clips_weapons as W
+    def want(n): return (which is None or n in which) and n not in W.OVERRIDES   # weapon clips come from pf_clips_weapons
     # ---- idle
     if want("Idle"):
         def idle(f, N=180):
@@ -260,6 +262,9 @@ def build_all(rig, which=None):
         "Walk_Right": dict(frames=24, D=0.56, speed=1.1, step_h=0.07, strike=0, toeoff=30, heel_off=0.5, heel_ease="smooth", lean=0, arm_amp=6, elbow0=14, elbow_amp=6, bob=0.02, sway=0.004, twist=2, roll=2, move=(-1, 0), center_back=0.0, leg_yaw=-50.0, track=0.06),
         "Run": dict(frames=20, D=0.32, speed=3.8, step_h=0.16, strike=4, toeoff=60, heel_off=0.4, heel_ease="smooth", lean=9, arm_amp=42, elbow0=80, elbow_amp=20, bob=-0.045, sway=0.01, twist=11, roll=4, move=(0, -1), kick=0.12, center_back=0.1),
         "Sprint": dict(frames=14, D=0.24, speed=6.2, step_h=0.2, strike=0, toeoff=70, heel_off=0.3, heel_ease="smooth", lean=15, arm_amp=60, elbow0=86, elbow_amp=16, bob=-0.05, sway=0.008, twist=13, roll=4, move=(0, -1), kick=0.22, center_back=0.1),
+        "Run_Backward": dict(frames=24, D=0.42, speed=2.4, step_h=0.11, strike=-10, toeoff=-22, heel_off=0.5, heel_ease="smooth", lean=-3, arm_amp=22, elbow0=62, elbow_amp=14, bob=-0.03, sway=0.01, twist=5, roll=2, move=(0, 1), center_back=0.04),
+        "Strafe_Run_L": dict(frames=18, D=0.36, speed=3.0, step_h=0.12, strike=0, toeoff=40, heel_off=0.45, heel_ease="smooth", lean=4, arm_amp=16, elbow0=62, elbow_amp=12, bob=-0.03, sway=0.004, twist=3, roll=2, move=(1, 0), center_back=0.0, leg_yaw=60.0, track=0.09, kick=0.04),
+        "Strafe_Run_R": dict(frames=18, D=0.36, speed=3.0, step_h=0.12, strike=0, toeoff=40, heel_off=0.45, heel_ease="smooth", lean=4, arm_amp=16, elbow0=62, elbow_amp=12, bob=-0.03, sway=0.004, twist=3, roll=2, move=(-1, 0), center_back=0.0, leg_yaw=-60.0, track=0.09, kick=0.04),
         "Crouch_Walk": dict(frames=40, D=0.68, speed=0.95, step_h=0.08, strike=8, toeoff=20, lean=22, arm_amp=14, elbow0=38, elbow_amp=14, bob=0.02, sway=0.018, twist=4, roll=2, move=(0, -1), crouch=0.3),
         "Turn_Left": dict(frames=30, D=0.6, speed=0.0, step_h=0.06, strike=0, toeoff=10, lean=1, arm_amp=6, elbow0=14, elbow_amp=6, bob=0.015, sway=0.012, twist=3, roll=2, move=(0, 0), turn=90.0),
         "Turn_Right": dict(frames=30, D=0.6, speed=0.0, step_h=0.06, strike=0, toeoff=10, lean=1, arm_amp=6, elbow0=14, elbow_amp=6, bob=0.015, sway=0.012, twist=3, roll=2, move=(0, 0), turn=-90.0),
@@ -573,4 +578,6 @@ def build_all(rig, which=None):
             return apply(rig, interp(K, f))
         harvest.ground = False
         B.bake("Harvest_Fruit", 44, False, harvest, events=[(22, "OnHarvest", "fruit")], notes="one hand holds the trunk, the other reaches out, picks, brings it in")
+    # ================================================================== upgrade: sword set, two-handed spear, bow in the left hand
+    B.weapon_report = W.bake(rig, B, which)
     return B
