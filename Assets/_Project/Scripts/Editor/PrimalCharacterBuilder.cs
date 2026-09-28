@@ -212,7 +212,11 @@ namespace PrimalFrontier.EditorTools
                 finally { UnityEngine.Object.DestroyImmediate(inst); }
                 var hd = mi.humanDescription;
                 hd.human = human.ToArray(); hd.skeleton = skel.ToArray();
-                hd.upperArmTwist = 0.5f; hd.lowerArmTwist = 0.5f; hd.upperLegTwist = 0.5f; hd.lowerLegTwist = 0.5f;
+                // forearm twist bones: TwistBoneDriver spreads the wrist twist, so the avatar must not roll the lower arm too
+                bool twistBones = byName.ContainsKey("LowerArmTwist_L");
+                hd.upperArmTwist = 0.5f; hd.lowerArmTwist = twistBones ? 0f : 0.5f; hd.upperLegTwist = 0.5f; hd.lowerLegTwist = 0.5f;
+                L(twistBones ? "Twist bones LowerArmTwist_L/R found: avatar lowerArmTwist = 0 (TwistBoneDriver spreads the wrist twist)"
+                             : "No forearm twist bones: avatar lowerArmTwist = 0.5");
                 hd.armStretch = 0.05f; hd.legStretch = 0.05f; hd.feetSpacing = 0f; hd.hasTranslationDoF = false;
                 mi.humanDescription = hd;
                 mi.SaveAndReimport();
@@ -386,9 +390,16 @@ namespace PrimalFrontier.EditorTools
                 ("VerticalVelocity", AnimatorControllerParameterType.Float), ("IsCrouching", AnimatorControllerParameterType.Bool),
                 ("IsAttacking", AnimatorControllerParameterType.Bool), ("Action", AnimatorControllerParameterType.Int),
                 ("HealthState", AnimatorControllerParameterType.Int), ("TurnSpeed", AnimatorControllerParameterType.Float),
-                ("IdleVariant", AnimatorControllerParameterType.Trigger) })
+                ("IdleVariant", AnimatorControllerParameterType.Trigger),
+                // combat / aim locomotion (PlayerAnimationDriver) and weapon state (WeaponAnimatorBridge)
+                ("VelX", AnimatorControllerParameterType.Float), ("VelZ", AnimatorControllerParameterType.Float),
+                ("Strafe", AnimatorControllerParameterType.Bool), ("CombatMode", AnimatorControllerParameterType.Bool),
+                ("WeaponType", AnimatorControllerParameterType.Int), ("IsMoving", AnimatorControllerParameterType.Bool),
+                ("AttackSpeed", AnimatorControllerParameterType.Float), ("FullBodyBusy", AnimatorControllerParameterType.Bool) })
                 ac.AddParameter(n, t);
-            var p = ac.parameters; foreach (var x in p) if (x.name == "IsGrounded") x.defaultBool = true; ac.parameters = p;
+            var p = ac.parameters;
+            foreach (var x in p) { if (x.name == "IsGrounded") x.defaultBool = true; else if (x.name == "AttackSpeed") x.defaultFloat = 1f; }
+            ac.parameters = p;
             var sm = ac.layers[0].stateMachine;
             // locomotion: 1D on planar speed (m/s); thresholds = the clips' authored speeds so feet do not slide
             var loco = ac.CreateBlendTreeInController("Locomotion", out var bt, 0);
@@ -417,11 +428,22 @@ namespace PrimalFrontier.EditorTools
             }
             var tb = T(turn, loco, 0.2f); tb.AddCondition(AnimatorConditionMode.Greater, -30f, "TurnSpeed"); tb.AddCondition(AnimatorConditionMode.Less, 30f, "TurnSpeed");
             T(turn, loco, 0.2f).AddCondition(AnimatorConditionMode.Greater, 0.1f, "Speed");
+            // aim / combat locomotion: 2D freeform directional on the local planar velocity (m/s) = the clips' authored
+            // speeds and directions, so strafing and backing off do not moonwalk while the body faces the camera
+            var strafe = ac.CreateBlendTreeInController("StrafeLocomotion", out var st2, 0);
+            st2.blendType = BlendTreeType.FreeformDirectional2D; st2.blendParameter = "VelX"; st2.blendParameterY = "VelZ";
+            foreach (var (clipName, x, z) in new (string, float, float)[] {
+                ("Idle", 0f, 0f), ("Walk", 0f, 1.35f), ("Run", 0f, 3.8f), ("Walk_Backward", 0f, -1.05f), ("Run_Backward", 0f, -2.4f),
+                ("Walk_Left", -1.1f, 0f), ("Strafe_Run_L", -3f, 0f), ("Walk_Right", 1.1f, 0f), ("Strafe_Run_R", 3f, 0f) })
+                st2.AddChild(Clip(clips, clipName), new Vector2(x, z));
+            strafe.iKOnFeet = true;
+            // every grounded "free" state: jump / fall / actions / attacks start from any of them
+            var grounded = new[] { loco, strafe, crouch, turn, idleVar };
             // air: derived from IsGrounded + VerticalVelocity (no jump trigger needed)
             var jump = sm.AddState("Jump"); jump.motion = Clip(clips, "Jump");
             var fall = sm.AddState("Fall"); fall.motion = Clip(clips, "Fall");
             var land = sm.AddState("Land"); land.motion = Clip(clips, "Land");
-            foreach (var from in new[] { loco, crouch, turn, idleVar })
+            foreach (var from in grounded)
             {
                 var tj = T(from, jump, 0.1f); tj.AddCondition(AnimatorConditionMode.IfNot, 0, "IsGrounded"); tj.AddCondition(AnimatorConditionMode.Greater, 1.0f, "VerticalVelocity");
                 var tf = T(from, fall, 0.25f); tf.AddCondition(AnimatorConditionMode.IfNot, 0, "IsGrounded"); tf.AddCondition(AnimatorConditionMode.Less, -3f, "VerticalVelocity");
@@ -439,7 +461,7 @@ namespace PrimalFrontier.EditorTools
             foreach (var (id, clipName, loop) in actions)
             {
                 var s = sm.AddState(clipName); s.motion = Clip(clips, clipName); s.tag = "Action"; actionStates[id] = s;
-                foreach (var from in new[] { loco, crouch, turn, idleVar })
+                foreach (var from in grounded)
                     T(from, s, 0.2f).AddCondition(AnimatorConditionMode.Equals, id, "Action");
                 if (loop && id != PA.Sleep) T(s, loco, 0.3f).AddCondition(AnimatorConditionMode.NotEqual, id, "Action");
                 else if (!loop) T(s, loco, 0.25f, true, 0.94f);
@@ -448,16 +470,19 @@ namespace PrimalFrontier.EditorTools
             // opening: frozen first frame of Wake_Up (lying on the sand) until the intro sets Action = WakeUp
             var uncon = sm.AddState("Unconscious"); uncon.motion = Clip(clips, "Wake_Up"); uncon.speed = 0f; uncon.tag = "Action";
             T(uncon, actionStates[PA.WakeUp], 0.05f).AddCondition(AnimatorConditionMode.Equals, PA.WakeUp, "Action");
-            // attacks: IsAttacking + Action id
+            // attacks: IsAttacking + Action id; clip speed x AttackSpeed (WeaponData.attackSpeed, default 1)
             foreach (var (id, clipName) in new (int, string)[] { (PA.AttackSpear, "Attack_Spear"), (PA.AttackSpearHeavy, "Attack_Spear_Heavy"), (PA.ThrowSpear, "Throw_Spear"),
-                                                                 (PA.SpearAttack2, "Spear_Attack_2"), (PA.KnifeAttack, "Knife_Attack") })
+                                                                 (PA.SpearAttack2, "Spear_Attack_2"), (PA.KnifeAttack, "Knife_Attack"),
+                                                                 (PA.SwordAttack1, "Sword_Attack_1"), (PA.SwordAttack2, "Sword_Attack_2"), (PA.SwordAttack3, "Sword_Attack_3"),
+                                                                 (PA.SwordHeavy, "Sword_Heavy") })
             {
                 var s = sm.AddState(clipName); s.motion = Clip(clips, clipName); s.tag = "Attack";
-                foreach (var from in new[] { loco, crouch, turn, idleVar })
+                s.speedParameterActive = true; s.speedParameter = "AttackSpeed";
+                foreach (var from in grounded)
                 {
                     var tin = T(from, s, 0.1f); tin.AddCondition(AnimatorConditionMode.If, 0, "IsAttacking"); tin.AddCondition(AnimatorConditionMode.Equals, id, "Action");
                 }
-                T(s, loco, 0.2f, true, 0.9f);
+                T(s, loco, 0.2f, true, 0.9f);                // back to Locomotion; the Strafe transition moves on from there
             }
             // dodge: from anywhere (also cancels an attack's recovery), short blends
             var dodge = sm.AddState("Dodge"); dodge.motion = Clip(clips, "Dodge"); dodge.tag = "Action";
@@ -482,7 +507,11 @@ namespace PrimalFrontier.EditorTools
             T(hurt, loco, 0.2f, true, 0.85f); T(hurtH, loco, 0.25f, true, 0.9f);
             var ad = sm.AddAnyStateTransition(death); ad.duration = 0.15f; ad.canTransitionToSelf = false; ad.AddCondition(AnimatorConditionMode.Equals, 3, "HealthState");
             T(death, getup, 0.3f).AddCondition(AnimatorConditionMode.Equals, 0, "HealthState");
-            // upper body layer: bow + carry (avatar mask = spine, arms, head)
+            // free <-> strafe locomotion on Strafe (aim). Added last so actions / attacks / air keep priority in both lists.
+            T(loco, strafe, 0.2f).AddCondition(AnimatorConditionMode.If, 0, "Strafe");
+            T(strafe, loco, 0.2f).AddCondition(AnimatorConditionMode.IfNot, 0, "Strafe");
+            T(strafe, crouch, 0.25f).AddCondition(AnimatorConditionMode.If, 0, "IsCrouching");
+            // upper body layer: sword idle / block / equip, bow, carry (avatar mask = spine, arms, head)
             var mask = new AvatarMask();
             foreach (AvatarMaskBodyPart part in Enum.GetValues(typeof(AvatarMaskBodyPart)))
             {
@@ -497,18 +526,61 @@ namespace PrimalFrontier.EditorTools
             var layers = ac.layers; layers[1].avatarMask = mask; layers[1].defaultWeight = 1f; layers[1].blendingMode = AnimatorLayerBlendingMode.Override; ac.layers = layers;
             var usm = ac.layers[1].stateMachine;
             var empty = usm.AddState("Empty"); usm.defaultState = empty;
-            foreach (var (id, clipName) in new (int, string)[] { (PA.BowAim, "Bow_Aim"), (PA.BowDraw, "Bow_Draw"), (PA.BowRelease, "Bow_Release"), (PA.CarryItem, "Carry_Item") })
+            // upper-body actions (Action 30..40) enter from anywhere; each state leaves when its own condition is false
+            AnimatorState Upper(int id, string clipName)
             {
                 var s = usm.AddState(clipName); s.motion = Clip(clips, clipName);
-                var tin = usm.AddAnyStateTransition(s); tin.duration = 0.2f; tin.canTransitionToSelf = false; tin.AddCondition(AnimatorConditionMode.Equals, id, "Action");
-                var o1 = s.AddTransition(empty); o1.duration = 0.25f; o1.AddCondition(AnimatorConditionMode.Less, PA.BowAim, "Action");
-                var o2 = s.AddTransition(empty); o2.duration = 0.25f; o2.AddCondition(AnimatorConditionMode.Greater, PA.CarryItem, "Action");
-                var o3 = s.AddTransition(empty); o3.duration = 0.25f; o3.AddCondition(AnimatorConditionMode.Greater, PA.BowRelease, "Action"); o3.AddCondition(AnimatorConditionMode.Less, PA.CarryItem, "Action");
+                var tin = usm.AddAnyStateTransition(s); tin.duration = 0.2f; tin.hasExitTime = false; tin.hasFixedDuration = true; tin.canTransitionToSelf = false;
+                tin.AddCondition(AnimatorConditionMode.Equals, id, "Action");
+                return s;
             }
+            AnimatorStateTransition Out(AnimatorState s, float dur, bool exit = false, float exitTime = 0.9f)
+            {
+                var o = s.AddTransition(empty); o.duration = dur; o.hasFixedDuration = true; o.hasExitTime = exit; o.exitTime = exitTime; return o;
+            }
+            // bow chain: Aim / Draw / Release pass between each other (AnyState), leave when Action is outside 30..32
+            foreach (var (id, clipName) in new (int, string)[] { (PA.BowAim, "Bow_Aim"), (PA.BowDraw, "Bow_Draw"), (PA.BowRelease, "Bow_Release") })
+            {
+                var s = Upper(id, clipName);
+                Out(s, 0.25f).AddCondition(AnimatorConditionMode.Less, PA.BowAim, "Action");
+                Out(s, 0.25f).AddCondition(AnimatorConditionMode.Greater, PA.BowRelease, "Action");
+            }
+            var carry = Upper(PA.CarryItem, "Carry_Item");
+            Out(carry, 0.25f).AddCondition(AnimatorConditionMode.NotEqual, PA.CarryItem, "Action");
+            // sword block: loops while Action == SwordBlock
+            var block = Upper(PA.SwordBlock, "Sword_Block");
+            Out(block, 0.2f).AddCondition(AnimatorConditionMode.NotEqual, PA.SwordBlock, "Action");
+            // sword equip / unequip: one-shots out at exit time 0.9; held on the last frame while gameplay still asks for
+            // them (no replay through AnyState); an attack takes the arms at once
+            foreach (var (id, clipName) in new (int, string)[] { (PA.SwordEquip, "Sword_Equip"), (PA.SwordUnequip, "Sword_Unequip") })
+            {
+                var s = Upper(id, clipName);
+                Out(s, 0.2f, true, 0.9f).AddCondition(AnimatorConditionMode.NotEqual, id, "Action");
+                Out(s, 0.1f).AddCondition(AnimatorConditionMode.If, 0, "IsAttacking");
+            }
+            // sword idle: sword in hand (WeaponType 4) in combat mode, no upper-body action, and the base layer is free
+            // (attacks, dodge, hurt, actions and climbing keep their own arms)
+            var swordIdle = usm.AddState("Sword_Idle"); swordIdle.motion = Clip(clips, "Sword_Idle");
+            foreach (var (mode, v) in new (AnimatorConditionMode, int)[] { (AnimatorConditionMode.Less, PA.BowAim), (AnimatorConditionMode.Greater, PA.CarryItem) })
+            {
+                var tin = empty.AddTransition(swordIdle); tin.duration = 0.25f; tin.hasExitTime = false; tin.hasFixedDuration = true;
+                tin.AddCondition(AnimatorConditionMode.Equals, (int)Items.WeaponKind.Sword, "WeaponType");
+                tin.AddCondition(AnimatorConditionMode.If, 0, "CombatMode");
+                tin.AddCondition(AnimatorConditionMode.IfNot, 0, "IsAttacking");
+                tin.AddCondition(AnimatorConditionMode.IfNot, 0, "FullBodyBusy");
+                tin.AddCondition(mode, v, "Action");
+            }
+            Out(swordIdle, 0.25f).AddCondition(AnimatorConditionMode.NotEqual, (int)Items.WeaponKind.Sword, "WeaponType");
+            Out(swordIdle, 0.25f).AddCondition(AnimatorConditionMode.IfNot, 0, "CombatMode");
+            Out(swordIdle, 0.1f).AddCondition(AnimatorConditionMode.If, 0, "IsAttacking");
+            Out(swordIdle, 0.15f).AddCondition(AnimatorConditionMode.If, 0, "FullBodyBusy");
+            var su = Out(swordIdle, 0.2f); su.AddCondition(AnimatorConditionMode.Greater, PA.BowAim - 1, "Action"); su.AddCondition(AnimatorConditionMode.Less, PA.CarryItem + 1, "Action");
             // IK pass on the base layer: PlayerIK places the feet on the ground, turns the head, leans into turns
             var ls = ac.layers; ls[0].iKPass = true; ac.layers = ls;
             EditorUtility.SetDirty(ac);
             L($"Controller: {path} (states: {sm.states.Length} base + {usm.states.Length} upper body, params {ac.parameters.Length}, IK pass on)");
+            L("Controller: new states StrafeLocomotion (2D VelX/VelZ, on Strafe), Sword_Attack_1/2/3 + Sword_Heavy (Attack, speed x AttackSpeed); " +
+              "upper body Sword_Idle, Sword_Block, Sword_Equip, Sword_Unequip");
             return ac;
         }
     }

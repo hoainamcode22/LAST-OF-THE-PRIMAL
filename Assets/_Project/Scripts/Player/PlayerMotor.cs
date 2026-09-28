@@ -25,6 +25,9 @@ namespace PrimalFrontier.Player
         [Header("Feel")]
         public float acceleration = 10f;
         public float deceleration = 14f;
+        [Tooltip("stick magnitude that gives walk speed; above it the speed rises continuously to the mode's top speed")]
+        [Range(0.2f, 0.9f)] public float analogWalkAt = 0.5f;
+        [Tooltip("low-pass time of MeasuredPlanarSpeed (s)")] public float measuredSmooth = 0.08f;
         [Range(0, 1)] public float airControl = 0.25f;
         public float turnSpeed = 600f;           // deg/s towards the move direction (max)
         [Tooltip("seconds to settle on a new heading: the body swings round and eases in / out instead of snapping")]
@@ -53,14 +56,22 @@ namespace PrimalFrontier.Player
         public bool IsCrouching { get; private set; }
         public bool IsSprinting { get; private set; }
         public float VerticalVelocity => _vy;
+        /// <summary>commanded planar speed (m/s)</summary>
         public float PlanarSpeed => new Vector2(_vel.x, _vel.z).magnitude;
+        /// <summary>commanded planar velocity relative to the facing: x = right, z = forward (m/s)</summary>
+        public Vector3 LocalPlanarVelocity
+        {
+            get { var v = transform.InverseTransformDirection(new Vector3(_vel.x, 0f, _vel.z)); v.y = 0f; return v; }
+        }
+        /// <summary>planar distance the controller really moved per second (low-passed): walking into a wall reads ~0</summary>
+        public float MeasuredPlanarSpeed => _measured;
         public float TurnRate { get; private set; }                // deg/s, + = left
         public Vector3 GroundNormal { get; private set; } = Vector3.up;
         public string GroundTag { get; private set; } = "";
         public event System.Action Jumped;
         public event System.Action<float> Landed;                  // impact speed (m/s)
 
-        Vector3 _vel; float _vy; float _lastGrounded; float _jumpQueued = -1f; float _prevYaw; float _yawVel;
+        Vector3 _vel; float _vy; float _lastGrounded; float _jumpQueued = -1f; float _prevYaw; float _yawVel; float _measured;
         Vector3 _burst; float _burstUntil, _burstDur;
         /// <summary>short forced movement (dodge): velocity eases out over the duration, input and CanMove ignored</summary>
         public void Burst(Vector3 velocity, float seconds) { velocity.y = 0f; _burst = velocity; _burstDur = Mathf.Max(0.05f, seconds); _burstUntil = Time.time + _burstDur; }
@@ -102,8 +113,11 @@ namespace PrimalFrontier.Player
             bool wantSprint = _in != null && _in.Sprint && !IsCrouching && !AimMode && mv.y > 0.1f;
             IsSprinting = wantSprint && mag > 0.5f && (Stamina == null || Stamina.CanSprint) && IsGrounded;
             float top = IsCrouching ? crouchSpeed : AimMode ? walkSpeed : (_in != null && _in.Walk) ? walkSpeed : IsSprinting ? sprintSpeed : runSpeed;
-            // a gentle stick push walks; keyboard (magnitude 1) uses the full speed of the current mode
-            float speed = mag < 0.55f && !IsCrouching ? Mathf.Min(top, walkSpeed) * mag / 0.55f : top * (IsCrouching ? mag : 1f);
+            // analog: 0..walk up to analogWalkAt, then continuous up to the mode's top speed; keyboard (magnitude 1) = top
+            float walkTop = Mathf.Min(top, walkSpeed);
+            float speed = IsCrouching ? top * mag
+                : mag <= analogWalkAt ? walkTop * mag / analogWalkAt
+                : Mathf.Lerp(walkTop, top, (mag - analogWalkAt) / (1f - analogWalkAt));
             if (Stamina != null) speed *= Stamina.MoveSpeedMultiplier;
             Vector3 target = dir * speed;
             if (IsSprinting && Stamina != null) Stamina.DrainSprint(dt);
@@ -149,6 +163,9 @@ namespace PrimalFrontier.Player
                 float wanted = planar.magnitude * dt;
                 if ((flags & CollisionFlags.Sides) != 0 || Vector3.Dot(moved, planar.normalized) < wanted * 0.5f) TryStepUp(planar.normalized);
             }
+            // measured planar speed from this frame's real displacement (teleports / external moves excluded)
+            Vector3 disp = transform.position - p0; disp.y = 0f;
+            _measured += (disp.magnitude / dt - _measured) * (1f - Mathf.Exp(-dt / Mathf.Max(0.005f, measuredSmooth)));
             if ((flags & CollisionFlags.Above) != 0 && _vy > 0) _vy = 0f;
             bool wasGrounded = IsGrounded;
             ProbeGround();
@@ -228,8 +245,10 @@ namespace PrimalFrontier.Player
         public void Warp(Vector3 pos, Quaternion rot)
         {
             Controller.enabled = false; transform.SetPositionAndRotation(pos, rot); Controller.enabled = true;
-            _vel = Vector3.zero; _vy = 0f; _prevYaw = rot.eulerAngles.y;
+            _vel = Vector3.zero; _vy = 0f; _prevYaw = rot.eulerAngles.y; _measured = 0f;
         }
+
+        void OnDisable() { _measured = 0f; }                      // climbing / cutscenes: no stale measured speed
 
         public void AddImpulse(Vector3 v) { _vel += new Vector3(v.x, 0, v.z); _vy += v.y; }
         public void Stop() { _vel = Vector3.zero; }

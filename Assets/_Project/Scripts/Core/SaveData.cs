@@ -8,7 +8,7 @@ namespace PrimalFrontier.Core
     [Serializable]
     public class SaveData
     {
-        public const int CurrentVersion = 2;          // 2: water containers remember unboiled water (older saves load as clean)
+        public const int CurrentVersion = 3;          // 2: water containers remember unboiled water (older saves load as clean); 3: crafting queue
         public int version = CurrentVersion;
         public string savedAt;
         public float playSeconds;
@@ -21,6 +21,7 @@ namespace PrimalFrontier.Core
         public List<SlotData> inventory = new List<SlotData>();
         public int activeSlot;
         public List<string> knownRecipes = new List<string>();
+        public List<CraftJobData> craftQueue = new List<CraftJobData>();   // v3 (older saves: empty); ingredients were paid at enqueue
         // story
         public bool introDone; public int tutorialStep; public bool tutorialDone;
         public List<string> journal = new List<string>();
@@ -36,6 +37,7 @@ namespace PrimalFrontier.Core
     }
 
     [Serializable] public class SlotData { public int slot; public string item; public int count; public float durability; public int water; public bool dirty; }
+    [Serializable] public class CraftJobData { public string recipe; public float progress; }
     [Serializable] public class NodeData { public string id; public int remaining; public double emptyUntil; }
     [Serializable] public class TreeData { public int index; public double regrowAt; }
     [Serializable] public class DropData { public string item; public int count; public float durability; public int water; public bool dirty; public Vector3 pos; }

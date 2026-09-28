@@ -43,5 +43,13 @@ namespace PrimalFrontier.AI
         public bool heavyFootsteps = true;
         [Header("Journal")]
         public string journalId;
+        // ---- appended (hunting)
+        [Header("Hunting")]
+        [Tooltip("old behaviour: loot sprays as separate pickups around the body instead of a carcass to butcher")]
+        public bool sprayLoot;
+        [Tooltip("0 = flees in a straight line, 1 = strong zig-zag (harder to shoot)")]
+        [Range(0, 1)] public float fleeZigZag;
+        [Tooltip("multiplies sight and hearing range (1 = unchanged, > 1 = skittish)")]
+        [Min(0)] public float alertSensitivity = 1f;
     }
 }

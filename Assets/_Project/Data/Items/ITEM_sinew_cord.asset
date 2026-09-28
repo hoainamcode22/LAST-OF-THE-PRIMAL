@@ -1,0 +1,48 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 857d5e04a80595f49a772487b5593144, type: 3}
+  m_Name: ITEM_sinew_cord
+  m_EditorClassIdentifier: PrimalFrontier.Runtime::PrimalFrontier.Items.ItemDefinition
+  id: sinew_cord
+  displayName: Sinew Cord
+  description: Dried tendon cut from a hide and twisted into a strong, springy cord.
+    Strings a bow, stitches leather.
+  icon: {fileID: 21300000, guid: de326a0c28cfdc34380805d9880191d4, type: 3}
+  category: 0
+  maxStack: 20
+  weight: 0.1
+  worldPrefab: {fileID: 919132149155446097, guid: 7a03f69d69c2f394aa81ffd491ae2dc0, type: 3}
+  worldEuler: {x: 0, y: 0, z: 0}
+  handPrefab: {fileID: 0}
+  gripPosition: {x: 0, y: 0, z: 0}
+  gripEuler: {x: 0, y: 0, z: 0}
+  hunger: 0
+  thirst: 0
+  health: 0
+  stamina: 0
+  sicknessChance: 0
+  isHot: 0
+  cookedResult: {fileID: 0}
+  cookSeconds: 12
+  tool: 0
+  toolPower: 1
+  weapon: 0
+  damage: 0
+  heavyDamage: 0
+  staminaCost: 12
+  maxDurability: 0
+  ammo: {fileID: 0}
+  waterCharges: 0
+  placePrefab: {fileID: 0}
+  placeRadius: 1
+  lightRange: 0
+  weaponData: {fileID: 0}

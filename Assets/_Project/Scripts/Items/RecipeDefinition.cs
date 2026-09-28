@@ -25,5 +25,9 @@ namespace PrimalFrontier.Items
         [Tooltip("known from the start; otherwise unlocked by picking up one of its ingredients / a journal discovery")]
         public bool knownAtStart = true;
         [TextArea(1, 3)] public string hint;
+        [Tooltip("extra conditions (tool in the pack, station nearby, unlock day); empty = materials and station only")]
+        public CraftingRequirement[] requirements = Array.Empty<CraftingRequirement>();
+        [Tooltip("extra outputs beyond the main one; empty = main output only")]
+        public CraftingResult[] extraResults = Array.Empty<CraftingResult>();
     }
 }

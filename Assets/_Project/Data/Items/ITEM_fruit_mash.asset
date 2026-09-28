@@ -1,0 +1,48 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 857d5e04a80595f49a772487b5593144, type: 3}
+  m_Name: ITEM_fruit_mash
+  m_EditorClassIdentifier: PrimalFrontier.Runtime::PrimalFrontier.Items.ItemDefinition
+  id: fruit_mash
+  displayName: Fruit Mash
+  description: Wild fruit and berries stewed soft over the fire. Sweet, filling and
+    wet.
+  icon: {fileID: 21300000, guid: 8656819426b8bd34fb61b89e61c10005, type: 3}
+  category: 1
+  maxStack: 10
+  weight: 0.3
+  worldPrefab: {fileID: 919132149155446097, guid: 0aa54790c9398444899dcdc0d11573cf, type: 3}
+  worldEuler: {x: 0, y: 0, z: 0}
+  handPrefab: {fileID: 0}
+  gripPosition: {x: 0, y: 0, z: 0}
+  gripEuler: {x: 0, y: 0, z: 0}
+  hunger: 30
+  thirst: 12
+  health: 0
+  stamina: 0
+  sicknessChance: 0
+  isHot: 1
+  cookedResult: {fileID: 0}
+  cookSeconds: 12
+  tool: 0
+  toolPower: 1
+  weapon: 0
+  damage: 0
+  heavyDamage: 0
+  staminaCost: 12
+  maxDurability: 0
+  ammo: {fileID: 0}
+  waterCharges: 0
+  placePrefab: {fileID: 0}
+  placeRadius: 1
+  lightRange: 0
+  weaponData: {fileID: 0}

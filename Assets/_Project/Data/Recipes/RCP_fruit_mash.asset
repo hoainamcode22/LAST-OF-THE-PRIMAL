@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: da16c94d01ae979459249a8a00bd7eab, type: 3}
+  m_Name: RCP_fruit_mash
+  m_EditorClassIdentifier: PrimalFrontier.Runtime::PrimalFrontier.Items.RecipeDefinition
+  id: fruit_mash
+  category: 3
+  output: {fileID: 11400000, guid: bf2e100d6e69aa74bb9d06d7fa591ac8, type: 2}
+  outputCount: 1
+  ingredients:
+  - item: {fileID: 11400000, guid: f9c908383713a4b4187574c907f7091d, type: 2}
+    count: 2
+  - item: {fileID: 11400000, guid: a39086c099617d04f804da8e56e0bbcf, type: 2}
+    count: 3
+  craftSeconds: 12
+  station: 1
+  knownAtStart: 1
+  hint: 
+  requirements: []
+  extraResults: []

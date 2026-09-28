@@ -28,6 +28,12 @@ namespace PrimalFrontier.Animation
         public static readonly int HealthState = Animator.StringToHash("HealthState");     // int (PlayerHealthStates)
         public static readonly int TurnSpeed = Animator.StringToHash("TurnSpeed");         // deg/s, + = left (turn in place)
         public static readonly int IdleVariant = Animator.StringToHash("IdleVariant");     // trigger: play Idle_Variation once
+        public static readonly int CombatMode = Animator.StringToHash("CombatMode");       // bool: weapon out and fighting / aiming (WeaponAnimatorBridge)
+        public static readonly int WeaponType = Animator.StringToHash("WeaponType");       // int: WeaponKind of the weapon in hand (0 none, 1 spear, 2 bow, 3 knife, 4 sword)
+        public static readonly int IsMoving = Animator.StringToHash("IsMoving");           // bool: planar speed above a small threshold
+        public static readonly int AttackSpeed = Animator.StringToHash("AttackSpeed");     // float: attack clip speed multiplier (WeaponData.attackSpeed)
+        public static readonly int Strafe = Animator.StringToHash("Strafe");               // bool: facing locked to the camera (aim), 2D locomotion on VelX / VelZ
+        public static readonly int FullBodyBusy = Animator.StringToHash("FullBodyBusy");   // bool: base layer runs an action / attack / hurt / death / climb state
         // dinosaur
         public static readonly int Alert = Animator.StringToHash("Alert");                 // bool
     }
@@ -39,9 +45,12 @@ namespace PrimalFrontier.Animation
             Build = 9, UseItem = 10, Sleep = 11, WakeUp = 12, GetUp = 13,
             AttackSpear = 20, AttackSpearHeavy = 21, ThrowSpear = 22, SpearAttack2 = 23, KnifeAttack = 24,
             Dodge = 25,
-            BowAim = 30, BowDraw = 31, BowRelease = 32, CarryItem = 40;
+            SwordAttack1 = 26, SwordAttack2 = 27, SwordAttack3 = 28, SwordHeavy = 29,        // full body
+            BowAim = 30, BowDraw = 31, BowRelease = 32,
+            SwordBlock = 33, SwordEquip = 34, SwordUnequip = 35,                               // upper body (30..40)
+            CarryItem = 40;
         public static bool IsLooping(int a) => a == GatherWood || a == GatherStone || a == GatherPlant || a == Craft || a == Build || a == Sleep;
-        public static bool IsAttack(int a) => a >= AttackSpear && a <= KnifeAttack;
+        public static bool IsAttack(int a) => (a >= AttackSpear && a <= KnifeAttack) || (a >= SwordAttack1 && a <= SwordHeavy);
         public static bool IsUpperBody(int a) => a >= BowAim && a <= CarryItem;
     }
 

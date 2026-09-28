@@ -10,8 +10,9 @@ namespace PrimalFrontier.EditorTools
     /// Switches materials to the PRIMAL FRONTIER shaders (Assets/_Project/Shaders) after checking they compile.
     /// Every material is copied to Art/Materials/_Backup first (the original URP Lit set-up), so "restore" puts it back.
     /// Water: PF/Water on M_Ocean (the sea) with a generated tiling wave normal map; the pond / stream keep URP Lit.
+    /// Tree / bush wind (PF/Foliage Wind) and the night sky: PrimalShaderBuilder.Wind.cs.
     /// </summary>
-    public static class PrimalShaderBuilder
+    public static partial class PrimalShaderBuilder
     {
         const string Mats = "Assets/_Project/Art/Materials", Backup = "Assets/_Project/Art/Materials/_Backup", Tex = "Assets/_Project/Art/Textures";
         static readonly StringBuilder Log = new StringBuilder();

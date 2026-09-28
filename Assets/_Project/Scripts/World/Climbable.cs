@@ -28,13 +28,19 @@ namespace PrimalFrontier.World
         /// <summary>trunk centre at a height above the bottom (follows a leaning trunk)</summary>
         public Vector3 AxisAt(float h) => Vector3.Lerp(Bottom, Top, Mathf.Clamp01(h / Length));
 
-        public FruitCluster[] Fruits => GetComponentsInChildren<FruitCluster>();
+        FruitCluster[] _fruits; string _prompt, _fruitSub; int _fruitSubN = -1;
+        /// <summary>fruit on this tree (cached; refreshed when children change or by RefreshFruits)</summary>
+        public FruitCluster[] Fruits => _fruits ??= GetComponentsInChildren<FruitCluster>();
+        public void RefreshFruits() => _fruits = GetComponentsInChildren<FruitCluster>();
+        void Awake() => RefreshFruits();
+        void OnTransformChildrenChanged() => RefreshFruits();
 
         public override string GetPrompt(PlayerInteraction p, out string sub)
         {
-            int ripe = 0; foreach (var f in Fruits) if (f.Ripe) ripe++;
-            sub = ripe > 0 ? $"{ripe} bunch{(ripe > 1 ? "es" : "")} of fruit up high" : null;
-            return "Climb the " + displayName;
+            int ripe = 0; foreach (var f in Fruits) if (f && f.Ripe) ripe++;
+            if (ripe != _fruitSubN) { _fruitSubN = ripe; _fruitSub = ripe > 0 ? $"{ripe} bunch{(ripe > 1 ? "es" : "")} of fruit up high" : null; }
+            sub = _fruitSub;
+            return _prompt ??= "Climb the " + displayName;
         }
 
         public override bool CanInteract(PlayerInteraction p)

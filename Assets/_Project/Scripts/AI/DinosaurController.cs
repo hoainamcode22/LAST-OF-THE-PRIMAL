@@ -48,6 +48,13 @@ namespace PrimalFrontier.AI
 
         bool Herbivore => def.temperament == Temperament.Passive || def.temperament == Temperament.Defensive;
         public static void ResetSightings() => Sighted.Clear();
+        /// <summary>sight / hearing multiplier from the definition (0 or unset = 1)</summary>
+        float Alertness => def.alertSensitivity > 0f ? def.alertSensitivity : 1f;
+        float _zigPhase, _corpseAnimT;
+        const float ZigZagRate = 2.1f;               // rad/s: one side-to-side swing every ~3 s
+        const float CorpseAnimSeconds = 6f;          // death clip time before a mid-distance corpse stops animating
+        /// <summary>cached layer masks (nested static class: initialised on first use from Update, never during deserialisation)</summary>
+        static class Masks { internal static readonly int NotPlayer = ~LayerMask.GetMask("Player"); }
 
         void Awake()
         {
@@ -66,6 +73,7 @@ namespace PrimalFrontier.AI
             Health = def.maxHealth;
             if (home == Vector3.zero) home = transform.position;
             _dest = transform.position; _think = Random.value * 0.3f; _nextCall = Time.time + Random.Range(8f, 30f);
+            _zigPhase = Random.value * Mathf.PI * 2f;
             Snap();
             Enter(Random.value < 0.5f ? DinoState.Eat : DinoState.Idle);
         }
@@ -95,16 +103,16 @@ namespace PrimalFrontier.AI
         {
             if (!_player || !PlayerAlive) return false;
             Vector3 d = _player.position - transform.position; float dist = d.magnitude;
-            float range = def.sightRange * (_playerMotor && _playerMotor.IsCrouching ? 0.6f : 1f) * (TimeManager.Instance && TimeManager.Instance.IsNight ? 0.6f : 1f);
+            float range = def.sightRange * Alertness * (_playerMotor && _playerMotor.IsCrouching ? 0.6f : 1f) * (TimeManager.Instance && TimeManager.Instance.IsNight ? 0.6f : 1f);
             if (dist > range) return false;
             d.y = 0; if (Vector3.Angle(transform.forward, d) > def.fov * 0.5f && dist > def.bodyRadius * 3f) return false;
             Vector3 eye = transform.position + Vector3.up * Mathf.Max(1f, def.bodyRadius * 1.4f);
-            return !Physics.Linecast(eye, _player.position + Vector3.up * 1.4f, ~LayerMask.GetMask("Player"), QueryTriggerInteraction.Ignore) || dist < def.bodyRadius * 4f;
+            return !Physics.Linecast(eye, _player.position + Vector3.up * 1.4f, Masks.NotPlayer, QueryTriggerInteraction.Ignore) || dist < def.bodyRadius * 4f;
         }
         bool CanHear()
         {
             if (!_player || !PlayerAlive || !_playerMotor) return false;
-            float r = def.hearingRange * (_playerMotor.IsSprinting ? 1f : _playerMotor.IsCrouching ? 0.15f : _playerMotor.PlanarSpeed > 0.5f ? 0.45f : 0.1f);
+            float r = def.hearingRange * Alertness * (_playerMotor.IsSprinting ? 1f : _playerMotor.IsCrouching ? 0.15f : _playerMotor.PlanarSpeed > 0.5f ? 0.45f : 0.1f);
             return PlayerDist < r;
         }
 
@@ -117,8 +125,8 @@ namespace PrimalFrontier.AI
             FindPlayer();
             float dist = PlayerDist;
             int lod = dist < 90f ? 0 : dist < 200f ? 1 : 2;
-            if (lod != _lod) { _lod = lod; if (_anim) _anim.enabled = lod < 2 || State == DinoState.Dead; }
-            if (State == DinoState.Dead) return;
+            if (lod != _lod) { _lod = lod; if (_anim && State != DinoState.Dead) _anim.enabled = lod < 2; }
+            if (State == DinoState.Dead) { CorpseAnimator(lod); return; }
             if (lod == 2) { _lodT += Time.deltaTime; if (_lodT < 1f) return; }
             float dt = lod == 2 ? _lodT : Time.deltaTime; _lodT = 0f;
             _stateT += dt; _think -= dt;
@@ -201,7 +209,10 @@ namespace PrimalFrontier.AI
                 case DinoState.Flee:
                 {
                     Vector3 away = transform.position - _threat; away.y = 0; if (away.sqrMagnitude < 0.01f) away = transform.forward;
-                    _dest = transform.position + away.normalized * 20f;
+                    away.Normalize();
+                    // zig-zag prey: a sideways swing on top of the escape direction (harder to hit with arrows)
+                    if (def.fleeZigZag > 0f) away = (away + Vector3.Cross(Vector3.up, away) * (Mathf.Sin(_stateT * ZigZagRate + _zigPhase) * def.fleeZigZag * 1.2f)).normalized;
+                    _dest = transform.position + away * 20f;
                     Steer(_dest, def.runSpeed, dt);
                     if (_stateT > 9f || Vector3.Distance(transform.position, _threat) > def.fleeDistance) { _provoked = false; Enter(DinoState.Idle); }
                     break;
@@ -324,18 +335,42 @@ namespace PrimalFrontier.AI
         void Die()
         {
             Health = 0f; Enter(DinoState.Dead); _speed = 0f; _pendingHit = false;
-            if (_anim) { _anim.enabled = true; _anim.SetBool(DeadH, true); _anim.SetFloat(SpeedH, 0f); }
+            All.Remove(this);            // a body is no longer a live creature (tutorial, minimap, herd); OnDisable removes it again harmlessly
+            if (_anim)
+            {
+                // the corpse animator is paused when far: keep the Death state and the pose while it is disabled
+                _anim.keepAnimatorStateOnDisable = true; _anim.writeDefaultValuesOnDisable = false;
+                _anim.enabled = true; _anim.SetBool(DeadH, true); _anim.SetFloat(SpeedH, 0f); _corpseAnimT = 0f;
+            }
             PlayClip(def.deaths, 1f);
             BloodFX.Death(transform.position + transform.forward * def.bodyRadius * 0.4f, Mathf.Clamp(def.bodyRadius * 1.1f, 0.8f, 3.5f), transform);
             GameEvents.Raise(GameEventType.CreatureKilled, def.id, 1, transform.position);
-            // loot next to the body
-            var db = ItemDatabase.Instance;
-            if (db)
+            if (def.sprayLoot) SprayLoot();
+            else
             {
-                int i = 0;
-                void Drop(string id, int n) { var it = db.Item(id); if (it && n > 0) WorldPickup.Drop(it, n, transform.position + Quaternion.Euler(0, 70 * i++, 0) * transform.right * (def.bodyRadius + 0.8f) + Vector3.up * 0.5f); }
-                Drop("raw_meat", def.meat); Drop("hide", def.hide); Drop("bone", def.bone);
+                // the body becomes a carcass to butcher; it sinks and switches this object off when done (Carcass)
+                var c = GetComponent<Carcass>(); if (!c) c = gameObject.AddComponent<Carcass>();
+                c.Setup(def.displayName, def.id, def.meat, def.hide, def.bone);
             }
+        }
+
+        /// <summary>old loot path (DinosaurDefinition.sprayLoot): pickups in a ring next to the body</summary>
+        void SprayLoot()
+        {
+            var db = ItemDatabase.Instance;
+            if (!db) return;
+            int i = 0;
+            void Drop(string id, int n) { var it = db.Item(id); if (it && n > 0) WorldPickup.Drop(it, n, transform.position + Quaternion.Euler(0, 70 * i++, 0) * transform.right * (def.bodyRadius + 0.8f) + Vector3.up * 0.5f); }
+            Drop("raw_meat", def.meat); Drop("hide", def.hide); Drop("bone", def.bone);
+        }
+
+        /// <summary>the death clip plays near the player; a corpse stops animating when far (and at mid distance once the clip is over)</summary>
+        void CorpseAnimator(int lod)
+        {
+            if (!_anim) return;
+            bool run = lod == 0 || (lod == 1 && _corpseAnimT < CorpseAnimSeconds);
+            if (_anim.enabled != run) _anim.enabled = run;
+            if (run) _corpseAnimT += Time.deltaTime;
         }
 
         void OnGameEvent(GameEvent e)
@@ -397,7 +432,7 @@ namespace PrimalFrontier.AI
             Vector3 fwd = Quaternion.Euler(0, transform.eulerAngles.y, 0) * Vector3.forward;
             Vector3 ahead = transform.position + fwd * (def.bodyRadius * 2f + _speed * 0.6f);
             bool water = t && t.SampleHeight(ahead) + t.transform.position.y < 0.6f;
-            bool wall = Physics.SphereCast(transform.position + Vector3.up * def.bodyRadius, def.bodyRadius * 0.6f, fwd, out var hit, def.bodyRadius * 1.5f + _speed * 0.5f, ~LayerMask.GetMask("Player"), QueryTriggerInteraction.Ignore) && !hit.collider.transform.IsChildOf(transform) && !(hit.collider is TerrainCollider);
+            bool wall = Physics.SphereCast(transform.position + Vector3.up * def.bodyRadius, def.bodyRadius * 0.6f, fwd, out var hit, def.bodyRadius * 1.5f + _speed * 0.5f, Masks.NotPlayer, QueryTriggerInteraction.Ignore) && !hit.collider.transform.IsChildOf(transform) && !(hit.collider is TerrainCollider);
             if (!water && !wall) return false;
             Vector3 right = Vector3.Cross(Vector3.up, fwd);
             avoid = (Vector3.Dot(right, home - transform.position) > 0 ? right : -right) + fwd * 0.2f;

@@ -17,6 +17,12 @@ namespace PrimalFrontier.Animation
         [Tooltip("Log every received event (debug).")]
         [SerializeField] private bool logEvents;
 
+        /// <summary>
+        /// blend weight of the clip that fired the event being raised (1 when unknown). Blend trees fire the events of
+        /// every clip they mix, so listeners can ignore the quiet ones (PlayerFeedback: footsteps below 0.5).
+        /// </summary>
+        public float EventClipWeight { get; private set; } = 1f;
+
         private void Raise(string name, string param)
         {
             if (logEvents) Debug.Log($"[AnimEvent] {name}({param}) on {name}", this);
@@ -24,7 +30,13 @@ namespace PrimalFrontier.Animation
         }
 
         // locomotion
-        public void OnFootstep(string foot) => Raise(nameof(OnFootstep), foot);
+        /// <summary>takes the AnimationEvent (not just the string) so the clip's blend weight reaches the listeners</summary>
+        public void OnFootstep(AnimationEvent e)
+        {
+            EventClipWeight = e != null && e.isFiredByAnimator ? e.animatorClipInfo.weight : 1f;
+            Raise(nameof(OnFootstep), e != null ? e.stringParameter : "");
+            EventClipWeight = 1f;
+        }
         public void OnJumpTakeoff(string p) => Raise(nameof(OnJumpTakeoff), p);
         public void OnLand(string p) => Raise(nameof(OnLand), p);
         // survival / interaction
@@ -37,8 +49,17 @@ namespace PrimalFrontier.Animation
         public void OnBuildHit(string p) => Raise(nameof(OnBuildHit), p);
         public void OnUseItem(string p) => Raise(nameof(OnUseItem), p);
         public void OnWakeUp(string p) => Raise(nameof(OnWakeUp), p);
+        public void OnHarvest(string p) => Raise(nameof(OnHarvest), p);
         // combat
         public void OnAttackHit(string p) => Raise(nameof(OnAttackHit), p);
+        /// <summary>end of the attack's startup (the swing begins)</summary>
+        public void OnAttackStart(string p) => Raise(nameof(OnAttackStart), p);
+        /// <summary>the weapon hitbox turns on</summary>
+        public void OnAttackActive(string p) => Raise(nameof(OnAttackActive), p);
+        /// <summary>the weapon hitbox turns off (recovery starts)</summary>
+        public void OnAttackEnd(string p) => Raise(nameof(OnAttackEnd), p);
+        /// <summary>equip / unequip: the item moves between the carry socket and the hand</summary>
+        public void OnEquip(string p) => Raise(nameof(OnEquip), p);
         public void OnWeaponImpact(string p) => Raise(nameof(OnWeaponImpact), p);
         public void OnThrowRelease(string p) => Raise(nameof(OnThrowRelease), p);
         public void OnBowDrawStart(string p) => Raise(nameof(OnBowDrawStart), p);

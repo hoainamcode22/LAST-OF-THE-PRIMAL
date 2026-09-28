@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: da16c94d01ae979459249a8a00bd7eab, type: 3}
+  m_Name: RCP_flint_sword
+  m_EditorClassIdentifier: PrimalFrontier.Runtime::PrimalFrontier.Items.RecipeDefinition
+  id: flint_sword
+  category: 1
+  output: {fileID: 11400000, guid: aebba6ef0a7faeb4283f277a8841f9f1, type: 2}
+  outputCount: 1
+  ingredients:
+  - item: {fileID: 11400000, guid: b44ddd1d863e4de47a95118bf8fd7b5d, type: 2}
+    count: 3
+  - item: {fileID: 11400000, guid: ca2e9c055f09a6a43ad2df7d8073fb1e, type: 2}
+    count: 3
+  - item: {fileID: 11400000, guid: 16f78fa5728212b408161f8128464e02, type: 2}
+    count: 2
+  craftSeconds: 8
+  station: 0
+  knownAtStart: 0
+  hint: Needs sharpened flint for the blade.
+  requirements:
+  - tool: 12
+    nearStation: 0
+    minDay: 0
+  extraResults: []

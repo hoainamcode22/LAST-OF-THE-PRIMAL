@@ -52,6 +52,10 @@ namespace PrimalFrontier.Items
         [Header("Light")]
         public float lightRange;                       // torch
 
+        [Header("Weapon data")]
+        [Tooltip("combat numbers, attack chain, grip and feedback (PrimalWeaponBuilder). Empty = the legacy PlayerCombat path")]
+        public Combat.Weapons.WeaponData weaponData;
+
         public bool IsFood => hunger > 0f || thirst > 0f || health > 0f;
         public bool IsPlaceable => placePrefab != null;
         public bool IsWaterContainer => waterCharges > 0;

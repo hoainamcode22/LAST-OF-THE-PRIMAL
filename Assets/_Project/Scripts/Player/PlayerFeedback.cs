@@ -15,6 +15,8 @@ namespace PrimalFrontier.Player
     public class PlayerFeedback : MonoBehaviour
     {
         public float footstepMinSpeed = 0.3f;
+        [Tooltip("blend trees fire the footsteps of every clip they mix: steps from clips weighted below this are ignored")]
+        [Range(0, 1)] public float footstepMinClipWeight = 0.5f;
         [Tooltip("set by interaction code: where the tool hits (tree / rock / plant) for gather debris")]
         public Vector3? ActionFocusPoint { get; set; }
         public Vector3 ActionFocusNormal { get; set; } = Vector3.up;
@@ -60,7 +62,7 @@ namespace PrimalFrontier.Player
         {
             switch (fn)
             {
-                case "OnFootstep": Footstep(param == "R"); break;
+                case "OnFootstep": if (_ev.EventClipWeight >= footstepMinClipWeight) Footstep(param == "R"); break;
                 case "OnGatherHit": Gather(param); break;
                 case "OnCraftTick":
                     Fx.Play(VfxId.CraftDust, HandsMid, Vector3.up); Sfx.Play(SfxId.Craft, HandsMid, 0.7f);

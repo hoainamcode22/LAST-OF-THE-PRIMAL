@@ -14,7 +14,7 @@ namespace PrimalFrontier.Core
 {
     /// <summary>
     /// Writes / reads SaveData as JSON in persistentDataPath (atomic: temp file then replace). Captures player,
-    /// inventory, recipes, time, weather, journal, tutorial, resource nodes, trees, pickups, loot, structures.
+    /// inventory, recipes, crafting queue, time, weather, journal, tutorial, resource nodes, trees, pickups, loot, structures.
     /// Unknown item ids are skipped (never crash on an old save), newer versions are refused.
     /// </summary>
     public static class SaveSystem
@@ -101,6 +101,7 @@ namespace PrimalFrontier.Core
                 var sv = p.GetComponent<PlayerSurvival>(); d.hunger = sv.Hunger; d.thirst = sv.Thirst; d.stamina = sv.Stamina; d.bodyTemp = sv.BodyTemperature; d.wetness = sv.Wetness;
                 var inv = p.GetComponent<InventorySystem>(); d.inventory = Slots(inv); d.activeSlot = inv.ActiveSlot;
                 var cr = p.GetComponent<CraftingSystem>(); d.knownRecipes = cr.KnownIds.ToList();
+                foreach (var (id, progress) in cr.GetQueueForSave()) d.craftQueue.Add(new CraftJobData { recipe = id, progress = progress });
             }
             d.hasRespawn = gm.HasRespawn; d.respawnPos = gm.RespawnPoint;
             d.introDone = gm.IntroDone;
@@ -141,6 +142,8 @@ namespace PrimalFrontier.Core
         public static void Apply(GameManager gm, SaveData d)
         {
             var db = ItemDatabase.Instance;
+            // the reset before a load refunds the old crafting queue; whatever did not fit was spilled on the ground: not part of the save
+            WorldPickup.ClearDropped();
             var tm = TimeManager.Instance; if (tm) tm.Set(Mathf.Max(1, d.day), d.hour);
             GameClock.Now = d.clock;
             var wm = WeatherManager.Instance;
@@ -154,6 +157,9 @@ namespace PrimalFrontier.Core
                 p.GetComponent<PlayerSurvival>().SetStats(d.hunger, d.thirst, d.stamina, d.bodyTemp > 1f ? d.bodyTemp : 37f, d.wetness);
                 var inv = p.GetComponent<InventorySystem>(); FillSlots(inv, d.inventory, db); inv.SetActiveSlot(d.activeSlot);
                 var cr = p.GetComponent<CraftingSystem>(); if (d.knownRecipes != null && d.knownRecipes.Count > 0) cr.SetKnown(d.knownRecipes);
+                if (db != null) foreach (var r in db.recipes) if (r && r.knownAtStart) cr.Learn(r, false);   // recipes added after the save was made
+                // the queued jobs were paid when queued: restore them as they were (replaces any queue from before the load, no refund)
+                cr.RestoreQueue(d.craftQueue != null ? d.craftQueue.Where(q => q != null).Select(q => (q.recipe, q.progress)) : null, db);
             }
             gm.SetRespawn(d.hasRespawn, d.respawnPos);
             gm.IntroDone = d.introDone;

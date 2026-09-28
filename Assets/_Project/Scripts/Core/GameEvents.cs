@@ -24,6 +24,8 @@ namespace PrimalFrontier.Core
         GameSaved, GameLoaded,
         // phase 2 (appended: stored as ints in journal pages)
         PlayerDodged, ClimbStarted, FruitHarvested, WaterBoiled, GotSick, VolcanoRumble,
+        // hunting (appended)
+        CarcassButchered,
     }
 
     /// <summary>One gameplay fact ("added 3 wood", "entered cave", "lit a fire"). Tutorial, journal, audio and UI listen.</summary>

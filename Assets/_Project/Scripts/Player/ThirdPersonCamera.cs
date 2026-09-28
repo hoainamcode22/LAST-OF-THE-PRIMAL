@@ -29,6 +29,9 @@ namespace PrimalFrontier.Player
         [Tooltip("layers ignored by the collision probe (player, dinos, triggers...)")]
         public LayerMask ignoreMask;
         public float returnSpeed = 3f;           // m/s the camera eases back out after a collision
+        [Header("Camera target (player child \"CameraTarget\")")]
+        [Tooltip("how far the CameraTarget drops while the player crouches (m)")] public float crouchDrop = 0.5f;
+        [Tooltip("how fast it moves down / up (1/s)")] public float crouchLowerSpeed = 6f;
 
         public float Yaw { get; set; }
         public float Pitch { get; set; } = 12f;
@@ -43,6 +46,7 @@ namespace PrimalFrontier.Player
         /// <summary>manual extra offset (cinematics), added to the automatic ones</summary>
         public Vector2 ModeOffset { get; set; }
         Vector2 _mode; PlayerClimb _climb; PlayerCombat _combat;
+        Transform _camTarget, _camTargetOwner, _camTargetBaseOf; Vector3 _camTargetBase; PlayerMotor _motor; int _camTargetRetry;
         float _shakeAmp, _shakeTime, _shakeDur;
 
         /// <summary>short, damped positional shake (hits, heavy footsteps nearby)</summary>
@@ -97,7 +101,7 @@ namespace PrimalFrontier.Player
             float sh = Mathf.Lerp(shoulder, aimShoulder, b);
             if (_cam) _cam.fieldOfView = Mathf.Lerp(fov, aimFov, b);
 
-            Vector3 goal = target.position + pivotOffset;
+            Vector3 goal = PivotGoal(dt);
             _pivot = Vector3.SmoothDamp(_pivot, goal, ref _pivotVel, followSmooth);
             if ((goal - _pivot).sqrMagnitude > 25f) _pivot = goal;                   // teleports
 
@@ -119,6 +123,36 @@ namespace PrimalFrontier.Player
                 shake = rot * new Vector3(Mathf.PerlinNoise(t, 0.3f) - 0.5f, Mathf.PerlinNoise(0.7f, t) - 0.5f, 0f) * 2f * k;
             }
             transform.SetPositionAndRotation(shoulderPos + back * _curDist + shake, rot);
+        }
+
+        /// <summary>
+        /// target + pivotOffset, moved by how far the player's CameraTarget child is from its rest place: standing it is
+        /// the old pivot exactly; crouching lowers the CameraTarget (and so the camera) smoothly
+        /// </summary>
+        Vector3 PivotGoal(float dt)
+        {
+            Vector3 goal = target.position + pivotOffset;
+            if (_camTargetOwner != target) { _camTarget = null; ResolveCameraTarget(); }
+            if (!_camTarget) return goal;
+            float wantY = _camTargetBase.y - (_motor && _motor.IsCrouching ? crouchDrop : 0f);
+            Vector3 lp = _camTarget.localPosition;
+            if (Mathf.Abs(lp.y - wantY) > 1e-4f)
+            {
+                lp.y = Mathf.Lerp(lp.y, wantY, 1f - Mathf.Exp(-crouchLowerSpeed * dt));
+                _camTarget.localPosition = lp;
+            }
+            return goal + target.rotation * (lp - _camTargetBase);
+        }
+
+        void ResolveCameraTarget()
+        {
+            if (_camTargetRetry > 0) { _camTargetRetry--; return; }
+            _camTarget = target.Find("CameraTarget");
+            if (!_camTarget && target.TryGetComponent(out PlayerHierarchy h)) _camTarget = h.CameraTarget;
+            if (!_camTarget) { _camTargetRetry = 30; return; }            // not built yet: look again in a moment
+            _camTargetOwner = target;
+            if (_camTargetBaseOf != _camTarget) { _camTargetBaseOf = _camTarget; _camTargetBase = _camTarget.localPosition; }   // rest height, kept across target switches
+            target.TryGetComponent(out _motor);
         }
     }
 }

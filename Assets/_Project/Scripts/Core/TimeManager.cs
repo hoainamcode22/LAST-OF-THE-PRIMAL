@@ -7,7 +7,8 @@ namespace PrimalFrontier.Core
     /// <summary>
     /// Day / night: sun path, light colour and intensity, trilight ambient, fog, sky exposure. One in-game hour lasts
     /// <see cref="secondsPerHour"/> real seconds (36 min per day by default). Raises NightStarted / DayStarted.
-    /// Air temperature for survival comes from here (warm afternoon, cool night).
+    /// Air temperature for survival comes from here (warm afternoon, cool night). Sets the global shader value
+    /// _PF_NightFactor (0 while the sun is well up .. 1 at night; stars, heat shimmer).
     /// </summary>
     public class TimeManager : MonoBehaviour
     {
@@ -26,9 +27,12 @@ namespace PrimalFrontier.Core
 
         public bool IsNight => hour >= sunsetHour + 0.5f || hour < sunriseHour;
         public float Daylight01 { get; private set; }
+        /// <summary>0 while the sun is well up (above about 10 degrees), rising through dusk to 1 at night</summary>
+        public float NightFactor { get; private set; }
         public event Action NightStarted, DayStarted;
         public event Action<int> NewDay;
         bool _wasNight; Material _sky;
+        static readonly int NightId = Shader.PropertyToID("_PF_NightFactor");
 
         void Awake()
         {
@@ -111,6 +115,9 @@ namespace PrimalFrontier.Core
             bool day = u >= 0f && u <= 1f;
             float elev = day ? Mathf.Sin(u * Mathf.PI) : 0f;
             Daylight01 = Mathf.Clamp01(elev * 3f);
+            float nf = day ? 1f - Mathf.Clamp01(elev * 6f) : 1f;
+            NightFactor = nf * nf;
+            Shader.SetGlobalFloat(NightId, NightFactor);
             if (sun)
             {
                 float pitch = day ? Mathf.Lerp(4f, 176f, u) : Mathf.Lerp(10f, 170f, Mathf.Repeat((hour - sunsetHour) / (24f - dayLen), 1f));

@@ -62,7 +62,16 @@ namespace PrimalFrontier.Tests
             raptor.TakeHit(new HitInfo { damage = 500f, point = raptor.transform.position + Vector3.up, direction = Vector3.forward, attacker = player });
             Assert.IsFalse(raptor.IsAlive, "raptor dies");
             yield return new WaitForSeconds(2f);
-            Assert.GreaterOrEqual(World.WorldPickup.Dropped.Count, 1, "loot dropped");
+            if (raptor.def.sprayLoot) { Assert.GreaterOrEqual(World.WorldPickup.Dropped.Count, 1, "loot dropped"); yield break; }
+            // loot stays on the body as a carcass; cutting it gives the items
+            var carcass = raptor.GetComponent<World.Carcass>();
+            Assert.IsNotNull(carcass, "the body is left as a carcass to butcher");
+            Assert.Greater(carcass.Remaining, 0, "carcass holds the loot");
+            var meat = Items.ItemDatabase.Instance.Item("raw_meat");
+            var inv = player.GetComponent<Items.InventorySystem>(); int before = inv.Count(meat);
+            var pi = player.GetComponent<PlayerInteraction>();
+            for (int i = 0; i < carcass.handCutsPerItem; i++) carcass.Hit(pi);
+            Assert.AreEqual(before + 1, inv.Count(meat), "butchering gives meat");
         }
 
         [UnityTest] public IEnumerator Herbivores_Flee_From_Predator_Warning()

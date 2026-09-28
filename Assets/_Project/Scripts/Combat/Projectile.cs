@@ -1,6 +1,7 @@
 using UnityEngine;
 using PrimalFrontier.Animation;
 using PrimalFrontier.Audio;
+using PrimalFrontier.Combat.Weapons;
 using PrimalFrontier.Core;
 using PrimalFrontier.Items;
 using PrimalFrontier.VFX;
@@ -10,7 +11,9 @@ namespace PrimalFrontier.Combat
 {
     /// <summary>
     /// Thrown spear / arrow: simple ballistic flight with raycasts between frames (no rigidbody), damage on hit,
-    /// then it lies where it landed as a pickup (spear always, arrow 60 %).
+    /// then it lies where it landed as a pickup (spear always, arrow 60 %). Instances come from ProjectilePool and go
+    /// back to it when they land (state is reset on every launch). Creatures bleed on their own, so a hit on flesh
+    /// plays the flesh sound instead of the dust / splinter impact.
     /// </summary>
     public class Projectile : MonoBehaviour
     {
@@ -19,18 +22,20 @@ namespace PrimalFrontier.Combat
         public float recoverChance = 1f;
         Vector3 _vel; HitInfo _hit; ItemStack _stack; GameObject _owner; float _t; int _mask; bool _done;
         VfxId _impactFx; SfxId _impactSfx;
+        static int _defaultMask = -1;
+        /// <summary>set by ProjectilePool: the pool stack this instance returns to (null = not pooled, destroyed on landing)</summary>
+        public Object PoolKey { get; set; }
 
         public static Projectile Launch(ItemStack stack, Vector3 pos, Vector3 velocity, HitInfo hit, GameObject owner, float recoverChance, bool isArrow)
         {
-            var item = stack.item;
-            GameObject go = item.handPrefab ? Instantiate(item.handPrefab) : GameObject.CreatePrimitive(PrimitiveType.Capsule);
-            go.name = "Projectile_" + item.id;
-            foreach (var c in go.GetComponentsInChildren<Collider>()) Destroy(c);
-            var p = go.AddComponent<Projectile>();
-            p._vel = velocity; p._hit = hit; p._stack = stack; p._owner = owner; p.recoverChance = recoverChance;
-            p._mask = ~LayerMask.GetMask("Player", "Ignore Raycast");
+            var item = stack != null ? stack.item : null;
+            var p = ProjectilePool.Get(item ? item.handPrefab : null);
+            p._vel = velocity; p._hit = hit; p._stack = item ? stack : null; p._owner = owner; p.recoverChance = recoverChance;
+            p._t = 0f; p._done = false;
+            if (_defaultMask == -1) _defaultMask = ~LayerMask.GetMask("Player", "Ignore Raycast");
+            p._mask = _defaultMask;
             p._impactFx = isArrow ? VfxId.ArrowImpact : VfxId.SpearImpact; p._impactSfx = isArrow ? SfxId.ArrowImpact : SfxId.SpearImpact;
-            go.transform.position = pos; p.Orient();
+            p.transform.position = pos; p.Orient();
             return p;
         }
 
@@ -57,15 +62,21 @@ namespace PrimalFrontier.Combat
             _done = true;
             var zone = rh.collider.GetComponent<HitZone>();
             var dmg = rh.collider.GetComponentInParent<IDamageable>();
+            bool flesh = false;
             if (dmg != null && dmg.IsAlive)
             {
+                flesh = WeaponHitbox.IsFlesh(dmg);
                 var h = _hit; h.point = rh.point; h.direction = _vel.normalized; h.zoneMultiplier = zone ? zone.DamageMultiplier : 1f; h.ranged = true;
                 h.damage *= h.zoneMultiplier * Mathf.Clamp(_vel.magnitude / 20f, 0.6f, 1.2f);
                 dmg.TakeHit(h);
                 GameEvents.Raise(GameEventType.CreatureHit, (dmg as Component) ? ((Component)dmg).name : "creature", Mathf.RoundToInt(h.damage), rh.point);
             }
-            VfxPool.Instance.Play(_impactFx, rh.point, rh.normal);
-            SfxPlayer.Instance.Play(_impactSfx, rh.point);
+            if (flesh) SfxPlayer.Instance.Play(SfxId.HitFlesh, rh.point, 0.8f);           // blood comes from the creature
+            else
+            {
+                VfxPool.Instance.Play(_impactFx, rh.point, rh.normal);
+                SfxPlayer.Instance.Play(_impactSfx, rh.point);
+            }
             if (rh.collider is TerrainCollider || dmg == null) Land(rh.point, true);
             else Land(rh.point + rh.normal * 0.3f, false);                           // falls off the animal
         }
@@ -82,7 +93,9 @@ namespace PrimalFrontier.Combat
                     if (pk && stuck) pk.transform.rotation = transform.rotation;         // stays stuck in the ground at its angle
                 }
             }
-            Destroy(gameObject);
+            _stack = null; _owner = null;
+            if (PoolKey != null) ProjectilePool.Return(this);
+            else Destroy(gameObject);
         }
     }
 }

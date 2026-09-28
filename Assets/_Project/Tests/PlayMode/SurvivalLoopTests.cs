@@ -18,11 +18,11 @@ namespace PrimalFrontier.Tests
     {
         static ItemDatabase Db => ItemDatabase.Instance;
 
-        [Test] public void Database_Has_Items_And_15_To_25_Recipes()
+        [Test] public void Database_Has_Items_And_15_To_40_Recipes()
         {
             Assert.IsNotNull(Db, "Resources/ItemDatabase");
             Assert.GreaterOrEqual(Db.items.Count, 15);
-            Assert.That(Db.recipes.Count, Is.InRange(15, 25));
+            Assert.That(Db.recipes.Count, Is.InRange(15, 40));                  // upgrade: resources, sword, bow, bandage...
             foreach (var id in new[] { "stone_axe", "stone_pick", "flint_knife", "stone_spear", "torch", "campfire", "water_container", "shelter", "storage", "bedroll", "bow", "arrows" })
                 Assert.IsNotNull(Db.Recipe(id), "recipe " + id);
             foreach (var it in Db.items) { Assert.IsNotNull(it.icon, "icon " + it.id); }

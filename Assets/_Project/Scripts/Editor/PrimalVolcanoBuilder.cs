@@ -16,6 +16,8 @@ namespace PrimalFrontier.EditorTools
     /// sea from the start beach under [World]/Landmarks (or a new Landmarks root). Scenery only: no collider, the
     /// playable island is unchanged. Safe to run again: an existing placed volcano is kept (arg "prefab" only rebuilds
     /// the prefab).
+    /// Atmosphere: ash flakes (M_VFX_Chip) and the heat shimmer (PF/Heat Shimmer, M_VFX_HeatShimmer) on the placed
+    /// VolcanoLandmark, which builds both effects at run time; arg "off" switches them off again.
     /// </summary>
     public static class PrimalVolcanoBuilder
     {
@@ -139,6 +141,7 @@ namespace PrimalFrontier.EditorTools
                 }
                 vl.flowGlows = flows.ToArray();
                 vl.lava = m.GetComponentsInChildren<Renderer>(true).FirstOrDefault(r => r.name.Contains("Lava"));
+                vl.ashMaterial = AshMat(); vl.hazeMaterial = HazeMat();
                 Directory.CreateDirectory(Path.GetDirectoryName(PrefabPath));
                 var p = PrefabUtility.SaveAsPrefabAsset(root, PrefabPath);
                 L("prefab " + PrefabPath);
@@ -223,6 +226,59 @@ namespace PrimalFrontier.EditorTools
             var e = ps.emission; e.rateOverTime = 0f; e.SetBursts(new[] { new ParticleSystem.Burst(0f, 1) });
             var sh = ps.shape; sh.enabled = false;
             return ps;
+        }
+
+        /// <summary>ash flake + heat shimmer materials on the placed volcano; arg "off" turns both effects off</summary>
+        [PrimalBridgeCommand]
+        public static string Atmosphere(string arg)
+        {
+            Log.Clear();
+            if (EditorApplication.isPlayingOrWillChangePlaymode) return "stop Play mode first";
+            var scene = EditorSceneManager.GetActiveScene();
+            if (scene.path != Scene)
+            {
+                if (scene.isDirty) return "the open scene has unsaved changes: save it or open " + Scene + ", then run again";
+                scene = EditorSceneManager.OpenScene(Scene, OpenSceneMode.Single);
+            }
+            bool wasDirty = scene.isDirty;
+            var vl = Object.FindFirstObjectByType<VolcanoLandmark>();
+            if (!vl) return "no VolcanoLandmark in the scene (run PrimalVolcanoBuilder.Build first)";
+            bool off = arg == "off";
+            vl.ashFall = !off; vl.heatHaze = !off;
+            if (!off)
+            {
+                vl.ashMaterial = AshMat(); vl.hazeMaterial = HazeMat();
+                L(vl.ashMaterial ? "ash fall: " + vl.ashMaterial.name : "ash fall: no M_VFX_Chip / M_VFX_Soft, uses the smoke plume's material");
+                L(vl.hazeMaterial ? "heat shimmer: " + vl.hazeMaterial.name : "heat shimmer: PF/Heat Shimmer missing or not compiling, stays off");
+            }
+            else L("ash fall and heat shimmer off (VolcanoLandmark.ashFall / heatHaze)");
+            EditorUtility.SetDirty(vl);
+            if (PrefabUtility.IsPartOfPrefabInstance(vl)) PrefabUtility.RecordPrefabInstancePropertyModifications(vl);
+            EditorSceneManager.MarkSceneDirty(scene);
+            if (wasDirty) L("the scene had other unsaved changes: NOT saved, save it yourself");
+            else { EditorSceneManager.SaveScene(scene); L("scene saved"); }
+            AssetDatabase.SaveAssets();
+            return Log.ToString();
+        }
+
+        static Material AshMat()
+        {
+            var m = Vfx("M_VFX_Chip");
+            return m ? m : Vfx("M_VFX_Soft");
+        }
+
+        /// <summary>M_VFX_HeatShimmer on PF/Heat Shimmer, or null when the shader is missing / has errors (no shimmer then)</summary>
+        static Material HazeMat()
+        {
+            var sh = Shader.Find("PF/Heat Shimmer");
+            if (!sh || ShaderUtil.ShaderHasError(sh)) { L(ShaderCheck("PF/Heat Shimmer").TrimEnd()); return null; }
+            const string dir = "Assets/_Project/VFX/Materials", p = dir + "/M_VFX_HeatShimmer.mat";
+            if (!AssetDatabase.IsValidFolder(dir)) { Directory.CreateDirectory(dir); AssetDatabase.Refresh(); }
+            var m = AssetDatabase.LoadAssetAtPath<Material>(p);
+            if (!m) { m = new Material(sh) { name = "M_VFX_HeatShimmer" }; AssetDatabase.CreateAsset(m, p); L("material M_VFX_HeatShimmer"); }
+            m.shader = sh;
+            EditorUtility.SetDirty(m);
+            return m;
         }
 
         static void PlaceInScene(GameObject prefab)

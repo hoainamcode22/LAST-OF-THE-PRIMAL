@@ -2,12 +2,14 @@ using UnityEngine;
 using PrimalFrontier.Animation;
 using PrimalFrontier.Combat;
 using PrimalFrontier.Core;
+using PrimalFrontier.World;
 
 namespace PrimalFrontier.AI
 {
     /// <summary>
     /// Background life that must not interfere with the land loop: pteranodons circling over the coast (fly / glide)
-    /// and a mosasaur patrolling offshore. Simple parametric paths, cheap, no pathfinding. Can be hit and killed.
+    /// and a mosasaur patrolling offshore. Simple parametric paths, cheap, no pathfinding. Can be hit and killed;
+    /// a species with meat leaves a Carcass to butcher (a flyer falls to the ground first).
     /// </summary>
     public class AmbientCreature : MonoBehaviour, IDamageable
     {
@@ -23,7 +25,8 @@ namespace PrimalFrontier.AI
         {
             if (!GetComponent<DinoLife>()) gameObject.AddComponent<DinoLife>();     // eyes blink
             if (center == Vector3.zero) center = swimmer ? transform.position : transform.position - Vector3.up * altitude;
-            _anim = GetComponent<Animator>(); _a = Random.Range(0f, Mathf.PI * 2f); _dir = Random.value < 0.5f ? 1f : -1f;
+            _anim = GetComponent<Animator>(); if (!_anim) _anim = GetComponentInChildren<Animator>();
+            _a = Random.Range(0f, Mathf.PI * 2f); _dir = Random.value < 0.5f ? 1f : -1f;
             _health = def ? def.maxHealth : 60f;
             if (_anim && !swimmer) { _anim.SetInteger(AnimParams.ActionType, 20); _anim.SetTrigger(AnimParams.Action); }
         }
@@ -82,6 +85,11 @@ namespace PrimalFrontier.AI
             {
                 _dead = true; if (_anim) _anim.SetBool(AnimParams.Dead, true);
                 GameEvents.Raise(GameEventType.CreatureKilled, def ? def.id : name, 1, transform.position);
+                if (def && def.meat > 0)
+                {
+                    var c = GetComponent<Carcass>(); if (!c) c = gameObject.AddComponent<Carcass>();
+                    c.Setup(def.displayName, def.id, def.meat, def.hide, def.bone);
+                }
             }
             else _dir = -_dir;
         }

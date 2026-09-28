@@ -14,6 +14,12 @@ namespace PrimalFrontier.Player
     {
         public Animator animator;
         public float speedDamp = 0.08f;
+        [Tooltip("damping of VelX / VelZ (2D strafe locomotion)")] public float velDamp = 0.1f;
+        [Tooltip("the Animator's IsGrounded goes false only after this long off the ground (steps and bumps do not play Fall)")]
+        public float fallDelay = 0.12f;
+        [Tooltip("...or once the body is this far below the last ground (m)")] public float fallDrop = 0.6f;
+        bool _paramsKnown, _hasVel, _hasIsMoving, _hasStrafe, _hasBodyBusy;
+        float _airT, _lastGroundY;
         [Tooltip("seconds of standing still before an idle variation (look around, shift weight) plays; random in this range")]
         public Vector2 idleVariationEvery = new Vector2(7f, 14f);
         float _idleT, _idleNext = 9f; int _hasIdleVariant = -1;
@@ -35,6 +41,7 @@ namespace PrimalFrontier.Player
             _motor = GetComponent<PlayerMotor>();
             if (!animator) animator = GetComponentInChildren<Animator>();
             if (animator && !animator.GetComponent<PlayerIK>()) animator.gameObject.AddComponent<PlayerIK>();   // feet on the ground, head looks, lean
+            if (animator && !animator.GetComponent<TwistBoneDriver>()) animator.gameObject.AddComponent<TwistBoneDriver>(); // forearm twist (off without twist bones)
             if (!GetComponent<PlayerState>()) gameObject.AddComponent<PlayerState>();                         // what the player is doing (read-only)
             if (!GetComponent<PlayerWetLook>()) gameObject.AddComponent<PlayerWetLook>();                     // darker, shinier when wet
         }
@@ -43,8 +50,26 @@ namespace PrimalFrontier.Player
         {
             if (!animator || !animator.isActiveAndEnabled) return;
             float dt = Time.deltaTime;
-            animator.SetFloat(AnimParams.Speed, _motor.PlanarSpeed, speedDamp, dt);
-            animator.SetBool(AnimParams.IsGrounded, _motor.IsGrounded);
+            if (!_paramsKnown) FindParams();
+            // Speed: commanded speed, capped by what the body really covers (+0.3 so starting is not delayed; walls stop the legs)
+            float planar = _motor.PlanarSpeed;
+            bool grounded = _motor.IsGrounded;
+            float speed = grounded ? Mathf.Min(planar, _motor.MeasuredPlanarSpeed + 0.3f) : planar;
+            animator.SetFloat(AnimParams.Speed, speed, speedDamp, dt);
+            if (_hasVel)
+            {
+                Vector3 lv = _motor.LocalPlanarVelocity;
+                float k = planar > 0.01f ? speed / planar : 0f;
+                animator.SetFloat(AnimParams.VelX, lv.x * k, velDamp, dt);
+                animator.SetFloat(AnimParams.VelZ, lv.z * k, velDamp, dt);
+            }
+            if (_hasIsMoving) animator.SetBool(AnimParams.IsMoving, speed > 0.15f);
+            if (_hasStrafe) animator.SetBool(AnimParams.Strafe, _motor.AimMode);
+            // air: a jump is airborne at once; otherwise only after fallDelay off the ground or a real drop
+            float y = transform.position.y;
+            if (grounded) { _airT = 0f; _lastGroundY = y; } else _airT += dt;
+            bool airborne = !grounded && (_motor.VerticalVelocity > 0.5f || _airT >= fallDelay || _lastGroundY - y > fallDrop);
+            animator.SetBool(AnimParams.IsGrounded, !airborne);
             animator.SetFloat(AnimParams.VerticalVelocity, _motor.VerticalVelocity);
             animator.SetBool(AnimParams.IsCrouching, _motor.IsCrouching);
             animator.SetFloat(AnimParams.TurnSpeed, _motor.PlanarSpeed < 0.1f ? _motor.TurnRate : 0f, 0.1f, dt);
@@ -57,6 +82,9 @@ namespace PrimalFrontier.Player
             IsBusy = inTrans ? actionTag(nx) : actionTag(st);          // blending out of an action already gives control back
             IsAttackingState = st.IsTag("Attack") || nx.IsTag("Attack");
             animator.SetBool(AnimParams.IsAttacking, PlayerActions.IsAttack(_pendingAction) || IsAttackingState);
+            // upper-body poses (sword idle) give way while the base layer owns the whole body
+            if (_hasBodyBusy)
+                animator.SetBool(AnimParams.FullBodyBusy, IsBusy || st.IsTag("Climb") || st.IsTag("ClimbEnd") || nx.IsTag("Climb") || nx.IsTag("ClimbEnd"));
 
             // clear one-shot actions once the state has been entered (or give up after 1 s)
             if (_pendingIsOneShot && _pendingAction != PlayerActions.None)
@@ -97,6 +125,20 @@ namespace PrimalFrontier.Player
                 if (_hasIdleVariant == 1) animator.SetTrigger(AnimParams.IdleVariant);
                 _idleT = 0f; _idleNext = UnityEngine.Random.Range(idleVariationEvery.x, idleVariationEvery.y);
             }
+        }
+
+        /// <summary>once: which optional parameters the controller has (the parameters array is allocated by Unity)</summary>
+        void FindParams()
+        {
+            if (!animator.runtimeAnimatorController) return;
+            foreach (var p in animator.parameters)
+            {
+                if (p.nameHash == AnimParams.VelX && p.type == AnimatorControllerParameterType.Float) _hasVel = true;
+                else if (p.nameHash == AnimParams.IsMoving && p.type == AnimatorControllerParameterType.Bool) _hasIsMoving = true;
+                else if (p.nameHash == AnimParams.Strafe && p.type == AnimatorControllerParameterType.Bool) _hasStrafe = true;
+                else if (p.nameHash == AnimParams.FullBodyBusy && p.type == AnimatorControllerParameterType.Bool) _hasBodyBusy = true;
+            }
+            _paramsKnown = true;
         }
 
         /// <summary>start a full-body or upper-body action (PlayerActions id)</summary>

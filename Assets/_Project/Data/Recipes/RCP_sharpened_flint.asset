@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: da16c94d01ae979459249a8a00bd7eab, type: 3}
+  m_Name: RCP_sharpened_flint
+  m_EditorClassIdentifier: PrimalFrontier.Runtime::PrimalFrontier.Items.RecipeDefinition
+  id: sharpened_flint
+  category: 6
+  output: {fileID: 11400000, guid: ca2e9c055f09a6a43ad2df7d8073fb1e, type: 2}
+  outputCount: 1
+  ingredients:
+  - item: {fileID: 11400000, guid: 2518013b5a7a70947a5fadec8cfec8f0, type: 2}
+    count: 2
+  craftSeconds: 2
+  station: 0
+  knownAtStart: 1
+  hint: 
+  requirements: []
+  extraResults: []

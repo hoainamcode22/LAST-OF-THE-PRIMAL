@@ -292,9 +292,24 @@ namespace PrimalFrontier.EditorTools
         {
             var db = AssetDatabase.LoadAssetAtPath<ItemDatabase>(DbPath);
             if (db == null) { db = ScriptableObject.CreateInstance<ItemDatabase>(); AssetDatabase.CreateAsset(db, DbPath); }
-            db.items = items.Values.ToList(); db.recipes = recipes.Values.ToList();
+            // merge: entries made by other builders (fruit, crafting, weapons) stay; this builder's own are replaced by id or added
+            db.items = Merge(db.items, items, i => i.id); db.recipes = Merge(db.recipes, recipes, r => r.id);
             EditorUtility.SetDirty(db);
             Log($"Database: {db.items.Count} items, {db.recipes.Count} recipes -> {DbPath}");
+        }
+
+        static List<T> Merge<T>(List<T> existing, Dictionary<string, T> own, Func<T, string> id) where T : UnityEngine.Object
+        {
+            var result = new List<T>(); var placed = new HashSet<string>();
+            if (existing != null)
+                foreach (var e in existing)
+                {
+                    if (!e) continue;
+                    if (own.TryGetValue(id(e), out var mine)) { if (placed.Add(id(e))) result.Add(mine); }
+                    else if (!result.Contains(e)) result.Add(e);
+                }
+            foreach (var kv in own) if (placed.Add(kv.Key)) result.Add(kv.Value);
+            return result;
         }
 
         // ================================================================== placeables

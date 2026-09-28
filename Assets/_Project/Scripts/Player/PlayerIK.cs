@@ -1,4 +1,6 @@
 using UnityEngine;
+using PrimalFrontier.Animation;
+using PrimalFrontier.Combat.Weapons;
 using PrimalFrontier.World;
 
 namespace PrimalFrontier.Player
@@ -10,6 +12,10 @@ namespace PrimalFrontier.Player
     /// - look: head and upper body turn towards what matters (the thing you can interact with, a creature set as
     ///   LookTarget, otherwise where the camera looks), within a natural range.
     /// - lean: the body leans into turns in proportion to speed x turn rate (feet stay planted through the foot IK).
+    /// - hands: the left hand holds a two-handed weapon's OffHandGrip (PlayerEquipment); while the bow draws, the right
+    ///   hand goes from the string toward the cheek with the draw (WeaponController.DrawProgress); elbow hints keep the
+    ///   IK arms bending outward / down. Points on a hand (grip, bow, nock) are tracked in that hand's pre-IK goal space,
+    ///   calibrated in LateUpdate on frames without IK on that hand, so they follow the current pose without a frame lag.
     /// Needs "IK Pass" on the base layer of PlayerAnimator (PrimalCharacterBuilder sets it). Every value is tunable in
     /// the Inspector.
     /// </summary>
@@ -39,9 +45,24 @@ namespace PrimalFrontier.Player
         [Header("Lean")]
         public float maxLean = 9f;
         public float leanScale = 0.35f;
+        [Header("Hands")]
+        public bool handIK = true;
+        [Tooltip("seconds to blend the off-hand grip / bow draw IK in and out")] public float handBlendTime = 0.15f;
+        [Range(0, 1)] public float offHandRotationWeight = 1f;
+        [Tooltip("elbow hint from the elbow, character space (x outward, y up, z forward)")] public Vector3 elbowHintOffset = new Vector3(0.35f, -0.3f, -0.1f);
+        [Tooltip("draw hand anchor at full draw: head bone + this, character space (x right, y up, z forward)")] public Vector3 cheekOffset = new Vector3(0.06f, -0.07f, 0.06f);
+        [Tooltip("string distance from the bow grip at rest (m)")] public float braceHeight = 0.16f;
+
+        /// <summary>a point rigidly attached to a hand, stored in that hand's IK-goal space</summary>
+        struct HandPoint { public Transform t; public Vector3 pos; public bool valid; }
 
         Animator _a; PlayerMotor _motor; PlayerAnimationDriver _drv; PlayerInteraction _pi; Transform _root;
+        PlayerEquipment _eq; PlayerHierarchy _hier; WeaponController _wc; Transform _head, _elbowL, _elbowR;
         float _pelvis, _wL, _wR, _lookW, _lean; Vector3 _lookPos; bool _hasLook;
+        float _offW, _drawW, _drawK;
+        Vector3 _goalPosL, _goalPosR; Quaternion _goalRotL = Quaternion.identity, _goalRotR = Quaternion.identity;
+        float _appliedL, _appliedR; int _ikFrame = -1;
+        HandPoint _grip, _bow, _nock;
         public float PelvisOffset => _pelvis;
         /// <summary>switched off by states that own the whole body (climbing, lying, cinematics)</summary>
         public bool Suspended { get; set; }
@@ -50,6 +71,7 @@ namespace PrimalFrontier.Player
         {
             _a = GetComponent<Animator>();
             _motor = GetComponentInParent<PlayerMotor>(); _drv = GetComponentInParent<PlayerAnimationDriver>(); _pi = GetComponentInParent<PlayerInteraction>();
+            _eq = GetComponentInParent<PlayerEquipment>();
             _root = _motor ? _motor.transform : transform;
             int playerLayer = _root.gameObject.layer;
             if (playerLayer != 0) groundMask &= ~(1 << playerLayer);   // never the player's own colliders
@@ -62,7 +84,7 @@ namespace PrimalFrontier.Player
             float dt = Time.deltaTime;
             _climbW = Mathf.MoveTowards(_climbW, Climb ? 1f : 0f, dt * 3f);
             _reachW = Mathf.MoveTowards(_reachW, ReachTarget ? 1f : 0f, dt * 2.5f);
-            if (_climbW > 0.001f && Climb) { ClimbIK(); return; }
+            if (_climbW > 0.001f && Climb) { _offW = _drawW = 0f; ClimbIK(); return; }
             bool body = !Suspended && _drv != null && !_drv.IsDead;
             bool actionOwnsBody = _drv != null && _drv.IsBusy;
             bool grounded = _motor == null || _motor.IsGrounded;
@@ -101,6 +123,113 @@ namespace PrimalFrontier.Player
                 _a.SetLookAtPosition(_lookPos);
             }
             else _a.SetLookAtWeight(0f);
+
+            // ---------------- hands
+            HandIK(body, dt);
+        }
+
+        // ------------------------------------------------------------------ hands
+        void HandIK(bool body, float dt)
+        {
+            ResolveRefs();
+            // pre-IK hand goals of this frame (the animated pose); points on the hands are expressed in these frames
+            _goalPosL = _a.GetIKPosition(AvatarIKGoal.LeftHand); _goalRotL = _a.GetIKRotation(AvatarIKGoal.LeftHand);
+            _goalPosR = _a.GetIKPosition(AvatarIKGoal.RightHand); _goalRotR = _a.GetIKRotation(AvatarIKGoal.RightHand);
+            _ikFrame = Time.frameCount;
+            float rate = dt / Mathf.Max(0.01f, handBlendTime);
+            bool on = handIK && body;
+
+            // off hand on a two-handed weapon held in the right hand (a bow sits in the left hand: never)
+            Track(ref _grip, _eq ? _eq.OffHandGrip : null);
+            bool rightHeld = _eq && _hier && _eq.HeldSocket && _eq.HeldSocket == _hier.RightHandWeaponSocket;
+            int act = _drv ? _drv.CurrentAction : PlayerActions.None;
+            bool handsElsewhere = act == PlayerActions.CarryItem || act == PlayerActions.ThrowSpear;      // both arms / the free arm aims the throw
+            bool gripOn = on && rightHeld && !handsElsewhere && _grip.valid && _grip.t && _grip.t.gameObject.activeInHierarchy;
+            _offW = Mathf.MoveTowards(_offW, gripOn ? 1f : 0f, rate);
+
+            // bow draw: right hand from the string toward the cheek with the draw progress
+            Track(ref _bow, _hier ? _hier.LeftHandWeaponSocket : null);
+            Track(ref _nock, _hier ? _hier.ArrowSocket : null);
+            var data = _wc ? _wc.CurrentData : null;
+            bool drawing = on && data && data.IsRanged && _wc.IsDrawing && _bow.valid && _head;
+            if (drawing) _drawK = _wc.DrawProgress;                     // blending out keeps the last draw (follow-through)
+            _drawW = Mathf.MoveTowards(_drawW, drawing ? 1f : 0f, rate);
+
+            float wl = 0f, wr = 0f;
+            if (_offW > 0.001f && _grip.valid && _grip.t)
+            {
+                wl = _offW;
+                Vector3 p = _goalPosR + _goalRotR * _grip.pos;
+                // the animated left hand keeps its orientation relative to the line between the hands
+                Vector3 dAnim = _goalPosL - _goalPosR, dNew = p - _goalPosR;
+                Quaternion adj = dAnim.sqrMagnitude > 1e-4f && dNew.sqrMagnitude > 1e-4f ? Quaternion.FromToRotation(dAnim, dNew) : Quaternion.identity;
+                _a.SetIKPosition(AvatarIKGoal.LeftHand, p);
+                _a.SetIKRotation(AvatarIKGoal.LeftHand, adj * _goalRotL);
+                if (_hier) _hier.LeftHandIK.SetPositionAndRotation(p, adj * _goalRotL);
+            }
+            if (_drawW > 0.001f && _bow.valid && _head)
+            {
+                wr = _drawW;
+                Vector3 grip = _goalPosL + _goalRotL * _bow.pos;
+                Vector3 cheek = _head.position + _root.rotation * cheekOffset;
+                Vector3 toCheek = cheek - grip;
+                Vector3 rest = grip + (toCheek.sqrMagnitude > 1e-4f ? toCheek.normalized * braceHeight : Vector3.zero);
+                Vector3 nockPos = Vector3.Lerp(rest, cheek, _drawK);
+                // the goal is the wrist: shift by where the nock sits on the hand
+                Vector3 wrist = nockPos - (_nock.valid ? _goalRotR * _nock.pos : Vector3.zero);
+                _a.SetIKPosition(AvatarIKGoal.RightHand, wrist);
+                if (_hier) _hier.RightHandIK.position = wrist;
+            }
+            _a.SetIKPositionWeight(AvatarIKGoal.LeftHand, wl); _a.SetIKRotationWeight(AvatarIKGoal.LeftHand, wl * offHandRotationWeight);
+            _a.SetIKPositionWeight(AvatarIKGoal.RightHand, wr); _a.SetIKRotationWeight(AvatarIKGoal.RightHand, 0f);
+            ElbowHint(AvatarIKHint.LeftElbow, _elbowL, -1f, wl, _hier ? _hier.LeftElbowHint : null);
+            ElbowHint(AvatarIKHint.RightElbow, _elbowR, 1f, wr, _hier ? _hier.RightElbowHint : null);
+            _appliedL = wl; _appliedR = wr;
+        }
+
+        /// <summary>elbow bends outward / down while its hand is on IK (the elbow bone is last frame's: a direction guide only)</summary>
+        void ElbowHint(AvatarIKHint hint, Transform elbow, float side, float w, Transform node)
+        {
+            _a.SetIKHintPositionWeight(hint, elbow ? w : 0f);
+            if (w <= 0.001f || !elbow) return;
+            Vector3 o = elbowHintOffset;
+            Vector3 p = elbow.position + _root.rotation * new Vector3(o.x * side, o.y, o.z);
+            _a.SetIKHintPosition(hint, p);
+            if (node) node.position = p;
+        }
+
+        static void Track(ref HandPoint h, Transform t)
+        {
+            if (ReferenceEquals(h.t, t)) return;
+            h.t = t; h.valid = false;                                   // new point: calibrate before use
+        }
+
+        /// <summary>after the Animator wrote the pose: store each hand point in its hand's goal space (only on frames
+        /// without IK on that hand, where the final hand is the animated goal)</summary>
+        void LateUpdate()
+        {
+            if (_ikFrame != Time.frameCount) return;                    // no IK pass this frame (culled, climbing)
+            if (_appliedR < 0.01f) { Calibrate(ref _grip, _goalPosR, _goalRotR); Calibrate(ref _nock, _goalPosR, _goalRotR); }
+            if (_appliedL < 0.01f) Calibrate(ref _bow, _goalPosL, _goalRotL);
+        }
+
+        static void Calibrate(ref HandPoint h, Vector3 goalPos, Quaternion goalRot)
+        {
+            if (!h.t) { h.valid = false; return; }
+            h.pos = Quaternion.Inverse(goalRot) * (h.t.position - goalPos);
+            h.valid = true;
+        }
+
+        void ResolveRefs()
+        {
+            if (!_head) _head = _a.GetBoneTransform(HumanBodyBones.Head);
+            if (!_elbowL) _elbowL = _a.GetBoneTransform(HumanBodyBones.LeftLowerArm);
+            if (!_elbowR) _elbowR = _a.GetBoneTransform(HumanBodyBones.RightLowerArm);
+            if ((!_hier || !_wc) && (Time.frameCount & 15) == 0)       // added at run time by other components
+            {
+                if (!_hier) _root.TryGetComponent(out _hier);
+                if (!_wc) _root.TryGetComponent(out _wc);
+            }
         }
 
         void Foot(AvatarIKGoal goal, ref float w, bool on, float speedK, float baseY, Vector3 up, ref float wantPelvis, float dt)

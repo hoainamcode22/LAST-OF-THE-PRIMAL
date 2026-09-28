@@ -19,7 +19,9 @@ MonoBehaviour:
   ingredients:
   - item: {fileID: 11400000, guid: 0b3a64e6eeb56bd49a534a15dac5b869, type: 2}
     count: 1
-  craftSeconds: 10
+  craftSeconds: 14
   station: 1
   knownAtStart: 1
   hint: 
+  requirements: []
+  extraResults: []

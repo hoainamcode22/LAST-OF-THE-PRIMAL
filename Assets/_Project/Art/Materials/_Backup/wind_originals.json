@@ -1,0 +1,23 @@
+{
+    "items": [
+        {
+            "path": "Assets/_Project/Art/Materials/M_Bark.mat",
+            "shader": "Universal Render Pipeline/Lit",
+            "queue": 2000,
+            "keywords": [
+                "_METALLICSPECGLOSSMAP",
+                "_NORMALMAP",
+                "_OCCLUSIONMAP"
+            ]
+        },
+        {
+            "path": "Assets/_Project/Art/Materials/M_Foliage.mat",
+            "shader": "Universal Render Pipeline/Lit",
+            "queue": 2450,
+            "keywords": [
+                "_ALPHATEST_ON",
+                "_NORMALMAP"
+            ]
+        }
+    ]
+}

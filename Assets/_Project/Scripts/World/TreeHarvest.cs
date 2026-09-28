@@ -12,6 +12,8 @@ namespace PrimalFrontier.World
     /// <summary>
     /// Chopping the terrain's trees (they are TreeInstances, not GameObjects): this one interactable moves to the
     /// nearest standing tree. Each hit gives wood; after enough hits the tree falls (hidden) and regrows days later.
+    /// The object itself is moved onto the current tree: PlayerInteraction pre-filters interactables by their
+    /// transform distance, so a system object left near the world origin was only choppable near the origin.
     /// </summary>
     public class TreeHarvest : Interactable
     {
@@ -28,7 +30,8 @@ namespace PrimalFrontier.World
         TreeInstance[] _trees; Vector3[] _pos;
         readonly Dictionary<int, int> _hits = new Dictionary<int, int>();
         readonly Dictionary<int, double> _felled = new Dictionary<int, double>();     // index -> regrow time
-        int _current = -1;
+        int _current = -1, _placedAt = -1;
+        string[] _hitsLeft;                            // "N hits left" texts, built once (no per-frame strings)
         public int Current => _current;
         public IReadOnlyDictionary<int, double> Felled => _felled;
         public override float Range => 1.6f;
@@ -86,6 +89,17 @@ namespace PrimalFrontier.World
                         if (s < best) { best = s; _current = i; }
                     }
                 }
+            if (_current >= 0 && _current != _placedAt) { _placedAt = _current; transform.position = _pos[_current]; }
+        }
+
+        string HitsLeft(int n)
+        {
+            if (_hitsLeft == null || _hitsLeft.Length != hitsPerTree + 1)
+            {
+                _hitsLeft = new string[Mathf.Max(1, hitsPerTree + 1)];
+                for (int i = 0; i < _hitsLeft.Length; i++) _hitsLeft[i] = i == 1 ? "1 hit left" : $"{i} hits left";
+            }
+            return _hitsLeft[Mathf.Clamp(n, 0, _hitsLeft.Length - 1)];
         }
 
         public override string GetPrompt(PlayerInteraction p, out string sub)
@@ -94,7 +108,7 @@ namespace PrimalFrontier.World
             if (_current < 0) return null;
             if (!p.HasTool(ToolKind.Chop, out _)) { sub = "Needs an axe or a hand stone in hand"; return "Chop tree"; }
             int h = _hits.TryGetValue(_current, out var v) ? v : 0;
-            sub = $"{hitsPerTree - h} hits left";
+            sub = HitsLeft(hitsPerTree - h);
             return "Chop tree";
         }
         public override bool CanInteract(PlayerInteraction p) => _current >= 0 && p.HasTool(ToolKind.Chop, out _);

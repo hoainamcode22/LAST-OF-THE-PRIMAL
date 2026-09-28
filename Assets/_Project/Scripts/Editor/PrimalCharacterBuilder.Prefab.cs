@@ -33,6 +33,12 @@ namespace PrimalFrontier.EditorTools
             anim.applyRootMotion = false;
             anim.cullingMode = AnimatorCullingMode.CullUpdateTransforms;
             if (!go.GetComponent<CharacterAnimationEvents>()) go.AddComponent<CharacterAnimationEvents>();
+            // forearm twist bones: the driver spreads the wrist twist (the avatar's lowerArmTwist is 0 then)
+            if (spec.Humanoid && go.GetComponentsInChildren<Transform>(true).Any(t => t.name == "LowerArmTwist_L" || t.name == "LowerArmTwist_R"))
+            {
+                if (!go.GetComponent<TwistBoneDriver>()) go.AddComponent<TwistBoneDriver>();
+                L("TwistBoneDriver on the model (LowerArmTwist bones found)");
+            }
             foreach (var smr in go.GetComponentsInChildren<SkinnedMeshRenderer>(true))
             {
                 smr.updateWhenOffscreen = false; smr.quality = SkinQuality.Bone4; smr.skinnedMotionVectors = true;
@@ -156,7 +162,8 @@ namespace PrimalFrontier.EditorTools
                 if (vertical && cm != null) line += $" (vertical {cm.speed:F2}m/s, foot-slide check skipped)";
                 if (cm != null && cm.speed > 0.01f && lf.Count > 4 && !vertical)
                 {
-                    var exp = ExpectedFootVelocity(clip.name, cm.speed);
+                    var exp = ExpectedFootVelocity(clip.name, cm, spec.Humanoid, out string dirNote);
+                    if (dirNote != null) line += " " + dirNote;
                     float slide = Math.Max(FootSlide(lf, clip.length / n, exp, minY, out var vl, out int cl), FootSlide(rf, clip.length / n, exp, minY, out var vr, out int cr));
                     line += $" footSlide={slide:F2}m/s ({slide / cm.speed * 100:F0}% of {cm.speed:F2}) contactVel L{vl:F2} ({cl}f) R{vr:F2} ({cr}f)";
                     if (slide > Mathf.Max(0.15f, cm.speed * 0.12f)) F($"{clip.name}: foot sliding {slide:F2} m/s");
@@ -243,13 +250,40 @@ namespace PrimalFrontier.EditorTools
             AnimationMode.EndSampling();
         }
 
-        static Vector3 ExpectedFootVelocity(string clip, float speed)
+        static Vector3 ExpectedFootVelocity(string clip, ClipMeta cm, bool useMove, out string note)
         {
             // in-place clips: a planted foot moves opposite to the body's travel. Unity forward = +Z, character left = -X.
-            if (clip.ToUpper().Contains("BACKWARD")) return new Vector3(0, 0, speed);
-            if (clip.ToUpper().Contains("WALK_LEFT")) return new Vector3(speed, 0, 0);
-            if (clip.ToUpper().Contains("WALK_RIGHT")) return new Vector3(-speed, 0, 0);
-            return new Vector3(0, 0, -speed);
+            // Travel direction: from the clip name when it says so (Backward, Walk_Left / Right, Strafe_*_L / R), else from
+            // the meta "move" ("x,y" in Blender armature space: +X = character's left, -Y = forward; humanoid only, the dinosaur
+            // exports keep the name rule), else forward.
+            note = null;
+            string u = clip.ToUpperInvariant();
+            bool strafe = u.Contains("STRAFE");
+            Vector3 byName = u.Contains("BACKWARD") ? Vector3.back
+                : u.Contains("WALK_LEFT") || u.Contains("RUN_LEFT") || (strafe && u.EndsWith("_L")) ? Vector3.left
+                : u.Contains("WALK_RIGHT") || u.Contains("RUN_RIGHT") || (strafe && u.EndsWith("_R")) ? Vector3.right
+                : Vector3.zero;
+            bool hasMove = useMove & TryParseMove(cm.move, out var byMove);
+            Vector3 dir = byName != Vector3.zero ? byName : hasMove ? byMove : Vector3.forward;
+            if (byName != Vector3.zero && hasMove && Vector3.Dot(byName, byMove) < 0.7f)
+                note = $"(meta move \"{cm.move}\" disagrees with the name; name used)";
+            return -dir * cm.speed;
+        }
+
+        /// <summary>meta "move" = "x,y" in Blender armature space (+X = character's left, -Y = forward) -> Unity character space</summary>
+        static bool TryParseMove(string move, out Vector3 dir)
+        {
+            dir = Vector3.zero;
+            if (string.IsNullOrEmpty(move)) return false;
+            var parts = move.Split(',');
+            if (parts.Length < 2) return false;
+            var inv = System.Globalization.CultureInfo.InvariantCulture;
+            if (!float.TryParse(parts[0].Trim(), System.Globalization.NumberStyles.Float, inv, out float bx) ||
+                !float.TryParse(parts[1].Trim(), System.Globalization.NumberStyles.Float, inv, out float by)) return false;
+            var d = new Vector3(-bx, 0f, -by);
+            if (d.sqrMagnitude < 1e-4f) return false;
+            dir = d.normalized;
+            return true;
         }
 
         /// <summary>mean |v - expected| over frames where the foot is in ground contact (within 2 cm of its lowest height)</summary>

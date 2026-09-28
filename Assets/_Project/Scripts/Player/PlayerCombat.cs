@@ -2,6 +2,7 @@ using UnityEngine;
 using PrimalFrontier.Animation;
 using PrimalFrontier.Audio;
 using PrimalFrontier.Combat;
+using PrimalFrontier.Combat.Weapons;
 using PrimalFrontier.Core;
 using PrimalFrontier.Items;
 using PrimalFrontier.Survival;
@@ -10,10 +11,12 @@ using PrimalFrontier.VFX;
 namespace PrimalFrontier.Player
 {
     /// <summary>
-    /// Primary / aim buttons with the active item: spear thrust (tap), a second tap inside the combo window chains the
-    /// overhead stab (Spear_Attack_2), heavy thrust (hold), throw (aim + attack), bow (aim, hold to draw, release),
-    /// knife / stone tools slash (Knife_Attack), dodge (V / pad north / touch button: short hop back with a brief
-    /// invulnerable window). Damage is applied once, on the clip's hit event; stamina, timing and distance matter.
+    /// Primary / aim buttons with the active item. Items with WeaponData (and every bow) fight through the
+    /// WeaponController (MeleeWeapon: light chain / heavy on hold / hitbox windows; RangedWeapon: aim, draw, release);
+    /// this component keeps the gating, food / water / placeables, the spear throw (aim + attack), the dodge (V / pad
+    /// north / touch button: short hop back with a brief invulnerable window), and the legacy melee path for items
+    /// without WeaponData: spear thrust (tap), combo stab (Spear_Attack_2), heavy thrust (hold), knife / tool slash
+    /// (Knife_Attack), damage applied once on the clip's hit event.
     /// </summary>
     public class PlayerCombat : MonoBehaviour
     {
@@ -30,15 +33,18 @@ namespace PrimalFrontier.Player
 
         PlayerInputReader _in; PlayerAnimationDriver _drv; PlayerMotor _motor; PlayerInteraction _pi; PlayerSurvival _sv;
         InventorySystem _inv; PlayerEquipment _eq; ThirdPersonCamera _cam; CharacterAnimationEvents _ev;
-        float _pressT = -1f; bool _heavyFired; float _drawStart = -1f; bool _aimingBow;
+        float _pressT = -1f; bool _heavyFired;
         int _pendingAttack; ItemDefinition _attackItem; int _pendingAnim;
         float _lastThrust = -10f; int _comboStep; float _nextDodge;
-        PlayerHealth _hp;
+        PlayerHealth _hp; WeaponController _wc;
         public bool Aiming { get; private set; }
         /// <summary>fighting right now (struck or was hit in the last few seconds): the camera tightens a little</summary>
-        public bool InCombat => Time.time - _lastCombat < 4f;
+        public bool InCombat => Time.time - Mathf.Max(_lastCombat, _wc ? _wc.LastCombatTime : -99f) < 4f;
         float _lastCombat = -99f;
-        public float DrawProgress => _drawStart < 0 ? 0f : Mathf.Clamp01((Time.time - _drawStart) / bowFullDraw);
+        /// <summary>0..1 bow draw of the weapon in hand</summary>
+        public float DrawProgress => _wc ? _wc.DrawProgress : 0f;
+        /// <summary>the weapon owner (data-driven weapons and the bow)</summary>
+        public WeaponController Weapons => _wc;
         /// <summary>Build mode takes over the buttons (set by BuildSystem)</summary>
         public System.Func<bool> PrimaryBlocked = () => false;
 
@@ -47,6 +53,8 @@ namespace PrimalFrontier.Player
             _drv = GetComponent<PlayerAnimationDriver>(); _motor = GetComponent<PlayerMotor>(); _pi = GetComponent<PlayerInteraction>();
             _sv = GetComponent<PlayerSurvival>(); _inv = GetComponent<InventorySystem>(); _eq = GetComponent<PlayerEquipment>();
             _ev = GetComponentInChildren<CharacterAnimationEvents>(); _hp = GetComponent<PlayerHealth>();
+            _wc = gameObject.GetOrAdd<WeaponController>();
+            _wc.legacyArrowSpeed = arrowSpeed; _wc.legacyDrawTime = bowFullDraw;
         }
         void OnEnable() { if (_ev) _ev.AnimationEventRaised += OnAnimEvent; }
         void OnDisable() { if (_ev) _ev.AnimationEventRaised -= OnAnimEvent; }
@@ -55,15 +63,25 @@ namespace PrimalFrontier.Player
         void Update()
         {
             if (_in == null) _in = PlayerInputReader.Instance;
-            if (_in == null || _drv == null || _drv.IsDead || (_pi && (_pi.Suspended || _pi.InAction)) || PrimaryBlocked()) { SetAim(false); _pressT = -1f; return; }
+            if (_in == null || _drv == null || _drv.IsDead || (_pi && (_pi.Suspended || _pi.InAction)) || PrimaryBlocked()) { SetAim(false); _pressT = -1f; if (_wc) _wc.ResetInput(); return; }
             var item = _inv ? _inv.ActiveItem : null;
             var weapon = item ? item.weapon : WeaponKind.None;
             if (_in.DodgePressed) TryDodge();
 
-            // aiming: spear (to throw) and bow
-            bool wantAim = _in.Aim && (weapon == WeaponKind.Spear || weapon == WeaponKind.Bow);
+            // data-driven weapons and every bow: the WeaponController (the spear throw stays here)
+            var data = _wc ? _wc.ResolveData(item) : null;
+            if (data != null && !item.IsFood && !item.IsWaterContainer && !item.IsPlaceable)
+            {
+                bool canThrow = data.throwable;
+                SetAim(_in.Aim && (canThrow || data.IsRanged));
+                if (canThrow && Aiming && _in.AttackPressed) { _wc.ResetInput(); Throw(item); _pressT = -1f; return; }
+                _wc.HandleInput(_in.AttackPressed, _in.AttackHeld, Aiming);
+                return;
+            }
+
+            // legacy path (items without WeaponData): aiming = spear throw
+            bool wantAim = _in.Aim && weapon == WeaponKind.Spear;
             SetAim(wantAim);
-            if (weapon == WeaponKind.Bow) { UpdateBow(item); return; }
 
             if (_in.AttackPressed) { _pressT = Time.time; _heavyFired = false; }
             if (weapon == WeaponKind.Spear)
@@ -98,6 +116,7 @@ namespace PrimalFrontier.Player
                 if (Vector3.Dot(want, transform.forward) < 0.5f) dir = want;           // pushing forward still hops back (keeps facing the threat)
             }
             _pendingAttack = 0;
+            if (_wc) _wc.CancelAttack();
             _drv.PlayAction(PlayerActions.Dodge);
             _motor?.Burst(dir * dodgeSpeed, dodgeTime);
             if (_hp) _hp.InvulnerableUntil = Time.time + dodgeInvulnerable.y;
@@ -113,9 +132,7 @@ namespace PrimalFrontier.Player
             Aiming = on;
             if (_motor) _motor.AimMode = on;
             if (_cam) _cam.Aiming = on;
-            var item = _inv ? _inv.ActiveItem : null;
-            if (on && item && item.weapon == WeaponKind.Bow) { _drv.PlayAction(PlayerActions.BowAim); _aimingBow = true; }
-            else if (!on && _aimingBow) { _drv.StopAction(); _aimingBow = false; _drawStart = -1f; }
+            if (_wc) _wc.SetAim(on);                              // the bow raises / lowers (RangedWeapon)
         }
 
         // ------------------------------------------------------------------ melee
@@ -174,18 +191,24 @@ namespace PrimalFrontier.Player
         }
 
         // ------------------------------------------------------------------ throw
+        /// <summary>throw the item in hand (spear): WeaponData throw numbers when it has them, else the legacy ones</summary>
         void Throw(ItemDefinition item)
         {
             if (_drv.IsBusy) return;
-            if (_sv && !_sv.UseStamina(item.staminaCost * 1.5f)) { PlayerInteraction.Notify("Too tired to throw."); return; }
+            var data = item.weaponData;
+            float cost = (data ? data.staminaCost : item.staminaCost) * 1.5f;
+            if (_sv && !_sv.UseStamina(cost)) { PlayerInteraction.Notify("Too tired to throw."); return; }
+            float speed = data && data.throwable ? data.throwSpeed : throwSpeed;
+            float damage = data ? data.heavyDamage * data.throwDamageMultiplier : item.heavyDamage * 1.2f;
+            var kind = data ? data.kind : WeaponKind.Spear;
             int slot = _inv.ActiveSlot;
             _pi.DoOneShot(PlayerActions.ThrowSpear, "OnThrowRelease", () =>
             {
                 var stack = _inv.TakeFromSlot(slot, 1); if (stack == null) return;
                 Vector3 dir = AimDirection();
                 Vector3 from = transform.position + Vector3.up * 1.6f + transform.right * 0.2f + dir * 0.6f;
-                Projectile.Launch(stack, from, dir * throwSpeed + Vector3.up * 1.2f,
-                    new HitInfo { damage = item.heavyDamage * 1.2f, attacker = gameObject, weapon = WeaponKind.Spear, heavy = true }, gameObject, 1f, false);
+                Projectile.Launch(stack, from, dir * speed + Vector3.up * 1.2f,
+                    new HitInfo { damage = damage, attacker = gameObject, weapon = kind, heavy = true }, gameObject, 1f, false);
             }, null, 1.0f);
         }
 
@@ -197,37 +220,5 @@ namespace PrimalFrontier.Player
             Vector3 target = Physics.Raycast(ray, out var h, 120f, ~LayerMask.GetMask("Player"), QueryTriggerInteraction.Ignore) ? h.point : ray.origin + ray.direction * 60f;
             return (target - (transform.position + Vector3.up * 1.6f)).normalized;
         }
-
-        // ------------------------------------------------------------------ bow
-        void UpdateBow(ItemDefinition bow)
-        {
-            if (!Aiming)
-            {
-                if (_in.AttackPressed) PlayerInteraction.Notify("Hold right mouse button to aim the bow.");
-                return;
-            }
-            var ammo = bow.ammo;
-            if (_in.AttackPressed)
-            {
-                if (ammo && !_inv.Has(ammo)) { PlayerInteraction.Notify("No arrows."); return; }
-                _drawStart = Time.time; _drv.PlayAction(PlayerActions.BowDraw);
-            }
-            else if (_drawStart > 0 && !_in.AttackHeld)
-            {
-                float k = DrawProgress; _drawStart = -1f;
-                _drv.PlayAction(PlayerActions.BowRelease);
-                if (k < 0.25f) { _drv.PlayAction(PlayerActions.BowAim); return; }          // let go too early: no shot
-                if (ammo && !_inv.Remove(ammo, 1)) return;
-                _sv?.UseStamina(bow.staminaCost);
-                Vector3 dir = AimDirection();
-                Vector3 from = transform.position + Vector3.up * 1.55f + dir * 0.7f;
-                var stack = new ItemStack(ammo, 1);
-                Projectile.Launch(stack, from, dir * arrowSpeed * Mathf.Lerp(0.5f, 1f, k),
-                    new HitInfo { damage = bow.damage * Mathf.Lerp(0.4f, 1f, k), attacker = gameObject, weapon = WeaponKind.Bow }, gameObject, 0.6f, true);
-                if (bow.HasDurability && _inv.WearActive(1f)) PlayerInteraction.Notify(bow.displayName + " broke!");
-                Invoke(nameof(BackToAim), 0.45f);
-            }
-        }
-        void BackToAim() { if (Aiming && _inv.ActiveItem && _inv.ActiveItem.weapon == WeaponKind.Bow) _drv.PlayAction(PlayerActions.BowAim); }
     }
 }

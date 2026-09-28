@@ -144,9 +144,10 @@ namespace PrimalFrontier.UI
         void BuildCraftTab()
         {
             var left = UIFactory.Image(_craftTab, "Categories", UIStyle.PanelDark, new Color(1, 1, 1, 0.8f), new Vector2(0, 0), new Vector2(0, 1), new Vector2(0, 0.5f), Vector2.zero, new Vector2(230, 0)).rectTransform;
-            // tab order and names are game data (the buttons themselves can be moved / restyled in the scene)
-            string[] names = { "ALL", "TOOLS", "WEAPONS", "FOOD", "WATER", "BUILDING", "SURVIVAL" };
-            RecipeCategory?[] cats = { null, RecipeCategory.Tools, RecipeCategory.Weapons, RecipeCategory.Food, RecipeCategory.Water, RecipeCategory.Structures, RecipeCategory.Survival };
+            // tab order and names are game data (the buttons themselves can be moved / restyled in the scene);
+            // new tabs are appended so the scene objects Cat0..CatN keep their category
+            string[] names = { "ALL", "TOOLS", "WEAPONS", "FOOD", "WATER", "BUILDING", "SURVIVAL", "RESOURCES" };
+            RecipeCategory?[] cats = { null, RecipeCategory.Tools, RecipeCategory.Weapons, RecipeCategory.Food, RecipeCategory.Water, RecipeCategory.Structures, RecipeCategory.Survival, RecipeCategory.Resources };
             for (int i = 0; i < names.Length; i++)
             {
                 var cat = cats[i];
@@ -404,9 +405,10 @@ namespace PrimalFrontier.UI
             foreach (var t in _tiles)
             {
                 bool known = _craft.IsKnown(t.r); bool can = known && _craft.Check(t.r) == null;
+                bool blocked = known && !can && _craft.CheckRequirements(t.r) != null;          // missing tool / station / day: dimmer
                 t.bg.sprite = t.r == _recipe ? UIStyle.SlotActive : UIStyle.Slot;
                 t.name.color = can ? UIStyle.Text : known ? UIStyle.TextDim : new Color(0.4f, 0.38f, 0.35f);
-                t.icon.color = known ? (can ? Color.white : new Color(0.65f, 0.62f, 0.58f)) : new Color(0.3f, 0.28f, 0.25f);
+                t.icon.color = known ? (can ? Color.white : blocked ? new Color(0.45f, 0.43f, 0.4f) : new Color(0.65f, 0.62f, 0.58f)) : new Color(0.3f, 0.28f, 0.25f);
             }
             var r = _recipe;
             bool k = r != null && _craft.IsKnown(r);
@@ -422,9 +424,16 @@ namespace PrimalFrontier.UI
                     string col = have >= ing.count ? "#3d5a22" : "#9a2a1a";
                     sb.Append($"<color={col}>{ing.item.displayName}   {have} / {ing.count}</color>\n");
                 }
+            if (r != null && k && r.requirements != null)
+                foreach (var q in r.requirements)
+                {
+                    if (q.tool != ToolKind.None) sb.Append($"<color={(_craft.HasToolInPack(q.tool) ? "#3d5a22" : "#9a2a1a")}>Tool   {CraftingSystem.ToolLabel(q.tool)}</color>\n");
+                    if (q.nearStation != CraftStation.None) sb.Append($"<color={(_craft.StationAvailable(q.nearStation) ? "#3d5a22" : "#9a2a1a")}>Near   {CraftingSystem.StationLabel(q.nearStation)}</color>\n");
+                }
             _cReq.text = sb.ToString();
             string why = r != null ? _craft.Check(r) : null;
-            _cReason.text = why ?? "";
+            string need = why != null && k ? _craft.CheckRequirements(r) : null;          // also name a missing tool while materials are short
+            _cReason.text = why == null ? "" : need != null && need != why ? why + "\n" + need : why;
             _bCraft.interactable = r != null && why == null;
             _bCraft5.interactable = r != null && why == null && _craft.MaxCraftable(r) >= 2;
             UpdateQueue();

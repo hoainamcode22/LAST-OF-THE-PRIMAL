@@ -1,0 +1,72 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 708317aaa7685594d9f75d6547b9978a, type: 3}
+  m_Name: WPN_stone_spear
+  m_EditorClassIdentifier: PrimalFrontier.Runtime::PrimalFrontier.Combat.Weapons.WeaponData
+  kind: 1
+  ranged: 0
+  damage: 22
+  heavyDamage: 38
+  staminaCost: 12
+  heavyStaminaMultiplier: 1.8
+  attackSpeed: 1
+  heavyHoldTime: 0.35
+  durabilityCost: 1
+  reach: 2.1
+  heavyReach: 2.4
+  hitRadius: 0.1
+  comboWindow: 1
+  attacks:
+  - action: 20
+    damageMultiplier: 1
+    staminaMultiplier: 1
+    activeStart: 0.28
+    activeEnd: 0.5
+    lunge: 0
+    lungeTime: 0.18
+  - action: 23
+    damageMultiplier: 1.25
+    staminaMultiplier: 1
+    activeStart: 0.3
+    activeEnd: 0.52
+    lunge: 1
+    lungeTime: 0.15
+  heavyAttack:
+    action: 21
+    damageMultiplier: 1
+    staminaMultiplier: 1
+    activeStart: 0.35
+    activeEnd: 0.6
+    lunge: 2.4
+    lungeTime: 0.2
+  throwable: 1
+  throwSpeed: 22
+  throwDamageMultiplier: 1.2
+  hitVfx: 0
+  hitSfx: 7
+  swingSfx: 24
+  hitVfxHard: 27
+  trail: 0
+  trailColor: {r: 1, g: 0.93, b: 0.8, a: 0.55}
+  trailMaterial: {fileID: 0}
+  gripPosition: {x: 0, y: 0, z: 0}
+  gripEuler: {x: 0, y: 0, z: 0}
+  offHandGrip: {x: -0.0026268046, y: 0, z: -0.42}
+  carrySocket: 1
+  equipAction: 0
+  equipTime: 0.5
+  drawTime: 0.9
+  projectileSpeedMin: 14
+  projectileSpeedMax: 42
+  minDraw: 0.25
+  recoverChance: 0.6
+  ammo: {fileID: 0}

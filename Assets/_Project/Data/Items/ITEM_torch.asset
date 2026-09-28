@@ -44,3 +44,4 @@ MonoBehaviour:
   placePrefab: {fileID: 0}
   placeRadius: 1
   lightRange: 9
+  weaponData: {fileID: 11400000, guid: 9338d8abc76fdd944a43d383c2f30145, type: 2}
