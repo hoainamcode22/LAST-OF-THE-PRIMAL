@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Globalization;
 using UnityEngine;
 using UnityEngine.UI;
 using PrimalFrontier.Core;
@@ -13,6 +14,8 @@ namespace PrimalFrontier.UI
     /// In-game HUD: vitals (top left), compass + day/time (top right), objective, hotbar 1-8, interaction prompt,
     /// short notifications, crafting progress, crosshair when aiming / building, subtitles, chapter banner,
     /// fade and lightning flash. Minimal and dark so the island stays the star.
+    /// Hunger / thirst show their SurvivalConfig tier word ("Thirsty") inside the bar; the hotbar water count takes the
+    /// water type colour. Texts are rebuilt only when their value changes (no per-frame string allocations).
     /// </summary>
     public class HUDManager : MonoBehaviour, IBakeableUI
     {
@@ -21,6 +24,12 @@ namespace PrimalFrontier.UI
         GameObject _player; PlayerHealth _hp; PlayerSurvival _sv; InventorySystem _inv; PlayerInteraction _pi; CraftingSystem _craft; PlayerCombat _combat;
         Canvas _canvas, _top; CanvasGroup _hudGroup;
         Image _hpBar, _hungerBar, _thirstBar, _staminaBar, _tempBar; Text _hpVal, _hungerVal, _thirstVal, _staminaVal, _tempVal, _status;
+        Text _hungerTier, _thirstTier;
+        // last values written into the texts (rebuild on change only)
+        int _cHp = int.MinValue, _cHunger = int.MinValue, _cThirst = int.MinValue, _cStamina = int.MinValue, _cTemp = int.MinValue, _cStatus = -1, _cClock = -1, _cDist = int.MinValue, _cObjIndex = int.MinValue;
+        int _cHungerTier = int.MinValue, _cThirstTier = int.MinValue; string _cHungerLabel, _cThirstLabel; bool _hungerDrain, _thirstDrain, _objDirty = true;
+        string _cPrompt, _cPromptSub, _cHold; bool _cPromptSet;
+        readonly string[] _statusTexts = new string[32];
         RectTransform _compassStrip; Text _clock; Image _marker; Text _markerDist;
         Text _objTitle, _objText, _objHint; CanvasGroup _objGroup;
         readonly List<Image> _slotBg = new List<Image>(); readonly List<Image> _slotIcon = new List<Image>(); readonly List<Text> _slotCount = new List<Text>(); readonly List<Image> _slotDur = new List<Image>();
@@ -38,7 +47,7 @@ namespace PrimalFrontier.UI
         {
             Instance = this; Build();
             // texts the game fills in while playing (the saved scene may hold sample text for layout work)
-            foreach (var t in new[] { _objText, _objHint, _prompt, _promptSub, _hotbarName, _subtitle, _bannerTitle, _bannerSub, _markerDist, _status }) if (t) t.text = "";
+            foreach (var t in new[] { _objText, _objHint, _prompt, _promptSub, _hotbarName, _subtitle, _bannerTitle, _bannerSub, _markerDist, _status, _hungerTier, _thirstTier }) if (t) t.text = "";
         }
 
         /// <summary>editor baker: write the HUD into the scene, with sample text so the hidden parts can be laid out</summary>
@@ -50,12 +59,15 @@ namespace PrimalFrontier.UI
             Sample(_objText, "Collect wood (2/4)"); Sample(_objHint, "Driftwood lies along the beach. Press E next to it.");
             Sample(_prompt, "Pick up Driftwood"); Sample(_promptSub, "Hold E: gather"); Sample(_hotbarName, "Stone Axe");
             Sample(_subtitle, "What was that?"); Sample(_bannerTitle, "DAY 1"); Sample(_bannerSub, "Dawn"); Sample(_markerDist, "120 m");
+            Sample(_hungerTier, "Peckish"); Sample(_thirstTier, "Thirsty");
         }
         void OnDestroy() { if (Instance == this) Instance = null; PlayerInteraction.Message -= Notify; GameEvents.Raised -= OnEvent; }
 
         public void Bind(GameObject player)
         {
             _player = player;
+            _cHp = _cHunger = _cThirst = _cStamina = _cTemp = _cDist = _cObjIndex = _cHungerTier = _cThirstTier = int.MinValue; _cStatus = _cClock = -1;
+            _cHungerLabel = _cThirstLabel = null; _cPromptSet = false; _objDirty = true;
             _hp = player.GetComponent<PlayerHealth>(); _sv = player.GetComponent<PlayerSurvival>(); _inv = player.GetComponent<InventorySystem>();
             _pi = player.GetComponent<PlayerInteraction>(); _craft = player.GetComponent<CraftingSystem>(); _combat = player.GetComponent<PlayerCombat>();
             if (_inv) { _inv.Changed -= RefreshHotbar; _inv.Changed += RefreshHotbar; _inv.ActiveSlotChanged -= OnActive; _inv.ActiveSlotChanged += OnActive; }
@@ -96,6 +108,10 @@ namespace PrimalFrontier.UI
             Row("thirst", UIStyle.Thirst, out _thirstBar, out _thirstVal);
             Row("stamina", UIStyle.Stamina, out _staminaBar, out _staminaVal);
             Row("temperature", UIStyle.Warm, out _tempBar, out _tempVal);
+            // tier words over the empty (right) end of the hunger / thirst bars
+            Text Tier(string name, float rowY) => UIFactory.Label(vit.transform, name, "", 14, UIStyle.Text, TextAnchor.MiddleRight, UIStyle.Body, new Vector2(0, 1), new Vector2(0, 1), new Vector2(1, 0.5f), new Vector2(250, rowY - 12), new Vector2(160, 20));
+            _hungerTier = Tier("hungerTier", -20 - 32);
+            _thirstTier = Tier("thirstTier", -20 - 64);
             _status = UIFactory.Label(vit.transform, "Status", "", 16, UIStyle.Accent, TextAnchor.UpperLeft, UIStyle.Body, new Vector2(0, 0), new Vector2(1, 0), new Vector2(0, 0), new Vector2(18, -26), new Vector2(-30, 24));
 
             // ---- compass + clock (top right)
@@ -255,7 +271,7 @@ namespace PrimalFrontier.UI
 
         void OnStep(TutorialManager.Step s)
         {
-            _objGroup.alpha = 1f; _objFlash = 1f;
+            _objGroup.alpha = 1f; _objFlash = 1f; _objDirty = true;
             Audio.SfxPlayer.Instance.Play2D(Audio.SfxId.UiObjective, 0.6f);
         }
         float _objFlash;
@@ -266,6 +282,7 @@ namespace PrimalFrontier.UI
 
         void RefreshHotbar()
         {
+            _objDirty = true;                                  // objective progress counts items
             if (_inv == null || _inv.Slots == null) return;
             for (int i = 0; i < 8 && i < _inv.Slots.Length; i++)
             {
@@ -273,7 +290,7 @@ namespace PrimalFrontier.UI
                 _slotBg[i].sprite = i == _inv.ActiveSlot ? UIStyle.SlotActive : UIStyle.Slot;
                 _slotIcon[i].enabled = s != null && s.item.icon; if (s != null) _slotIcon[i].sprite = s.item.icon;
                 _slotCount[i].text = s == null ? "" : s.item.IsWaterContainer ? $"{s.water}/{s.item.waterCharges}" : s.count > 1 ? s.count.ToString() : "";
-                _slotCount[i].color = s != null && s.dirty && s.water > 0 ? DirtyWater : UIStyle.Text;
+                _slotCount[i].color = WaterCountColor(s);
                 bool dur = s != null && s.item.HasDurability;
                 _slotDur[i].enabled = dur; if (dur) { float k = Mathf.Clamp01(s.durability / s.item.maxDurability); _slotDur[i].fillAmount = k; _slotDur[i].color = Color.Lerp(UIStyle.Bad, UIStyle.Good, k); }
             }
@@ -305,24 +322,23 @@ namespace PrimalFrontier.UI
             _hotbarName.color = new Color(1, 1, 1, Mathf.Clamp01(2.2f - (Time.unscaledTime - _hotbarNameT))) * UIStyle.Text;
 
             if (_player == null) return;
-            // vitals
-            if (_hp) { _hpBar.fillAmount = _hp.Normalized; _hpVal.text = Mathf.CeilToInt(_hp.Health).ToString(); }
+            // vitals (texts only when the shown value changes)
+            if (_hp) { _hpBar.fillAmount = _hp.Normalized; SetInt(_hpVal, Mathf.CeilToInt(_hp.Health), ref _cHp); }
             if (_sv)
             {
-                _hungerBar.fillAmount = _sv.Hunger / 100f; _hungerVal.text = Mathf.CeilToInt(_sv.Hunger).ToString();
-                _thirstBar.fillAmount = _sv.Thirst / 100f; _thirstVal.text = Mathf.CeilToInt(_sv.Thirst).ToString();
-                _staminaBar.fillAmount = _sv.Stamina / _sv.maxStamina; _staminaVal.text = Mathf.CeilToInt(_sv.Stamina).ToString();
+                _hungerBar.fillAmount = _sv.Hunger / 100f; SetInt(_hungerVal, Mathf.CeilToInt(_sv.Hunger), ref _cHunger);
+                _thirstBar.fillAmount = _sv.Thirst / 100f; SetInt(_thirstVal, Mathf.CeilToInt(_sv.Thirst), ref _cThirst);
+                _staminaBar.fillAmount = _sv.Stamina / _sv.maxStamina; SetInt(_staminaVal, Mathf.CeilToInt(_sv.Stamina), ref _cStamina);
                 float bt = _sv.BodyTemperature; _tempBar.fillAmount = Mathf.InverseLerp(33f, 38.5f, bt);
                 _tempBar.color = bt < _sv.coldBody ? UIStyle.Cold : bt > 37.6f ? UIStyle.Bad : UIStyle.Warm;
-                _tempVal.text = bt.ToString("0.0") + "°";
-                Pulse(_hungerBar, _sv.Hunger < 15f); Pulse(_thirstBar, _sv.Thirst < 15f); Pulse(_hpBar, _hp && _hp.Normalized < 0.25f); Pulse(_tempBar, _sv.IsCold);
-                var st = new System.Text.StringBuilder();
-                if (_hp && _hp.IsBleeding) st.Append("Bleeding  ");
-                if (_sv.SickSeconds > 0f) st.Append("Stomach sick  ");
-                if (_sv.Wetness > 0.3f) st.Append("Wet  ");
-                if (_sv.IsCold) st.Append("Cold  ");
-                if (_sv.Overweight) st.Append("Overburdened  ");
-                _status.text = st.ToString();
+                int bt10 = Mathf.RoundToInt(bt * 10f);
+                if (bt10 != _cTemp) { _cTemp = bt10; _tempVal.text = (bt10 / 10f).ToString("0.0", CultureInfo.InvariantCulture) + "°"; }
+                var cfg = SurvivalConfig.Instance;
+                SetTier(_hungerTier, _sv.HungerTier, _sv.HungerTierLabel, cfg.hungerTiers, ref _cHungerTier, ref _cHungerLabel, ref _hungerDrain);
+                SetTier(_thirstTier, _sv.ThirstTier, _sv.ThirstTierLabel, cfg.thirstTiers, ref _cThirstTier, ref _cThirstLabel, ref _thirstDrain);
+                Pulse(_hungerBar, _hungerDrain); Pulse(_thirstBar, _thirstDrain); Pulse(_hpBar, _hp && _hp.Normalized < 0.25f); Pulse(_tempBar, _sv.IsCold);
+                int mask = (_hp && _hp.IsBleeding ? 1 : 0) | (_sv.IsSick ? 2 : 0) | (_sv.Wetness > 0.3f ? 4 : 0) | (_sv.IsCold ? 8 : 0) | (_sv.Overweight ? 16 : 0);
+                if (mask != _cStatus) { _cStatus = mask; _status.text = StatusText(mask); }
             }
             // compass
             var cam = Camera.main;
@@ -336,30 +352,43 @@ namespace PrimalFrontier.UI
                 float bearing = Mathf.Atan2(d.x, d.z) * Mathf.Rad2Deg; float rel = Mathf.DeltaAngle(cam.transform.eulerAngles.y, bearing);
                 rel = Mathf.Clamp(rel, -42f, 42f);
                 _marker.rectTransform.anchoredPosition = new Vector2(rel * 4f, 0);
-                _markerDist.text = dist > 8f ? Mathf.RoundToInt(dist) + " m" : "";
+                int di = dist > 8f ? Mathf.RoundToInt(dist) : -1;
+                if (di != _cDist) { _cDist = di; _markerDist.text = di < 0 ? "" : NumText(di) + " m"; }
                 // under the marker, wherever the compass has been placed
                 _markerDist.rectTransform.position = _marker.rectTransform.position + new Vector3(0f, -34f * (_canvas ? _canvas.scaleFactor : 1f), 0f);
             }
             _marker.enabled = mk; _markerDist.enabled = mk;
             var tm = TimeManager.Instance;
-            if (tm) { int h = Mathf.FloorToInt(tm.hour), m = Mathf.FloorToInt((tm.hour - h) * 60f); _clock.text = $"Day {tm.day}   {h:00}:{m:00}"; }
+            if (tm)
+            {
+                int h = Mathf.FloorToInt(tm.hour), m = Mathf.FloorToInt((tm.hour - h) * 60f), key = tm.day * 1440 + h * 60 + m;
+                if (key != _cClock) { _cClock = key; _clock.text = string.Format(CultureInfo.InvariantCulture, "Day {0}   {1:00}:{2:00}", tm.day, h, m); }
+            }
             // objective
             var tut = TutorialManager.Instance;
-            if (tut && tut.Running) { _objText.text = tut.ObjectiveText(); _objHint.text = tut.Current.hint; _objGroup.alpha = Mathf.MoveTowards(_objGroup.alpha, 1f, udt * 3f); }
+            if (tut && tut.Running)
+            {
+                if (_objDirty || tut.Index != _cObjIndex) { _objDirty = false; _cObjIndex = tut.Index; _objText.text = tut.ObjectiveText(); _objHint.text = tut.Current.hint; }
+                _objGroup.alpha = Mathf.MoveTowards(_objGroup.alpha, 1f, udt * 3f);
+            }
             else _objGroup.alpha = Mathf.MoveTowards(_objGroup.alpha, 0f, udt * 1f);
             _objFlash = Mathf.MoveTowards(_objFlash, 0f, udt * 0.8f); _objTitle.color = Color.Lerp(UIStyle.Accent, Color.white, _objFlash);
             // prompt
             bool show = _pi && !menuOpen && (_pi.Prompt != null || _pi.HoldLabel != null);
             if (show)
             {
-                _prompt.text = _pi.Prompt ?? _pi.HoldLabel;
-                string sub = _pi.PromptSub; if (_pi.HoldLabel != null && _pi.Prompt != null) sub = (sub != null ? sub + "   " : "") + "Hold E: " + _pi.HoldLabel;
-                _promptSub.text = sub ?? "";
+                if (!_cPromptSet || !ReferenceEquals(_pi.Prompt, _cPrompt) || !ReferenceEquals(_pi.PromptSub, _cPromptSub) || !ReferenceEquals(_pi.HoldLabel, _cHold))
+                {
+                    _cPromptSet = true; _cPrompt = _pi.Prompt; _cPromptSub = _pi.PromptSub; _cHold = _pi.HoldLabel;
+                    _prompt.text = _pi.Prompt ?? _pi.HoldLabel;
+                    string sub = _pi.PromptSub; if (_pi.HoldLabel != null && _pi.Prompt != null) sub = (sub != null ? sub + "   " : "") + "Hold E: " + _pi.HoldLabel;
+                    _promptSub.text = sub ?? "";
+                    float w = Mathf.Min(560f, _prompt.preferredWidth); var p = _prompt.rectTransform; p.anchoredPosition = new Vector2(-w * 0.5f + 20f, 0);
+                    _promptKeyBg.rectTransform.anchoredPosition = new Vector2(-w * 0.5f + 12f, 0);
+                }
                 _prompt.color = _pi.PromptEnabled || _pi.Prompt == null ? UIStyle.Text : UIStyle.TextDim;
                 _promptKey.color = _pi.PromptEnabled || _pi.Prompt == null ? UIStyle.Accent : UIStyle.TextDim;
                 _hold.fillAmount = _pi.HoldProgress;
-                float w = Mathf.Min(560f, _prompt.preferredWidth); var p = _prompt.rectTransform; p.anchoredPosition = new Vector2(-w * 0.5f + 20f, 0);
-                _promptKeyBg.rectTransform.anchoredPosition = new Vector2(-w * 0.5f + 12f, 0);
             }
             _promptGroup.alpha = Mathf.MoveTowards(_promptGroup.alpha, show ? 1f : 0f, udt * 8f);
             // crafting
@@ -373,6 +402,41 @@ namespace PrimalFrontier.UI
         }
 
         public static readonly Color DirtyWater = new Color(0.78f, 0.6f, 0.36f);
+
+        /// <summary>hotbar / slot count colour: the water type colour for a container with water, else the text colour</summary>
+        public static Color WaterCountColor(ItemStack s)
+        {
+            var t = s != null && s.item != null && s.item.IsWaterContainer ? WaterRules.TypeOf(s) : WaterType.None;
+            return t == WaterType.None ? UIStyle.Text : WaterRules.Color(t);
+        }
+
+        static readonly string[] _nums = BuildNums(301);
+        static string[] BuildNums(int n) { var a = new string[n]; for (int i = 0; i < n; i++) a[i] = i.ToString(CultureInfo.InvariantCulture); return a; }
+        /// <summary>cached number strings (no allocation for 0..300)</summary>
+        public static string NumText(int n) => n >= 0 && n < _nums.Length ? _nums[n] : n.ToString(CultureInfo.InvariantCulture);
+        static void SetInt(Text t, int v, ref int cache) { if (v == cache || !t) return; cache = v; t.text = NumText(v); }
+
+        static void SetTier(Text t, int index, string label, SurvivalConfig.NeedTier[] tiers, ref int cacheIndex, ref string cacheLabel, ref bool drain)
+        {
+            if (index == cacheIndex && ReferenceEquals(label, cacheLabel)) return;
+            cacheIndex = index; cacheLabel = label;
+            drain = index >= 0 && tiers != null && index < tiers.Length && tiers[index].healthDrain > 0f;
+            if (t) { t.text = label ?? ""; t.color = drain ? UIStyle.Bad : UIStyle.Text; }
+        }
+
+        /// <summary>status line for a flag mask (bleeding 1, sick 2, wet 4, cold 8, overburdened 16), built once per mask</summary>
+        string StatusText(int mask)
+        {
+            if (mask <= 0) return "";
+            var cached = _statusTexts[mask & 31]; if (cached != null) return cached;
+            var st = new System.Text.StringBuilder();
+            if ((mask & 1) != 0) st.Append("Bleeding  ");
+            if ((mask & 2) != 0) st.Append("Stomach sick  ");
+            if ((mask & 4) != 0) st.Append("Wet  ");
+            if ((mask & 8) != 0) st.Append("Cold  ");
+            if ((mask & 16) != 0) st.Append("Overburdened  ");
+            return _statusTexts[mask & 31] = st.ToString();
+        }
         static void Pulse(Image bar, bool on)
         {
             if (!bar) return;

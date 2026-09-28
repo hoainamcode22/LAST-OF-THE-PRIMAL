@@ -26,6 +26,8 @@ namespace PrimalFrontier.Core
         PlayerDodged, ClimbStarted, FruitHarvested, WaterBoiled, GotSick, VolcanoRumble,
         // hunting (appended)
         CarcassButchered,
+        // survival milestone 1 (appended)
+        FoodBurned, WaterCollected, WaterEmptied, NeedTierChanged, FuelAdded, FoodTaken,
     }
 
     /// <summary>One gameplay fact ("added 3 wood", "entered cave", "lit a fire"). Tutorial, journal, audio and UI listen.</summary>

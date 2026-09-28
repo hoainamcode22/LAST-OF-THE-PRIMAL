@@ -5,7 +5,9 @@ namespace PrimalFrontier.VFX
 {
     /// <summary>
     /// Presentation of a campfire: looping flames / smoke / embers, one flickering point light (the only realtime light
-    /// the fire adds), crackle loop, ignition / extinguish bursts and cooking smoke. Gameplay calls SetLit / SetCooking.
+    /// the fire adds), crackle loop, ignition / extinguish bursts, cooking smoke while food cooks and a steam wisp over
+    /// every slot whose food (or boiled water) is ready. Gameplay calls SetLit / SetCooking / SetReady / BurnPuff.
+    /// Effects come from VfxPool (no Instantiate after warm-up); steam only shows while the fire burns.
     /// </summary>
     public class CampfireFx : MonoBehaviour
     {
@@ -14,8 +16,12 @@ namespace PrimalFrontier.VFX
         public AudioSource crackle;
         public float lightIntensity = 2.2f, lightRange = 7f;
         public bool startLit;
+        [Tooltip("size of the steam wisp over ready food")] public float readySteamScale = 0.7f;
         public bool IsLit { get; private set; }
         PooledEffect _cook; float _seed; float _level;
+
+        const int MaxSteam = 8;
+        PooledEffect[] _steam; Transform[] _steamAt; bool[] _steamWanted;   // per cooking slot (allocated on first use)
 
         void Awake()
         {
@@ -28,11 +34,7 @@ namespace PrimalFrontier.VFX
         {
             if (IsLit == on && _level == (on ? 1f : 0f)) return;
             IsLit = on;
-            foreach (var ps in new[] { flames, smoke, embers })
-            {
-                if (!ps) continue;
-                if (on) ps.Play(true); else ps.Stop(true, ParticleSystemStopBehavior.StopEmitting);
-            }
+            Loop(flames, on); Loop(smoke, on); Loop(embers, on);
             if (crackle) { if (on) { if (!crackle.isPlaying) crackle.Play(); } else crackle.Stop(); }
             if (withBurst && Application.isPlaying)
             {
@@ -40,12 +42,57 @@ namespace PrimalFrontier.VFX
                 SfxPlayer.Instance.Play(on ? SfxId.FireIgnite : SfxId.FireExtinguish, transform.position);
             }
             if (!on) SetCooking(false);
+            if (_steamWanted != null) for (int i = 0; i < MaxSteam; i++) ApplySteam(i);
         }
 
+        static void Loop(ParticleSystem ps, bool on)
+        {
+            if (!ps) return;
+            if (on) ps.Play(true); else ps.Stop(true, ParticleSystemStopBehavior.StopEmitting);
+        }
+
+        /// <summary>cooking smoke + sizzle while something cooks (only while lit)</summary>
         public void SetCooking(bool on)
         {
+            if (!Application.isPlaying) return;
             if (on && _cook == null && IsLit) { _cook = VfxPool.Instance.Play(VfxId.CookSmoke, transform.position + Vector3.up * 0.55f, Quaternion.identity, transform); SfxPlayer.Instance.Play(SfxId.Sizzle, transform.position, 0.8f); }
             else if (!on && _cook != null) { _cook.StopEmitting(); _cook = null; }
+        }
+
+        /// <summary>steam over one slot (ready food, boiled water); shown only while the fire burns</summary>
+        public void SetReady(int slot, Transform at, bool on)
+        {
+            if (slot < 0 || slot >= MaxSteam) return;
+            if (_steamWanted == null)
+            {
+                if (!on) return;
+                _steam = new PooledEffect[MaxSteam]; _steamAt = new Transform[MaxSteam]; _steamWanted = new bool[MaxSteam];
+            }
+            _steamWanted[slot] = on; _steamAt[slot] = at;
+            ApplySteam(slot);
+        }
+
+        void ApplySteam(int i)
+        {
+            bool show = _steamWanted[i] && IsLit && _steamAt[i] && Application.isPlaying;
+            var e = _steam[i];
+            if (show && e == null) _steam[i] = VfxPool.Instance.Play(VfxId.Steam, _steamAt[i].position + Vector3.up * 0.05f, Vector3.up, _steamAt[i], readySteamScale);
+            else if (!show && e != null) { e.StopEmitting(); _steam[i] = null; }
+        }
+
+        /// <summary>food burned: a grey puff and a hiss at the slot</summary>
+        public void BurnPuff(Vector3 at)
+        {
+            if (!Application.isPlaying) return;
+            VfxPool.Instance.Play(VfxId.FireExtinguish, at, Vector3.up, null, 0.35f);
+            SfxPlayer.Instance.Play(SfxId.Sizzle, at, 0.5f);
+        }
+
+        /// <summary>water boiled / food ready: a short sizzle</summary>
+        public void ReadyCue(Vector3 at)
+        {
+            if (!Application.isPlaying) return;
+            SfxPlayer.Instance.Play(SfxId.Sizzle, at, 0.6f);
         }
 
         void Update()

@@ -39,6 +39,7 @@ namespace PrimalFrontier.UI
             R("Attack (Tấn công)", "Left mouse", 0, A("Attack"), "<Mouse>/leftButton"),
             R("Heavy attack (Đòn mạnh)", "Hold left mouse", 0, A("Attack"), "<Mouse>/leftButton"),
             R("Aim (Ngắm)", "Right mouse (hold)", 0, A("Aim"), "<Mouse>/rightButton"),
+            R("Block, sword / knife (Đỡ đòn)", "Hold right mouse", 0, A("Aim"), "<Mouse>/rightButton"),
             R("Bow: draw / shoot (Cung: kéo / bắn)", "Hold RMB, hold LMB, release", 0),
             R("Throw spear (Ném giáo)", "Hold RMB + left mouse", 0),
             R("Eat / drink held item (Ăn / uống)", "Left mouse", 0),

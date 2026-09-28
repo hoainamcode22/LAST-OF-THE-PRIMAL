@@ -108,6 +108,11 @@ MonoBehaviour:
   hiddenLoot: []
   flushCooldown: 60
   flushDust: 1
+  strongChance: 0.2
+  discoveryChance: 0.1
+  discoveryCooldown: 120
+  startleRange: 25
+  discoveryCount: {x: 1, y: 2}
 --- !u!1 &1282780095246437557
 GameObject:
   m_ObjectHideFlags: 0
@@ -188,6 +193,14 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: -2154772698343495948, guid: 67f2ba40a97d8074190890baeb90b500, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 6880883229eae0641834815253b5af80, type: 2}
+    - target: {fileID: -1587713796245782085, guid: 67f2ba40a97d8074190890baeb90b500, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 6880883229eae0641834815253b5af80, type: 2}
     - target: {fileID: 919132149155446097, guid: 67f2ba40a97d8074190890baeb90b500, type: 3}
       propertyPath: m_Name
       value: ENV_Bush_01

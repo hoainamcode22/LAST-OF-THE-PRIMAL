@@ -21,6 +21,16 @@ namespace PrimalFrontier.EditorTools
     /// deletes the test tree and the _WindTest copies. WindRevert "test" removes only the test tree. By hand: select the
     /// material, set its shader to Universal Render Pipeline/Lit (texture, colour, cutoff, cull are kept) and tick Alpha
     /// Clipping again on leaves.
+    /// SPLIT (the way to use wind now): WindApply switched the SHARED materials (M_Bark / M_Foliage ...), so fallen logs,
+    /// ferns, grass details, resource nodes and berry plants swayed too. WindSplit makes dedicated copies
+    /// (Art/Materials/&lt;name&gt;_Wind.mat for the trees; &lt;name&gt;_BushWind.mat for a material the bushes share with the trees,
+    /// with bush-height wind numbers) with the same textures, colours, cutoff, keywords and wind numbers, assigns them only
+    /// to the tree prefabs (terrain tree prototypes + PFB_ENV_Tree*) and the bush prefabs (PFB_ENV_Bush*: renderer
+    /// overrides in the prefab; a prototype that is a model file gets an importer remap for that model only), refreshes
+    /// the terrain tree prototypes and puts the shared materials back on their original shader from wind_originals.json.
+    /// Idempotent (a second run changes nothing); everything is recorded in _Backup/wind_split.json. WindRevert undoes the
+    /// split first (prefab overrides / remaps back, copies deleted) and then restores the shared materials as before, so
+    /// it still returns to the state before any wind.
     /// Night sky: NightSky adds [Systems]/NightSky (NightSky component + M_NightSky); NightSky "remove" deletes it.
     /// </summary>
     public static partial class PrimalShaderBuilder
@@ -42,6 +52,12 @@ namespace PrimalFrontier.EditorTools
         {
             if (!EditorUtility.DisplayDialog("Primal Frontier", "Switch the tree and bush materials to PF/Foliage Wind? Save the scene first. 'Shaders: Wind Revert' puts the recorded shaders back.", "Switch", "Cancel")) return;
             EditorUtility.DisplayDialog("Primal Frontier", WindApply("confirm"), "OK");
+        }
+        [MenuItem("Primal Frontier/Tools/Shaders: Wind Split (only trees + bushes sway)")]
+        static void MenuWindSplit()
+        {
+            if (!EditorUtility.DisplayDialog("Primal Frontier", "Give the trees and bushes their own wind materials (M_*_Wind) and put the shared materials back on their original shader? 'Shaders: Wind Revert' undoes it.", "Split", "Cancel")) return;
+            EditorUtility.DisplayDialog("Primal Frontier", WindSplit(""), "OK");
         }
         [MenuItem("Primal Frontier/Tools/Shaders: Wind Revert")] static void MenuWindRevert() => EditorUtility.DisplayDialog("Primal Frontier", WindRevert(""), "OK");
         [MenuItem("Primal Frontier/Tools/Shaders: Night Sky (stars)")] static void MenuNightSky() => EditorUtility.DisplayDialog("Primal Frontier", NightSky(""), "OK");
@@ -149,6 +165,7 @@ namespace PrimalFrontier.EditorTools
             if (EditorApplication.isPlayingOrWillChangePlaymode) return "stop Play mode first";
             RemoveWindTest(true);
             if (arg == "test") return Log.ToString();
+            UndoWindSplit();
             var lit = Shader.Find("Universal Render Pipeline/Lit");
             var rec = LoadWindRecords();
             var done = new HashSet<string>(); int n = 0;
@@ -176,6 +193,279 @@ namespace PrimalFrontier.EditorTools
             if (File.Exists(WindJson)) AssetDatabase.DeleteAsset(WindJson);
             L($"{n} material(s) restored");
             return Log.ToString();
+        }
+
+        // ------------------------------------------------------------------ wind: split (dedicated copies for trees / bushes)
+        const string SplitJson = Backup + "/wind_split.json", CopyTag = "PF_WindCopyOf";
+        [System.Serializable] class SplitCopy { public string source, copy, group; }
+        [System.Serializable] class SplitEdit { public string prefab, renderer; public int slot; public string from, to; public bool hadOverride; }
+        [System.Serializable] class SplitRemap { public string model, name, from, to; }
+        [System.Serializable]
+        class SplitRecord
+        {
+            public List<SplitCopy> copies = new List<SplitCopy>();
+            public List<SplitEdit> edits = new List<SplitEdit>();
+            public List<SplitRemap> remaps = new List<SplitRemap>();
+            public List<string> restored = new List<string>();
+            public bool Empty => copies.Count == 0 && edits.Count == 0 && remaps.Count == 0;
+        }
+
+        /// <summary>"path" for a .mat asset, "path#name" for a material inside a model file</summary>
+        static string MatKey(Material m)
+        {
+            string p = AssetDatabase.GetAssetPath(m);
+            return string.IsNullOrEmpty(p) || AssetDatabase.IsMainAsset(m) ? p : p + "#" + m.name;
+        }
+
+        static Material LoadMat(string key)
+        {
+            if (string.IsNullOrEmpty(key)) return null;
+            int i = key.IndexOf('#');
+            if (i < 0) return AssetDatabase.LoadAssetAtPath<Material>(key);
+            string path = key.Substring(0, i), name = key.Substring(i + 1);
+            return AssetDatabase.LoadAllAssetsAtPath(path).OfType<Material>().FirstOrDefault(x => x.name == name);
+        }
+
+        static bool IsWindCopy(Material m) => m && !string.IsNullOrEmpty(m.GetTag(CopyTag, false, ""));
+
+        static SplitRecord LoadSplit()
+        {
+            try { if (File.Exists(SplitJson)) return JsonUtility.FromJson<SplitRecord>(File.ReadAllText(SplitJson)) ?? new SplitRecord(); }
+            catch (System.Exception e) { L("could not read " + SplitJson + ": " + e.Message); }
+            return new SplitRecord();
+        }
+
+        static void SaveSplit(SplitRecord r)
+        {
+            Directory.CreateDirectory(Backup);
+            File.WriteAllText(SplitJson, JsonUtility.ToJson(r, true));
+            AssetDatabase.ImportAsset(SplitJson);
+        }
+
+        static string RelPath(Transform root, Transform t)
+        {
+            var parts = new List<string>();
+            for (var x = t; x && x != root; x = x.parent) parts.Insert(0, x.name);
+            return string.Join("/", parts);
+        }
+
+        /// <summary>
+        /// Trees and bushes get their own wind materials; the shared ones go back to their original shader.
+        /// Idempotent. Undo: WindRevert.
+        /// </summary>
+        [PrimalBridgeCommand]
+        public static string WindSplit(string arg)
+        {
+            Log.Clear();
+            if (EditorApplication.isPlayingOrWillChangePlaymode) return "stop Play mode first";
+            if (!Ok(WindShader, out var sh)) return Log.ToString();
+            if (!IslandOpen(out var scene, out bool wasDirty)) return Log.ToString();
+            var trees = TreePrefabs(); var bushes = PrefabsNamed("PFB_ENV_Bush");
+            if (trees.Count + bushes.Count == 0) { L("no tree prototype / PFB_ENV_Tree / PFB_ENV_Bush prefab: nothing done"); return Log.ToString(); }
+            L($"trees: {string.Join(", ", trees.Select(t => t.name))}; bushes: {string.Join(", ", bushes.Select(b => b.name))}");
+            var treeUses = new Dictionary<Material, WindUse>(); var bushUses = new Dictionary<Material, WindUse>();
+            foreach (var t in trees) Collect(t, false, treeUses);
+            foreach (var b in bushes) Collect(b, true, bushUses);
+            var rec = LoadWindRecords(); var split = LoadSplit();
+            int created = 0, kept = 0, skipped = 0;
+            // 1) the copies, per group ("tree" / "bush"): source key -> copy
+            var copyFor = new Dictionary<string, Dictionary<Material, Material>> { ["tree"] = new Dictionary<Material, Material>(), ["bush"] = new Dictionary<Material, Material>() };
+            void MakeCopies(Dictionary<Material, WindUse> uses, string group)
+            {
+                foreach (var kv in uses)
+                {
+                    var m = kv.Key;
+                    if (IsWindCopy(m)) continue;                                    // already split
+                    if (!m.shader || (m.shader != sh && !WindSourceShaders.Contains(m.shader.name))) { L($"{m.name}: skipped (shader {(m.shader ? m.shader.name : "none")})"); skipped++; continue; }
+                    string key = MatKey(m);
+                    if (string.IsNullOrEmpty(key)) { L($"{m.name}: skipped (not an asset)"); skipped++; continue; }
+                    bool shared = group == "bush" && treeUses.ContainsKey(m);      // same material on trees and bushes: bush-height numbers
+                    var copy = FindSplitCopy(split, key, group);
+                    if (copy && copy.shader == sh) { kept++; copyFor[group][m] = copy; continue; }
+                    string baseName = m.name + (shared ? "_BushWind" : "_Wind"), path = $"{Mats}/{baseName}.mat";
+                    for (int n = 2; AssetDatabase.LoadAssetAtPath<Material>(path) && AssetDatabase.LoadAssetAtPath<Material>(path).GetTag(CopyTag, false, "") != key; n++) path = $"{Mats}/{baseName}_{n}.mat";
+                    copy = AssetDatabase.LoadAssetAtPath<Material>(path);
+                    bool fromWind = m.shader == sh;
+                    if (!copy) { copy = new Material(m) { name = Path.GetFileNameWithoutExtension(path) }; AssetDatabase.CreateAsset(copy, path); }
+                    else { copy.shader = m.shader; copy.CopyPropertiesFromMaterial(m); copy.shaderKeywords = m.shaderKeywords; copy.renderQueue = m.renderQueue; }
+                    // a switched source already carries its wind numbers (kept as they are); a Lit source (or the bush copy) gets them from the heights
+                    if (!fromWind || shared) SwitchToWind(copy, sh, kv.Value);
+                    copy.SetOverrideTag(CopyTag, key);
+                    copy.enableInstancing = true;
+                    EditorUtility.SetDirty(copy);
+                    split.copies.RemoveAll(c => c.source == key && c.group == group);
+                    split.copies.Add(new SplitCopy { source = key, copy = path, group = group });
+                    copyFor[group][m] = copy; created++;
+                    L($"{copy.name}: copy of {m.name} ({(fromWind ? "wind numbers kept" : "switched from " + m.shader.name)}{(shared ? ", bush height" : "")}), height {F(kv.Value.height)} m, sway {F(copy.GetFloat("_WindSway"))} m, flutter {F(copy.GetFloat("_Flutter"))} m, for {string.Join(", ", kv.Value.prefabs)}");
+                }
+            }
+            MakeCopies(treeUses, "tree"); MakeCopies(bushUses, "bush");
+            SaveSplit(split);                                                       // before any prefab changes: the way back exists
+            // 2) assign: prefab renderer overrides, or an importer remap when a prototype is a model file
+            int edits = 0, remaps = 0;
+            foreach (var (list, group) in new[] { (trees, "tree"), (bushes, "bush") })
+                foreach (var go in list)
+                {
+                    string path = AssetDatabase.GetAssetPath(go);
+                    if (string.IsNullOrEmpty(path)) continue;
+                    if (AssetImporter.GetAtPath(path) is ModelImporter mi) remaps += RemapModel(mi, path, go, copyFor[group], split);
+                    else edits += AssignInPrefab(path, copyFor[group], split);
+                }
+            SaveSplit(split);
+            // 3) the shared materials back on their original shader (only the ones now replaced by a copy)
+            int restored = 0;
+            var lit = Shader.Find("Universal Render Pipeline/Lit");
+            foreach (var m in copyFor["tree"].Keys.Concat(copyFor["bush"].Keys).Distinct())
+            {
+                if (!m || m.shader != sh) continue;
+                string path = AssetDatabase.GetAssetPath(m);
+                if (!path.EndsWith(".mat", System.StringComparison.OrdinalIgnoreCase)) continue;
+                var r = rec.items.FirstOrDefault(x => x.path == path);
+                var orig = (r != null ? FindShader(r.shader) : null) ?? FindShader(m.GetTag(WindTag, false, "")) ?? lit;
+                RestoreMaterial(m, orig, r != null ? r.keywords : m.shaderKeywords, r != null ? r.queue : m.renderQueue);
+                if (!split.restored.Contains(path)) split.restored.Add(path);
+                restored++;
+            }
+            SaveSplit(split);
+            RefreshTreePrototypes();
+            AssetDatabase.SaveAssets();
+            if (created + edits + remaps + restored == 0) L($"nothing to change: already split ({kept} copies in use){(skipped > 0 ? $", {skipped} material(s) skipped" : "")}");
+            else
+            {
+                L($"split: {created} copies made, {kept} kept, {edits} renderer slot(s) switched in prefabs, {remaps} model remap(s), {restored} shared material(s) back on their original shader");
+                ReportOtherUsers(split.restored, trees.Concat(bushes));
+                L("the shared materials above no longer sway; terrain detail meshes (DET_*) stay still. Undo: PrimalShaderBuilder.WindRevert");
+            }
+            if (wasDirty) L("the scene had unsaved changes: nothing in it was changed by the split");
+            return Log.ToString();
+        }
+
+        static Material FindSplitCopy(SplitRecord split, string key, string group)
+        {
+            var e = split.copies.FirstOrDefault(c => c.source == key && c.group == group);
+            var m = e != null ? AssetDatabase.LoadAssetAtPath<Material>(e.copy) : null;
+            return m && m.GetTag(CopyTag, false, "") == key ? m : null;
+        }
+
+        /// <summary>renderer slots of one prefab that hold a source material get its copy (a prefab override); returns the slots changed</summary>
+        static int AssignInPrefab(string path, Dictionary<Material, Material> copies, SplitRecord split)
+        {
+            if (copies.Count == 0) return 0;
+            var root = PrefabUtility.LoadPrefabContents(path);
+            int n = 0;
+            try
+            {
+                foreach (var r in root.GetComponentsInChildren<MeshRenderer>(true))
+                {
+                    var mats = r.sharedMaterials; bool changed = false;
+                    bool had = false;
+                    if (PrefabUtility.IsPartOfPrefabInstance(r)) { var prop = new SerializedObject(r).FindProperty("m_Materials"); had = prop != null && prop.prefabOverride; }
+                    for (int i = 0; i < mats.Length; i++)
+                    {
+                        if (!mats[i] || !copies.TryGetValue(mats[i], out var copy)) continue;
+                        split.edits.Add(new SplitEdit { prefab = path, renderer = RelPath(root.transform, r.transform), slot = i, from = MatKey(mats[i]), to = AssetDatabase.GetAssetPath(copy), hadOverride = had });
+                        mats[i] = copy; changed = true; n++;
+                    }
+                    if (changed) r.sharedMaterials = mats;
+                }
+                if (n > 0) { PrefabUtility.SaveAsPrefabAsset(root, path); L($"{Path.GetFileNameWithoutExtension(path)}: {n} renderer slot(s) on the wind copies"); }
+            }
+            catch (System.Exception e) { L($"{path}: FAILED ({e.Message}); its shared materials may lose the wind"); }
+            finally { PrefabUtility.UnloadPrefabContents(root); }
+            return n;
+        }
+
+        /// <summary>a model file used directly as a tree prototype: remap its materials to the copies (this model only)</summary>
+        static int RemapModel(ModelImporter mi, string path, GameObject model, Dictionary<Material, Material> copies, SplitRecord split)
+        {
+            var map = mi.GetExternalObjectMap();
+            int n = 0;
+            foreach (var r in model.GetComponentsInChildren<MeshRenderer>(true))
+                foreach (var m in r.sharedMaterials)
+                {
+                    if (!m || !copies.TryGetValue(m, out var copy)) continue;
+                    // the identifier: the remap entry that points at this material, else the embedded material's own name
+                    var id = map.FirstOrDefault(kv => kv.Key.type == typeof(Material) && kv.Value == m).Key;
+                    string name = id.name ?? m.name;
+                    if (split.remaps.Any(x => x.model == path && x.name == name)) continue;
+                    var sid = new AssetImporter.SourceAssetIdentifier(typeof(Material), name);
+                    split.remaps.Add(new SplitRemap { model = path, name = name, from = map.TryGetValue(sid, out var prev) && prev ? AssetDatabase.GetAssetPath(prev) : "", to = AssetDatabase.GetAssetPath(copy) });
+                    mi.AddRemap(sid, copy); n++;
+                }
+            if (n > 0) { mi.SaveAndReimport(); L($"{Path.GetFileName(path)}: {n} material remap(s) to the wind copies (this model only)"); }
+            return n;
+        }
+
+        static void RefreshTreePrototypes()
+        {
+            var t = Terrain.activeTerrain ? Terrain.activeTerrain : Object.FindFirstObjectByType<Terrain>();
+            if (!t || !t.terrainData) return;
+            t.terrainData.RefreshPrototypes();
+            t.Flush();
+            EditorUtility.SetDirty(t.terrainData);
+            L("terrain tree prototypes refreshed");
+        }
+
+        /// <summary>WindRevert, first step: prefab overrides and model remaps back, the copies deleted, the record removed</summary>
+        static void UndoWindSplit()
+        {
+            if (!File.Exists(SplitJson)) return;
+            var split = LoadSplit();
+            var copyToSource = new Dictionary<string, string>();
+            foreach (var c in split.copies) if (!string.IsNullOrEmpty(c.copy)) copyToSource[c.copy] = c.source;
+            int slots = 0;
+            foreach (var group in split.edits.GroupBy(e => e.prefab))
+            {
+                if (!File.Exists(group.Key)) { L("missing " + group.Key); continue; }
+                var root = PrefabUtility.LoadPrefabContents(group.Key);
+                try
+                {
+                    var noOverride = new HashSet<string>(group.Where(e => !e.hadOverride).Select(e => e.renderer));
+                    int n = 0;
+                    foreach (var r in root.GetComponentsInChildren<MeshRenderer>(true))
+                    {
+                        var mats = r.sharedMaterials; bool changed = false;
+                        for (int i = 0; i < mats.Length; i++)
+                        {
+                            if (!mats[i]) continue;
+                            string cp = AssetDatabase.GetAssetPath(mats[i]);
+                            if (!copyToSource.TryGetValue(cp, out var src)) continue;
+                            var orig = LoadMat(src);
+                            if (!orig) { L($"{group.Key}: source {src} missing, slot left on {Path.GetFileName(cp)}"); continue; }
+                            mats[i] = orig; changed = true; n++;
+                        }
+                        if (!changed) continue;
+                        r.sharedMaterials = mats;
+                        // no override before the split: revert it so the prefab follows its model again
+                        if (noOverride.Contains(RelPath(root.transform, r.transform)) && PrefabUtility.IsPartOfPrefabInstance(r))
+                        {
+                            var prop = new SerializedObject(r).FindProperty("m_Materials");
+                            if (prop != null && prop.prefabOverride) PrefabUtility.RevertPropertyOverride(prop, InteractionMode.AutomatedAction);
+                        }
+                    }
+                    if (n > 0) { PrefabUtility.SaveAsPrefabAsset(root, group.Key); slots += n; }
+                }
+                catch (System.Exception e) { L($"{group.Key}: revert FAILED ({e.Message})"); }
+                finally { PrefabUtility.UnloadPrefabContents(root); }
+            }
+            foreach (var model in split.remaps.GroupBy(x => x.model))
+            {
+                if (!(AssetImporter.GetAtPath(model.Key) is ModelImporter mi)) { L("missing " + model.Key); continue; }
+                foreach (var x in model)
+                {
+                    var sid = new AssetImporter.SourceAssetIdentifier(typeof(Material), x.name);
+                    var prev = string.IsNullOrEmpty(x.from) ? null : AssetDatabase.LoadAssetAtPath<Material>(x.from);
+                    if (prev) mi.AddRemap(sid, prev); else mi.RemoveRemap(sid);
+                }
+                mi.SaveAndReimport();
+                L($"{Path.GetFileName(model.Key)}: material remaps restored");
+            }
+            int deleted = 0;
+            foreach (var c in split.copies) if (!string.IsNullOrEmpty(c.copy) && AssetDatabase.LoadAssetAtPath<Material>(c.copy)) { AssetDatabase.DeleteAsset(c.copy); deleted++; }
+            RefreshTreePrototypes();
+            AssetDatabase.DeleteAsset(SplitJson);
+            AssetDatabase.SaveAssets();
+            L($"wind split undone: {slots} prefab slot(s) back on the shared materials, {deleted} copies deleted");
         }
 
         static void RestoreMaterial(Material m, Shader sh, string[] keywords, int queue)

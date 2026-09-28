@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using PrimalFrontier.Core;
+using PrimalFrontier.Items;
+using PrimalFrontier.Survival;
 
 namespace PrimalFrontier.Story
 {
@@ -29,7 +31,7 @@ namespace PrimalFrontier.Story
         public event Action<Entry> Unlocked;
         public bool HasUnread { get; set; }
 
-        void Awake() { Instance = this; if (entries.Count == 0) DefaultEntries(); }
+        void Awake() { Instance = this; if (entries.Count == 0) DefaultEntries(); AddSurvivalPages(); }
         void OnDestroy() { if (Instance == this) Instance = null; }
         void OnEnable() { GameEvents.Raised += OnEvent; }
         void OnDisable() { GameEvents.Raised -= OnEvent; }
@@ -57,7 +59,28 @@ namespace PrimalFrontier.Story
 
         /// <summary>replace the pages with the built-in ones (Inspector: right click the component)</summary>
         [ContextMenu("Reset pages to the built-in text")]
-        public void ResetToDefaults() { entries.Clear(); DefaultEntries(); }
+        public void ResetToDefaults() { entries.Clear(); DefaultEntries(); AddSurvivalPages(); }
+
+        /// <summary>
+        /// Survival milestone 1 pages, appended when the (scene-edited) list does not have them yet; trigger ids come from
+        /// the SurvivalConfig water profiles. Also moves the old "fresh_water" page (hand drinking raised Drank "fresh_water")
+        /// onto the unboiled-water id that pond / stream drinking raises now.
+        /// </summary>
+        void AddSurvivalPages()
+        {
+            var cfg = SurvivalConfig.Instance;
+            string salt = cfg.Water(WaterType.SaltWater).eventId, clean = cfg.Water(WaterType.CleanWater).eventId, dirty = cfg.Water(WaterType.DirtyWater).eventId;
+            foreach (var en in entries)
+                if (en != null && en.trigger == GameEventType.Drank && en.triggerId == LegacyFreshWaterId && !string.IsNullOrEmpty(dirty)) en.triggerId = dirty;
+            if (Get("sea_water_carried") == null)
+                Add("sea_water_carried", JournalCategory.Survival, "Carrying the Sea", GameEventType.WaterFilled, salt, "water",
+                    "I filled a container at the shore. Sea water is no good to drink as it is, but over a fire it boils down, and what is left is fit to drink. Less of it, but safe.");
+            if (Get("clean_water") == null)
+                Add("clean_water", JournalCategory.Survival, "Clean Water", GameEventType.Drank, clean, "water",
+                    "Boiled water, or rain caught before it touches the ground. It tastes flat, but my stomach keeps it down. This is the water to carry.");
+        }
+        /// <summary>event id the pre-milestone-1 fresh water page listened for</summary>
+        const string LegacyFreshWaterId = "fresh_water";
 
         void DefaultEntries()
         {

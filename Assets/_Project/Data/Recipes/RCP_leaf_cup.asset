@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: da16c94d01ae979459249a8a00bd7eab, type: 3}
+  m_Name: RCP_leaf_cup
+  m_EditorClassIdentifier: PrimalFrontier.Runtime::PrimalFrontier.Items.RecipeDefinition
+  id: leaf_cup
+  category: 5
+  output: {fileID: 11400000, guid: c4827d9a7e97c324db0daddb421cc70f, type: 2}
+  outputCount: 1
+  ingredients:
+  - item: {fileID: 11400000, guid: 60b1f5c88c22524448351e60f6c1aae0, type: 2}
+    count: 3
+  craftSeconds: 2
+  station: 0
+  knownAtStart: 1
+  hint: 
+  requirements: []
+  extraResults: []

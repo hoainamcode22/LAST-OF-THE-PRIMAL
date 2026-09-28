@@ -395,7 +395,9 @@ namespace PrimalFrontier.EditorTools
                 ("VelX", AnimatorControllerParameterType.Float), ("VelZ", AnimatorControllerParameterType.Float),
                 ("Strafe", AnimatorControllerParameterType.Bool), ("CombatMode", AnimatorControllerParameterType.Bool),
                 ("WeaponType", AnimatorControllerParameterType.Int), ("IsMoving", AnimatorControllerParameterType.Bool),
-                ("AttackSpeed", AnimatorControllerParameterType.Float), ("FullBodyBusy", AnimatorControllerParameterType.Bool) })
+                ("AttackSpeed", AnimatorControllerParameterType.Float), ("FullBodyBusy", AnimatorControllerParameterType.Bool),
+                // light hit: additive flinch on the HitReaction layer (PlayerAnimationDriver.Hurt(false))
+                ("HurtLight", AnimatorControllerParameterType.Trigger) })
                 ac.AddParameter(n, t);
             var p = ac.parameters;
             foreach (var x in p) { if (x.name == "IsGrounded") x.defaultBool = true; else if (x.name == "AttackSpeed") x.defaultFloat = 1f; }
@@ -575,12 +577,25 @@ namespace PrimalFrontier.EditorTools
             Out(swordIdle, 0.1f).AddCondition(AnimatorConditionMode.If, 0, "IsAttacking");
             Out(swordIdle, 0.15f).AddCondition(AnimatorConditionMode.If, 0, "FullBodyBusy");
             var su = Out(swordIdle, 0.2f); su.AddCondition(AnimatorConditionMode.Greater, PA.BowAim - 1, "Action"); su.AddCondition(AnimatorConditionMode.Less, PA.CarryItem + 1, "Action");
+            // hit reaction layer: a light hit adds the Hurt clip on top of whatever the body does (additive, upper-body mask),
+            // so the base layer keeps its locomotion and the motor keeps moving. HurtLight (trigger) restarts it on every hit;
+            // back to Empty at exit time. Heavy hits keep the full-body Hurt_Heavy state (HealthState 2); the base Hurt state
+            // (HealthState 1) stays for code that still pulses it.
+            ac.AddLayer("HitReaction");
+            var hl = ac.layers; int hri = hl.Length - 1;
+            hl[hri].avatarMask = mask; hl[hri].defaultWeight = 1f; hl[hri].blendingMode = AnimatorLayerBlendingMode.Additive; ac.layers = hl;
+            var hsm = ac.layers[hri].stateMachine;
+            var hrEmpty = hsm.AddState("Empty"); hsm.defaultState = hrEmpty;
+            var hurtAdd = hsm.AddState("Hurt_Additive"); hurtAdd.motion = Clip(clips, "Hurt");
+            var hrIn = hsm.AddAnyStateTransition(hurtAdd); hrIn.duration = 0.05f; hrIn.hasExitTime = false; hrIn.hasFixedDuration = true; hrIn.canTransitionToSelf = true;
+            hrIn.AddCondition(AnimatorConditionMode.If, 0, "HurtLight");
+            var hrOut = hurtAdd.AddTransition(hrEmpty); hrOut.hasExitTime = true; hrOut.exitTime = 0.85f; hrOut.duration = 0.15f; hrOut.hasFixedDuration = true;
             // IK pass on the base layer: PlayerIK places the feet on the ground, turns the head, leans into turns
             var ls = ac.layers; ls[0].iKPass = true; ac.layers = ls;
             EditorUtility.SetDirty(ac);
-            L($"Controller: {path} (states: {sm.states.Length} base + {usm.states.Length} upper body, params {ac.parameters.Length}, IK pass on)");
+            L($"Controller: {path} (states: {sm.states.Length} base + {usm.states.Length} upper body + {hsm.states.Length} hit reaction, params {ac.parameters.Length}, IK pass on)");
             L("Controller: new states StrafeLocomotion (2D VelX/VelZ, on Strafe), Sword_Attack_1/2/3 + Sword_Heavy (Attack, speed x AttackSpeed); " +
-              "upper body Sword_Idle, Sword_Block, Sword_Equip, Sword_Unequip");
+              "upper body Sword_Idle, Sword_Block, Sword_Equip, Sword_Unequip; HitReaction (additive) Hurt_Additive on HurtLight");
             return ac;
         }
     }

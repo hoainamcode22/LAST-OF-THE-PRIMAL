@@ -4,23 +4,23 @@ using PrimalFrontier.Animation;
 using PrimalFrontier.Core;
 using PrimalFrontier.Items;
 using PrimalFrontier.Player;
+using PrimalFrontier.Survival;
+using System.Globalization;
 
 namespace PrimalFrontier.World
 {
     /// <summary>
     /// Fresh water (pond, stream) you can drink from and fill containers at. The water surface mesh defines where:
     /// the closest vertex to the player is the drinking spot. The ocean is handled by <see cref="OceanShore"/>.
-    /// Pond / stream water is not clean: drinking it straight or from an unboiled container can make you stomach
-    /// sick. Fill a container, boil it at a lit campfire, then drink it safely. A spring can be marked clean.
+    /// Pond / stream water is DirtyWater (a spring marked clean gives CleanWater): drinking it by hand or from an
+    /// unboiled container can make you stomach sick. Fill a container, boil it at a lit campfire, then drink it safely.
+    /// All numbers and rules come from WaterRules / SurvivalConfig; prompts are cached (no per-frame strings).
     /// </summary>
     public class WaterSource : Interactable
     {
         public string displayName = "Fresh water";
         public bool fresh = true;
         [Tooltip("spring water: safe without boiling")] public bool clean;
-        public float thirstPerDrink = 28f;
-        /// <summary>chance of Stomach_Sick per drink of unboiled water</summary>
-        public static float DirtySickChance = 0.2f;
         public MeshFilter surface;
         Vector3[] _pts; Bounds _worldBounds; Vector3 _focus;
         public static readonly List<WaterSource> All = new List<WaterSource>();
@@ -29,6 +29,8 @@ namespace PrimalFrontier.World
         public override float Radius => 0f;
         public override Vector3 FocusPoint => _focus;
         public override int Priority => -1;
+        /// <summary>what a container filled here holds (not fresh = salt, clean spring = clean, else unboiled)</summary>
+        public WaterType SourceType => !fresh ? WaterType.SaltWater : clean ? WaterType.CleanWater : WaterType.DirtyWater;
 
         protected override void OnEnable() { base.OnEnable(); if (!All.Contains(this)) All.Add(this); Cache(); }
         protected override void OnDisable() { base.OnDisable(); All.Remove(this); }
@@ -73,53 +75,99 @@ namespace PrimalFrontier.World
             return false;
         }
 
+        // ------------------------------------------------------------------ prompt (cached strings)
+        const string SaltSub = "Salt water. Drinking it will only make you thirstier.";
+        const string DirtySub = "Unboiled. It may upset your stomach.";
+        string _drinkPrompt, _drinkFor;
+        readonly WaterPromptCache _fill = new WaterPromptCache();
+
+        string DrinkPrompt
+        {
+            get
+            {
+                if (_drinkPrompt == null || !ReferenceEquals(_drinkFor, displayName)) { _drinkFor = displayName; _drinkPrompt = "Drink " + (displayName ?? "water").ToLowerInvariant(); }
+                return _drinkPrompt;
+            }
+        }
+
         public override string GetPrompt(PlayerInteraction p, out string sub)
         {
-            sub = null;
-            var st = p.ActiveStack;
-            if (st != null && st.item.IsWaterContainer && fresh)
+            var st = p.ActiveStack; var type = SourceType;
+            if (WaterRules.IsContainer(st) && !WaterRules.IsFull(st))
             {
-                if (st.water < st.item.waterCharges) { sub = $"{st.water}/{st.item.waterCharges} drinks{(clean ? "" : "  (boil before drinking)")}"; return "Fill " + st.item.displayName; }
+                if (WaterRules.CanFill(st, type)) return _fill.Fill(st, type, out sub);
+                sub = _fill.Mixed(st, type);                           // other water inside: drink by hand instead
+                return DrinkPrompt;
             }
-            if (!fresh) sub = "Salt water. Drinking it will only make you thirstier.";
-            else if (!clean) sub = "Unboiled. It may upset your stomach.";
-            return (fresh ? "Drink " : "Drink ") + displayName.ToLowerInvariant();
+            sub = type == WaterType.SaltWater ? SaltSub : type == WaterType.DirtyWater ? DirtySub : null;
+            return DrinkPrompt;
         }
 
         public override void Interact(PlayerInteraction p)
         {
-            var st = p.ActiveStack;
+            var st = p.ActiveStack; var type = SourceType;
             int slot = p.Inventory.ActiveSlot;
-            if (fresh && st != null && st.item.IsWaterContainer && st.water < st.item.waterCharges)
+            if (WaterRules.CanFill(st, type))
             {
-                p.DoOneShot(PlayerActions.Drink, "OnDrink", () =>
-                {
-                    var s = p.Inventory.Get(slot); if (s == null || !s.item.IsWaterContainer) return;
-                    bool hadDirty = s.water > 0 && s.dirty;
-                    s.water = s.item.waterCharges; s.dirty = !clean || hadDirty;       // spring water keeps boiled water clean
-                    p.Inventory.ForceNotify();
-                    PlayerInteraction.Notify(s.item.displayName + (clean ? " filled." : " filled. Boil it at a campfire before drinking."));
-                    GameEvents.Raise(GameEventType.WaterFilled, s.item.id, 1, transform.position);
-                }, FocusPoint, 2.0f, this);
+                p.DoOneShot(PlayerActions.Drink, "OnDrink", () => FillSlot(p, slot, type), FocusPoint, 2.0f, this);
                 return;
             }
             p.DoOneShot(PlayerActions.Drink, "OnDrink", () => Drink(p), FocusPoint, 2.0f, this);
         }
 
+        /// <summary>fill the container in this inventory slot with this water (WaterRules: never mixes kinds)</summary>
+        public static bool FillSlot(PlayerInteraction p, int slot, WaterType type)
+        {
+            var s = p ? p.Inventory.Get(slot) : null;
+            if (WaterRules.Fill(s, type) <= 0) return false;
+            p.Inventory.ForceNotify();
+            PlayerInteraction.Notify(s.item.displayName + " filled with " + WaterRules.Label(type) + (WaterRules.NeedsBoiling(s) ? ". Boil it at a campfire before drinking." : "."));
+            return true;
+        }
+
+        /// <summary>drink by hand: salt makes thirst worse, pond / stream water rolls the unboiled-water sickness</summary>
         public void Drink(PlayerInteraction p)
         {
-            if (fresh)
+            if (!p || !p.Survival) return;
+            var type = SourceType;
+            if (type == WaterType.SaltWater)
             {
-                p.Survival.Consume(0f, thirstPerDrink, 0f, 4f);
-                if (!clean && UnityEngine.Random.value < DirtySickChance) p.Survival.MakeSick(60f, "Your stomach cramps. The water was not clean.");
-                GameEvents.Raise(GameEventType.Drank, "fresh_water", 1, transform.position);
+                WaterRules.ApplyDrink(p.Survival, type);
+                PlayerInteraction.Notify(OceanShore.SaltMessage);
+                return;
             }
-            else
+            WaterRules.ApplyDrink(p.Survival, type, SurvivalConfig.Instance.handDrinkThirst);
+        }
+    }
+
+    /// <summary>prompt / sub strings for filling a container at a water source, rebuilt only when the container state changes</summary>
+    public class WaterPromptCache
+    {
+        ItemDefinition _item; int _water = -1, _cap = -1; WaterType _type, _inside; string _prompt, _sub, _mixed;
+        ItemDefinition _mixItem; WaterType _mixInside = (WaterType)(-1), _mixSource;
+
+        public string Fill(ItemStack st, WaterType type, out string sub)
+        {
+            if (st.item != _item || st.water != _water || st.item.waterCharges != _cap || type != _type || WaterRules.TypeOf(st) != _inside)
             {
-                p.Survival.Consume(0f, -6f, 0f, 0f);
-                PlayerInteraction.Notify("Salt water. It burns your throat and makes the thirst worse.");
-                GameEvents.Raise(GameEventType.TriedSaltWater, "ocean", 1, transform.position);
+                if (st.item != _item || _prompt == null) _prompt = "Fill " + st.item.displayName;
+                _item = st.item; _water = st.water; _cap = st.item.waterCharges; _type = type; _inside = WaterRules.TypeOf(st);
+                bool boil = SurvivalConfig.Instance.Water(type).boilSeconds > 0f && SurvivalConfig.Instance.Water(type).boilResult != type;
+                _sub = _water.ToString(CultureInfo.InvariantCulture) + "/" + _cap.ToString(CultureInfo.InvariantCulture) + " drinks, " + WaterRules.Label(type) +
+                       (boil ? " (boil it before drinking)" : "");
             }
+            sub = _sub; return _prompt;
+        }
+
+        public string Mixed(ItemStack st, WaterType source)
+        {
+            var inside = WaterRules.TypeOf(st);
+            if (st.item != _mixItem || inside != _mixInside || source != _mixSource || _mixed == null)
+            {
+                _mixItem = st.item; _mixInside = inside; _mixSource = source;
+                _mixed = "The " + st.item.displayName + " holds " + WaterRules.Label(inside) + ". Empty it in the inventory to fill it here.";
+            }
+            return _mixed;
         }
     }
 

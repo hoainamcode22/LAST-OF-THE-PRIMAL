@@ -234,7 +234,7 @@ namespace PrimalFrontier.EditorTools
             var root = ui ? ui.gameObject : new GameObject("[UI]");
             root.GetOrAdd<UIManager>(); root.GetOrAdd<HUDManager>(); root.GetOrAdd<InventoryUI>(); root.GetOrAdd<JournalUI>();
             root.GetOrAdd<PauseMenuUI>(); root.GetOrAdd<TitleScreenUI>(); root.GetOrAdd<DeathScreenUI>();
-            root.GetOrAdd<Minimap>(); root.GetOrAdd<MobileHUD>();
+            root.GetOrAdd<Minimap>(); root.GetOrAdd<MobileHUD>(); root.GetOrAdd<ContextHints>();
             int before = root.GetComponentsInChildren<Transform>(true).Length;
             foreach (var b in root.GetComponents<MonoBehaviour>().OfType<IBakeableUI>()) b.BakeLayout();
             if (!UnityEngine.Object.FindFirstObjectByType<DamageOverlay>(FindObjectsInactive.Include))

@@ -274,6 +274,9 @@ namespace PrimalFrontier.Player
         }
 
         // ------------------------------------------------------------------ item use (food, water container, drop)
+        // Routing only: the rules live in PlayerSurvival.ConsumeItem (food) and WaterRules (water).
+        const string SaltDrinkWarning = "Salt water makes you thirstier. Boil it first.";
+
         /// <summary>eat / drink the active item; true if something happened</summary>
         public bool UseActiveConsumable()
         {
@@ -281,16 +284,15 @@ namespace PrimalFrontier.Player
             var item = st.item;
             if (item.IsWaterContainer)
             {
-                if (st.water <= 0) { Notify("The container is empty. Fill it at fresh water."); return false; }
+                if (st.water <= 0) { Notify("The " + item.displayName + " is empty. Fill it at water or a rain collector."); return false; }
                 int slot = Inventory.ActiveSlot;
                 return DoOneShot(PlayerActions.Drink, "OnDrink", () =>
                 {
                     var s = Inventory.Get(slot); if (s == null || s.item != item || s.water <= 0) return;
-                    bool dirty = s.dirty;
-                    s.water--; if (s.water <= 0) s.dirty = false; Inventory.ForceNotify();
-                    Survival.Consume(0f, 30f, 0f, 5f);
-                    if (dirty && UnityEngine.Random.value < WaterSource.DirtySickChance) Survival.MakeSick(60f, "Your stomach cramps. That water should have been boiled.");
-                    GameEvents.Raise(GameEventType.Drank, dirty ? "dirty_water" : "clean_water", 1, transform.position);
+                    bool salt = WaterRules.TypeOf(s) == WaterType.SaltWater;
+                    if (!WaterRules.Drink(Survival, s)) return;
+                    Inventory.ForceNotify();
+                    if (salt) Notify(SaltDrinkWarning);
                 }, null, 2.0f);
             }
             if (item.IsFood) return Eat(item);
@@ -304,10 +306,21 @@ namespace PrimalFrontier.Player
             return DoOneShot(PlayerActions.Eat, "OnEat", () =>
             {
                 if (!Inventory.Remove(item, 1)) return;
-                Survival.Consume(item.hunger, item.thirst, item.health, item.stamina);
-                if (item.sicknessChance > 0f && UnityEngine.Random.value < item.sicknessChance) Survival.MakeSick(25f);
-                GameEvents.Raise(GameEventType.Ate, item.id, 1, transform.position);
+                if (Survival) Survival.ConsumeItem(item);
             }, null, 0.9f);
+        }
+
+        /// <summary>pour the water out of the container in this slot (inventory Empty button); true when there was water</summary>
+        public bool EmptyContainer(int slot)
+        {
+            var s = Inventory ? Inventory.Get(slot) : null;
+            if (!WaterRules.IsContainer(s) || s.water <= 0) return false;
+            var type = WaterRules.TypeOf(s); int charges = s.water;
+            WaterRules.Empty(s);
+            Inventory.ForceNotify();
+            GameEvents.Raise(GameEventType.WaterEmptied, SurvivalConfig.Instance.Water(type).eventId, charges, transform.position);
+            Notify("You pour the " + WaterRules.Label(type) + " out of the " + s.item.displayName + ".");
+            return true;
         }
 
         public void DropActive()

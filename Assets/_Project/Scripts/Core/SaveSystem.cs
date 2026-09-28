@@ -14,12 +14,15 @@ namespace PrimalFrontier.Core
 {
     /// <summary>
     /// Writes / reads SaveData as JSON in persistentDataPath (atomic: temp file then replace). Captures player,
-    /// inventory, recipes, crafting queue, time, weather, journal, tutorial, resource nodes, trees, pickups, loot, structures.
+    /// inventory, recipes, crafting queue, time, weather, journal, tutorial, onboarding tips, resource nodes, trees, pickups,
+    /// loot, structures.
     /// Unknown item ids are skipped (never crash on an old save), newer versions are refused.
     /// </summary>
     public static class SaveSystem
     {
-        public static string Folder => Path.Combine(Application.persistentDataPath, "PrimalFrontier");
+        /// <summary>tests point this at a temp folder so a test run never writes over or deletes the player's own saves (null = normal)</summary>
+        public static string FolderOverride;
+        public static string Folder => string.IsNullOrEmpty(FolderOverride) ? Path.Combine(Application.persistentDataPath, "PrimalFrontier") : FolderOverride;
         public static string PathFor(int slot) => Path.Combine(Folder, $"save_{slot}.json");
         public static bool Exists(int slot = 0) => File.Exists(PathFor(slot));
         public static string LastError { get; private set; }
@@ -69,7 +72,7 @@ namespace PrimalFrontier.Core
             for (int i = 0; i < inv.Slots.Length; i++)
             {
                 var s = inv.Slots[i]; if (s.IsEmptyOrNull()) continue;
-                l.Add(new SlotData { slot = i, item = s.item.id, count = s.count, durability = s.durability, water = s.water, dirty = s.dirty });
+                l.Add(new SlotData { slot = i, item = s.item.id, count = s.count, durability = s.durability, water = s.water, dirty = s.dirty, waterType = (int)WaterRules.TypeOf(s) });
             }
             return l;
         }
@@ -82,9 +85,19 @@ namespace PrimalFrontier.Core
             foreach (var s in data)
             {
                 var it = db.Item(s.item); if (it == null || s.count <= 0 || s.slot < 0 || s.slot >= inv.Slots.Length) continue;
-                inv.Slots[s.slot] = new ItemStack(it, Mathf.Min(s.count, it.maxStack)) { durability = s.durability, water = Mathf.Clamp(s.water, 0, it.waterCharges), dirty = s.dirty && s.water > 0 };
+                inv.Slots[s.slot] = RestoreWater(new ItemStack(it, Mathf.Min(s.count, it.maxStack)) { durability = s.durability }, s.water, s.waterType, s.dirty);
             }
             inv.ForceNotify();
+        }
+
+        /// <summary>water of a saved stack: v4 saves the WaterType; older saves only know "dirty" (else clean)</summary>
+        static ItemStack RestoreWater(ItemStack st, int water, int waterType, bool dirty)
+        {
+            st.water = Mathf.Clamp(water, 0, st.item != null ? st.item.waterCharges : 0);
+            if (st.water <= 0) { st.water = 0; st.waterType = WaterType.None; return st; }
+            st.waterType = waterType > 0 && System.Enum.IsDefined(typeof(WaterType), waterType) ? (WaterType)waterType
+                         : dirty ? WaterType.DirtyWater : WaterType.CleanWater;
+            return st;
         }
 
         public static SaveData Capture(GameManager gm)
@@ -98,16 +111,17 @@ namespace PrimalFrontier.Core
             {
                 d.playerPos = p.transform.position; d.playerYaw = p.transform.eulerAngles.y;
                 var hp = p.GetComponent<PlayerHealth>(); d.health = hp.Health;
-                var sv = p.GetComponent<PlayerSurvival>(); d.hunger = sv.Hunger; d.thirst = sv.Thirst; d.stamina = sv.Stamina; d.bodyTemp = sv.BodyTemperature; d.wetness = sv.Wetness;
+                var sv = p.GetComponent<PlayerSurvival>(); d.hunger = sv.Hunger; d.thirst = sv.Thirst; d.stamina = sv.Stamina; d.bodyTemp = sv.BodyTemperature; d.wetness = sv.Wetness; d.sickSeconds = sv.SickSeconds;
                 var inv = p.GetComponent<InventorySystem>(); d.inventory = Slots(inv); d.activeSlot = inv.ActiveSlot;
                 var cr = p.GetComponent<CraftingSystem>(); d.knownRecipes = cr.KnownIds.ToList();
                 foreach (var (id, progress) in cr.GetQueueForSave()) d.craftQueue.Add(new CraftJobData { recipe = id, progress = progress });
             }
             d.hasRespawn = gm.HasRespawn; d.respawnPos = gm.RespawnPoint;
             d.introDone = gm.IntroDone;
-            var tut = TutorialManager.Instance; if (tut) { d.tutorialStep = Mathf.Max(0, tut.Index); d.tutorialDone = tut.Completed; }
+            var tut = TutorialManager.Instance; if (tut) { d.tutorialStep = Mathf.Max(0, tut.Index); d.tutorialDone = tut.Completed; d.tutorialStepId = tut.CurrentId; }
             var j = JournalSystem.Instance; if (j) d.journal = j.UnlockedInOrder.ToList();
             var z = ZoneManager.Instance; if (z) d.zonesVisited = z.Visited.ToList();
+            d.tipsSeen = UI.OnboardingTips.SeenList();
             foreach (var it in Interactable.Active.ToArray())
             {
                 switch (it)
@@ -127,13 +141,14 @@ namespace PrimalFrontier.Core
                 var sd = new StructureData { item = s.itemId, uid = s.uid, pos = s.transform.position, yaw = s.transform.eulerAngles.y };
                 var cf = s.GetComponent<Campfire>(); if (cf) { sd.lit = cf.IsLit; sd.fuel = cf.Fuel; }
                 var sb = s.GetComponent<StorageBox>(); if (sb) sd.contents = Slots(sb.Inventory);
+                var ss = s.GetComponent<Building.ISaveableStructure>(); if (ss != null) sd.state = ss.CaptureState();
                 d.structures.Add(sd);
             }
             foreach (var pk in WorldPickup.Dropped)
             {
                 if (!pk || !pk.item) continue;
                 var st = pk.uniqueStack;
-                d.dropped.Add(new DropData { item = pk.item.id, count = st != null ? st.count : pk.count, durability = st != null ? st.durability : pk.item.maxDurability, water = st != null ? st.water : 0, dirty = st != null && st.dirty, pos = pk.transform.position });
+                d.dropped.Add(new DropData { item = pk.item.id, count = st != null ? st.count : pk.count, durability = st != null ? st.durability : pk.item.maxDurability, water = st != null ? st.water : 0, dirty = st != null && st.dirty, waterType = st != null ? (int)WaterRules.TypeOf(st) : 0, pos = pk.transform.position });
             }
             return d;
         }
@@ -154,7 +169,9 @@ namespace PrimalFrontier.Core
             {
                 p.GetComponent<PlayerMotor>().Warp(d.playerPos + Vector3.up * 0.05f, Quaternion.Euler(0, d.playerYaw, 0));
                 var hp = p.GetComponent<PlayerHealth>(); hp.SetHealth(Mathf.Max(1f, d.health));
-                p.GetComponent<PlayerSurvival>().SetStats(d.hunger, d.thirst, d.stamina, d.bodyTemp > 1f ? d.bodyTemp : 37f, d.wetness);
+                var sv = p.GetComponent<PlayerSurvival>();
+                sv.SetStats(d.hunger, d.thirst, d.stamina, d.bodyTemp > 1f ? d.bodyTemp : sv.normalBody, d.wetness);
+                sv.RestoreSickness(d.sickSeconds);
                 var inv = p.GetComponent<InventorySystem>(); FillSlots(inv, d.inventory, db); inv.SetActiveSlot(d.activeSlot);
                 var cr = p.GetComponent<CraftingSystem>(); if (d.knownRecipes != null && d.knownRecipes.Count > 0) cr.SetKnown(d.knownRecipes);
                 if (db != null) foreach (var r in db.recipes) if (r && r.knownAtStart) cr.Learn(r, false);   // recipes added after the save was made
@@ -163,9 +180,10 @@ namespace PrimalFrontier.Core
             }
             gm.SetRespawn(d.hasRespawn, d.respawnPos);
             gm.IntroDone = d.introDone;
-            var tut = TutorialManager.Instance; if (tut) tut.Restore(d.tutorialStep, d.tutorialDone);
+            var tut = TutorialManager.Instance; if (tut) tut.Restore(d.tutorialStep, d.tutorialDone, d.tutorialStepId);
             var j = JournalSystem.Instance; if (j) j.SetUnlocked(d.journal);
             var z = ZoneManager.Instance; if (z) z.SetVisited(d.zonesVisited);
+            UI.OnboardingTips.SetSeen(d.tipsSeen);
             var nodes = d.nodes.ToDictionary(n => n.id, n => n);
             var opened = new HashSet<string>(d.openedLoot); var examined = new HashSet<string>(d.examined); var taken = new HashSet<string>(d.takenPickups);
             _taken.Clear(); foreach (var t in taken) _taken.Add(t);
@@ -187,11 +205,12 @@ namespace PrimalFrontier.Core
                 var go = BuildSystem.Spawn(item, s.pos, Quaternion.Euler(0, s.yaw, 0), s.uid);
                 var cf = go.GetComponent<Campfire>(); if (cf) cf.Restore(s.lit, s.fuel);
                 var sb = go.GetComponent<StorageBox>(); if (sb) FillSlots(sb.Inventory, s.contents, db);
+                var ss = go.GetComponent<Building.ISaveableStructure>(); if (ss != null && !string.IsNullOrEmpty(s.state)) ss.RestoreState(s.state);
             }
             foreach (var dr in d.dropped)
             {
                 var item = db.Item(dr.item); if (item == null) continue;
-                var st = new ItemStack(item, dr.count) { durability = dr.durability, water = dr.water, dirty = dr.dirty };
+                var st = RestoreWater(new ItemStack(item, dr.count) { durability = dr.durability }, dr.water, dr.waterType, dr.dirty);
                 WorldPickup.DropStack(st, dr.pos + Vector3.up * 0.3f);
             }
             GameEvents.Raise(GameEventType.GameLoaded, "slot");

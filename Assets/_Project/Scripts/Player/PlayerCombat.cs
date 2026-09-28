@@ -14,7 +14,9 @@ namespace PrimalFrontier.Player
     /// Primary / aim buttons with the active item. Items with WeaponData (and every bow) fight through the
     /// WeaponController (MeleeWeapon: light chain / heavy on hold / hitbox windows; RangedWeapon: aim, draw, release);
     /// this component keeps the gating, food / water / placeables, the spear throw (aim + attack), the dodge (V / pad
-    /// north / touch button: short hop back with a brief invulnerable window), and the legacy melee path for items
+    /// north / touch button: short hop back with a brief invulnerable window), the block (hold the aim button with a melee
+    /// weapon that has no throw: Sword_Block on the upper body, walk speed, no attacks until released, frontal hits reduced
+    /// through PlayerHealth.IncomingHitFilter for stamina; out of stamina the guard breaks), and the legacy melee path for items
     /// without WeaponData: spear thrust (tap), combo stab (Spear_Attack_2), heavy thrust (hold), knife / tool slash
     /// (Knife_Attack), damage applied once on the clip's hit event.
     /// </summary>
@@ -30,6 +32,12 @@ namespace PrimalFrontier.Player
         [Header("Dodge")]
         public float dodgeSpeed = 5.2f, dodgeTime = 0.32f, dodgeStamina = 14f, dodgeCooldown = 0.55f;
         [Tooltip("seconds after the start of the dodge during which hits miss")] public Vector2 dodgeInvulnerable = new Vector2(0.04f, 0.34f);
+        [Header("Block (hold the aim button with a sword / knife / tool)")]
+        [Tooltip("share of a blocked hit's damage the guard takes away")] [Range(0f, 1f)] public float blockReduction = 0.7f;
+        [Tooltip("full angle of the guarded cone in front of the body (deg); 110 = 55 each side")] [Range(0f, 360f)] public float blockArc = 110f;
+        [Tooltip("stamina per point of incoming damage (before the reduction) for a blocked hit")] public float blockStaminaPerDamage = 0.8f;
+        [Tooltip("least stamina a blocked hit costs")] public float blockStaminaMin = 4f;
+        [Tooltip("after the guard breaks (stamina could not pay for a hit), no block for this long (s)")] public float guardBreakLockout = 1.2f;
 
         PlayerInputReader _in; PlayerAnimationDriver _drv; PlayerMotor _motor; PlayerInteraction _pi; PlayerSurvival _sv;
         InventorySystem _inv; PlayerEquipment _eq; ThirdPersonCamera _cam; CharacterAnimationEvents _ev;
@@ -38,6 +46,12 @@ namespace PrimalFrontier.Player
         float _lastThrust = -10f; int _comboStep; float _nextDodge;
         PlayerHealth _hp; WeaponController _wc;
         public bool Aiming { get; private set; }
+        /// <summary>guarding with the melee weapon in hand (Sword_Block pose, walk speed, frontal hits reduced)</summary>
+        public bool IsBlocking { get; private set; }
+        /// <summary>Time.time until which the guard cannot come up again (it just broke)</summary>
+        public float GuardBrokenUntil => _guardBrokenUntil;
+        float _guardBrokenUntil = -99f;
+        PlayerHealth.HitFilter _hitFilter;
         /// <summary>fighting right now (struck or was hit in the last few seconds): the camera tightens a little</summary>
         public bool InCombat => Time.time - Mathf.Max(_lastCombat, _wc ? _wc.LastCombatTime : -99f) < 4f;
         float _lastCombat = -99f;
@@ -55,15 +69,25 @@ namespace PrimalFrontier.Player
             _ev = GetComponentInChildren<CharacterAnimationEvents>(); _hp = GetComponent<PlayerHealth>();
             _wc = gameObject.GetOrAdd<WeaponController>();
             _wc.legacyArrowSpeed = arrowSpeed; _wc.legacyDrawTime = bowFullDraw;
+            _hitFilter = FilterHit;
         }
-        void OnEnable() { if (_ev) _ev.AnimationEventRaised += OnAnimEvent; }
-        void OnDisable() { if (_ev) _ev.AnimationEventRaised -= OnAnimEvent; }
+        void OnEnable()
+        {
+            if (_ev) _ev.AnimationEventRaised += OnAnimEvent;
+            if (_hp) _hp.IncomingHitFilter = _hitFilter;
+        }
+        void OnDisable()
+        {
+            if (_ev) _ev.AnimationEventRaised -= OnAnimEvent;
+            if (_hp && _hp.IncomingHitFilter == _hitFilter) _hp.IncomingHitFilter = null;
+            EndBlock();
+        }
         void Start() { _in = PlayerInputReader.Instance; if (Camera.main) _cam = Camera.main.GetComponent<ThirdPersonCamera>(); }
 
         void Update()
         {
             if (_in == null) _in = PlayerInputReader.Instance;
-            if (_in == null || _drv == null || _drv.IsDead || (_pi && (_pi.Suspended || _pi.InAction)) || PrimaryBlocked()) { SetAim(false); _pressT = -1f; if (_wc) _wc.ResetInput(); return; }
+            if (_in == null || _drv == null || _drv.IsDead || (_pi && (_pi.Suspended || _pi.InAction)) || PrimaryBlocked()) { SetAim(false); EndBlock(); _pressT = -1f; if (_wc) _wc.ResetInput(); return; }
             var item = _inv ? _inv.ActiveItem : null;
             var weapon = item ? item.weapon : WeaponKind.None;
             if (_in.DodgePressed) TryDodge();
@@ -74,10 +98,13 @@ namespace PrimalFrontier.Player
             {
                 bool canThrow = data.throwable;
                 SetAim(_in.Aim && (canThrow || data.IsRanged));
+                UpdateBlock(_in.BlockHeld && CanBlockWith(data));
+                if (IsBlocking) { _wc.ResetInput(); _pressT = -1f; return; }      // no attacks behind the guard: release to strike
                 if (canThrow && Aiming && _in.AttackPressed) { _wc.ResetInput(); Throw(item); _pressT = -1f; return; }
                 _wc.HandleInput(_in.AttackPressed, _in.AttackHeld, Aiming);
                 return;
             }
+            EndBlock();
 
             // legacy path (items without WeaponData): aiming = spear throw
             bool wantAim = _in.Aim && weapon == WeaponKind.Spear;
@@ -130,9 +157,107 @@ namespace PrimalFrontier.Player
         {
             if (Aiming == on) return;
             Aiming = on;
-            if (_motor) _motor.AimMode = on;
+            ApplyMoveMode();
             if (_cam) _cam.Aiming = on;
             if (_wc) _wc.SetAim(on);                              // the bow raises / lowers (RangedWeapon)
+        }
+
+        /// <summary>aiming and blocking both walk and face the camera (strafe locomotion); sprint is off</summary>
+        void ApplyMoveMode() { if (_motor) _motor.AimMode = Aiming || IsBlocking; }
+
+        // ------------------------------------------------------------------ block
+        /// <summary>melee weapons without a throw block (sword, knife, axe, pick ...); the spear aims / throws, the bow aims</summary>
+        public static bool CanBlockWith(WeaponData data) => data != null && !data.IsRanged && !data.throwable && data.attacks != null && data.attacks.Length > 0;
+
+        void UpdateBlock(bool want)
+        {
+            if (IsBlocking)
+            {
+                // something else took the arms (dodge, an action, the equip clip of a new weapon): the guard is down
+                if (_drv.CurrentAction != PlayerActions.SwordBlock) { IsBlocking = false; ApplyMoveMode(); }
+                else if (!want) EndBlock();
+                else { if (_wc) _wc.LastCombatTime = Time.time; return; }        // keeps CombatMode (Sword_Idle after the guard)
+            }
+            if (!want || Time.time < _guardBrokenUntil || !CanStartBlock()) return;
+            _drv.PlayAction(PlayerActions.SwordBlock);                                        // upper body, loops until StopAction
+            if (_drv.CurrentAction != PlayerActions.SwordBlock) return;                       // no Animator: no guard
+            IsBlocking = true;
+            _pressT = -1f;
+            if (_wc) { _wc.CancelAttack(); _wc.ResetInput(); _wc.LastCombatTime = Time.time; }   // nothing running here: drops a queued press
+            ApplyMoveMode();
+        }
+
+        /// <summary>the guard comes up only when the body is free: no swing, no full-body action, no upper-body clip (equip, bow)</summary>
+        bool CanStartBlock()
+        {
+            if (_drv.IsBusy || _drv.CurrentAction != PlayerActions.None) return false;
+            if (_wc && _wc.IsAttacking) return false;
+            return !_motor || _motor.IsGrounded;
+        }
+
+        void EndBlock()
+        {
+            if (!IsBlocking) return;
+            IsBlocking = false;
+            if (_drv && _drv.CurrentAction == PlayerActions.SwordBlock) _drv.StopAction();
+            ApplyMoveMode();
+        }
+
+        /// <summary>
+        /// PlayerHealth.IncomingHitFilter: a hit from inside the guarded cone loses blockReduction of its damage for stamina
+        /// (blockStaminaPerDamage x damage, at least blockStaminaMin). When the stamina cannot pay, the guard breaks: only
+        /// the paid share is reduced, the hit staggers (heavy -> Hurt_Heavy) and the guard stays down for guardBreakLockout.
+        /// A heavy hit from outside the cone knocks the guard down too. Returns true when the guard held.
+        /// </summary>
+        bool FilterHit(ref float amount, Vector3 source, ref bool heavy, ref float bleedSeconds)
+        {
+            if (!IsBlocking || amount <= 0f) return false;
+            Vector3 to = source - transform.position; to.y = 0f;
+            bool front = to.sqrMagnitude > 1e-4f && Vector3.Angle(transform.forward, to) <= blockArc * 0.5f;
+            if (!front)
+            {
+                if (heavy) EndBlock();                                   // full-body stagger: the arms must not stay in the guard
+                return false;
+            }
+            Vector3 dir = to.normalized;
+            float cost = Mathf.Max(blockStaminaMin, amount * blockStaminaPerDamage);
+            float paid = 1f;
+            if (_sv)
+            {
+                float have = _sv.Stamina;
+                if (have >= cost) _sv.UseStamina(cost);
+                else { paid = cost > 0f ? Mathf.Clamp01(have / cost) : 1f; _sv.UseStamina(have); }
+            }
+            amount *= 1f - blockReduction * paid;
+            bleedSeconds *= 1f - paid;
+            _lastCombat = Time.time;
+            if (_wc) _wc.LastCombatTime = Time.time;
+            Vector3 at = GuardPoint(dir);
+            if (paid < 1f)
+            {
+                // guard break: the rest of the hit lands, short stagger, the guard stays down for a moment
+                heavy = true;
+                EndBlock();
+                _guardBrokenUntil = Time.time + guardBreakLockout;
+                VfxPool.Instance.Play(VfxId.HitDust, at, dir);
+                SfxPlayer.Instance.Play(SfxId.WoodBreak, at, 0.9f);
+                PlayerInteraction.Notify("Guard broken!");
+                return false;
+            }
+            heavy = false;                                               // a held guard never staggers
+            VfxPool.Instance.Play(VfxId.HitDust, at, dir);
+            VfxPool.Instance.Play(VfxId.CraftSparks, at, dir, null, 0.6f);
+            SfxPlayer.Instance.Play(SfxId.HitHeavy, at, 0.8f);
+            if (_cam) _cam.AddShake(0.04f, 0.12f);
+            return true;
+        }
+
+        /// <summary>where the blow meets the guard: in front of the chest toward the attacker</summary>
+        Vector3 GuardPoint(Vector3 dir)
+        {
+            var h = _wc ? _wc.Hierarchy : null;
+            Vector3 o = h && h.AttackOrigin ? h.AttackOrigin.position : transform.position + Vector3.up * 1.1f;
+            return o + dir * 0.35f + Vector3.up * 0.1f;
         }
 
         // ------------------------------------------------------------------ melee

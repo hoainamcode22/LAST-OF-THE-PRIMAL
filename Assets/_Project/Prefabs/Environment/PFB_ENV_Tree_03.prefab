@@ -52,6 +52,22 @@ PrefabInstance:
       propertyPath: m_Name
       value: PFB_ENV_Tree_03
       objectReference: {fileID: 0}
+    - target: {fileID: 6798720221125821144, guid: 85d77f64d1698d640be9969b0339a43b, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 9a9d5f76afa94ac4b8eb354828d2a256, type: 2}
+    - target: {fileID: 6798720221125821144, guid: 85d77f64d1698d640be9969b0339a43b, type: 3}
+      propertyPath: 'm_Materials.Array.data[1]'
+      value: 
+      objectReference: {fileID: 2100000, guid: e8d0921c985a1034c949675aa6191477, type: 2}
+    - target: {fileID: 7956988675003730102, guid: 85d77f64d1698d640be9969b0339a43b, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 9a9d5f76afa94ac4b8eb354828d2a256, type: 2}
+    - target: {fileID: 7956988675003730102, guid: 85d77f64d1698d640be9969b0339a43b, type: 3}
+      propertyPath: 'm_Materials.Array.data[1]'
+      value: 
+      objectReference: {fileID: 2100000, guid: e8d0921c985a1034c949675aa6191477, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

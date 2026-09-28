@@ -45,3 +45,7 @@ MonoBehaviour:
   placePrefab: {fileID: 0}
   placeRadius: 1
   lightRange: 0
+  fuelSeconds: 240
+  burnSeconds: 0
+  burntResult: {fileID: 0}
+  weaponData: {fileID: 0}

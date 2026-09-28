@@ -117,12 +117,17 @@ namespace PrimalFrontier.Player
             if (_drv) _drv.Hurt(heavy);
             if (_face) _face.OnHit(heavy);
             Vector3 chest = Chest; Vector3 dir = source - chest; dir.y = 0; dir = dir.sqrMagnitude > 1e-4f ? dir.normalized : transform.forward;
-            Fx.Play(heavy ? VfxId.HitHeavy : VfxId.HitLight, chest + dir * 0.16f, dir + Vector3.up * 0.3f);
-            if (heavy) BloodDecals.Instance.Splat(chest - dir * 0.4f, 0.35f, transform, 60f);
-            Sfx.Play(heavy ? SfxId.HitHeavy : SfxId.HitFlesh, chest);
+            // the guard held (PlayerCombat already played the block impact): no blood, a lighter shake
+            bool blocked = _hp && _hp.LastHitBlocked;
+            if (!blocked)
+            {
+                Fx.Play(heavy ? VfxId.HitHeavy : VfxId.HitLight, chest + dir * 0.16f, dir + Vector3.up * 0.3f);
+                if (heavy) BloodDecals.Instance.Splat(chest - dir * 0.4f, 0.35f, transform, 60f);
+                Sfx.Play(heavy ? SfxId.HitHeavy : SfxId.HitFlesh, chest);
+            }
             DamageOverlay.Instance.ShowHit(dir, heavy);
             var cam = Camera.main ? Camera.main.GetComponent<ThirdPersonCamera>() : null;
-            if (cam) cam.AddShake(heavy ? 0.12f : 0.05f, heavy ? 0.35f : 0.18f);
+            if (cam) cam.AddShake(blocked ? 0.03f : heavy ? 0.12f : 0.05f, blocked ? 0.12f : heavy ? 0.35f : 0.18f);
         }
 
         void OnBleeding(bool on)

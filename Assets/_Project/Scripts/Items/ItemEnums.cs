@@ -6,4 +6,6 @@ namespace PrimalFrontier.Items
     public enum WeaponKind { None, Spear, Bow, Knife, Sword }     // appended only: stored as ints in the item assets (Sword = 4)
     public enum CraftStation { None, Campfire }
     public enum RecipeCategory { Tools, Weapons, Survival, Food, Structures, Water, Resources }   // appended only (stored as ints); Structures shows as BUILDING
+    /// <summary>what is inside a water container (saved as int: append only). Rules and numbers: Survival/WaterRules + SurvivalConfig</summary>
+    public enum WaterType { None, SaltWater, DirtyWater, CleanWater }
 }

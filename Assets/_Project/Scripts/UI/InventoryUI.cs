@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Globalization;
 using System.Text;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -15,6 +16,7 @@ namespace PrimalFrontier.UI
     /// Tab / Q window: INVENTORY (character preview, bag grid, hotbar, item info, weight, Use / Equip / Drop / Split,
     /// storage side panel) and CRAFTING (categories, recipes, requirements with have / need, craft time, station,
     /// queue with cancel). Drag & drop between slots, shift-click to transfer, drag outside to drop on the ground.
+    /// Water containers show their water type (label + colour) and get EMPTY in place of SPLIT (pours the water out).
     /// </summary>
     public class InventoryUI : MonoBehaviour, IBakeableUI
     {
@@ -26,7 +28,7 @@ namespace PrimalFrontier.UI
         readonly List<SlotView> _slots = new List<SlotView>(); readonly List<SlotView> _storageSlots = new List<SlotView>();
         InventorySystem _storage; SlotView _selected;
         Text _statText, _weightText; Image _weightBar;
-        Image _dIcon; Text _dName, _dCat, _dDesc, _dStats; Button _bUse, _bEquip, _bDrop, _bSplit;
+        Image _dIcon; Text _dName, _dCat, _dDesc, _dStats; Button _bUse, _bEquip, _bDrop, _bSplit, _bEmpty;
         RectTransform _tooltip; Text _tipText;
         RawImage _preview; Camera _previewCam; RenderTexture _rt;
         // crafting
@@ -128,6 +130,9 @@ namespace PrimalFrontier.UI
             _bEquip = UIFactory.Button(_detailPanel, "Equip", "EQUIP", OnEquip, new Vector2(0, 0), new Vector2(0, 0), new Vector2(0, 0), new Vector2(148, 30), new Vector2(110, 48), 20);
             _bSplit = UIFactory.Button(_detailPanel, "Split", "SPLIT", OnSplit, new Vector2(0, 0), new Vector2(0, 0), new Vector2(0, 0), new Vector2(266, 30), new Vector2(110, 48), 20);
             _bDrop = UIFactory.Button(_detailPanel, "Drop", "DROP", OnDrop, new Vector2(0, 0), new Vector2(0, 0), new Vector2(0, 0), new Vector2(384, 30), new Vector2(110, 48), 20);
+            // containers cannot be split (one per slot): EMPTY takes SPLIT's place for them
+            _bEmpty = UIFactory.Button(_detailPanel, "Empty", "EMPTY", OnEmpty, new Vector2(0, 0), new Vector2(0, 0), new Vector2(0, 0), new Vector2(266, 30), new Vector2(110, 48), 20);
+            _bEmpty.gameObject.SetActive(false);
 
             _storagePanel = UIFactory.Image(_invTab, "Storage", UIStyle.PanelDark, new Color(1, 1, 1, 0.85f), new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 0.5f), Vector2.zero, new Vector2(520, 0)).rectTransform;
             UIFactory.Label(_storagePanel, "Title", "STORAGE", 22, UIStyle.Accent, TextAnchor.UpperLeft, UIStyle.Head, new Vector2(0, 1), new Vector2(1, 1), new Vector2(0, 1), new Vector2(24, -16), new Vector2(0, 30));
@@ -255,12 +260,14 @@ namespace PrimalFrontier.UI
         void UpdateStats()
         {
             if (_sv == null) return;
-            _statText.text = $"<b>SURVIVOR</b>\nHealth   {Mathf.CeilToInt(_hp.Health)} / {Mathf.CeilToInt(_hp.maxHealth)}\nHunger   {Mathf.CeilToInt(_sv.Hunger)}\nThirst   {Mathf.CeilToInt(_sv.Thirst)}\n" +
+            _statText.text = $"<b>SURVIVOR</b>\nHealth   {Mathf.CeilToInt(_hp.Health)} / {Mathf.CeilToInt(_hp.maxHealth)}\nHunger   {Mathf.CeilToInt(_sv.Hunger)}{TierSuffix(_sv.HungerTierLabel)}\nThirst   {Mathf.CeilToInt(_sv.Thirst)}{TierSuffix(_sv.ThirstTierLabel)}\n" +
                              $"Stamina  {Mathf.CeilToInt(_sv.Stamina)}\nBody     {_sv.BodyTemperature:0.0} °C\nAir      {_sv.EnvironmentTemperature:0} °C";
             _weightText.text = $"Weight  {_inv.Weight:0.0} / {_inv.maxWeight:0} kg";
             _weightBar.fillAmount = _inv.maxWeight > 0 ? Mathf.Clamp01(_inv.Weight / _inv.maxWeight) : 0f;
             _weightBar.color = _inv.IsOverweight ? UIStyle.Bad : UIStyle.Accent;
         }
+
+        static string TierSuffix(string label) => label == null ? "" : "   (" + label + ")";
 
         void Select(SlotView s) { _selected = s.Stack != null ? s : null; RefreshAll(); }
 
@@ -272,14 +279,17 @@ namespace PrimalFrontier.UI
             _dName.text = st != null ? st.item.displayName : "Select an item";
             _dCat.text = st != null ? st.item.category.ToString().ToUpperInvariant() + $"   {st.item.weight:0.##} kg each" : "";
             _dDesc.text = st != null ? st.item.description : "Items you carry appear here. Your pack has a weight limit.";
-            _dStats.text = st != null ? Stats(st) : "";
+            _dStats.text = st != null ? Stats(st, true) : "";
             _bUse.interactable = has && (st.item.IsFood || st.item.IsWaterContainer);
             _bEquip.interactable = has && _selected.index >= _inv.hotbarSize;
             _bSplit.interactable = has && st.count > 1;
+            bool container = has && st.item.IsWaterContainer;
+            _bSplit.gameObject.SetActive(!container); _bEmpty.gameObject.SetActive(container);
+            _bEmpty.interactable = container && st.water > 0;
             _bDrop.interactable = has;
         }
 
-        static string Stats(ItemStack st)
+        static string Stats(ItemStack st, bool onPaper = false)
         {
             var i = st.item; var sb = new StringBuilder();
             if (i.hunger > 0) sb.Append($"Hunger  +{i.hunger:0}\n");
@@ -287,7 +297,7 @@ namespace PrimalFrontier.UI
             if (i.health > 0) sb.Append($"Health  +{i.health:0}\n");
             if (i.sicknessChance > 0) sb.Append($"Risk of sickness  {i.sicknessChance * 100:0}%\n");
             if (i.cookedResult) sb.Append("Can be cooked on a campfire\n");
-            if (i.IsWaterContainer) sb.Append($"Water  {st.water} / {i.waterCharges} drinks{(st.dirty && st.water > 0 ? "  (unboiled: boil it at a campfire)" : st.water > 0 ? "  (boiled, safe)" : "")}\n");
+            if (i.IsWaterContainer) sb.Append("Water  ").Append(WaterText(st, onPaper)).Append(WaterAdvice(st)).Append('\n');
             if (i.damage > 0) sb.Append($"Damage  {i.damage:0}" + (i.heavyDamage > 0 ? $"  (heavy {i.heavyDamage:0})" : "") + "\n");
             if (i.tool != ToolKind.None) sb.Append("Tool  " + i.tool.ToString().Replace(",", " /") + "\n");
             if (i.HasDurability) sb.Append($"Durability  {st.durability:0} / {i.maxDurability:0}\n");
@@ -299,12 +309,38 @@ namespace PrimalFrontier.UI
         void ShowTip(ItemStack st, RectTransform at)
         {
             if (st == null || SlotView.Dragging) { _tooltip.gameObject.SetActive(false); return; }
-            _tipText.text = $"<b>{st.item.displayName}</b>\n<color=#bda985>{st.item.category}</color>\n" + Stats(st);
+            _tipText.text = st.item.IsWaterContainer
+                ? "<b>" + st.item.displayName + "</b>: " + WaterText(st, false) + "\n<color=#bda985>" + st.item.category + "</color>\n" + Stats(st)
+                : $"<b>{st.item.displayName}</b>\n<color=#bda985>{st.item.category}</color>\n" + Stats(st);
             _tooltip.sizeDelta = new Vector2(330, Mathf.Max(80, _tipText.preferredHeight + 24));
             _tooltip.gameObject.SetActive(true);
         }
 
+        /// <summary>"2/3 clean water" with the water type colour (darker on the paper panel)</summary>
+        static string WaterText(ItemStack st, bool onPaper)
+        {
+            var t = WaterRules.TypeOf(st);
+            string n = st.water.ToString(CultureInfo.InvariantCulture) + "/" + st.item.waterCharges.ToString(CultureInfo.InvariantCulture);
+            if (t == WaterType.None) return n + " (empty)";
+            var c = WaterRules.Color(t); if (onPaper) c = Color.Lerp(c, Color.black, 0.45f);
+            return n + " <color=#" + ColorUtility.ToHtmlStringRGB(c) + ">" + WaterRules.Label(t) + "</color>";
+        }
+        static string WaterAdvice(ItemStack st)
+        {
+            var t = WaterRules.TypeOf(st);
+            if (t == WaterType.None) return "";
+            if (t == WaterType.SaltWater) return "  (makes thirst worse: boil it at a campfire)";
+            return WaterRules.NeedsBoiling(st) ? "  (boil it at a campfire)" : "  (safe to drink)";
+        }
+
         // ================================================================== actions
+        void OnEmpty()
+        {
+            if (!_selected || _selected.inventory != _inv || _pi == null) return;
+            _pi.EmptyContainer(_selected.index);
+            RefreshAll();
+        }
+
         void OnUse()
         {
             var st = _selected ? _selected.Stack : null; if (st == null || _selected.inventory != _inv) return;

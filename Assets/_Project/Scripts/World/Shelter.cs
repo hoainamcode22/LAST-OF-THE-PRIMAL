@@ -6,29 +6,60 @@ using PrimalFrontier.Player;
 
 namespace PrimalFrontier.World
 {
-    /// <summary>Lean-to shelter: keeps rain off, a little warmer, rest here to save and set the respawn point.</summary>
+    /// <summary>
+    /// Lean-to / tent cover: keeps rain off inside coverRadius, adds its own warmth (deg C) there, rest here to save and
+    /// set the respawn point. A tent is the same component with a Bedroll on the same object (sleep through the night).
+    /// </summary>
     public class Shelter : Interactable
     {
         public static readonly List<Shelter> All = new List<Shelter>();
         public float coverRadius = 2.3f;
-        public float warmth = 4f;
+        [Tooltip("roof height above the shelter's origin: below it counts as covered")] public float coverHeight = 2.5f;
+        [Tooltip("deg C added while the player is covered (lean-to 4, tent 6)")] public float warmth = 4f;
         public override float Radius => 1.2f;
         public static System.Action<Shelter> Rested;          // GameManager: save + respawn point
+        /// <summary>a Bedroll sits on the same object (tent): sleeping happens there</summary>
+        public bool HasBed { get { if (!_bedChecked) { _bed = GetComponent<Bedroll>(); _bedChecked = true; } return _bed; } }
+        Bedroll _bed; bool _bedChecked;
+        /// <summary>a Bedroll was added / enabled on this object</summary>
+        public void RefreshBed() { _bedChecked = false; }
 
-        protected override void OnEnable() { base.OnEnable(); if (!All.Contains(this)) All.Add(this); }
+        protected override void OnEnable() { base.OnEnable(); if (!All.Contains(this)) All.Add(this); _bedChecked = false; }
         protected override void OnDisable() { base.OnDisable(); All.Remove(this); }
+
+        /// <summary>is p under this shelter's roof</summary>
+        public bool CoversPoint(Vector3 p)
+        {
+            var d = p - transform.position; d.y = 0;
+            return d.sqrMagnitude <= coverRadius * coverRadius && p.y < transform.position.y + coverHeight;
+        }
 
         public static bool Covers(Vector3 p)
         {
-            foreach (var s in All)
-            {
-                if (!s) continue;
-                var d = p - s.transform.position; d.y = 0;
-                if (d.sqrMagnitude <= s.coverRadius * s.coverRadius && p.y < s.transform.position.y + 2.5f) return true;
-            }
+            for (int i = 0; i < All.Count; i++) { var s = All[i]; if (s && s.CoversPoint(p)) return true; }
             return false;
         }
-        public static float WarmthAt(Vector3 p) => Covers(p) ? 4f : 0f;
+
+        /// <summary>warmth of the warmest shelter covering p (0 when in the open)</summary>
+        public static float WarmthAt(Vector3 p)
+        {
+            float w = 0f;
+            for (int i = 0; i < All.Count; i++) { var s = All[i]; if (s && s.warmth > w && s.CoversPoint(p)) w = s.warmth; }
+            return w;
+        }
+
+        /// <summary>closest shelter within range of p (null = none)</summary>
+        public static Shelter Nearest(Vector3 p, float range, bool withBedOnly = false)
+        {
+            Shelter best = null; float bestD = range * range;
+            for (int i = 0; i < All.Count; i++)
+            {
+                var s = All[i]; if (!s || (withBedOnly && !s.HasBed)) continue;
+                float d = (s.transform.position - p).sqrMagnitude;
+                if (d <= bestD) { bestD = d; best = s; }
+            }
+            return best;
+        }
 
         public override string GetPrompt(PlayerInteraction p, out string sub) { sub = "Saves the game and sets your respawn point"; return "Rest in shelter"; }
 

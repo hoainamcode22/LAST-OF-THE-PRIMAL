@@ -42,7 +42,7 @@ namespace PrimalFrontier.UI
             var s = Stack;
             icon.enabled = s != null && s.item.icon; if (s != null) icon.sprite = s.item.icon;
             count.text = s == null ? "" : s.item.IsWaterContainer ? $"{s.water}/{s.item.waterCharges}" : s.count > 1 ? s.count.ToString() : "";
-            count.color = s != null && s.dirty && s.water > 0 ? HUDManager.DirtyWater : UIStyle.Text;
+            count.color = HUDManager.WaterCountColor(s);
             bool d = s != null && s.item.HasDurability; dur.enabled = d;
             if (d) { float k = Mathf.Clamp01(s.durability / s.item.maxDurability); dur.fillAmount = k; dur.color = Color.Lerp(UIStyle.Bad, UIStyle.Good, k); }
             bg.sprite = Selected || Highlight ? UIStyle.SlotActive : UIStyle.Slot;

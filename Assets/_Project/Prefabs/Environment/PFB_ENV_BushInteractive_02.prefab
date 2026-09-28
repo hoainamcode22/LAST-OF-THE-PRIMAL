@@ -140,6 +140,11 @@ MonoBehaviour:
   hiddenLoot: []
   flushCooldown: 60
   flushDust: 1
+  strongChance: 0.2
+  discoveryChance: 0.1
+  discoveryCooldown: 120
+  startleRange: 25
+  discoveryCount: {x: 1, y: 2}
 --- !u!1001 &7660665178518099400
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -188,10 +193,26 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: -4637840644131224569, guid: 72904e5f19c63944abd8dab9ca9a3e26, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 0d064efe25dc40c4db3179ef0ed46863, type: 2}
+    - target: {fileID: -4637840644131224569, guid: 72904e5f19c63944abd8dab9ca9a3e26, type: 3}
+      propertyPath: 'm_Materials.Array.data[1]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 6880883229eae0641834815253b5af80, type: 2}
     - target: {fileID: 919132149155446097, guid: 72904e5f19c63944abd8dab9ca9a3e26, type: 3}
       propertyPath: m_Name
       value: ENV_Bush_02
       objectReference: {fileID: 0}
+    - target: {fileID: 3573744388059764974, guid: 72904e5f19c63944abd8dab9ca9a3e26, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 0d064efe25dc40c4db3179ef0ed46863, type: 2}
+    - target: {fileID: 3573744388059764974, guid: 72904e5f19c63944abd8dab9ca9a3e26, type: 3}
+      propertyPath: 'm_Materials.Array.data[1]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 6880883229eae0641834815253b5af80, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

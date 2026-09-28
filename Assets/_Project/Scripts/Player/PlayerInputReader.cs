@@ -19,6 +19,12 @@ namespace PrimalFrontier.Player
         public bool Sprint { get; private set; }
         public bool Walk { get; private set; }
         public bool Aim { get; private set; }
+        /// <summary>
+        /// guard (hold): the same button as <see cref="Aim"/> (the "Aim" action: right mouse / left trigger, plus the touch aim
+        /// button and Sim.Aim), so there is one binding and one source of truth. PlayerCombat reads it as block while a melee
+        /// weapon without a throw is in hand (sword, knife, tools) and as aim for the spear and the bow.
+        /// </summary>
+        public bool BlockHeld => Aim;
         public bool JumpPressed { get; private set; }
         public bool CrouchPressed { get; private set; }
         public bool InteractPressed { get; private set; }

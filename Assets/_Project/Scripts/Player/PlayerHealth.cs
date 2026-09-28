@@ -25,6 +25,18 @@ namespace PrimalFrontier.Player
         public bool Invulnerable => Time.time < InvulnerableUntil;
         public event Action<Vector3> Evaded;
 
+        /// <summary>
+        /// The one hook between an incoming hit and the health bar, so attackers never need to know about the guard.
+        /// It may lower the damage, change the heavy flag (a held guard does not stagger, a broken one does) and the
+        /// bleeding, and returns true when the guard held (feedback then skips the blood). Only for hits that were not
+        /// dodged; starvation, cold and bleeding (ApplyRaw) never pass through it.
+        /// </summary>
+        public delegate bool HitFilter(ref float amount, Vector3 source, ref bool heavy, ref float bleedSeconds);
+        /// <summary>set by PlayerCombat (block); null = every hit lands in full</summary>
+        public HitFilter IncomingHitFilter { get; set; }
+        /// <summary>the last hit that reached TakeDamage was stopped by the guard (valid inside Damaged and after it)</summary>
+        public bool LastHitBlocked { get; private set; }
+
         void Awake() { Health = maxHealth; }
 
         void Update()
@@ -38,6 +50,9 @@ namespace PrimalFrontier.Player
         {
             if (IsDead || amount <= 0f) return;
             if (Invulnerable) { Evaded?.Invoke(source); return; }         // dodged
+            var filter = IncomingHitFilter;
+            LastHitBlocked = filter != null && filter(ref amount, source, ref heavy, ref bleedSeconds);
+            if (amount <= 0f) return;                                     // the guard stopped all of it (its own feedback played)
             ApplyRaw(amount);
             if (bleedSeconds > 0f) _bleedUntil = Mathf.Max(_bleedUntil, Time.time + bleedSeconds);
             Damaged?.Invoke(amount, source, heavy);

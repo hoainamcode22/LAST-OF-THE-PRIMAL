@@ -18,7 +18,8 @@ namespace PrimalFrontier.Player
         [Tooltip("the Animator's IsGrounded goes false only after this long off the ground (steps and bumps do not play Fall)")]
         public float fallDelay = 0.12f;
         [Tooltip("...or once the body is this far below the last ground (m)")] public float fallDrop = 0.6f;
-        bool _paramsKnown, _hasVel, _hasIsMoving, _hasStrafe, _hasBodyBusy;
+        bool _paramsKnown, _hasVel, _hasIsMoving, _hasStrafe, _hasBodyBusy, _hasHurtLight;
+        float _hurtLightTime = -1f;
         float _airT, _lastGroundY;
         [Tooltip("seconds of standing still before an idle variation (look around, shift weight) plays; random in this range")]
         public Vector2 idleVariationEvery = new Vector2(7f, 14f);
@@ -104,6 +105,8 @@ namespace PrimalFrontier.Player
                     animator.SetInteger(AnimParams.HealthState, PlayerHealthStates.Normal); _pendingHealth = 0;
                 }
             }
+            // a light-hit trigger the HitReaction layer did not take (layer missing / muted) must not flinch much later
+            if (_hurtLightTime >= 0f && Time.time - _hurtLightTime > 0.3f) { animator.ResetTrigger(AnimParams.HurtLight); _hurtLightTime = -1f; }
             // buffered attack (pressed during the previous swing)
             if (_queuedAttack != 0 && !IsBusy && !IsDead)
             {
@@ -137,6 +140,7 @@ namespace PrimalFrontier.Player
                 else if (p.nameHash == AnimParams.IsMoving && p.type == AnimatorControllerParameterType.Bool) _hasIsMoving = true;
                 else if (p.nameHash == AnimParams.Strafe && p.type == AnimatorControllerParameterType.Bool) _hasStrafe = true;
                 else if (p.nameHash == AnimParams.FullBodyBusy && p.type == AnimatorControllerParameterType.Bool) _hasBodyBusy = true;
+                else if (p.nameHash == AnimParams.HurtLight && p.type == AnimatorControllerParameterType.Trigger) _hasHurtLight = true;
             }
             _paramsKnown = true;
         }
@@ -169,9 +173,21 @@ namespace PrimalFrontier.Player
             PlayAction(id);
         }
 
+        /// <summary>
+        /// hit reaction. Light: the HurtLight trigger (additive upper-body flinch on the HitReaction layer), so the base
+        /// layer keeps its locomotion and the motor keeps moving; HealthState is not touched. Heavy, or a controller built
+        /// before the HitReaction layer (no HurtLight parameter): the full-body Hurt / Hurt_Heavy states via HealthState.
+        /// </summary>
         public void Hurt(bool heavy)
         {
             if (IsDead || !animator) return;
+            if (!_paramsKnown) FindParams();
+            if (!heavy && _hasHurtLight)
+            {
+                animator.SetTrigger(AnimParams.HurtLight); _hurtLightTime = Time.time;
+                if (PlayerActions.IsLooping(CurrentAction)) StopAction();
+                return;
+            }
             _pendingHealth = heavy ? PlayerHealthStates.HurtHeavy : PlayerHealthStates.HurtLight; _healthTime = Time.time;
             _pendingHealthState = heavy ? HurtHeavyHash : HurtHash;
             animator.SetInteger(AnimParams.HealthState, _pendingHealth);

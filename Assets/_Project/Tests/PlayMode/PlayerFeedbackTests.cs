@@ -75,8 +75,10 @@ namespace PrimalFrontier.Tests
             int before = VfxPool.Instance.ActiveCount;      // 0 after the settle in SetUp
             _hp.TakeDamage(12f, _player.transform.position + _player.transform.forward * 2f, false);
             Assert.AreEqual(88f, _hp.Health, 0.01f);
-            yield return WaitState("Hurt", 0.4f);
+            // the hit spark / blood is short-lived: check it before waiting for the whole flinch to play out
             Assert.Greater(VfxPool.Instance.ActiveCount, before, "blood effect spawned");
+            if (HitReactionProbe.HasHurtLight(_anim)) yield return HitReactionProbe.ExpectAdditiveLightHurt(_anim, 0.4f);   // HitReaction layer
+            else yield return WaitState("Hurt", 0.4f);                                                                       // controller built before it
             Assert.IsNotNull(Object.FindFirstObjectByType<PrimalFrontier.UI.DamageOverlay>(), "screen feedback");
             yield return new WaitForSeconds(1f);
             yield return WaitPoolIdle(4f);

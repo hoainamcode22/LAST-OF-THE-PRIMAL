@@ -1,0 +1,127 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a0e919322416a374989dae7373853da2, type: 3}
+  m_Name: SurvivalConfig
+  m_EditorClassIdentifier: PrimalFrontier.Runtime::PrimalFrontier.Survival.SurvivalConfig
+  hungerPerMinute: 2.2
+  thirstPerMinute: 3.2
+  startHunger: 85
+  startThirst: 70
+  respawnNeedFloor: 40
+  respawnHealth: 0.6
+  respawnStamina: 60
+  respawnBodyTemp: 36.5
+  foodSickSeconds: 25
+  hungerTiers:
+  - below: 60
+    staminaRegen: 0.85
+    maxStamina: 1
+    moveSpeed: 1
+    healthDrain: 0
+    label: Peckish
+  - below: 30
+    staminaRegen: 0.65
+    maxStamina: 0.8
+    moveSpeed: 1
+    healthDrain: 0
+    label: Hungry
+  - below: 10
+    staminaRegen: 0.5
+    maxStamina: 0.65
+    moveSpeed: 0.92
+    healthDrain: 0.12
+    label: Starving
+  - below: 0.01
+    staminaRegen: 0.4
+    maxStamina: 0.6
+    moveSpeed: 0.9
+    healthDrain: 0.25
+    label: Starving!
+  thirstTiers:
+  - below: 60
+    staminaRegen: 0.85
+    maxStamina: 1
+    moveSpeed: 1
+    healthDrain: 0
+    label: Thirsty
+  - below: 30
+    staminaRegen: 0.6
+    maxStamina: 0.8
+    moveSpeed: 1
+    healthDrain: 0
+    label: Parched
+  - below: 10
+    staminaRegen: 0.45
+    maxStamina: 0.65
+    moveSpeed: 0.92
+    healthDrain: 0.15
+    label: Dehydrating
+  - below: 0.01
+    staminaRegen: 0.35
+    maxStamina: 0.6
+    moveSpeed: 0.9
+    healthDrain: 0.35
+    label: Dehydrated!
+  water:
+  - type: 1
+    thirst: -6
+    stamina: 0
+    sickChance: 0
+    sickSeconds: 0
+    boilSeconds: 20
+    boilResult: 3
+    boilChargeLoss: 1
+    label: salt water
+    color: {r: 0.55, g: 0.78, b: 0.92, a: 1}
+    eventId: salt_water
+  - type: 2
+    thirst: 25
+    stamina: 3
+    sickChance: 0.2
+    sickSeconds: 60
+    boilSeconds: 8
+    boilResult: 3
+    boilChargeLoss: 0
+    label: unboiled water
+    color: {r: 0.72, g: 0.6, b: 0.38, a: 1}
+    eventId: dirty_water
+  - type: 3
+    thirst: 30
+    stamina: 5
+    sickChance: 0
+    sickSeconds: 0
+    boilSeconds: 0
+    boilResult: 3
+    boilChargeLoss: 0
+    label: clean water
+    color: {r: 0.45, g: 0.75, b: 1, a: 1}
+    eventId: clean_water
+  handDrinkThirst: 28
+  legacyFuelSeconds: 240
+  maxFuelSeconds: 1200
+  cookingSlots: 4
+  burnAfterCookMultiplier: 1.5
+  burntFood: {fileID: 11400000, guid: c5725bc82b8760c44bc4c748de5d2580, type: 2}
+  collectorCapacity: 6
+  collectorChargesPerRainHour: 2
+  nightAirOffset: -4
+  nightBlendHours: 2
+  torchWarmth: 2
+  altitudeCoolingStart: 30
+  altitudeCooling: 0.06
+  sleepHungerPerHour: 2.2
+  sleepThirstPerHour: 2.8
+  sleepHealthPerHour: 4
+  sleepNeedFloor: 5
+  wood: {fileID: 11400000, guid: b44ddd1d863e4de47a95118bf8fd7b5d, type: 2}
+  rawMeat: {fileID: 11400000, guid: 0b3a64e6eeb56bd49a534a15dac5b869, type: 2}
+  cookedMeat: {fileID: 11400000, guid: fded9e29bcccdb44b970102625f1cf5d, type: 2}

@@ -16,7 +16,8 @@ namespace PrimalFrontier.Core
 
     /// <summary>
     /// Game flow for the island scene: title, new game (intro + tutorial), continue (load), save, sleep, death and
-    /// respawn. Wires the survival environment hooks (air temperature, rain, heat).
+    /// respawn. The survival rules and numbers live in PlayerSurvival / SurvivalEnvironment / SurvivalConfig; this class
+    /// only runs the flow (fade, time skip, save) and hooks the environment up once the player exists.
     /// Scene first: the player, the systems ([Systems]/...) and the UI ([UI]) placed in the scene are used as they are,
     /// with their Inspector values. Anything missing is created here from the fallback fields below, so an empty
     /// scene still runs.
@@ -89,6 +90,7 @@ namespace PrimalFrontier.Core
             uiRoot.GetOrAdd<InventoryUI>(); uiRoot.GetOrAdd<JournalUI>(); uiRoot.GetOrAdd<PauseMenuUI>(); uiRoot.GetOrAdd<TitleScreenUI>();
             _death = uiRoot.GetOrAdd<DeathScreenUI>();
             uiRoot.GetOrAdd<Minimap>(); uiRoot.GetOrAdd<MobileHUD>();
+            uiRoot.GetOrAdd<ContextHints>();                  // key hints + onboarding tips (also in scenes baked before it existed)
             SaveSystem.Track();
             foreach (var p in FindObjectsByType<WorldPickup>(FindObjectsInactive.Include, FindObjectsSortMode.None)) _scenePickups.Add(p);
         }
@@ -150,14 +152,7 @@ namespace PrimalFrontier.Core
 
         void HookEnvironment()
         {
-            PlayerSurvival.AirTemperature = p => (_time ? _time.AirTemperature() : 24f) + (_zones ? _zones.TemperatureOffset(p) : 0f) - Mathf.Max(0f, p.y - 30f) * 0.06f;
-            PlayerSurvival.RainingAt = p => _weather && _weather.RainingAt(p);
-            PlayerSurvival.HeatAt = p =>
-            {
-                float h = Campfire.HeatAt(p) + Shelter.WarmthAt(p);
-                var eq = Player ? Player.GetComponent<PlayerEquipment>() : null; if (eq && eq.TorchLit) h += 2f;
-                return h;
-            };
+            SurvivalEnvironment.Hook(_time, _weather, _zones, Player);          // air temperature, rain, heat
             Bedroll.Hour = () => _time ? _time.hour : 12f;
             Bedroll.SleepRequested = (b, p) => { if (State == GameState.Playing) StartCoroutine(Sleep(b)); };
             Shelter.Rested = s => { SetRespawn(true, s.transform.position + s.transform.forward * 1.8f); SaveGame(); };
@@ -170,6 +165,11 @@ namespace PrimalFrontier.Core
             _tutorial.TargetFor = id =>
             {
                 if (id == "return") { foreach (var c in Campfire.All) if (c) return c.transform.position; }
+                if (id == TutorialManager.ShelterNightStep || id == TutorialManager.SleepStep)
+                {
+                    var sh = Player ? Shelter.Nearest(Player.transform.position, 400f, true) : null;
+                    if (sh) return sh.transform.position;
+                }
                 int i = targetSteps.IndexOf(id);
                 return i >= 0 && i < targetPositions.Count ? targetPositions[i] : (Vector3?)null;
             };
@@ -280,10 +280,11 @@ namespace PrimalFrontier.Core
             _journal.SetUnlocked(new string[0]);
             if (_zones) _zones.SetVisited(new string[0]);
             _tutorial.ResetIdle();
+            OnboardingTips.Clear();                            // a load puts the saved ones back (SaveSystem.Apply)
             if (Player)
             {
                 var hp = Player.GetComponent<PlayerHealth>(); hp.Revive(1f);
-                Player.GetComponent<PlayerSurvival>().SetStats(85f, 70f, 100f, 37f, 0f);
+                Player.GetComponent<PlayerSurvival>().ResetToStart();                 // start stats: SurvivalConfig
                 var craft = Player.GetComponent<CraftingSystem>(); craft.CancelAll(); craft.InitKnown(database);
                 var inv = Player.GetComponent<InventorySystem>(); inv.Clear(); inv.SetActiveSlot(0);
                 var pi = Player.GetComponent<PlayerInteraction>(); pi.StopAction(); pi.Suspended = false;
@@ -348,9 +349,8 @@ namespace PrimalFrontier.Core
         {
             var p = HasRespawn ? RespawnPoint : (spawnPoint ? spawnPoint.position : Player.transform.position);
             Player.GetComponent<PlayerMotor>().Warp(p + Vector3.up * 0.1f, Player.transform.rotation);
-            Player.GetComponent<PlayerHealth>().Revive(0.6f);
-            var sv = Player.GetComponent<PlayerSurvival>();
-            sv.SetStats(Mathf.Max(sv.Hunger, 40f), Mathf.Max(sv.Thirst, 40f), 60f, 36.5f, 0f);
+            Player.GetComponent<PlayerHealth>().Revive(SurvivalConfig.Instance.respawnHealth);
+            Player.GetComponent<PlayerSurvival>().ApplyRespawn();
             _ui.Close(); State = GameState.Playing;
             _hud.Fade(1f, 0f); _hud.Fade(0f, 1.5f);
             GameEvents.Raise(GameEventType.PlayerRespawned, "player");
@@ -368,10 +368,10 @@ namespace PrimalFrontier.Core
             yield return new WaitForSeconds(1.8f);
             float hours = _time.HoursUntil(6f);
             _time.SkipHours(hours);
-            var sv = Player.GetComponent<PlayerSurvival>();
-            sv.Consume(-Mathf.Min(sv.Hunger - 5f, hours * 2.2f), -Mathf.Min(sv.Thirst - 5f, hours * 2.8f), hours * 4f, 100f);
+            Player.GetComponent<PlayerSurvival>().ApplySleep(hours);            // sleep costs: SurvivalConfig
             SetRespawn(true, b.transform.position + b.transform.right * 1.2f);
-            GameEvents.Raise(GameEventType.Slept, "bedroll", Mathf.RoundToInt(hours));
+            var placed = b.GetComponentInParent<PlacedStructure>();              // bedroll, tent... (any number of beds)
+            GameEvents.Raise(GameEventType.Slept, placed ? placed.itemId : b.name, Mathf.RoundToInt(hours), b.transform.position);
             drv.StopAction();
             yield return new WaitForSeconds(0.4f);
             State = GameState.Playing;

@@ -34,6 +34,7 @@ namespace PrimalFrontier.Animation
         public static readonly int AttackSpeed = Animator.StringToHash("AttackSpeed");     // float: attack clip speed multiplier (WeaponData.attackSpeed)
         public static readonly int Strafe = Animator.StringToHash("Strafe");               // bool: facing locked to the camera (aim), 2D locomotion on VelX / VelZ
         public static readonly int FullBodyBusy = Animator.StringToHash("FullBodyBusy");   // bool: base layer runs an action / attack / hurt / death / climb state
+        public static readonly int HurtLight = Animator.StringToHash("HurtLight");         // trigger: additive upper-body flinch (HitReaction layer); the legs keep moving
         // dinosaur
         public static readonly int Alert = Animator.StringToHash("Alert");                 // bool
     }

@@ -189,8 +189,8 @@ namespace PrimalFrontier.Tests
         [UnityTest] public IEnumerator Hurt_Death_Respawn()
         {
             _drv.Hurt(false);
-            yield return WaitState("Hurt", 0.3f);
-            yield return WaitState("Locomotion", 1.5f);
+            if (HitReactionProbe.HasHurtLight(_anim)) yield return HitReactionProbe.ExpectAdditiveLightHurt(_anim, 0.3f);   // HitReaction layer
+            else { yield return WaitState("Hurt", 0.3f); yield return WaitState("Locomotion", 1.5f); }                      // controller built before it
             _drv.Hurt(true);
             yield return WaitState("Hurt_Heavy", 0.3f);
             yield return WaitState("Locomotion", 2.2f);

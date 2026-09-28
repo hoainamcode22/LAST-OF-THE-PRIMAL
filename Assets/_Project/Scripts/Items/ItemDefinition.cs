@@ -52,6 +52,11 @@ namespace PrimalFrontier.Items
         [Header("Light")]
         public float lightRange;                       // torch
 
+        [Header("Fire / cooking")]
+        [Tooltip("seconds of campfire burn one unit adds (0 = not a fuel)")] [Min(0)] public float fuelSeconds;
+        [Tooltip("seconds a cooked result may stay on the fire before it burns (0 = SurvivalConfig default from cookSeconds)")] [Min(0)] public float burnSeconds;
+        [Tooltip("what this cooked item becomes when it stays on the fire too long (empty = SurvivalConfig burnt food)")] public ItemDefinition burntResult;
+
         [Header("Weapon data")]
         [Tooltip("combat numbers, attack chain, grip and feedback (PrimalWeaponBuilder). Empty = the legacy PlayerCombat path")]
         public Combat.Weapons.WeaponData weaponData;

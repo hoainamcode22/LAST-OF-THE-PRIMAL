@@ -2,12 +2,16 @@ using UnityEngine;
 using PrimalFrontier.Animation;
 using PrimalFrontier.Core;
 using PrimalFrontier.Player;
+using PrimalFrontier.Survival;
+using PrimalFrontier.Items;
 
 namespace PrimalFrontier.World
 {
     /// <summary>
     /// The sea at the player's feet: detected from the terrain height around the player (below sea level = ocean).
-    /// Offers "Drink sea water" which makes thirst worse, so the player learns to look for the stream / pond.
+    /// With a water container in the active slot, Interact fills it with SaltWater (boil it at a campfire to make it
+    /// drinkable). Empty-handed, "Drink sea water" makes thirst worse, so the player learns to boil it or look inland.
+    /// Rules and numbers: WaterRules / SurvivalConfig. Prompts are cached (no per-frame strings).
     /// </summary>
     public class OceanShore : Interactable
     {
@@ -19,6 +23,9 @@ namespace PrimalFrontier.World
         public override Vector3 FocusPoint => _focus;
         public override int Priority => -2;
         public bool PlayerAtShore => _near;
+        public const string SaltMessage = "Salt water. It burns your throat and makes the thirst worse.";
+        const string DrinkPrompt = "Drink sea water", FillPrompt = "Fill with salt water", DrinkSub = "Salt water. It will make you thirstier.";
+        readonly WaterPromptCache _fill = new WaterPromptCache();
 
         void Update()
         {
@@ -51,18 +58,30 @@ namespace PrimalFrontier.World
         {
             sub = null;
             if (!_near || WaterSource.IsNearFresh(p.transform.position, 3f)) return null;
-            sub = "Salt water. It will make you thirstier.";
-            return "Drink sea water";
+            var st = p.ActiveStack;
+            if (WaterRules.IsContainer(st) && !WaterRules.IsFull(st))
+            {
+                if (WaterRules.CanFill(st, WaterType.SaltWater)) { _fill.Fill(st, WaterType.SaltWater, out sub); return FillPrompt; }
+                sub = _fill.Mixed(st, WaterType.SaltWater);
+                return DrinkPrompt;
+            }
+            sub = DrinkSub;
+            return DrinkPrompt;
         }
 
         public override void Interact(PlayerInteraction p)
         {
             if (!_near) return;
+            var st = p.ActiveStack; int slot = p.Inventory ? p.Inventory.ActiveSlot : 0;
+            if (WaterRules.CanFill(st, WaterType.SaltWater))
+            {
+                p.DoOneShot(PlayerActions.Drink, "OnDrink", () => WaterSource.FillSlot(p, slot, WaterType.SaltWater), _focus, 2.0f, this);
+                return;
+            }
             p.DoOneShot(PlayerActions.Drink, "OnDrink", () =>
             {
-                p.Survival.Consume(0f, -6f, 0f, 0f);
-                PlayerInteraction.Notify("Salt water. It burns your throat and makes the thirst worse.");
-                GameEvents.Raise(GameEventType.TriedSaltWater, "ocean", 1, _focus);
+                WaterRules.ApplyDrink(p.Survival, WaterType.SaltWater);        // thirst worse + TriedSaltWater
+                PlayerInteraction.Notify(SaltMessage);
             }, _focus, 2.0f, this);
         }
     }

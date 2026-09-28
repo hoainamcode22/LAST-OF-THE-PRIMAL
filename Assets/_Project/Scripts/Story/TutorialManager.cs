@@ -4,13 +4,17 @@ using UnityEngine;
 using PrimalFrontier.Core;
 using PrimalFrontier.Items;
 using PrimalFrontier.Player;
+using PrimalFrontier.Survival;
+using PrimalFrontier.World;
 
 namespace PrimalFrontier.Story
 {
     /// <summary>
-    /// Day Zero tutorial: 19 steps that teach by doing (look, walk, search, gather, craft, water, food, fire, spear,
-    /// explore, tracks, observe, predator warning, return, shelter, survive the night). Each step completes from game
-    /// events or a simple check, shows an objective + hint, and can be skipped as a whole in the settings.
+    /// Day Zero tutorial: steps that teach by doing (look, walk, search, gather, craft, water, food, fire, cook, then the
+    /// survival milestone 1 steps: fill a container, boil it, drink clean water, build a tent, shelter before night,
+    /// sleep; then spear, explore, tracks, observe, predator warning, return, shelter, survive the night). Each step
+    /// completes from game events or a simple check, shows an objective + hint, and can be skipped as a whole in the
+    /// settings. The save stores the current step by id (older saves: an index into <see cref="LegacyOrder"/>).
     /// </summary>
     public class TutorialManager : MonoBehaviour
     {
@@ -37,6 +41,18 @@ namespace PrimalFrontier.Story
         public event Action Finished;
         /// <summary>fallback when no creature is present yet: seconds spent inside the herbivore habitat</summary>
         public float observeSeconds = 4f;
+        [Tooltip("'Shelter before night' completes from this hour on (or at night) while the player is near a shelter")] public float eveningHour = 17f;
+        [Tooltip("metres from a shelter / tent that count as 'at the shelter'")] public float shelterRange = 6f;
+
+        /// <summary>survival milestone 1 step ids (compass targets, tests)</summary>
+        public const string FillWaterStep = "fill_water", BoilWaterStep = "boil_water", DrinkCleanStep = "drink_clean",
+                            TentStep = "tent", ShelterNightStep = "shelter_night", SleepStep = "sleep";
+        /// <summary>the step order before milestone 1: saves without a step id store an index into this list</summary>
+        public static readonly string[] LegacyOrder = { "look", "walk", "search", "wood", "stone", "open_craft", "craft_axe", "fiber", "water", "food",
+                                                        "campfire", "cook", "spear", "explore", "tracks", "observe", "return", "shelter", "night" };
+        /// <summary>id of the current step (null when idle or finished)</summary>
+        public string CurrentId => Running ? steps[Index].id : null;
+        public int IndexOf(string id) { if (string.IsNullOrEmpty(id)) return -1; for (int i = 0; i < steps.Count; i++) if (steps[i].id == id) return i; return -1; }
 
         GameObject _player; InventorySystem _inv; ThirdPersonCamera _cam;
         float _yawAcc; float _lastYaw; float _stepTime; float _habitatTime;
@@ -80,6 +96,17 @@ namespace PrimalFrontier.Story
             S("food", "Find something to eat", "Berry bushes grow along the forest edge.", e => Is(e, GameEventType.Ate));
             S("campfire", "Build a campfire", "Craft it, choose it on the hotbar (1-8) and place it with left click.", e => Is(e, GameEventType.StructurePlaced, "campfire"));
             S("cook", "Light the fire and cook meat", "Press E at the campfire with wood, then with raw meat.", e => Is(e, GameEventType.FoodCooked));
+            // survival milestone 1: water -> boil -> clean water -> tent -> shelter before night -> sleep
+            S(FillWaterStep, "Fill a container with water", "Hold a leaf cup or a gourd and press E at the pond, the stream or the sea.",
+              e => Is(e, GameEventType.WaterFilled), chk: () => CarriesWater(WaterType.None));
+            S(BoilWaterStep, "Boil water at the fire", "Press E at a lit campfire while holding the filled container. Pond and sea water come out clean.",
+              e => Is(e, GameEventType.WaterBoiled), chk: () => CarriesWater(WaterType.CleanWater));
+            S(DrinkCleanStep, "Drink clean water", "Choose the container on the hotbar and left click to drink.",
+              e => Is(e, GameEventType.Drank, SurvivalConfig.Instance.Water(WaterType.CleanWater).eventId));
+            S(TentStep, "Build a tent", "Craft a tent, choose it on the hotbar and place it near your fire.", chk: TentExists);
+            S(ShelterNightStep, "Shelter before night", "Evening is coming and the night air is cold. Stay by your tent and fire.",
+              chk: () => IsEvening() && _player && Shelter.Nearest(_player.transform.position, shelterRange) != null);
+            S(SleepStep, "Sleep in the tent", "After sunset, press E at the tent to sleep until dawn.", e => Is(e, GameEventType.Slept));
             S("spear", "Craft a Stone Spear", "A spear keeps danger at a distance.", e => Is(e, GameEventType.ItemCrafted, "stone_spear"), chk: () => Count("stone_spear") > 0);
             S("explore", "Explore the forest inland", "Follow the stream uphill towards the meadow.", e => Is(e, GameEventType.ZoneEntered, "ZONE_Meadow"));
             S("tracks", "Examine the strange tracks", "Something left deep prints in the mud near the meadow.", e => Is(e, GameEventType.FootprintFound));
@@ -87,7 +114,8 @@ namespace PrimalFrontier.Story
               chk: () => _habitatTime >= observeSeconds && !CreatureExists());
             S("return", "Something is nearby. Return to camp", "Head back to your fire on the beach.", chk: () => _player && NearCamp(_player.transform.position),
               begin: () => { GameEvents.Raise(GameEventType.PredatorWarning, "roar"); PredatorWarningCue?.Invoke(); });
-            S("shelter", "Build a shelter before nightfall", "Craft a Basic Shelter and place it near the fire.", e => Is(e, GameEventType.StructurePlaced, "shelter"));
+            S("shelter", "Build a shelter before nightfall", "Craft a Basic Shelter and place it near the fire.",
+              e => Is(e, GameEventType.StructurePlaced, "shelter") || (e.type == GameEventType.StructurePlaced && PlacesShelter(e.id)), chk: TentExists);
             S("night", "Survive the night", "Stay warm by the fire. A bedroll lets you sleep until dawn.", e => Is(e, GameEventType.DayStarted));
             // text edited in the Inspector wins
             foreach (var t in texts)
@@ -97,6 +125,36 @@ namespace PrimalFrontier.Story
                 if (!string.IsNullOrEmpty(t.objective)) st.objective = t.objective;
                 if (!string.IsNullOrEmpty(t.hint)) st.hint = t.hint;
             }
+        }
+
+        /// <summary>a water container in the pack holds water (of this kind; None = any kind)</summary>
+        bool CarriesWater(WaterType kind)
+        {
+            if (!_inv || _inv.Slots == null) return false;
+            for (int i = 0; i < _inv.Slots.Length; i++)
+            {
+                var s = _inv.Slots[i]; if (!WaterRules.IsContainer(s) || s.water <= 0) continue;
+                if (kind == WaterType.None || WaterRules.TypeOf(s) == kind) return true;
+            }
+            return false;
+        }
+        /// <summary>a tent (a shelter with a bed on it) stands somewhere</summary>
+        static bool TentExists()
+        {
+            var all = Shelter.All;
+            for (int i = 0; i < all.Count; i++) if (all[i] && all[i].HasBed) return true;
+            return false;
+        }
+        /// <summary>the placed item is a shelter of any kind (lean-to, tent): read from its prefab, no item ids</summary>
+        static bool PlacesShelter(string itemId)
+        {
+            var db = ItemDatabase.Instance; var it = db ? db.Item(itemId) : null;
+            return it && it.placePrefab && it.placePrefab.GetComponentInChildren<Shelter>(true);
+        }
+        bool IsEvening()
+        {
+            var tm = TimeManager.Instance; if (!tm) return false;
+            return tm.hour >= eveningHour || tm.IsNight;
         }
 
         /// <summary>fill the text list with every step (keeps what was already edited). Inspector: right click the component.</summary>
@@ -122,11 +180,23 @@ namespace PrimalFrontier.Story
         public void Skip() { Index = steps.Count; Finish(); }
         /// <summary>new game / title: idle, nothing shown until Begin()</summary>
         public void ResetIdle() { Index = -1; Completed = false; _stepTime = 0f; _habitatTime = 0f; _yawAcc = 0f; }
-        public void Restore(int index, bool completed)
+        public void Restore(int index, bool completed) => Restore(index, completed, null);
+        /// <summary>load: the step id wins; saves without one map their index through the pre-milestone-1 order</summary>
+        public void Restore(int index, bool completed, string stepId)
         {
             if (completed) { Index = steps.Count; Completed = true; return; }
-            Index = Mathf.Clamp(index, 0, steps.Count);
+            int i = IndexOf(stepId);
+            if (i < 0) i = LegacyIndex(index);
+            Index = Mathf.Clamp(i, 0, steps.Count); _stepTime = 0f;
             if (Running) StepStarted?.Invoke(steps[Index]);
+        }
+
+        int LegacyIndex(int index)
+        {
+            if (index < 0) return 0;
+            if (index >= LegacyOrder.Length) return steps.Count;
+            int i = IndexOf(LegacyOrder[index]);
+            return i >= 0 ? i : Mathf.Min(index, steps.Count);
         }
 
         void OnEvent(GameEvent e)

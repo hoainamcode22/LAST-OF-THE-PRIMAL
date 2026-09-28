@@ -19,7 +19,23 @@ namespace PrimalFrontier.AI
         public bool swimmer;
         float _a, _dir = 1f, _h; Animator _anim; bool _dead; float _glideT; bool _gliding;
         public bool IsAlive => !_dead;
-        float _health;
+        float _health; float _boostUntil;
+        /// <summary>enabled ambient creatures (bushes look for one to startle)</summary>
+        public static readonly System.Collections.Generic.List<AmbientCreature> All = new System.Collections.Generic.List<AmbientCreature>();
+
+        void OnEnable() { if (!All.Contains(this)) All.Add(this); }
+        void OnDisable() { All.Remove(this); }
+
+        /// <summary>something rustled nearby: turn away from it and hurry for a few seconds</summary>
+        public void Startle(Vector3 from)
+        {
+            if (_dead) return;
+            // the tangent of the circle (derivative of cos/sin) points along +_dir; flip when it heads towards 'from'
+            Vector3 tangent = new Vector3(-Mathf.Sin(_a), 0f, Mathf.Cos(_a)) * _dir;
+            Vector3 to = from - transform.position; to.y = 0f;
+            if (Vector3.Dot(tangent, to) > 0f) _dir = -_dir;
+            _boostUntil = Time.time + 3f;
+        }
 
         void Start()
         {
@@ -34,7 +50,7 @@ namespace PrimalFrontier.AI
         void Update()
         {
             if (_dead) { if (!swimmer) Fall(); return; }
-            float speed = def ? (swimmer ? def.walkSpeed : def.runSpeed) : 8f;
+            float speed = (def ? (swimmer ? def.walkSpeed : def.runSpeed) : 8f) * (Time.time < _boostUntil ? 1.8f : 1f);
             _a += _dir * speed / Mathf.Max(5f, radius) * Time.deltaTime;
             float wob = Mathf.Sin(Time.time * 0.13f + center.x) * radius * 0.25f;
             Vector3 p = center + new Vector3(Mathf.Cos(_a), 0, Mathf.Sin(_a)) * (radius + wob);

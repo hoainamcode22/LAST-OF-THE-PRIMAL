@@ -4,7 +4,8 @@ using PrimalFrontier.Core;
 
 namespace PrimalFrontier.UI
 {
-    /// <summary>Settings block shared by the title and pause menus: volumes, mouse, quality preset, resolution, fullscreen, VSync.</summary>
+    /// <summary>Settings block shared by the title and pause menus: volumes, mouse, quality preset, resolution, fullscreen, VSync,
+    /// blood, touch controls, key hints (ContextHints).</summary>
     public static class SettingsPanel
     {
         public static RectTransform Build(Transform parent, System.Action onBack)
@@ -38,6 +39,9 @@ namespace PrimalFrontier.UI
             Toggle("VSync", () => GameSettings.VSync ? "ON" : "OFF", () => GameSettings.VSync = !GameSettings.VSync);
             Toggle("Blood effects", () => GameSettings.BloodNames[(int)GameSettings.Blood], () => GameSettings.Blood = (BloodLevel)(((int)GameSettings.Blood + 1) % 3));
             Toggle("Touch controls", () => GameSettings.TouchNames[GameSettings.TouchControls], () => GameSettings.TouchControls = (GameSettings.TouchControls + 1) % 3);
+            // added after the scene bake: a new row below the others grows the panel once (a baked panel keeps its size)
+            var hints = Toggle("Key hints (Gợi ý phím)", () => GameSettings.Hints ? "ON" : "OFF", () => GameSettings.Hints = !GameSettings.Hints);
+            if (UIFactory.Fresh(hints)) p.sizeDelta += new Vector2(0f, 120f);
             UIFactory.Button(p, "Back", "BACK", () => onBack?.Invoke(), new Vector2(0.5f, 0), new Vector2(0.5f, 0), new Vector2(0.5f, 0), new Vector2(0, 30), new Vector2(260, 54), 24);
             return p;
         }

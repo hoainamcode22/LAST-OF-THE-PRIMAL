@@ -11,6 +11,11 @@ namespace PrimalFrontier.World
     /// <summary>stored as ints in the scene: append only</summary>
     public enum BushVariant { Plain = 0, Berries = 1, HiddenItem = 2, AnimalFlush = 3 }
 
+    /// <summary>what the last rustle with feedback did (light / strong rustle, or a hidden discovery)</summary>
+    public enum RustleReaction { None, Light, Strong, Discovery }
+    /// <summary>what a discovery turned out to be</summary>
+    public enum BushDiscovery { None, Berries, BirdBurst, Fiber, StartledAnimal }
+
     /// <summary>one entry of the hidden item table (weighted pick, count min..max)</summary>
     [System.Serializable]
     public struct BushLoot
@@ -27,8 +32,13 @@ namespace PrimalFrontier.World
     /// crouching smaller), then, after a short random delay and a per-bush cooldown, a pooled leaf burst and a rustle.
     /// Variants: Berries (a ResourceNode on the same object, added by the builder), HiddenItem (the first player rustle
     /// drops a pickup), AnimalFlush (a bigger burst, as if a small animal darted out; re-arms after flushCooldown).
+    /// Every other rustle with feedback rolls a reaction: 70 % light rustle, 20 % strong rustle (bigger burst, louder,
+    /// an extra shake), 10 % hidden discovery when the player did it (per-bush discoveryCooldown plus a short global gap;
+    /// otherwise a strong rustle): a few berries on a berry bush, a bird / insect burst (pooled leaves + high rustles),
+    /// a fibre pickup, or a nearby small animal startled (small passive creature or an ambient flyer within startleRange).
     /// Idle bushes cost nothing: the component disables itself when settled and trigger messages re-enable it.
-    /// Nothing beyond cullDistance from the camera reacts. No allocations per frame.
+    /// Nothing beyond cullDistance from the camera reacts (creature triggers out there return before any lookup).
+    /// One trigger collider per bush. Effects are pooled; pickups only spawn on a discovery. No allocations per frame.
     /// </summary>
     [DisallowMultipleComponent]
     public class BushInteraction : MonoBehaviour
@@ -56,16 +66,32 @@ namespace PrimalFrontier.World
         public float flushCooldown = 60f;
         [Tooltip("a small dust puff where the animal runs off")] public bool flushDust = true;
 
+        [Header("Reaction roll (each rustle with feedback)")]
+        [Tooltip("chance of a strong rustle (bigger leaf burst, louder, extra shake); the rest is a light rustle")] [Range(0, 1)] public float strongChance = 0.2f;
+        [Tooltip("chance of a hidden discovery when the player rustles the bush (berries, bird / insect burst, fibre, startled animal)")] [Range(0, 1)] public float discoveryChance = 0.1f;
+        [Tooltip("seconds before this bush can give another discovery (a strong rustle instead)")] public float discoveryCooldown = 120f;
+        [Tooltip("small animals within this horizontal range (m) can be startled by a discovery")] public float startleRange = 25f;
+        [Tooltip("pickup count of a berry / fibre discovery")] public Vector2Int discoveryCount = new Vector2Int(1, 2);
+
         /// <summary>bushes currently running Update (shaking, feedback pending or player inside): for profiling</summary>
         public static int ActiveCount { get; private set; }
         /// <summary>leaf bursts / rustles played since start (capture + log)</summary>
         public static int FeedbackCount { get; private set; }
+        /// <summary>hidden discoveries since start (any bush)</summary>
+        public static int DiscoveryCount { get; private set; }
+        /// <summary>tests: replaces Random.value for the reaction roll and the discovery pick (null = random)</summary>
+        public static System.Func<float> ReactionRoll;
+        /// <summary>at least this many seconds between two discoveries anywhere (no farming by running through a thicket)</summary>
+        public static float GlobalDiscoveryGap = 8f;
 
         public bool IsShaking => _shaking;
         public bool PlayerInside => _playerColliders > 0;
         public bool HiddenItemTaken => _hiddenSpent;
         /// <summary>current tilt in degrees</summary>
         public float Tilt => _ang;
+        /// <summary>what the last rustle with feedback did / what the last discovery was</summary>
+        public RustleReaction LastReaction { get; private set; }
+        public BushDiscovery LastDiscovery { get; private set; }
 
         Transform _vis; Quaternion _baseRot; Vector3 _baseScale;
         Vector3 _axis = Vector3.right;                     // tilt axis in the visual's parent space
@@ -74,12 +100,20 @@ namespace PrimalFrontier.World
         float _fxAt = -1f, _fx2At = -1f, _fxStrength; Vector3 _fxDir; bool _fxCrouch, _fxFlush, _fxHidden;
         float _nextFeedback, _nextFlush, _nextBrush, _lastImpulse = -10f, _lastStrength, _lastFx = -10f;
         int _playerColliders; bool _hiddenSpent, _counted;
+        RustleReaction _fxKind; bool _fx2Bird; float _nextDiscovery;
 
         static Camera _cam;
         static Transform _playerRoot; static PlayerMotor _motor; static CharacterController _cc;
+        static float _globalNextDiscovery; static ItemDefinition _fiber; static bool _fiberLooked;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        static void ResetStatics() { ActiveCount = 0; FeedbackCount = 0; _cam = null; _playerRoot = null; _motor = null; _cc = null; }
+        static void ResetStatics()
+        {
+            ActiveCount = 0; FeedbackCount = 0; DiscoveryCount = 0; _cam = null; _playerRoot = null; _motor = null; _cc = null;
+            _globalNextDiscovery = 0f; _fiber = null; _fiberLooked = false; ReactionRoll = null;
+        }
+
+        static float Roll() => ReactionRoll != null ? Mathf.Clamp01(ReactionRoll()) : Random.value;
 
         void Awake()
         {
@@ -110,7 +144,7 @@ namespace PrimalFrontier.World
             if (_counted) { _counted = false; ActiveCount--; }
             // deactivated mid-shake (or the player left without an exit message): come back to rest
             if (_shaking) { _ang = _angVel = _sq = _sqVel = 0f; _shaking = false; ApplyRest(); }
-            _playerColliders = 0; _fxAt = _fx2At = -1f;
+            _playerColliders = 0; _fxAt = _fx2At = -1f; _fx2Bird = false;
         }
 
         // ------------------------------------------------------------------ triggers
@@ -129,6 +163,7 @@ namespace PrimalFrontier.World
                 Rustle(_playerRoot ? _playerRoot.position : other.transform.position, s, crouch, true);
                 return;
             }
+            if (Far(transform.position, cullDistance)) return;            // far creatures: no lookups at all
             var dino = other.GetComponentInParent<DinosaurController>();
             if (dino)
             {
@@ -173,8 +208,21 @@ namespace PrimalFrontier.World
                 _fxStrength = strength; _fxCrouch = crouch; _fxDir = dir;
                 _fxFlush = flush; if (flush) _nextFlush = now + flushCooldown;
                 if (hidden) { _fxHidden = true; _hiddenSpent = true; }
+                _fxKind = flush || hidden ? RustleReaction.Strong : RollReaction(player, now);
             }
             enabled = true;
+        }
+
+        /// <summary>70 % light, 20 % strong, 10 % discovery (player only, when this bush and the island are off cooldown)</summary>
+        RustleReaction RollReaction(bool player, float now)
+        {
+            float r = Roll();
+            if (r < discoveryChance)
+            {
+                if (player && now >= _nextDiscovery && now >= _globalNextDiscovery) return RustleReaction.Discovery;
+                return RustleReaction.Strong;
+            }
+            return r < discoveryChance + strongChance ? RustleReaction.Strong : RustleReaction.Light;
         }
 
         // ------------------------------------------------------------------ update (only while active)
@@ -258,13 +306,18 @@ namespace PrimalFrontier.World
             Vector3 center = transform.TransformPoint(_fxLocal);
             if (!InRange(center)) return;
             float now = Time.time; _lastFx = now; FeedbackCount++;
+            var kind = _fxKind; LastReaction = kind;
             Vector3 p = center - _fxDir * (_radius * 0.35f);                 // on the side the mover came in
             float s01 = Mathf.InverseLerp(0.3f, 1.25f, _fxStrength);
             bool low = GameSettings.Quality == 0;
-            float vfxScale = _fxFlush ? Random.Range(0.85f, 1.1f) : Mathf.Lerp(0.35f, 0.6f, s01);
+            bool strong = kind != RustleReaction.Light;
+            float vfxScale = _fxFlush ? Random.Range(0.85f, 1.1f) : Mathf.Lerp(0.35f, 0.6f, s01) * (strong ? 1.45f : 0.85f);
+            float vol = _fxFlush ? 0.7f : Mathf.Min(0.85f, Mathf.Lerp(0.35f, 0.7f, s01) * (strong ? 1.3f : 0.85f));
             if (!low || !Far(p, 20f)) VfxPool.Instance.Play(VfxId.Leaves, p, Vector3.up, null, low ? vfxScale * 0.8f : vfxScale);
-            var src = SfxPlayer.Instance.Play(SfxId.LeafRustle, p, _fxFlush ? 0.7f : Mathf.Lerp(0.35f, 0.7f, s01));
+            var src = SfxPlayer.Instance.Play(SfxId.LeafRustle, p, vol);
             if (src) src.pitch *= _fxCrouch ? Random.Range(0.9f, 0.98f) : Random.Range(0.95f, 1.08f);
+            if (strong && !_fxFlush) Kick(_fxDir, 0.35f);                     // something bigger moved inside
+            if (kind == RustleReaction.Discovery) Discover(center, now);
             if (_fxFlush)
             {
                 _fx2At = now + Random.Range(0.12f, 0.22f);
@@ -276,15 +329,94 @@ namespace PrimalFrontier.World
             }
         }
 
-        /// <summary>the animal darting off: a second, higher rustle on the far side</summary>
+        /// <summary>the animal darting off: a second, higher rustle on the far side (bird burst: high and at the top)</summary>
         void FlushSecond()
         {
+            if (_fx2Bird)
+            {
+                _fx2Bird = false;
+                Vector3 top = transform.TransformPoint(_fxLocal) + Vector3.up * (_radius * 0.8f);
+                if (!InRange(top)) return;
+                var b = SfxPlayer.Instance.Play(SfxId.LeafRustle, top, 0.45f);
+                if (b) b.pitch *= Random.Range(1.45f, 1.7f);
+                return;
+            }
             Vector3 away = _fxDir.sqrMagnitude > 0f ? _fxDir : transform.forward;
             Vector3 p = transform.TransformPoint(_fxLocal) + away * (_radius + 0.4f);
             if (!InRange(p)) return;
             var src = SfxPlayer.Instance.Play(SfxId.LeafRustle, p, 0.55f);
             if (src) src.pitch *= Random.Range(1.15f, 1.3f);
             Kick(away, 0.5f);
+        }
+
+        // ------------------------------------------------------------------ discovery
+        /// <summary>a hidden discovery: berries (berry bushes), a bird / insect burst, fibre, or a startled small animal</summary>
+        void Discover(Vector3 center, float now)
+        {
+            _nextDiscovery = now + discoveryCooldown;
+            _globalNextDiscovery = now + GlobalDiscoveryGap;
+            DiscoveryCount++;
+            ResourceNode node = null;
+            bool berries = variant == BushVariant.Berries && TryGetComponent(out node) && node.yieldItem;
+            if (!_fiberLooked) { _fiberLooked = true; var db = ItemDatabase.Instance; _fiber = db ? db.Item("fiber") : null; }
+            bool fiber = _fiber;
+            Component animal = NearbySmallAnimal(transform.position);
+            // pick one of the available outcomes (the bird burst is always possible)
+            int n = 1 + (berries ? 1 : 0) + (fiber ? 1 : 0) + (animal ? 1 : 0);
+            int pick = Mathf.Min(n - 1, (int)(Roll() * n));
+            BushDiscovery d = BushDiscovery.BirdBurst;
+            if (berries && pick-- == 0) d = BushDiscovery.Berries;
+            else if (fiber && pick-- == 0) d = BushDiscovery.Fiber;
+            else if (animal && pick-- == 0) d = BushDiscovery.StartledAnimal;
+            LastDiscovery = d;
+            int cMin = Mathf.Max(1, discoveryCount.x), count = Random.Range(cMin, Mathf.Max(cMin, discoveryCount.y) + 1);
+            Vector3 edge = transform.position - _fxDir * (_radius * 0.8f + 0.2f) + Vector3.up * 0.3f;
+            switch (d)
+            {
+                case BushDiscovery.Berries:
+                    if (WorldPickup.Drop(node.yieldItem, count, edge)) PlayerInteraction.Notify("A few " + node.yieldItem.displayName.ToLowerInvariant() + " fell from the bush.");
+                    break;
+                case BushDiscovery.Fiber:
+                    if (WorldPickup.Drop(_fiber, count, edge)) PlayerInteraction.Notify("Loose " + _fiber.displayName.ToLowerInvariant() + " caught in the bush.");
+                    break;
+                case BushDiscovery.StartledAnimal:
+                    if (animal is DinosaurController dc) dc.Flee(transform.position);
+                    else if (animal is AmbientCreature ac) ac.Startle(transform.position);
+                    Kick(_fxDir, 0.5f);
+                    break;
+                default:
+                    // birds / insects bursting out of the crown: a big upward leaf burst and two high rustles
+                    Vector3 top = center + Vector3.up * (_radius * 0.6f);
+                    VfxPool.Instance.Play(VfxId.Leaves, top, Vector3.up, null, Random.Range(0.95f, 1.2f));
+                    var s = SfxPlayer.Instance.Play(SfxId.LeafRustle, top, 0.6f);
+                    if (s) s.pitch *= Random.Range(1.3f, 1.5f);
+                    _fx2Bird = true; _fx2At = now + Random.Range(0.1f, 0.18f);
+                    break;
+            }
+        }
+
+        /// <summary>a small passive / defensive creature, or an ambient flyer / swimmer, within startleRange (horizontal); null = none</summary>
+        Component NearbySmallAnimal(Vector3 p)
+        {
+            Component best = null; float bd = startleRange * startleRange;
+            var dinos = DinosaurController.All;
+            for (int i = 0; i < dinos.Count; i++)
+            {
+                var d = dinos[i];
+                if (!d || !d.IsAlive || !d.def || d.def.bodyRadius > 0.7f) continue;
+                if (d.def.temperament != Temperament.Passive && d.def.temperament != Temperament.Defensive) continue;
+                float dx = d.transform.position.x - p.x, dz = d.transform.position.z - p.z, q = dx * dx + dz * dz;
+                if (q < bd) { bd = q; best = d; }
+            }
+            var amb = AmbientCreature.All;
+            for (int i = 0; i < amb.Count; i++)
+            {
+                var a = amb[i];
+                if (!a || !a.IsAlive) continue;
+                float dx = a.transform.position.x - p.x, dz = a.transform.position.z - p.z, q = dx * dx + dz * dz;
+                if (q < bd) { bd = q; best = a; }
+            }
+            return best;
         }
 
         void SpawnHidden()

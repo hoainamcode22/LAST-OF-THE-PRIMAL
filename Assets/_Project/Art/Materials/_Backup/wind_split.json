@@ -1,0 +1,303 @@
+{
+    "copies": [
+        {
+            "source": "Assets/_Project/Art/Materials/M_Bark.mat",
+            "copy": "Assets/_Project/Art/Materials/M_Bark_Wind.mat",
+            "group": "tree"
+        },
+        {
+            "source": "Assets/_Project/Art/Materials/M_Foliage.mat",
+            "copy": "Assets/_Project/Art/Materials/M_Foliage_Wind.mat",
+            "group": "tree"
+        },
+        {
+            "source": "Assets/_Project/Art/Materials/M_Foliage.mat",
+            "copy": "Assets/_Project/Art/Materials/M_Foliage_BushWind.mat",
+            "group": "bush"
+        },
+        {
+            "source": "Assets/_Project/Art/Materials/M_Bark.mat",
+            "copy": "Assets/_Project/Art/Materials/M_Bark_BushWind.mat",
+            "group": "bush"
+        }
+    ],
+    "edits": [
+        {
+            "prefab": "Assets/_Project/Prefabs/Environment/PFB_ENV_Tree_01.prefab",
+            "renderer": "ENV_Tree_01_LOD0",
+            "slot": 0,
+            "from": "Assets/_Project/Art/Materials/M_Bark.mat",
+            "to": "Assets/_Project/Art/Materials/M_Bark_Wind.mat",
+            "hadOverride": false
+        },
+        {
+            "prefab": "Assets/_Project/Prefabs/Environment/PFB_ENV_Tree_01.prefab",
+            "renderer": "ENV_Tree_01_LOD0",
+            "slot": 1,
+            "from": "Assets/_Project/Art/Materials/M_Foliage.mat",
+            "to": "Assets/_Project/Art/Materials/M_Foliage_Wind.mat",
+            "hadOverride": false
+        },
+        {
+            "prefab": "Assets/_Project/Prefabs/Environment/PFB_ENV_Tree_01.prefab",
+            "renderer": "ENV_Tree_01_LOD1",
+            "slot": 0,
+            "from": "Assets/_Project/Art/Materials/M_Bark.mat",
+            "to": "Assets/_Project/Art/Materials/M_Bark_Wind.mat",
+            "hadOverride": false
+        },
+        {
+            "prefab": "Assets/_Project/Prefabs/Environment/PFB_ENV_Tree_01.prefab",
+            "renderer": "ENV_Tree_01_LOD1",
+            "slot": 1,
+            "from": "Assets/_Project/Art/Materials/M_Foliage.mat",
+            "to": "Assets/_Project/Art/Materials/M_Foliage_Wind.mat",
+            "hadOverride": false
+        },
+        {
+            "prefab": "Assets/_Project/Prefabs/Environment/PFB_ENV_Tree_02.prefab",
+            "renderer": "ENV_Tree_02_LOD0",
+            "slot": 0,
+            "from": "Assets/_Project/Art/Materials/M_Bark.mat",
+            "to": "Assets/_Project/Art/Materials/M_Bark_Wind.mat",
+            "hadOverride": false
+        },
+        {
+            "prefab": "Assets/_Project/Prefabs/Environment/PFB_ENV_Tree_02.prefab",
+            "renderer": "ENV_Tree_02_LOD0",
+            "slot": 1,
+            "from": "Assets/_Project/Art/Materials/M_Foliage.mat",
+            "to": "Assets/_Project/Art/Materials/M_Foliage_Wind.mat",
+            "hadOverride": false
+        },
+        {
+            "prefab": "Assets/_Project/Prefabs/Environment/PFB_ENV_Tree_02.prefab",
+            "renderer": "ENV_Tree_02_LOD1",
+            "slot": 0,
+            "from": "Assets/_Project/Art/Materials/M_Bark.mat",
+            "to": "Assets/_Project/Art/Materials/M_Bark_Wind.mat",
+            "hadOverride": false
+        },
+        {
+            "prefab": "Assets/_Project/Prefabs/Environment/PFB_ENV_Tree_02.prefab",
+            "renderer": "ENV_Tree_02_LOD1",
+            "slot": 1,
+            "from": "Assets/_Project/Art/Materials/M_Foliage.mat",
+            "to": "Assets/_Project/Art/Materials/M_Foliage_Wind.mat",
+            "hadOverride": false
+        },
+        {
+            "prefab": "Assets/_Project/Prefabs/Environment/PFB_ENV_Tree_03.prefab",
+            "renderer": "ENV_Tree_03_LOD0",
+            "slot": 0,
+            "from": "Assets/_Project/Art/Materials/M_Bark.mat",
+            "to": "Assets/_Project/Art/Materials/M_Bark_Wind.mat",
+            "hadOverride": false
+        },
+        {
+            "prefab": "Assets/_Project/Prefabs/Environment/PFB_ENV_Tree_03.prefab",
+            "renderer": "ENV_Tree_03_LOD0",
+            "slot": 1,
+            "from": "Assets/_Project/Art/Materials/M_Foliage.mat",
+            "to": "Assets/_Project/Art/Materials/M_Foliage_Wind.mat",
+            "hadOverride": false
+        },
+        {
+            "prefab": "Assets/_Project/Prefabs/Environment/PFB_ENV_Tree_03.prefab",
+            "renderer": "ENV_Tree_03_LOD1",
+            "slot": 0,
+            "from": "Assets/_Project/Art/Materials/M_Bark.mat",
+            "to": "Assets/_Project/Art/Materials/M_Bark_Wind.mat",
+            "hadOverride": false
+        },
+        {
+            "prefab": "Assets/_Project/Prefabs/Environment/PFB_ENV_Tree_03.prefab",
+            "renderer": "ENV_Tree_03_LOD1",
+            "slot": 1,
+            "from": "Assets/_Project/Art/Materials/M_Foliage.mat",
+            "to": "Assets/_Project/Art/Materials/M_Foliage_Wind.mat",
+            "hadOverride": false
+        },
+        {
+            "prefab": "Assets/_Project/Prefabs/Environment/PFB_ENV_Tree_04.prefab",
+            "renderer": "ENV_Tree_04_LOD0",
+            "slot": 0,
+            "from": "Assets/_Project/Art/Materials/M_Bark.mat",
+            "to": "Assets/_Project/Art/Materials/M_Bark_Wind.mat",
+            "hadOverride": false
+        },
+        {
+            "prefab": "Assets/_Project/Prefabs/Environment/PFB_ENV_Tree_04.prefab",
+            "renderer": "ENV_Tree_04_LOD0",
+            "slot": 1,
+            "from": "Assets/_Project/Art/Materials/M_Foliage.mat",
+            "to": "Assets/_Project/Art/Materials/M_Foliage_Wind.mat",
+            "hadOverride": false
+        },
+        {
+            "prefab": "Assets/_Project/Prefabs/Environment/PFB_ENV_Tree_04.prefab",
+            "renderer": "ENV_Tree_04_LOD1",
+            "slot": 0,
+            "from": "Assets/_Project/Art/Materials/M_Bark.mat",
+            "to": "Assets/_Project/Art/Materials/M_Bark_Wind.mat",
+            "hadOverride": false
+        },
+        {
+            "prefab": "Assets/_Project/Prefabs/Environment/PFB_ENV_Tree_04.prefab",
+            "renderer": "ENV_Tree_04_LOD1",
+            "slot": 1,
+            "from": "Assets/_Project/Art/Materials/M_Foliage.mat",
+            "to": "Assets/_Project/Art/Materials/M_Foliage_Wind.mat",
+            "hadOverride": false
+        },
+        {
+            "prefab": "Assets/_Project/Prefabs/Environment/PFB_ENV_Bush_01.prefab",
+            "renderer": "ENV_Bush_01_LOD0",
+            "slot": 0,
+            "from": "Assets/_Project/Art/Materials/M_Foliage.mat",
+            "to": "Assets/_Project/Art/Materials/M_Foliage_BushWind.mat",
+            "hadOverride": false
+        },
+        {
+            "prefab": "Assets/_Project/Prefabs/Environment/PFB_ENV_Bush_01.prefab",
+            "renderer": "ENV_Bush_01_LOD1",
+            "slot": 0,
+            "from": "Assets/_Project/Art/Materials/M_Foliage.mat",
+            "to": "Assets/_Project/Art/Materials/M_Foliage_BushWind.mat",
+            "hadOverride": false
+        },
+        {
+            "prefab": "Assets/_Project/Prefabs/Environment/PFB_ENV_BushInteractive.prefab",
+            "renderer": "Visual/ENV_Bush_01/ENV_Bush_01_LOD0",
+            "slot": 0,
+            "from": "Assets/_Project/Art/Materials/M_Foliage.mat",
+            "to": "Assets/_Project/Art/Materials/M_Foliage_BushWind.mat",
+            "hadOverride": false
+        },
+        {
+            "prefab": "Assets/_Project/Prefabs/Environment/PFB_ENV_BushInteractive.prefab",
+            "renderer": "Visual/ENV_Bush_01/ENV_Bush_01_LOD1",
+            "slot": 0,
+            "from": "Assets/_Project/Art/Materials/M_Foliage.mat",
+            "to": "Assets/_Project/Art/Materials/M_Foliage_BushWind.mat",
+            "hadOverride": false
+        },
+        {
+            "prefab": "Assets/_Project/Prefabs/Environment/PFB_ENV_BushInteractive_02.prefab",
+            "renderer": "Visual/ENV_Bush_02/ENV_Bush_02_LOD0",
+            "slot": 0,
+            "from": "Assets/_Project/Art/Materials/M_Bark.mat",
+            "to": "Assets/_Project/Art/Materials/M_Bark_BushWind.mat",
+            "hadOverride": false
+        },
+        {
+            "prefab": "Assets/_Project/Prefabs/Environment/PFB_ENV_BushInteractive_02.prefab",
+            "renderer": "Visual/ENV_Bush_02/ENV_Bush_02_LOD0",
+            "slot": 1,
+            "from": "Assets/_Project/Art/Materials/M_Foliage.mat",
+            "to": "Assets/_Project/Art/Materials/M_Foliage_BushWind.mat",
+            "hadOverride": false
+        },
+        {
+            "prefab": "Assets/_Project/Prefabs/Environment/PFB_ENV_BushInteractive_02.prefab",
+            "renderer": "Visual/ENV_Bush_02/ENV_Bush_02_LOD1",
+            "slot": 0,
+            "from": "Assets/_Project/Art/Materials/M_Bark.mat",
+            "to": "Assets/_Project/Art/Materials/M_Bark_BushWind.mat",
+            "hadOverride": false
+        },
+        {
+            "prefab": "Assets/_Project/Prefabs/Environment/PFB_ENV_BushInteractive_02.prefab",
+            "renderer": "Visual/ENV_Bush_02/ENV_Bush_02_LOD1",
+            "slot": 1,
+            "from": "Assets/_Project/Art/Materials/M_Foliage.mat",
+            "to": "Assets/_Project/Art/Materials/M_Foliage_BushWind.mat",
+            "hadOverride": false
+        },
+        {
+            "prefab": "Assets/_Project/Prefabs/Environment/PFB_ENV_BushInteractive_03.prefab",
+            "renderer": "Visual/ENV_Bush_03/ENV_Bush_03_LOD0",
+            "slot": 0,
+            "from": "Assets/_Project/Art/Materials/M_Foliage.mat",
+            "to": "Assets/_Project/Art/Materials/M_Foliage_BushWind.mat",
+            "hadOverride": false
+        },
+        {
+            "prefab": "Assets/_Project/Prefabs/Environment/PFB_ENV_BushInteractive_03.prefab",
+            "renderer": "Visual/ENV_Bush_03/ENV_Bush_03_LOD1",
+            "slot": 0,
+            "from": "Assets/_Project/Art/Materials/M_Foliage.mat",
+            "to": "Assets/_Project/Art/Materials/M_Foliage_BushWind.mat",
+            "hadOverride": false
+        },
+        {
+            "prefab": "Assets/_Project/Prefabs/Environment/PFB_ENV_BushInteractive_04.prefab",
+            "renderer": "Visual/ENV_Bush_04/ENV_Bush_04_LOD0",
+            "slot": 0,
+            "from": "Assets/_Project/Art/Materials/M_Bark.mat",
+            "to": "Assets/_Project/Art/Materials/M_Bark_BushWind.mat",
+            "hadOverride": false
+        },
+        {
+            "prefab": "Assets/_Project/Prefabs/Environment/PFB_ENV_BushInteractive_04.prefab",
+            "renderer": "Visual/ENV_Bush_04/ENV_Bush_04_LOD0",
+            "slot": 1,
+            "from": "Assets/_Project/Art/Materials/M_Foliage.mat",
+            "to": "Assets/_Project/Art/Materials/M_Foliage_BushWind.mat",
+            "hadOverride": false
+        },
+        {
+            "prefab": "Assets/_Project/Prefabs/Environment/PFB_ENV_BushInteractive_04.prefab",
+            "renderer": "Visual/ENV_Bush_04/ENV_Bush_04_LOD1",
+            "slot": 0,
+            "from": "Assets/_Project/Art/Materials/M_Bark.mat",
+            "to": "Assets/_Project/Art/Materials/M_Bark_BushWind.mat",
+            "hadOverride": false
+        },
+        {
+            "prefab": "Assets/_Project/Prefabs/Environment/PFB_ENV_BushInteractive_04.prefab",
+            "renderer": "Visual/ENV_Bush_04/ENV_Bush_04_LOD1",
+            "slot": 1,
+            "from": "Assets/_Project/Art/Materials/M_Foliage.mat",
+            "to": "Assets/_Project/Art/Materials/M_Foliage_BushWind.mat",
+            "hadOverride": false
+        },
+        {
+            "prefab": "Assets/_Project/Prefabs/Environment/PFB_ENV_BushInteractive_05.prefab",
+            "renderer": "Visual/ENV_Bush_05/ENV_Bush_05_LOD0",
+            "slot": 0,
+            "from": "Assets/_Project/Art/Materials/M_Bark.mat",
+            "to": "Assets/_Project/Art/Materials/M_Bark_BushWind.mat",
+            "hadOverride": false
+        },
+        {
+            "prefab": "Assets/_Project/Prefabs/Environment/PFB_ENV_BushInteractive_05.prefab",
+            "renderer": "Visual/ENV_Bush_05/ENV_Bush_05_LOD0",
+            "slot": 1,
+            "from": "Assets/_Project/Art/Materials/M_Foliage.mat",
+            "to": "Assets/_Project/Art/Materials/M_Foliage_BushWind.mat",
+            "hadOverride": false
+        },
+        {
+            "prefab": "Assets/_Project/Prefabs/Environment/PFB_ENV_BushInteractive_05.prefab",
+            "renderer": "Visual/ENV_Bush_05/ENV_Bush_05_LOD1",
+            "slot": 0,
+            "from": "Assets/_Project/Art/Materials/M_Bark.mat",
+            "to": "Assets/_Project/Art/Materials/M_Bark_BushWind.mat",
+            "hadOverride": false
+        },
+        {
+            "prefab": "Assets/_Project/Prefabs/Environment/PFB_ENV_BushInteractive_05.prefab",
+            "renderer": "Visual/ENV_Bush_05/ENV_Bush_05_LOD1",
+            "slot": 1,
+            "from": "Assets/_Project/Art/Materials/M_Foliage.mat",
+            "to": "Assets/_Project/Art/Materials/M_Foliage_BushWind.mat",
+            "hadOverride": false
+        }
+    ],
+    "remaps": [],
+    "restored": [
+        "Assets/_Project/Art/Materials/M_Bark.mat",
+        "Assets/_Project/Art/Materials/M_Foliage.mat"
+    ]
+}
