@@ -8,6 +8,9 @@ Nguồn / Source: `PlayerInputReader.cs` (các action tạo bằng code / action
 Bảng trong game (`ControlsGuide` trong `UI/ControlsPanel.cs`) được test `ControlsGuideTests` so với phím thật.
 The in-game table (`ControlsGuide` in `UI/ControlsPanel.cs`) is checked against the real bindings by `ControlsGuideTests`.
 
+Gợi ý phím theo tình huống hiện ở góc màn hình (cầm kiếm, đứng cạnh lửa, ban đêm...). Bật / tắt: **Esc > Settings > Key hints (Gợi ý phím)**.
+Context key hints show in a screen corner (sword in hand, next to a fire, at night...). On / off: **Esc > Settings > Key hints**.
+
 ## Di chuyển / Movement
 
 | Hành động | Action | Phím / Key |
@@ -28,6 +31,7 @@ The in-game table (`ControlsGuide` in `UI/ControlsPanel.cs`) is checked against 
 | Tấn công | Attack | Chuột trái (Left mouse) |
 | Đòn mạnh (vũ khí có đòn mạnh) | Heavy attack (weapons that have one) | Giữ chuột trái (Hold left mouse) |
 | Ngắm | Aim | Chuột phải, giữ (Right mouse, hold) |
+| Đỡ đòn (cầm kiếm / dao) | Block (sword / knife in hand) | Giữ chuột phải (Hold right mouse) |
 | Cung: kéo / bắn | Bow: draw / shoot | Giữ chuột phải, giữ chuột trái để kéo, thả để bắn (Hold RMB, hold LMB, release) |
 | Ném giáo | Throw spear | Giữ chuột phải + chuột trái (Hold RMB + left mouse) |
 | Ăn / uống đồ đang cầm | Eat / drink held item | Chuột trái (Left mouse) |

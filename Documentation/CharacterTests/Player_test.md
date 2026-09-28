@@ -3,14 +3,14 @@
 Result: **PASS**
 
 ```
-=== Player === 2026-09-28 14:34:40
+=== Player === 2026-09-28 15:42:24
 Twist bones LowerArmTwist_L/R found: avatar lowerArmTwist = 0 (TwistBoneDriver spreads the wrist twist)
 Avatar: valid=True human=True
 Importer: 58 clips configured (29 loops, 90 events)
 Materials: M_Player_Cloth, M_Player_Eye, M_Player_Hair, M_Player_Skin
 Clips in FBX: 58 (meta: 58)
-Controller: Assets/Art/Characters/Player/Animations/PlayerAnimator.controller (states: 41 base + 9 upper body, params 17, IK pass on)
-Controller: new states StrafeLocomotion (2D VelX/VelZ, on Strafe), Sword_Attack_1/2/3 + Sword_Heavy (Attack, speed x AttackSpeed); upper body Sword_Idle, Sword_Block, Sword_Equip, Sword_Unequip
+Controller: Assets/Art/Characters/Player/Animations/PlayerAnimator.controller (states: 41 base + 9 upper body + 2 hit reaction, params 18, IK pass on)
+Controller: new states StrafeLocomotion (2D VelX/VelZ, on Strafe), Sword_Attack_1/2/3 + Sword_Heavy (Attack, speed x AttackSpeed); upper body Sword_Idle, Sword_Block, Sword_Equip, Sword_Unequip; HitReaction (additive) Hurt_Additive on HurtLight
 TwistBoneDriver on the model (LowerArmTwist bones found)
 LOD: 3 levels (LOD0:72952 tris, LOD1:17107 tris, LOD2:5668 tris)
 Prefab: Assets/Art/Characters/Player/Prefab/PFB_Player_Survivor.prefab

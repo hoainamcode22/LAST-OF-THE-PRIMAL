@@ -65,7 +65,7 @@ tay cầm), điện thoại (cảm ứng) &nbsp;·&nbsp; **Engine:** Unity 6000.
 
 ### Mục tiêu
 Sống sót. Giữ cho **đói, khát, thể lực, thân nhiệt** ở mức an toàn, tránh **bệnh** và **chấn thương**, khám phá hòn đảo
-và đọc nhật ký để hiểu chuyện gì đã xảy ra. Phần hướng dẫn 19 bước dẫn bạn qua ngày đầu tiên và đêm đầu tiên.
+và đọc nhật ký để hiểu chuyện gì đã xảy ra. Phần hướng dẫn 25 bước dẫn bạn qua ngày đầu tiên và đêm đầu tiên.
 
 ### Vòng lặp sinh tồn
 ```
@@ -83,6 +83,7 @@ và đọc nhật ký để hiểu chuyện gì đã xảy ra. Phần hướng d
 | Tương tác / giữ để khai thác | E / giữ E |
 | Tấn công / ngắm (ném giáo, bắn cung) | Chuột trái / chuột phải |
 | Đòn mạnh (giáo, kiếm) | Giữ chuột trái |
+| **Đỡ đòn** (cầm kiếm / dao) | **Giữ chuột phải** |
 | **Né (lăn)** | **V** |
 | Thanh công cụ | 1-8 hoặc lăn chuột |
 | Túi đồ / chế tạo / nhật ký / tạm dừng | Tab hoặc I / Q / J / Esc |
@@ -90,6 +91,7 @@ và đọc nhật ký để hiểu chuyện gì đã xảy ra. Phần hướng d
 | Thả đồ / xoay công trình | G / R |
 | Leo cây: lên / xuống / hái trái / buông | W / S / E / Space |
 | **Bảng phím trong game** | **F1** (hoặc Esc > CONTROLS / PHÍM) |
+| Gợi ý phím theo tình huống | tự hiện; tắt ở Esc > Settings > Key hints |
 
 Bảng đầy đủ (tiếng Việt + English): [Documentation/CONTROLS.md](Documentation/CONTROLS.md).
 
@@ -107,8 +109,11 @@ Tay cầm: di chuyển, camera, nhảy, ngồi, tương tác, tấn công, ngắ
 | Khi xây dựng | **BUILD**, **ROTATE**, **CANCEL** |
 
 ### Mẹo sống sót
-- **Nước ao và suối là nước bẩn.** Múc vào bình, đứng cạnh đống lửa đang cháy và chọn **Boil water** (đun nước, khoảng 8 giây). Uống
-  nước bẩn có 20 % khả năng bị đau bụng: khát nhanh hơn và hồi thể lực chậm hơn. Nước biển thì không uống được.
+- **Nước có ba loại.** Nước ao / suối là nước bẩn (uống có 20 % khả năng đau bụng). Nước biển là nước mặn: uống vào còn khát hơn.
+  Cầm cốc lá hoặc bình có nước, đứng ở đống lửa đang cháy và bấm **E** để đun: nước bẩn khoảng 8 giây, nước mặn khoảng 20 giây
+  (mất 1 phần nước). **Thùng hứng mưa** cho nước sạch mỗi khi trời mưa.
+- **Đừng bỏ quên thịt trên lửa.** Sống -> đang nướng -> chín -> cháy. Bấm E để lấy ra khi chín; lửa có tối đa 4 chỗ nướng.
+- **Dựng lều trước khi tối.** Lều che mưa, ấm hơn và có chỗ ngủ: sau 18:00 bấm E ở lều để ngủ tới sáng (game tự lưu).
 - **Trái cây ở trên cao.** Leo cây tốn thể lực; bị thương hoặc hết sức là rơi xuống. Mỗi chùm cho 3 trái, mọc lại sau hơn một ngày.
 - **Khủng long luôn báo trước.** Trước mỗi cú cắn hoặc húc, con vật dừng lại, quay về phía bạn, gầm gừ và rụt đầu lấy
   đà. Đó là lúc bấm **Né**: 0,34 giây đầu của cú lăn bạn không bị trúng đòn.
@@ -241,7 +246,14 @@ phần lớn **chưa được người thật chơi thử** và **chưa build l�
 - **Vũ khí:** kiếm đá lửa (mẫu gốc, 3 đòn nối, đòn mạnh hai tay), giáo cầm hai tay, cung ở tay trái.
 - **Di chuyển:** đi ngang / lùi khi ngắm.
 - **Săn bắn:** xác thú để xẻ thịt.
-- **Thế giới và chế tạo:** 150 bụi cây rung khi đi qua, 9 công thức chế tạo mới.
+- **Chiến đấu:** đỡ đòn bằng kiếm / dao, trúng đòn nhẹ chỉ giật người mà vẫn chạy được, vũ khí không cầm thì đeo trên lưng / hông.
+- **Thế giới và chế tạo:** 150 bụi cây rời và 61 bụi rậm (452 bụi) để rình thú, 9 công thức chế tạo mới.
+- **Gợi ý phím** theo tình huống, bật / tắt trong Settings.
 - **Khung cảnh:** gió cho cây, tro và hơi nóng núi lửa, bầu trời sao.
 
 Chi tiết và phần chưa làm: [Upgrade status](Documentation/Upgrade/IMPLEMENTATION_STATUS.md), kiểm thử: [QA report](Documentation/Upgrade/QA_REPORT.md).
+
+**Vòng sinh tồn, Milestone 1** (nhặt -> lửa trại -> nấu -> nước -> đói -> khát -> lều): nước mặn / bẩn / sạch, đun nước, thùng hứng mưa,
+nướng thịt có thể cháy, lều để ngủ qua đêm, lưu game phiên bản 4. Cả vòng đã chạy trọn trong Play bằng test tự động
+(68/68 test PlayMode đạt); **chưa có người chơi thử bằng tay**. Chi tiết: [Survival status](Documentation/Survival/IMPLEMENTATION_STATUS.md),
+[Survival QA](Documentation/Survival/QA_REPORT.md), thiết kế: [Survival design](Documentation/Survival/SURVIVAL_GAME_DESIGN.md).

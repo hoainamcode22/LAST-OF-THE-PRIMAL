@@ -1,6 +1,7 @@
 # QA REPORT (upgrade cycle, 2026-09-28)
 
-What was really checked, how it was checked, and what was NOT checked. Nothing here was play-tested by a person.
+What was really checked, how it was checked, and what was NOT checked. Nothing here was play-tested by a person
+(the PlayMode tests drive the game automatically; that is not the same as a person playing).
 Images are in `Documentation/Screenshots/Upgrade/`.
 
 ## 1. Build / compile
@@ -30,6 +31,7 @@ Images are in `Documentation/Screenshots/Upgrade/`.
 | Weapons | bridge `PrimalWeaponBuilder.Build` | 10 WeaponData assets linked to their items, `ITEM_flint_sword` created, in the ItemDatabase, model + icon, M_Tools remapped |
 | Crafting | bridge `PrimalCraftingBuilder.Build` | +8 items, +9 recipes (33 items / 25 recipes), tool / station requirements shown |
 | Bushes | bridge `PrimalBushBuilder.Build` | 150 placed (Plain 90, Berries 30, HiddenItem 18, AnimalFlush 12), materials remapped to the shared foliage (the first capture showed square cards before the remap; fixed) |
+| Thickets | bridge `PrimalBushBuilder.Build "thickets"` | 61 thickets, 452 interactive bushes (one trigger each, LOD cull), new models ENV_Bush_04 / 05; the first thicket model looked like umbrellas on stilts and was rebuilt with foliage domes down to the ground |
 
 ## 4. World look (edit-mode captures)
 
@@ -39,7 +41,14 @@ Images are in `Documentation/Screenshots/Upgrade/`.
 | Night sky at 23:00 | stars visible, drawn behind the volcano, trees and ocean (`night_stars.png`) |
 | Volcano ash + shimmer | 320 flakes and 7 shimmer billboards created (`volcano_fx.png`); the shimmer is very faint by design |
 
-## 5. NOT tested
+## 5. PlayMode suite (run later on the owner's request)
+
+| Run | Result |
+|---|---|
+| First run | 47 passed, 1 failed (`LightHit_ReducesHealth_PlaysReaction_Blood_Overlay`: the new flinch outlasted the blood effect the test waited for; the check now runs before the wait) |
+| After the combat / hints / wind / survival work | 68 passed, 0 failed (237 s), incl. `CombatPolishTests`, `HitReactionTests`, `ContextHintsTests`, `WindTests`, `ControlsGuideTests` and the recipe cap 15-40 |
+
+## 6. NOT tested
 
 - Play mode. Nobody played:
   - combat feel, combo timing, hitbox windows in play
@@ -50,16 +59,15 @@ Images are in `Documentation/Screenshots/Upgrade/`.
   - fall delay
   - carcass butchering
   - bush rustle
-  - wind motion, ash in play
+  - wind motion by eye (`WindTests` only measures that a tree vertex moves), ash in play
   - F1 panel
-- PlayMode test suite: not run (it enters Play mode; the owner asked for no automatic Play). `ControlsGuideTests` and the updated recipe cap (15-40) are untested.
 - Performance: no profiler numbers for the bushes, ash or wind.
 - Build for phone: not wanted now.
 
-## 6. Known issues / risks
+## 7. Known issues / risks
 
-1. No input for sword block (clip and state exist). No additive hit-reaction layer. Weapons are not shown on the back / hip when holstered.
-2. The wind material switch is global: fallen logs, ferns, grass, detail bushes and resource nodes that share M_Bark / M_Foliage sway a little too. Switched leaves are lit by the sun / moon only, so campfire light does not reach them. Rollback: `PrimalShaderBuilder.WindRevert`.
+1. (fixed) Sword block, the additive hit layer and the back / hip weapons are built and tested.
+2. (fixed) Wind no longer sways logs, ferns and grass: trees and bushes use their own wind materials. Still true: wind leaves are lit by the sun / moon only, so campfire light does not reach them. Rollback: `PrimalShaderBuilder.WindRevert`.
 3. Ash fall is on by default near the volcano (`PrimalVolcanoBuilder.Atmosphere "off"` turns it off).
 4. Strafe_Run clips only show when aim speed is raised above walk speed (aim mode caps it at walk today).
 5. `bone_arrow` damage is 0 until arrows get their own damage value.
