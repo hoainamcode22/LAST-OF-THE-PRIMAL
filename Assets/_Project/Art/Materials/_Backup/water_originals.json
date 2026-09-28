@@ -1,0 +1,27 @@
+{
+    "renderers": [
+        {
+            "path": "Water/ENV_Ocean",
+            "materials": [
+                "Assets/_Project/Art/Materials/M_Ocean.mat"
+            ],
+            "enabled": true
+        },
+        {
+            "path": "Water/ENV_Pond_Water",
+            "materials": [
+                "Assets/_Project/Art/Materials/M_FreshWater.mat"
+            ],
+            "enabled": true
+        },
+        {
+            "path": "Water/ENV_Stream_Water",
+            "materials": [
+                "Assets/_Project/Art/Materials/M_FreshWater.mat"
+            ],
+            "enabled": true
+        }
+    ],
+    "addedGlobals": true,
+    "builtAt": "2026-09-28T22:15:53"
+}
