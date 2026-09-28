@@ -82,12 +82,16 @@ và đọc nhật ký để hiểu chuyện gì đã xảy ra. Phần hướng d
 | Nhảy / ngồi (lén) | Space / C |
 | Tương tác / giữ để khai thác | E / giữ E |
 | Tấn công / ngắm (ném giáo, bắn cung) | Chuột trái / chuột phải |
+| Đòn mạnh (giáo, kiếm) | Giữ chuột trái |
 | **Né (lăn)** | **V** |
 | Thanh công cụ | 1-8 hoặc lăn chuột |
 | Túi đồ / chế tạo / nhật ký / tạm dừng | Tab hoặc I / Q / J / Esc |
 | **Bản đồ lớn** | **M** |
 | Thả đồ / xoay công trình | G / R |
 | Leo cây: lên / xuống / hái trái / buông | W / S / E / Space |
+| **Bảng phím trong game** | **F1** (hoặc Esc > CONTROLS / PHÍM) |
+
+Bảng đầy đủ (tiếng Việt + English): [Documentation/CONTROLS.md](Documentation/CONTROLS.md).
 
 Tay cầm: di chuyển, camera, nhảy, ngồi, tương tác, tấn công, ngắm, né, tạm dừng.
 
@@ -230,3 +234,14 @@ tài sản, mã nguồn hay thiết kế nhân vật của game khác. Chi tiế
 né, nước sạch, bản đồ nhỏ, điều khiển cảm ứng, núi lửa, thời tiết, mắt khủng long) đã được làm và biên dịch không lỗi;
 phần lớn **chưa được người thật chơi thử** và **chưa build lên điện thoại**. Xem bảng chi tiết ở
 [Phase 2 status](Documentation/PRIMAL_FRONTIER_PHASE2_STATUS.md).
+
+Đợt nâng cấp nhân vật (tháng 9/2026) thêm những phần sau.
+
+- **Nhân vật:** xương xoắn cẳng tay, trọng số vai / cẳng tay, bàn tay thả lỏng.
+- **Vũ khí:** kiếm đá lửa (mẫu gốc, 3 đòn nối, đòn mạnh hai tay), giáo cầm hai tay, cung ở tay trái.
+- **Di chuyển:** đi ngang / lùi khi ngắm.
+- **Săn bắn:** xác thú để xẻ thịt.
+- **Thế giới và chế tạo:** 150 bụi cây rung khi đi qua, 9 công thức chế tạo mới.
+- **Khung cảnh:** gió cho cây, tro và hơi nóng núi lửa, bầu trời sao.
+
+Chi tiết và phần chưa làm: [Upgrade status](Documentation/Upgrade/IMPLEMENTATION_STATUS.md), kiểm thử: [QA report](Documentation/Upgrade/QA_REPORT.md).
