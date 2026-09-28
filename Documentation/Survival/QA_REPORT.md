@@ -16,6 +16,7 @@ Test results file: `Documentation/Tests/playmode_results.xml`. Screenshots: `Doc
 |---|---|
 | Full suite after the survival merge | 67 passed, 0 failed (221 s) |
 | Full suite with the new loop test and the test-save folder | **68 passed, 0 failed** (237 s) |
+| After the character audit probe and the new water (probe / capture tests skipped by default) | 68 passed, 0 failed, 6 skipped (258 s) |
 
 New survival tests: `SurvivalNeedsTests` (10), `SurvivalM1Tests` (8), `SurvivalM1LoopTest` (1). The upgrade-cycle tests
 (combat block, hit layer, holster, key hints, wind) are in the same green run.
@@ -45,13 +46,20 @@ Shortcuts the test takes (so this is NOT a hand play-through):
 
 ## 4. Screenshots from the running game
 
-`SurvivalShowcase` (runs only when `Library/PrimalBridge/capture_survival.txt` exists):
+`SurvivalShowcase` (runs only when `Library/PrimalBridge/capture_survival.txt` says "on"; last run 2026-09-28 22:25, after the new water):
 
 | File | Shows |
 |---|---|
 | `camp_day.png` | fire lit with meat on it, rain collector, tent, survivor at the fire |
 | `camp_dusk.png` | same camp at 19:18: fire glow on the sand, first stars |
+| `fire_cooking.png` | close-up: one raw and one cooked piece on the fire stones |
+| `rain_collector.png` | the collector (hide funnel on a tripod over a basin) |
+| `tent_front.png` | the tent from the open side, bed inside |
 | `holster_back_hip.png` | sword on the back while the axe is in the hand |
+| `hints_fire.png` | game camera with HUD: "E Take Cooked Meat" prompt, context key hints ("[LMB] Eat", "[G] Drop"), a crafting tip |
+
+The first capture run hung the editor (`WaitForEndOfFrame` never returns while the Game view is not painting); the test now
+draws the HUD through the camera instead and has a 150 s timeout.
 
 ## 5. Found and fixed during QA
 
@@ -72,3 +80,5 @@ Shortcuts the test takes (so this is NOT a hand play-through):
 1. The rain collector recipe is learned at the first wood / fibre / hide pickup, not at the first rain.
 2. From the screenshots: the food on the fire is small and hard to read from 7 m; the tent reads as a lean-to sheet
    from behind.
+3. `rain_collector.png`: with 4 of 6 charges stored, the water surface in the basin is not visible (the basin looks empty).
+   The charges themselves work (loop test); the visual surface needs a check.

@@ -1,0 +1,29 @@
+Hierarchy: Hand_L parent LowerArm_L, LowerArmTwist_L parent LowerArm_L, Hand_R parent LowerArm_R, LowerArmTwist_R parent LowerArm_R, LowerArm_L parent UpperArm_L, UpperArm_L parent Clavicle_L, Clavicle_L parent Chest
+Bones with a skin bind pose: 57; missing among arm bones: 
+Node rest vs skin bind pose (aligned on Pelvis): bone | total angle deg | roll about the bone deg | direction change deg
+  Pelvis: 0 | 0 | 0 (pos diff 0 m)
+  Spine: 10.7685 | 10.0016 | 3.9958 (pos diff 0 m)
+  Spine_Upper: 11.1775 | 9.9506 | 5.0977 (pos diff 0.009 m)
+  Chest: 20.6093 | 19.2108 | 7.4978 (pos diff 0.0217 m)
+  Clavicle_L: 20.6094 | -7.9694 | 19.0215 (pos diff 0.0477 m)
+  UpperArm_L: 49.6843 | -22.7154 | 44.4836 (pos diff 0.1095 m)
+  LowerArm_L: 83.0696 | -15.8455 | 81.8151 (pos diff 0.3141 m)
+  LowerArmTwist_L: 91.2363 | -44.5225 | 81.8152 (pos diff 0.4816 m)
+  Hand_L: 163.6079 | -140.9563 | 129.494 (pos diff 0.6575 m)
+  Clavicle_R: 20.6093 | 2.062 | 20.5071 (pos diff 0.0342 m)
+  UpperArm_R: 44.0797 | 36.8115 | 24.6798 (pos diff 0.0505 m)
+  LowerArm_R: 94.0323 | 9.0597 | 93.6972 (pos diff 0.1231 m)
+  LowerArmTwist_R: 93.7489 | -3.5544 | 93.6972 (pos diff 0.2607 m)
+  Hand_R: 70.9382 | 14.1167 | 69.7007 (pos diff 0.4517 m)
+  Thigh_L: 52.8736 | 44.9869 | 28.5347 (pos diff 0 m)
+  Calf_L: 45.2184 | 44.5028 | 8.2245 (pos diff 0.2232 m)
+  Thigh_R: 19.5966 | -4.2706 | 19.1299 (pos diff 0 m)
+  Calf_R: 17.3869 | -5.6302 | 16.4571 (pos diff 0.1505 m)
+Round trip of the BIND pose, bone rotation change deg: Clavicle_L 0  UpperArm_L 9.0739  LowerArm_L 55.752  Hand_L 0  Clavicle_R 0  UpperArm_R 38.9664  LowerArm_R 14.1229  Hand_R 0  Spine 0  Chest 0  Thigh_L 1.8553  Calf_L 23.0683  
+Round trip of the NODE rest, bone rotation change deg: Clavicle_L 0  UpperArm_L 41.1683  LowerArm_L 83.0592  Hand_L 0  Clavicle_R 0  UpperArm_R 24.0327  LowerArm_R 23.1432  Hand_R 0  Spine 0  Chest 0  Thigh_L 5.1018  Calf_L 4.2181  
+  node-rest muscles: LeftShoulderDown-Up=0 LeftShoulderFront-Back=0 LeftArmDown-Up=1.2723 LeftArmFront-Back=-1.1068 LeftArmTwistIn-Out=0.9309 LeftForearmStretch=0.4418 LeftForearmTwistIn-Out=-0.9229 LeftHandDown-Up=0 LeftHandIn-Out=-0.0007 RightShoulderDown-Up=0 RightShoulderFront-Back=0 RightArmDown-Up=-0.7167 RightArmFront-Back=0.3072 RightArmTwistIn-Out=0.0198 RightForearmStretch=-0.0896 RightForearmTwistIn-Out=0.2571 RightHandDown-Up=0 RightHandIn-Out=0
+Avatar T-pose L: upper arm dir (1.00, 0.00, 0.00) forearm dir (1.00, 0.00, 0.00) hand dir (0.46, 0.61, -0.65) palm normal (index-little x fwd) (0.53, -0.74, -0.33)
+Avatar T-pose R: upper arm dir (1.00, 0.00, 0.00) forearm dir (1.00, 0.00, 0.00) hand dir (0.69, -0.17, -0.70) palm normal (index-little x fwd) (0.07, 0.95, -0.16)
+Mirror L vs R (avatar T-pose), angle deg: Clavicle 89.8091  UpperArm 180  LowerArm 180  LowerArmTwist 180  Hand 96.206  Thigh 14.4802  Calf 16.653  Foot 9.5741  
+Mirror L vs R (bind pose), angle deg: Clavicle 0  UpperArm 0  LowerArm 0  LowerArmTwist 0  Hand 0  Thigh 0  Calf 0  Foot 0  
+Mirror L vs R (node rest), angle deg: Clavicle 89.8091  UpperArm 67.9678  LowerArm 45.8064  LowerArmTwist 80.0878  Hand 175.2023  Thigh 14.4802  Calf 16.653  Foot 9.5741  

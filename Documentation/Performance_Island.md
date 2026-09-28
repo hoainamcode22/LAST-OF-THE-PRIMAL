@@ -4,7 +4,7 @@ Measured inside the Unity editor on the development PC while running the PlayMod
 
 - land creatures alive: 11, ambient creatures: 4
 - frames sampled: 240
-- average frame: 20,1 ms (50 fps), worst frame: 39,9 ms
-- main thread (profiler): 20,0 ms
-- GC allocated per frame (avg): 17,2 KB
-- render counters (max): batches 0, SetPass 0, triangles 0
+- average frame: 29,7 ms (34 fps), worst frame: 117,7 ms
+- main thread (profiler): 29,6 ms
+- GC allocated per frame (avg): 16,1 KB
+- render counters (max): batches 3872, SetPass 91, triangles 1687115
