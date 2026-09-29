@@ -54,3 +54,30 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 51d859ec58fdffa49b1fe3391f3c17ec, type: 3}
   heavyFootsteps: 1
   journalId: spinosaurus
+  sprayLoot: 0
+  fleeZigZag: 0
+  alertSensitivity: 1
+  nightVision: 0.25
+  sightGain: 0.9
+  hearingGain: 0.9
+  smellSensitivity: 0.8
+  awarenessDecay: 0.08
+  memorySeconds: 12
+  herdShareRadius: 0
+  alarmCall: 0
+  meatDrive: 0.5
+  scentTrackRange: 6
+  fireFear:
+    predatorFear: 0.6
+    fearRadiusDay: 5
+    fearRadiusNight: 8
+    rainMultiplier: 0.6
+    fuelMultiplier: 0.5
+    response: 1
+    patienceSeconds: 15
+    ignoreBelowIntensity: 0
+    ignoreWhenProvoked: 1
+  activity: 2
+  drinkEveryHours: 6
+  drinkSearchRadius: 160
+  unarmedDamageScale: -1

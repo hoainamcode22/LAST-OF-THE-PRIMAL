@@ -57,6 +57,11 @@ namespace PrimalFrontier.Items
         [Tooltip("seconds a cooked result may stay on the fire before it burns (0 = SurvivalConfig default from cookSeconds)")] [Min(0)] public float burnSeconds;
         [Tooltip("what this cooked item becomes when it stays on the fire too long (empty = SurvivalConfig burnt food)")] public ItemDefinition burntResult;
 
+        [Header("Spoilage / medical (phase 3)")]
+        [Tooltip("in-game hours until this food is spoiled (0 = never spoils). Stages and effects: SurvivalConfig spoilage")] [Min(0)] public float spoilHours;
+        [Tooltip("status effect ids this item treats when used (bandage: bleeding)")] public string[] cures;
+        [Tooltip("health given back slowly after using it (Recovering status), on top of any instant health")] [Min(0)] public float healOverTime;
+
         [Header("Weapon data")]
         [Tooltip("combat numbers, attack chain, grip and feedback (PrimalWeaponBuilder). Empty = the legacy PlayerCombat path")]
         public Combat.Weapons.WeaponData weaponData;
@@ -65,5 +70,9 @@ namespace PrimalFrontier.Items
         public bool IsPlaceable => placePrefab != null;
         public bool IsWaterContainer => waterCharges > 0;
         public bool HasDurability => maxDurability > 0f;
+        /// <summary>food that goes off with time (Survival/Spoilage)</summary>
+        public bool Spoils => spoilHours > 0f;
+        /// <summary>used for treatment (bandage), not eaten</summary>
+        public bool IsMedical => (cures != null && cures.Length > 0) || (healOverTime > 0f && !IsFood);
     }
 }

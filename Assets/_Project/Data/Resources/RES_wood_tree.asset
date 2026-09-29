@@ -1,0 +1,45 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6c1c87829c145634e97f96d6e284623d, type: 3}
+  m_Name: RES_wood_tree
+  m_EditorClassIdentifier: PrimalFrontier.Runtime::PrimalFrontier.World.ResourceDefinition
+  id: wood_tree
+  displayName: Tree
+  category: 1
+  size: 3
+  prompt: Chop Tree
+  item: {fileID: 11400000, guid: b44ddd1d863e4de47a95118bf8fd7b5d, type: 2}
+  yieldRange: {x: 12, y: 18}
+  bonusItem: {fileID: 11400000, guid: 60b1f5c88c22524448351e60f6c1aae0, type: 2}
+  bonusChance: 0.25
+  bestTool: 1
+  requiredTool: 1
+  handsFactor: 0.25
+  toolFactor: 1
+  gatherSeconds: 1.25
+  handAction: 17
+  toolAction: 2
+  toolWear: 1
+  handHint: Bare hands only strip dry twigs. An axe fells the tree.
+  punchable: 1
+  damagePerUnit: 4
+  respawnHours: 72
+  depletedLook: 3
+  damagedScale: 1
+  depletedScale: 1
+  sink: 0
+  radius: 0.45
+  hitVfx: 9
+  hitVfx2: 11
+  handSfx: 49
+  toolSfx: 11
+  depleteSfx: 0

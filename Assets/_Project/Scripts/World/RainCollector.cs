@@ -17,13 +17,23 @@ namespace PrimalFrontier.World
     /// hour of rain, scaled by rain intensity (normal rain 0.75 = x1, storm more), up to collectorCapacity. The water is
     /// always CleanWater. E: fill the held container (WaterRules.CanFill: empty or already clean) from the whole charges,
     /// or drink one charge. The child "Water" (surface) rises with the amount. Saved through ISaveableStructure.
+    /// Phase 3 fix (QA known issue 3, "basin looks empty at 4/6"): the model's Water disc is authored near the basin floor,
+    /// and the old code lowered it from there by up to emptyDepth, i.e. under the floor. The surface is now placed at an
+    /// absolute height above the collector's pivot, from emptySurfaceHeight (almost empty) to fullSurfaceHeight (full),
+    /// measured from the disc mesh itself, so it shows at every amount.
     /// </summary>
     public class RainCollector : Interactable, ISaveableStructure
     {
         [Tooltip("water surface inside the basin; authored at the full level (found by the name \"Water\" when empty)")]
         public Transform waterSurface;
-        [Tooltip("how far below its authored (full) height the surface sits when the basin is almost empty, m")] public float emptyDepth = 0.2f;
+        [Tooltip("legacy, unused: the surface height now comes from emptySurfaceHeight / fullSurfaceHeight")] public float emptyDepth = 0.2f;
         [Tooltip("the surface is this much narrower when almost empty (a basin that widens upward)")] [Range(0.3f, 1f)] public float emptyWidth = 0.8f;
+        [Tooltip("water surface height above the collector's pivot with one charge, m (basin floor 0.03 in PROP_RainCollector)")] public float emptySurfaceHeight = 0.07f;
+        [Tooltip("water surface height above the collector's pivot when full, m (basin rim 0.24 in PROP_RainCollector)")] public float fullSurfaceHeight = 0.21f;
+        [Tooltip("colour of the collected rain water (applied with a property block: the shared material is not changed)")] public Color waterTint = new Color(0.2f, 0.36f, 0.46f, 1f);
+        [Range(0, 1)] public float waterSmoothness = 0.95f;
+        static MaterialPropertyBlock _mpb;
+        static readonly int BaseColorId = Shader.PropertyToID("_BaseColor"), SmoothId = Shader.PropertyToID("_Smoothness");
         [Tooltip("height of the funnel opening above the pivot, m (the rain check point)")] public float basinHeight = 0.8f;
 
         /// <summary>rain intensity that gives the configured rate (WeatherManager: rain 0.75, storm 1)</summary>
@@ -40,7 +50,9 @@ namespace PrimalFrontier.World
         public override float Radius => 0.5f;
 
         static SurvivalConfig C => SurvivalConfig.Instance;
-        float _tick; Vector3 _fullPos, _fullScale; bool _surfaceCached;
+        float _tick; Vector3 _fullScale, _centerRoot, _meshCenter; bool _surfaceCached;
+        /// <summary>height of the shown water surface above the pivot, m (tests: it follows the amount)</summary>
+        public float SurfaceHeight { get; private set; }
 
         void Awake()
         {
@@ -115,14 +127,34 @@ namespace PrimalFrontier.World
         void UpdateSurface()
         {
             if (!waterSurface) return;
-            if (!_surfaceCached) { _fullPos = waterSurface.localPosition; _fullScale = waterSurface.localScale; _surfaceCached = true; }
+            if (!_surfaceCached)
+            {
+                _fullScale = waterSurface.localScale;
+                var mf = waterSurface.GetComponent<MeshFilter>();
+                _meshCenter = mf && mf.sharedMesh ? mf.sharedMesh.bounds.center : Vector3.zero;       // the disc's centre in its own space
+                _centerRoot = transform.InverseTransformPoint(waterSurface.TransformPoint(_meshCenter));
+                _surfaceCached = true;
+                // clear, dark water that reads against the wooden basin
+                var r = waterSurface.GetComponent<Renderer>();
+                if (r)
+                {
+                    if (_mpb == null) _mpb = new MaterialPropertyBlock();
+                    r.GetPropertyBlock(_mpb); _mpb.SetColor(BaseColorId, waterTint); _mpb.SetFloat(SmoothId, waterSmoothness); r.SetPropertyBlock(_mpb);
+                    r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                }
+            }
             float f = Mathf.Clamp01(Water / Capacity);
             bool show = f > 0.01f;
             if (waterSurface.gameObject.activeSelf != show) waterSurface.gameObject.SetActive(show);
-            if (!show) return;
-            waterSurface.localPosition = _fullPos - Vector3.up * (emptyDepth * (1f - f));
+            if (!show) { SurfaceHeight = 0f; return; }
+            // a flat disc: uniform scale keeps it flat whatever axes the FBX import gave it
             float w = Mathf.Lerp(emptyWidth, 1f, f);
-            waterSurface.localScale = new Vector3(_fullScale.x * w, _fullScale.y, _fullScale.z * w);
+            waterSurface.localScale = _fullScale * w;
+            float h = Mathf.Lerp(emptySurfaceHeight, fullSurfaceHeight, Mathf.Clamp01((Water - 1f) / Mathf.Max(1f, Capacity - 1f)));
+            var want = transform.TransformPoint(new Vector3(_centerRoot.x, h, _centerRoot.z));
+            var now = waterSurface.TransformPoint(_meshCenter);
+            waterSurface.position += want - now;
+            SurfaceHeight = h;
         }
 
         // ------------------------------------------------------------------ interaction
@@ -177,8 +209,8 @@ namespace PrimalFrontier.World
             if (act != _pAct || ch != _pCharges || cap != _pCap || held != _pItem || heldType != _pHeld || heldFull != _pFull)
             {
                 _pAct = act; _pCharges = ch; _pCap = cap; _pItem = held; _pHeld = heldType; _pFull = heldFull;
-                var amount = new StringBuilder(48).Append("Rain collector: ").Append(ch.ToString(CultureInfo.InvariantCulture)).Append('/')
-                    .Append(cap.ToString(CultureInfo.InvariantCulture)).Append(' ').Append(WaterRules.Label(Kind)).ToString();
+                var amount = new StringBuilder(48).Append("Rain collector: ").Append(WaterRules.Ml(ch).ToString(CultureInfo.InvariantCulture)).Append(" / ")
+                    .Append(WaterRules.Ml(cap).ToString(CultureInfo.InvariantCulture)).Append(" ml ").Append(WaterRules.Label(Kind)).ToString();
                 switch (act)
                 {
                     case Act.Fill: _pText = "Fill " + held.displayName; _pSub = amount; break;

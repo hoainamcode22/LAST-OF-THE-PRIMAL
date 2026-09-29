@@ -76,7 +76,7 @@ namespace PrimalFrontier.World
             var st = p.ActiveStack; int slot = p.Inventory ? p.Inventory.ActiveSlot : 0;
             if (WaterRules.CanFill(st, WaterType.SaltWater))
             {
-                p.DoOneShot(PlayerActions.Drink, "OnDrink", () => WaterSource.FillSlot(p, slot, WaterType.SaltWater), _focus, 2.0f, this);
+                p.DoOneShot(PlayerActions.CollectWater, "OnDrink", () => WaterSource.FillSlot(p, slot, WaterType.SaltWater), _focus, 2.0f, this);
                 return;
             }
             p.DoOneShot(PlayerActions.Drink, "OnDrink", () =>

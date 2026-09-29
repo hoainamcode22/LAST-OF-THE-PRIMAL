@@ -53,10 +53,23 @@ namespace PrimalFrontier.UI
             StorageBox.Opened -= OpenStorage; StorageBox.Opened += OpenStorage;
             if (UIManager.Instance) { UIManager.Instance.Changed -= OnScreen; UIManager.Instance.Changed += OnScreen; }
             BuildPreviewCamera();
-            BuildTiles();
+            _tilesDirty = true;                                 // built when the crafting tab is first shown
         }
 
-        void OnLearned(RecipeDefinition r) => BuildTiles();
+        /// <summary>
+        /// a recipe was learned: never rebuild the recipe tiles while the window is closed (one pickup can teach several
+        /// recipes, 24-43 ms each before); mark them and update once when the crafting tab is shown. Open: an in-place update.
+        /// </summary>
+        void OnLearned(RecipeDefinition r)
+        {
+            if (_canvas && _canvas.gameObject.activeSelf && Tab == 1) RefreshTilesKnown();
+            else _tilesDirty = true;
+        }
+        bool _tilesDirty = true; RecipeCategory? _tilesCat; bool _tilesBuilt;
+        /// <summary>last recipe tile rebuild time, ms (tests / profiling)</summary>
+        public float LastTileBuildMs { get; private set; }
+        /// <summary>how many times the tiles were rebuilt from scratch (tests / profiling)</summary>
+        public int TileBuilds { get; private set; }
 
         // ================================================================== build
         void Build()
@@ -156,7 +169,7 @@ namespace PrimalFrontier.UI
             for (int i = 0; i < names.Length; i++)
             {
                 var cat = cats[i];
-                var b = UIFactory.Button(left, "Cat" + i, names[i], () => { _cat = cat; BuildTiles(); }, new Vector2(0.5f, 1), new Vector2(0.5f, 1), new Vector2(0.5f, 1), new Vector2(0, -18 - i * 62), new Vector2(200, 52), 20);
+                var b = UIFactory.Button(left, "Cat" + i, names[i], () => { _cat = cat; EnsureTiles(); }, new Vector2(0.5f, 1), new Vector2(0.5f, 1), new Vector2(0.5f, 1), new Vector2(0, -18 - i * 62), new Vector2(200, 52), 20);
                 var t = b.GetComponentInChildren<Text>(); if (t) t.text = names[i];
                 _catButtons.Add(b); _catOf.Add(cat);
             }
@@ -193,7 +206,7 @@ namespace PrimalFrontier.UI
         void Wire(SlotView v)
         {
             v.Clicked = s => Select(s);
-            v.DoubleClicked = s => { Select(s); if (s.inventory == _inv) { var st = s.Stack; if (st != null && (st.item.IsFood || st.item.IsWaterContainer)) OnUse(); else OnEquip(); } else Transfer(s); };
+            v.DoubleClicked = s => { Select(s); if (s.inventory == _inv) { var st = s.Stack; if (st != null && Usable(st.item)) OnUse(); else OnEquip(); } else Transfer(s); };
             v.ShiftClicked = s => Transfer(s);
             v.RightClicked = s => { Select(s); if (s.inventory == _inv) OnUse(); };
             v.Hovered = s => ShowTip(s.Stack, s.transform as RectTransform);
@@ -207,7 +220,12 @@ namespace PrimalFrontier.UI
             _canvas.gameObject.SetActive(open);
             if (_previewCam) _previewCam.enabled = open;
             if (!open) { _storage = null; _storagePanel.gameObject.SetActive(false); _detailPanel.gameObject.SetActive(true); _tooltip.gameObject.SetActive(false); }
-            else RefreshAll();
+            else
+            {
+                if (_sv) _sv.CheckSpoilage();                    // food stages are worked out when the pack is looked at
+                if (Tab == 1) EnsureTiles();
+                RefreshAll();
+            }
         }
 
         public void ShowTab(int t)
@@ -216,7 +234,7 @@ namespace PrimalFrontier.UI
             _invTab.gameObject.SetActive(t == 0); _craftTab.gameObject.SetActive(t == 1);
             _tabInv.GetComponent<Image>().color = t == 0 ? Color.white : new Color(0.6f, 0.55f, 0.5f);
             _tabCraft.GetComponent<Image>().color = t == 1 ? Color.white : new Color(0.6f, 0.55f, 0.5f);
-            if (t == 1) { GameEvents.Raise(GameEventType.MenuOpened, "crafting"); BuildTiles(); }
+            if (t == 1) { GameEvents.Raise(GameEventType.MenuOpened, "crafting"); EnsureTiles(); }
             RefreshAll();
         }
 
@@ -257,12 +275,33 @@ namespace PrimalFrontier.UI
             if (Tab == 1) RefreshCraft();
         }
 
+        long _cStats = long.MinValue; int _cWeight = int.MinValue;
         void UpdateStats()
         {
             if (_sv == null) return;
-            _statText.text = $"<b>SURVIVOR</b>\nHealth   {Mathf.CeilToInt(_hp.Health)} / {Mathf.CeilToInt(_hp.maxHealth)}\nHunger   {Mathf.CeilToInt(_sv.Hunger)}{TierSuffix(_sv.HungerTierLabel)}\nThirst   {Mathf.CeilToInt(_sv.Thirst)}{TierSuffix(_sv.ThirstTierLabel)}\n" +
-                             $"Stamina  {Mathf.CeilToInt(_sv.Stamina)}\nBody     {_sv.BodyTemperature:0.0} °C\nAir      {_sv.EnvironmentTemperature:0} °C";
-            _weightText.text = $"Weight  {_inv.Weight:0.0} / {_inv.maxWeight:0} kg";
+            var fx = _hp ? _hp.Effects : null;
+            // rebuilt only when a shown number changes (the window stays open for a while)
+            long key = Mathf.CeilToInt(_hp.Health) + 1000L * (Mathf.CeilToInt(_sv.Hunger) + 1000L * (Mathf.CeilToInt(_sv.Thirst) + 1000L * (Mathf.CeilToInt(_sv.Stamina)
+                     + 1000L * (Mathf.RoundToInt(_sv.BodyTemperature * 10f) + 1000L * (Mathf.RoundToInt(_sv.EnvironmentTemperature) + 100L + 1000L * (fx ? fx.Version % 1000 : 0))))));
+            if (key != _cStats)
+            {
+                _cStats = key;
+                var sb = new StringBuilder(256);
+                sb.Append("<b>SURVIVOR</b>\nHealth   ").Append(Mathf.CeilToInt(_hp.Health)).Append(" / ").Append(Mathf.CeilToInt(_hp.maxHealth))
+                  .Append("\nHunger   ").Append(Mathf.CeilToInt(_sv.Hunger)).Append(TierSuffix(_sv.HungerTierLabel))
+                  .Append("\nThirst   ").Append(Mathf.CeilToInt(_sv.Thirst)).Append(TierSuffix(_sv.ThirstTierLabel))
+                  .Append("\nStamina  ").Append(Mathf.CeilToInt(_sv.Stamina))
+                  .Append("\nBody     ").Append(_sv.BodyTemperature.ToString("0.0", CultureInfo.InvariantCulture)).Append(" °C")
+                  .Append("\nAir      ").Append(_sv.EnvironmentTemperature.ToString("0", CultureInfo.InvariantCulture)).Append(" °C");
+                if (fx && fx.Count > 0)
+                {
+                    sb.Append("\n");
+                    foreach (var a in fx.ActiveEffects) if (a.def && a.def.showOnHud) sb.Append("\n<color=#").Append(ColorUtility.ToHtmlStringRGB(a.def.color)).Append('>').Append(a.def.displayName).Append("</color>");
+                }
+                _statText.text = sb.ToString();
+            }
+            int wk = Mathf.RoundToInt(_inv.Weight * 10f);
+            if (wk != _cWeight) { _cWeight = wk; _weightText.text = "Weight  " + _inv.Weight.ToString("0.0", CultureInfo.InvariantCulture) + " / " + _inv.maxWeight.ToString("0", CultureInfo.InvariantCulture) + " kg"; }
             _weightBar.fillAmount = _inv.maxWeight > 0 ? Mathf.Clamp01(_inv.Weight / _inv.maxWeight) : 0f;
             _weightBar.color = _inv.IsOverweight ? UIStyle.Bad : UIStyle.Accent;
         }
@@ -280,7 +319,7 @@ namespace PrimalFrontier.UI
             _dCat.text = st != null ? st.item.category.ToString().ToUpperInvariant() + $"   {st.item.weight:0.##} kg each" : "";
             _dDesc.text = st != null ? st.item.description : "Items you carry appear here. Your pack has a weight limit.";
             _dStats.text = st != null ? Stats(st, true) : "";
-            _bUse.interactable = has && (st.item.IsFood || st.item.IsWaterContainer);
+            _bUse.interactable = has && Usable(st.item);
             _bEquip.interactable = has && _selected.index >= _inv.hotbarSize;
             _bSplit.interactable = has && st.count > 1;
             bool container = has && st.item.IsWaterContainer;
@@ -289,13 +328,31 @@ namespace PrimalFrontier.UI
             _bDrop.interactable = has;
         }
 
+        /// <summary>items the Use button works on: food, water containers, treatments (bandage)</summary>
+        static bool Usable(ItemDefinition it) => it && (it.IsFood || it.IsWaterContainer || SurvivalItemUse.HandlesMedical(it));
+
         static string Stats(ItemStack st, bool onPaper = false)
         {
             var i = st.item; var sb = new StringBuilder();
-            if (i.hunger > 0) sb.Append($"Hunger  +{i.hunger:0}\n");
-            if (i.thirst != 0) sb.Append($"Thirst  {(i.thirst > 0 ? "+" : "")}{i.thirst:0}\n");
-            if (i.health > 0) sb.Append($"Health  +{i.health:0}\n");
-            if (i.sicknessChance > 0) sb.Append($"Risk of sickness  {i.sicknessChance * 100:0}%\n");
+            var stage = Spoilage.Stage(st); float k = Spoilage.Nutrition(stage);
+            if (i.hunger > 0) sb.Append($"Hunger  +{i.hunger * k:0}\n");
+            if (i.thirst != 0) sb.Append($"Thirst  {(i.thirst > 0 ? "+" : "")}{i.thirst * k:0}\n");
+            if (i.health > 0 && i.IsFood) sb.Append($"Health  +{i.health * k:0} (slowly)\n");
+            if (SurvivalItemUse.HandlesMedical(i))
+            {
+                if (SurvivalItemUse.Cures(i, StatusEffectIds.Bleeding)) sb.Append("Stops bleeding\n");
+                float heal = SurvivalItemUse.HealOf(i); if (heal > 0) sb.Append($"Health  +{heal:0} (slowly)\n");
+            }
+            float risk = Spoilage.SickChance(i, stage);
+            if (risk > 0) sb.Append($"Risk of sickness  {risk * 100:0}%\n");
+            if (Spoilage.Spoils(i))
+            {
+                string col = onPaper ? (stage == FoodStage.Spoiled ? "#6a5a10" : stage == FoodStage.Aging ? "#7a4a10" : "#3d5a22") : (stage == FoodStage.Spoiled ? "#b8c060" : stage == FoodStage.Aging ? "#e0b060" : "#9ccc70");
+                sb.Append("<color=").Append(col).Append('>').Append(stage == FoodStage.Spoiled ? "Spoiled: little good left in it" : stage == FoodStage.Aging ? "Getting old" : "Fresh").Append("</color>");
+                float next = Spoilage.SecondsToNextStage(st);
+                if (next < float.MaxValue) sb.Append("  (").Append(stage == FoodStage.Fresh ? "ages" : "spoils").Append(" in about ").Append(Mathf.Max(1, Mathf.RoundToInt(next / Mathf.Max(1f, Core.GameClock.SecondsPerHour)))).Append(" h)");
+                sb.Append('\n');
+            }
             if (i.cookedResult) sb.Append("Can be cooked on a campfire\n");
             if (i.IsWaterContainer) sb.Append("Water  ").Append(WaterText(st, onPaper)).Append(WaterAdvice(st)).Append('\n');
             if (i.damage > 0) sb.Append($"Damage  {i.damage:0}" + (i.heavyDamage > 0 ? $"  (heavy {i.heavyDamage:0})" : "") + "\n");
@@ -320,7 +377,7 @@ namespace PrimalFrontier.UI
         static string WaterText(ItemStack st, bool onPaper)
         {
             var t = WaterRules.TypeOf(st);
-            string n = st.water.ToString(CultureInfo.InvariantCulture) + "/" + st.item.waterCharges.ToString(CultureInfo.InvariantCulture);
+            string n = WaterRules.MlOf(st);
             if (t == WaterType.None) return n + " (empty)";
             var c = WaterRules.Color(t); if (onPaper) c = Color.Lerp(c, Color.black, 0.45f);
             return n + " <color=#" + ColorUtility.ToHtmlStringRGB(c) + ">" + WaterRules.Label(t) + "</color>";
@@ -344,7 +401,18 @@ namespace PrimalFrontier.UI
         void OnUse()
         {
             var st = _selected ? _selected.Stack : null; if (st == null || _selected.inventory != _inv) return;
-            if (st.item.IsFood) { UIManager.Instance?.Close(); _pi.Eat(st.item); }
+            if (SurvivalItemUse.HandlesMedical(st.item))
+            {
+                string why = SurvivalItemUse.WhyNot(_hp, st.item);
+                if (why != null) { PlayerInteraction.Notify(why); return; }
+                UIManager.Instance?.Close(); SurvivalItemUse.UseFromSlot(_pi, _selected.index);
+            }
+            else if (st.item.IsFood)
+            {
+                UIManager.Instance?.Close();
+                if (SurvivalItemUse.HandlesFood(st.item)) SurvivalItemUse.EatFromSlot(_pi, _selected.index);     // this exact stack (spoilage)
+                else _pi.Eat(st.item);
+            }
             else if (st.item.IsWaterContainer)
             {
                 if (_selected.index < _inv.hotbarSize) _inv.SetActiveSlot(_selected.index);
@@ -408,9 +476,34 @@ namespace PrimalFrontier.UI
         }
 
         // ================================================================== crafting
+        /// <summary>the tiles for the current category: rebuilt only when the category changed or they were never built; learned recipes update in place</summary>
+        void EnsureTiles()
+        {
+            if (!_tilesBuilt || _tilesCat != _cat) BuildTiles();
+            else if (_tilesDirty) RefreshTilesKnown();
+            else RefreshCraft();
+        }
+
+        /// <summary>known / unknown look of the existing tiles (after learning), no objects created</summary>
+        void RefreshTilesKnown()
+        {
+            if (!_tilesBuilt) { BuildTiles(); return; }
+            _tilesDirty = false;
+            foreach (var t in _tiles)
+            {
+                if (t.r == null || !t.icon || !t.name) continue;
+                bool known = _craft.IsKnown(t.r);
+                t.icon.sprite = known ? t.r.output.icon : UIStyle.Icon("unknown");
+                t.name.text = known ? t.r.output.displayName : "? ? ?";
+            }
+            RefreshCraft();
+        }
+
         void BuildTiles()
         {
             if (_craft == null || _tileRoot == null) return;
+            var sw = System.Diagnostics.Stopwatch.StartNew();
+            _tilesDirty = false; _tilesBuilt = true; _tilesCat = _cat; TileBuilds++;
             foreach (Transform c in _tileRoot) Destroy(c.gameObject);
             _tiles.Clear();
             var db = ItemDatabase.Instance; if (db == null) return;
@@ -433,6 +526,7 @@ namespace PrimalFrontier.UI
             for (int i = 0; i < _catButtons.Count; i++) _catButtons[i].GetComponent<Image>().color = i < _catOf.Count && _catOf[i] == _cat ? Color.white : new Color(0.6f, 0.55f, 0.5f);
             if (_recipe == null && _tiles.Count > 0) _recipe = _tiles[0].r;
             RefreshCraft();
+            LastTileBuildMs = (float)sw.Elapsed.TotalMilliseconds;
         }
 
         void RefreshCraft()

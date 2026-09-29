@@ -91,6 +91,7 @@ namespace PrimalFrontier.Core
             _death = uiRoot.GetOrAdd<DeathScreenUI>();
             uiRoot.GetOrAdd<Minimap>(); uiRoot.GetOrAdd<MobileHUD>();
             uiRoot.GetOrAdd<ContextHints>();                  // key hints + onboarding tips (also in scenes baked before it existed)
+            uiRoot.GetOrAdd<PerceptionIndicator>();           // stealth eye / noise ring / threat markers (AI perception)
             SaveSystem.Track();
             foreach (var p in FindObjectsByType<WorldPickup>(FindObjectsInactive.Include, FindObjectsSortMode.None)) _scenePickups.Add(p);
         }
@@ -138,6 +139,7 @@ namespace PrimalFrontier.Core
             if (!Player.GetComponent<PlayerInteraction>()) Player.AddComponent<PlayerInteraction>();
             var eq = Player.GetOrAdd<PlayerEquipment>(); if (!eq.torchFlamePrefab && torchFlamePrefab) eq.torchFlamePrefab = torchFlamePrefab;
             if (!Player.GetComponent<PlayerCombat>()) Player.AddComponent<PlayerCombat>();
+            Player.GetOrAdd<PlayerSignature>();               // what creatures can see / hear / smell of the player (AI perception)
             PlayerLocator.Player = Player.transform;
             // camera
             var camGo = Camera.main ? Camera.main.gameObject : new GameObject("Main Camera", typeof(Camera), typeof(AudioListener)) { tag = "MainCamera" };
@@ -277,6 +279,8 @@ namespace PrimalFrontier.Core
             var th = FindFirstObjectByType<TreeHarvest>(); if (th) th.RestoreAll();
             foreach (var fc in FindObjectsByType<FruitCluster>(FindObjectsSortMode.None)) fc.Regrow();
             var dinos = FindFirstObjectByType<AI.DinosaurSpawner>(); if (dinos && State != GameState.Boot) dinos.SpawnAll();
+            Stimuli.Clear();                                   // no noise / smell carries over into the new or loaded game
+            if (Player) { var sig = Player.GetComponent<PlayerSignature>(); if (sig) sig.ResetState(); }
             _journal.SetUnlocked(new string[0]);
             if (_zones) _zones.SetVisited(new string[0]);
             _tutorial.ResetIdle();
@@ -368,6 +372,7 @@ namespace PrimalFrontier.Core
             yield return new WaitForSeconds(1.8f);
             float hours = _time.HoursUntil(6f);
             _time.SkipHours(hours);
+            Stimuli.Clear(); AI.DinosaurController.ForgetPlayerAll();          // a night passed: old noises and smells are gone
             Player.GetComponent<PlayerSurvival>().ApplySleep(hours);            // sleep costs: SurvivalConfig
             SetRespawn(true, b.transform.position + b.transform.right * 1.2f);
             var placed = b.GetComponentInParent<PlacedStructure>();              // bedroll, tent... (any number of beds)

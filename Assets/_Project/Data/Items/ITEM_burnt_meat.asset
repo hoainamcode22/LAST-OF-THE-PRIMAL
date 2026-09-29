@@ -48,4 +48,7 @@ MonoBehaviour:
   fuelSeconds: 0
   burnSeconds: 0
   burntResult: {fileID: 0}
+  spoilHours: 72
+  cures: []
+  healOverTime: 0
   weaponData: {fileID: 0}

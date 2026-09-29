@@ -24,7 +24,23 @@ namespace PrimalFrontier.EditorTools
             { SfxId.SpearWhoosh, (0.6f, 0.1f, 15f) }, { SfxId.SpearImpact, (0.9f, 0.08f, 25f) }, { SfxId.BowDraw, (0.6f, 0.03f, 10f) }, { SfxId.BowRelease, (0.8f, 0.05f, 20f) },
             { SfxId.ArrowImpact, (0.8f, 0.08f, 25f) }, { SfxId.UiClick, (0.5f, 0.05f, 5f) }, { SfxId.UiObjective, (0.55f, 0f, 5f) }, { SfxId.UiRecipe, (0.55f, 0f, 5f) },
             { SfxId.DinoStep, (1f, 0.06f, 60f) }, { SfxId.DinoStepHeavy, (1f, 0.05f, 90f) },
+            // phase 3 / 3.5 (sfx_synth.py phase3): subtle, short range; the punch hit is the loudest of the set
+            { SfxId.PunchWhoosh, (0.5f, 0.1f, 12f) }, { SfxId.PunchHit, (0.85f, 0.08f, 18f) }, { SfxId.PunchHeavyHit, (0.95f, 0.06f, 22f) },
+            { SfxId.PlayerGrunt, (0.55f, 0.06f, 12f) }, { SfxId.WaterFill, (0.55f, 0.05f, 10f) }, { SfxId.WaterBoil, (0.45f, 0.02f, 10f) },
+            { SfxId.BandageWrap, (0.5f, 0.06f, 8f) }, { SfxId.ToolBreak, (0.8f, 0.05f, 15f) }, { SfxId.FireHiss, (0.6f, 0.05f, 18f) },
+            { SfxId.BranchSnap, (0.7f, 0.1f, 18f) }, { SfxId.StoneGatherHand, (0.6f, 0.1f, 12f) },
         };
+
+        /// <summary>bridge: PrimalAudioBuilder.BuildLibrary (import settings for new WAVs + Resources/SfxLibrary)</summary>
+        [PrimalBridgeCommand]
+        public static string BuildLibrary()
+        {
+            Build();
+            var lib = AssetDatabase.LoadAssetAtPath<SfxLibrary>("Assets/_Project/Resources/SfxLibrary.asset");
+            if (!lib) return "no library";
+            var missing = Enum.GetValues(typeof(SfxId)).Cast<SfxId>().Where(i => i != SfxId.None && !lib.entries.Any(e => e.id == i)).ToList();
+            return $"{lib.entries.Count} ids, {lib.entries.Sum(e => e.clips.Length)} clips; missing: {(missing.Count == 0 ? "none" : string.Join(", ", missing))}";
+        }
 
         public static void Build()
         {
@@ -49,14 +65,18 @@ namespace PrimalFrontier.EditorTools
 
         static void Configure(string path, bool loop)
         {
-            AssetDatabase.ImportAsset(path);
-            var ai = (AudioImporter)AssetImporter.GetAtPath(path);
-            ai.forceToMono = true; ai.loadInBackground = loop;
+            var ai = AssetImporter.GetAtPath(path) as AudioImporter;
+            if (ai == null) { AssetDatabase.ImportAsset(path); ai = (AudioImporter)AssetImporter.GetAtPath(path); }
             var s = ai.defaultSampleSettings;
-            s.compressionFormat = AudioCompressionFormat.Vorbis; s.quality = loop ? 0.45f : 0.6f;
-            s.loadType = loop ? AudioClipLoadType.Streaming : AudioClipLoadType.DecompressOnLoad;
-            s.sampleRateSetting = AudioSampleRateSetting.OptimizeSampleRate;
-            ai.defaultSampleSettings = s;
+            var want = s;
+            want.compressionFormat = AudioCompressionFormat.Vorbis; want.quality = loop ? 0.45f : 0.6f;
+            want.loadType = loop ? AudioClipLoadType.Streaming : AudioClipLoadType.DecompressOnLoad;
+            want.sampleRateSetting = AudioSampleRateSetting.OptimizeSampleRate;
+            // already set up: no reimport (the library build stays quick with 100+ clips)
+            if (ai.forceToMono && ai.loadInBackground == loop && s.compressionFormat == want.compressionFormat && Mathf.Approximately(s.quality, want.quality)
+                && s.loadType == want.loadType && s.sampleRateSetting == want.sampleRateSetting) return;
+            ai.forceToMono = true; ai.loadInBackground = loop;
+            ai.defaultSampleSettings = want;
             ai.SaveAndReimport();
         }
     }

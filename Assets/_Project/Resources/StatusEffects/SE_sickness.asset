@@ -1,0 +1,41 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4b6b46c9c0a921945b601d63a5c3aa5c, type: 3}
+  m_Name: SE_sickness
+  m_EditorClassIdentifier: PrimalFrontier.Runtime::PrimalFrontier.Survival.StatusEffectDefinition
+  id: sickness
+  displayName: Food poisoning
+  description: 'Stomach sick: thirstier, tires quicker, slowly loses health. Passes
+    with time.'
+  icon: {fileID: 21300000, guid: 1df4f597a79150f46a47443ba9f7ee02, type: 3}
+  iconName: status_sickness
+  color: {r: 0.55, g: 0.72, b: 0.25, a: 1}
+  showOnHud: 1
+  hudOrder: 3
+  saved: 1
+  defaultSeconds: 60
+  maxSeconds: 300
+  maxSeverity: 1
+  stacking: 0
+  healthPerSecond: -0.3
+  moveSpeedMultiplier: 1
+  sprintCostMultiplier: 1
+  staminaRegenMultiplier: 0.5
+  maxStaminaMultiplier: 0.85
+  thirstMultiplier: 1.6
+  hungerMultiplier: 1
+  attackMultiplier: 1
+  gatherMultiplier: 1
+  blocksHealthRegen: 1
+  appliedMessage: 
+  curedMessage: 
+  expiredMessage: Your stomach has settled.

@@ -54,3 +54,30 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 5632785b1c4454a45be49df6fedcb578, type: 3}
   heavyFootsteps: 0
   journalId: mosasaurus
+  sprayLoot: 0
+  fleeZigZag: 0
+  alertSensitivity: 1
+  nightVision: 0.2
+  sightGain: 1
+  hearingGain: 1
+  smellSensitivity: 0.6
+  awarenessDecay: 0.08
+  memorySeconds: 12
+  herdShareRadius: 30
+  alarmCall: 0
+  meatDrive: 0
+  scentTrackRange: 0
+  fireFear:
+    predatorFear: 0
+    fearRadiusDay: 0
+    fearRadiusNight: 0
+    rainMultiplier: 1
+    fuelMultiplier: 0
+    response: 0
+    patienceSeconds: 0
+    ignoreBelowIntensity: 0
+    ignoreWhenProvoked: 0
+  activity: 0
+  drinkEveryHours: 0
+  drinkSearchRadius: 160
+  unarmedDamageScale: -1

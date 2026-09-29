@@ -1,0 +1,177 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 31d04cf23391ac546b54dc718f8fdf87, type: 3}
+  m_Name: PerceptionConfig
+  m_EditorClassIdentifier: PrimalFrontier.Runtime::PrimalFrontier.AI.PerceptionConfig
+  nearDistance: 60
+  mediumDistance: 120
+  farDistance: 200
+  thinkNear: 0.2
+  thinkMedium: 0.4
+  thinkFar: 1
+  veryFarStep: 1
+  suspicious: 0.25
+  investigating: 0.5
+  alerted: 0.8
+  hysteresis: 0.1
+  decayHold: 3
+  sightRate: 1
+  edgeMul: 0.25
+  closeMul: 2
+  rangeCap: 1.4
+  trackGrace: 1.5
+  maxLosPerFrame: 6
+  touchBodyMul: 4
+  touchVisibility: 0.3
+  nightAmbient: 0.25
+  overcastPenalty: 0.25
+  rainVisPenalty: 0.2
+  torchLight: 1
+  torchNightBeacon: 1.4
+  torchCoverMul: 0.5
+  fireLightRadius: 10
+  fireLight: 0.9
+  shelteredFireLight: 0.6
+  caveLight: 0.4
+  crouchPosture: 0.55
+  climbPosture: 1.2
+  stillMotion: 0.5
+  crouchWalkMotion: 0.7
+  walkMotion: 0.8
+  runMotion: 1
+  sprintMotion: 1.2
+  stillSpeed: 0.2
+  runSpeedThreshold: 2.2
+  bushCover: 0.6
+  bushCrouchedCover: 0.8
+  bushMovingMul: 0.5
+  nearBushCover: 0.15
+  bushEdge: 1.5
+  thicketCap: 0.45
+  shelterCover: 0.3
+  perTreeCover: 0.1
+  treeRadius: 8
+  treeCap: 0.35
+  clearingFelled: 3
+  clearingRadius: 12
+  clearingExposure: 1.15
+  crouchStep: 0.15
+  walkStep: 0.45
+  runStep: 0.6
+  sprintStep: 1
+  surfaceLoudness:
+  - 1
+  - 0.75
+  - 0.8
+  - 1.2
+  - 1.1
+  - 1.3
+  - 1.5
+  pulseInterval: 0.25
+  pulseWeight: 0.25
+  noiseBumpMin: 0.15
+  noiseBumpMax: 0.6
+  rainMask: 0.4
+  noiseLocError: 6
+  loudCloseFraction: 0.35
+  chopLoudness: 1.2
+  mineLoudness: 1.4
+  handGatherLoudness: 0.25
+  treeFallLoudness: 2.5
+  buildLoudness: 0.9
+  combatLoudness: 1
+  dodgeLoudness: 0.35
+  landingLoudness: 0.4
+  hardLandingLoudness: 0.8
+  hurtLoudness: 0.6
+  fireLitLoudness: 0.3
+  butcherLoudness: 0.3
+  bushBrushLoudness: 0.25
+  bushLightLoudness: 0.4
+  bushStrongLoudness: 0.7
+  bushFlushLoudness: 1
+  ambientStartleRange: 40
+  motionRangeMul: 0.8
+  motionBumpMin: 0.1
+  motionBumpMax: 0.4
+  scentDrift: 1.4
+  puffRadius0: 2
+  puffSpread: 0.2
+  scentTau: 45
+  rainScentCut: 0.7
+  scentMaxAge: 120
+  smellThreshold: 0.12
+  smellRate: 0.5
+  scentEveryNthTick: 2
+  bodyScent: 0.12
+  bodyScentInterval: 3
+  wetBodyMul: 0.5
+  bleedScent: 0.8
+  bleedScentInterval: 2
+  carriedScentCap: 0.6
+  carriedScentInterval: 3
+  fireSmoke: 0.3
+  fireSmokeInterval: 6
+  fireScentInterval: 3
+  extraSlotScent: 0.25
+  fireScentCap: 1.5
+  burntSmoke: 0.8
+  shelteredScentMul: 0.5
+  carcassScentFresh: 1.2
+  carcassScentOld: 0.5
+  carcassScentInterval: 4
+  butcherBlood: 1.5
+  itemScents:
+  - itemId: raw_meat
+    cooking: 1
+    onFire: 0
+    carriedPerUnit: 0.12
+  - itemId: cooked_meat
+    cooking: 0
+    onFire: 0.5
+    carriedPerUnit: 0.04
+  - itemId: raw_fish
+    cooking: 0.9
+    onFire: 0
+    carriedPerUnit: 0.1
+  - itemId: cooked_fish
+    cooking: 0
+    onFire: 0.45
+    carriedPerUnit: 0.03
+  defaultRaw:
+    itemId: 
+    cooking: 0.6
+    onFire: 0.3
+    carriedPerUnit: 0.05
+  interestRate: 1
+  interestThreshold: 0.5
+  interestDecay: 0.05
+  interestCooldown: 60
+  scentLocPerSecond: 0.1
+  scentLocCap: 8
+  herdShareLevel: 0.6
+  alarmShareLevel: 0.4
+  shareCooldown: 2
+  searchRadius: 8
+  searchPoints: 3
+  searchSeconds: 12
+  circleSpeed: 22
+  edgeMargin: 1.5
+  unarmedFullBody: 0.5
+  knockbackMaxBody: 0.8
+  knockbackSeconds: 0.3
+  sleepSight: 0.25
+  sleepHearing: 0.6
+  sleepSeconds: {x: 45, y: 90}
+  drinkSeconds: {x: 8, y: 14}
+  nightRoam: 1.4
+  nightHuddle: 0.5

@@ -18,6 +18,10 @@ namespace PrimalFrontier.AI
         [Tooltip("random spawns, only used when no creature is placed under this object")]
         public List<Entry> entries = new List<Entry>();
         public bool spawnOnStart = true;
+        [Header("Population (placed creatures)")]
+        [Tooltip("in-game hours after death before a placed creature returns (0 = never); only once its body is gone")] [Min(0)] public float respawnHours = 48f;
+        [Tooltip("never respawn a creature closer than this to the player (m)")] public float respawnMinDistance = 120f;
+        float _nextRespawnCheck;
         readonly List<GameObject> _spawned = new List<GameObject>();
         public IReadOnlyList<GameObject> Spawned => _spawned;
 
@@ -48,6 +52,36 @@ namespace PrimalFrontier.AI
         {
             if (spawnOnStart && !UsesPlacedCreatures) SpawnAll();      // placed creatures are already there
             Story.TutorialManager.CreatureExists = () => DinosaurController.All.Count > 0;
+        }
+
+        /// <summary>
+        /// A killed placed creature comes back at its editor spot after respawnHours of game time, once its body has
+        /// sunk and the player is far away (a living island, not an emptying one). Checked every few seconds.
+        /// </summary>
+        void Update()
+        {
+            if (respawnHours <= 0f || !UsesPlacedCreatures || Time.time < _nextRespawnCheck) return;
+            _nextRespawnCheck = Time.time + 5f;
+            var pp = World.PlayerLocator.Position;
+            double now = Core.GameClock.Now, wait = Core.GameClock.Hours(respawnHours);
+            for (int i = 0; i < _spawned.Count && i < _slots.Count; i++)
+            {
+                var go = _spawned[i]; double died = -1; bool bodyGone = !go || !go.activeSelf;
+                if (go)
+                {
+                    var dc = go.GetComponent<DinosaurController>(); var ac = dc ? null : go.GetComponent<AmbientCreature>();
+                    if (dc) { if (dc.IsAlive) continue; died = dc.DiedAt; }
+                    else if (ac) { if (ac.IsAlive) continue; died = ac.DiedAt; }
+                    else continue;
+                    var c = go.GetComponent<World.Carcass>(); if (c && !c.Sinking && go.activeSelf) continue;     // the body is still there
+                }
+                if (!bodyGone || died < 0 || now - died < wait) continue;
+                var s = _slots[i];
+                if (pp.HasValue && (s.pos - pp.Value).sqrMagnitude < respawnMinDistance * respawnMinDistance) continue;
+                if (go) Destroy(go);
+                var n = Instantiate(s.template, s.pos, s.rot, s.parent ? s.parent : transform); n.name = s.name; n.SetActive(true);
+                _spawned[i] = n;
+            }
         }
 
         public void SpawnAll()

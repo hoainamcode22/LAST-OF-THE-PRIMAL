@@ -75,6 +75,10 @@ namespace PrimalFrontier.World
 
         /// <summary>bushes currently running Update (shaking, feedback pending or player inside): for profiling</summary>
         public static int ActiveCount { get; private set; }
+        /// <summary>every bush that woke up once (Awake to OnDestroy); the perception cover query reads it</summary>
+        public static readonly System.Collections.Generic.List<BushInteraction> All = new System.Collections.Generic.List<BushInteraction>();
+        /// <summary>the bush the player stands in (null = none): cover for the perception system</summary>
+        public static BushInteraction PlayerBush { get; private set; }
         /// <summary>leaf bursts / rustles played since start (capture + log)</summary>
         public static int FeedbackCount { get; private set; }
         /// <summary>hidden discoveries since start (any bush)</summary>
@@ -85,6 +89,8 @@ namespace PrimalFrontier.World
         public static float GlobalDiscoveryGap = 8f;
 
         public bool IsShaking => _shaking;
+        /// <summary>horizontal radius of the trigger (m)</summary>
+        public float Radius => _radius;
         public bool PlayerInside => _playerColliders > 0;
         public bool HiddenItemTaken => _hiddenSpent;
         /// <summary>current tilt in degrees</summary>
@@ -98,7 +104,8 @@ namespace PrimalFrontier.World
         float _ang, _angVel, _sq, _sqVel; bool _shaking;
         Vector3 _fxLocal = new Vector3(0f, 0.7f, 0f); float _radius = 0.9f;
         float _fxAt = -1f, _fx2At = -1f, _fxStrength; Vector3 _fxDir; bool _fxCrouch, _fxFlush, _fxHidden;
-        float _nextFeedback, _nextFlush, _nextBrush, _lastImpulse = -10f, _lastStrength, _lastFx = -10f;
+        float _nextFeedback, _nextFlush, _nextBrush, _lastImpulse = -10f, _lastStrength, _lastFx = -10f, _lastMotion = -10f;
+        bool _fxPlayer;
         int _playerColliders; bool _hiddenSpent, _counted;
         RustleReaction _fxKind; bool _fx2Bird; float _nextDiscovery;
 
@@ -109,7 +116,7 @@ namespace PrimalFrontier.World
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         static void ResetStatics()
         {
-            ActiveCount = 0; FeedbackCount = 0; DiscoveryCount = 0; _cam = null; _playerRoot = null; _motor = null; _cc = null;
+            ActiveCount = 0; FeedbackCount = 0; DiscoveryCount = 0; _cam = null; _playerRoot = null; _motor = null; _cc = null; All.Clear(); PlayerBush = null;
             _globalNextDiscovery = 0f; _fiber = null; _fiberLooked = false; ReactionRoll = null;
         }
 
@@ -135,7 +142,10 @@ namespace PrimalFrontier.World
             else if (col is CapsuleCollider cc) { _fxLocal = cc.center; _radius = cc.radius * scale; }
 
             enabled = false;                                // idle until something walks in (trigger messages reach disabled behaviours)
+            if (!All.Contains(this)) All.Add(this);
         }
+
+        void OnDestroy() { All.Remove(this); if (PlayerBush == this) PlayerBush = null; }
 
         void OnEnable() { if (!_counted) { _counted = true; ActiveCount++; } }
 
@@ -145,6 +155,7 @@ namespace PrimalFrontier.World
             // deactivated mid-shake (or the player left without an exit message): come back to rest
             if (_shaking) { _ang = _angVel = _sq = _sqVel = 0f; _shaking = false; ApplyRest(); }
             _playerColliders = 0; _fxAt = _fx2At = -1f; _fx2Bird = false;
+            if (PlayerBush == this) PlayerBush = null;
         }
 
         // ------------------------------------------------------------------ triggers
@@ -155,6 +166,7 @@ namespace PrimalFrontier.World
             {
                 _playerColliders++;
                 if (_playerColliders > 1) return;          // a second collider of the player (held item): one reaction
+                PlayerBush = this;
                 bool crouch = _motor && _motor.IsCrouching;
                 float s = Mathf.Clamp(0.25f + PlayerSpeed() * 0.16f, 0.3f, 1.25f);   // walk ~0.47, run ~0.86, sprint ~1.24
                 if (crouch) s *= 0.45f;
@@ -177,7 +189,7 @@ namespace PrimalFrontier.World
         void OnTriggerExit(Collider other)
         {
             if (other is TerrainCollider || _playerColliders == 0) return;
-            if (IsPlayer(other)) _playerColliders = Mathf.Max(0, _playerColliders - 1);
+            if (IsPlayer(other)) { _playerColliders = Mathf.Max(0, _playerColliders - 1); if (_playerColliders == 0 && PlayerBush == this) PlayerBush = null; }
         }
 
         /// <summary>
@@ -200,12 +212,14 @@ namespace PrimalFrontier.World
             if (dir.sqrMagnitude > 1e-4f) dir.Normalize(); else dir = Vector3.zero;
             if (flush) strength = Mathf.Max(strength, 0.9f) * 1.25f;
             Kick(dir, strength);
+            // a visibly shaking bush gives the player away to anything looking this way (perception)
+            if (player && now - _lastMotion > 0.5f) { _lastMotion = now; Stimuli.Motion(pos + Vector3.up * 0.6f, Mathf.Min(1.2f, strength), StimulusSource.Player); }
 
             if (now >= _nextFeedback || flush || hidden)
             {
                 _nextFeedback = now + Random.Range(cooldown.x, Mathf.Max(cooldown.x, cooldown.y));
                 _fxAt = now + Random.Range(0f, 0.15f);
-                _fxStrength = strength; _fxCrouch = crouch; _fxDir = dir;
+                _fxStrength = strength; _fxCrouch = crouch; _fxDir = dir; _fxPlayer = player;
                 _fxFlush = flush; if (flush) _nextFlush = now + flushCooldown;
                 if (hidden) { _fxHidden = true; _hiddenSpent = true; }
                 _fxKind = flush || hidden ? RustleReaction.Strong : RollReaction(player, now);
@@ -283,7 +297,7 @@ namespace PrimalFrontier.World
             if (!root) { _playerColliders = 0; return; }
             Vector3 d = root.position - transform.position; d.y = 0f;
             float r = _radius + 1.5f;
-            if (d.sqrMagnitude > r * r) { _playerColliders = 0; return; }   // exit message missed (teleport, collider disabled)
+            if (d.sqrMagnitude > r * r) { _playerColliders = 0; if (PlayerBush == this) PlayerBush = null; return; }   // exit message missed (teleport, collider disabled)
             if (now < _nextBrush) return;
             _nextBrush = now + brushInterval;
             float speed = PlayerSpeed();
@@ -293,6 +307,9 @@ namespace PrimalFrontier.World
             Vector3 dir = Vector3.zero;
             if (_cc) { dir = _cc.velocity; dir.y = 0f; if (dir.sqrMagnitude > 1e-4f) dir.Normalize(); else dir = Vector3.zero; }
             Kick(dir, s);
+            var pc = AI.PerceptionConfig.Instance;
+            Stimuli.Noise(transform.position, pc.bushBrushLoudness * (crouch ? 0.5f : 1f), NoiseTag.Rustle, StimulusSource.Player);
+            if (now - _lastMotion > 0.5f) { _lastMotion = now; Stimuli.Motion(transform.position + Vector3.up * 0.6f, s, StimulusSource.Player); }
             // quiet rustle only (no leaf burst: no VFX spam), never right after the main feedback
             if (now - _lastFx < 0.5f || _fxAt >= 0f) return;
             var src = SfxPlayer.Instance.Play(SfxId.LeafRustle, transform.TransformPoint(_fxLocal), crouch ? 0.15f : Mathf.Lerp(0.2f, 0.35f, Mathf.InverseLerp(0.5f, 6f, speed)));
@@ -316,6 +333,13 @@ namespace PrimalFrontier.World
             if (!low || !Far(p, 20f)) VfxPool.Instance.Play(VfxId.Leaves, p, Vector3.up, null, low ? vfxScale * 0.8f : vfxScale);
             var src = SfxPlayer.Instance.Play(SfxId.LeafRustle, p, vol);
             if (src) src.pitch *= _fxCrouch ? Random.Range(0.9f, 0.98f) : Random.Range(0.95f, 1.08f);
+            // the rustle is heard (perception): light / strong / flush or discovery burst
+            {
+                var pc = AI.PerceptionConfig.Instance;
+                float loud = _fxFlush || kind == RustleReaction.Discovery ? pc.bushFlushLoudness : strong ? pc.bushStrongLoudness : pc.bushLightLoudness;
+                if (_fxCrouch) loud *= 0.6f;
+                Stimuli.Noise(p, loud, NoiseTag.Rustle, _fxPlayer ? StimulusSource.Player : StimulusSource.Creature);
+            }
             if (strong && !_fxFlush) Kick(_fxDir, 0.35f);                     // something bigger moved inside
             if (kind == RustleReaction.Discovery) Discover(center, now);
             if (_fxFlush)

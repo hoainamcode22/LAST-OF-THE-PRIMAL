@@ -27,10 +27,18 @@ namespace PrimalFrontier.World
     /// add fuel; a cold fire: take ready / burnt > light > take back raw items. Hold E puts the fire out.
     /// Food sits on the stones as a small copy of its world model (reused per slot), ready food steams, burnt food is
     /// darkened. Slots are saved through ISaveableStructure (lit / fuel stay in StructureData).
+    /// Phase 3: FireState Unlit -> Lighting (lightingSeconds, flames grow) -> Burning -> LowFuel (below lowFuelSeconds:
+    /// weaker, a warning) -> Extinguished (burned out, put out, or doused). Intensity01 follows the fuel, the lighting ramp
+    /// and rain on an uncovered fire (heat, light, flames, cooking speed follow it); heavy rain on an uncovered fire puts it
+    /// out after heavyRainExtinguishSeconds (FireHiss); a shelter over it keeps it safe. Boiling plays BoilBubbles and the
+    /// WaterBoil loop. Read API for wildlife: All, IsLit, State, Fuel01, Intensity01 / FuelIntensity01, CookingCount, Sheltered.
+    /// Numbers: SurvivalConfig (Fire).
     /// </summary>
     public class Campfire : Interactable, ISaveableStructure
     {
         public enum CookState { Empty, Raw, Cooking, Ready, Burned }
+        /// <summary>what the fire is doing (saved as int: append only)</summary>
+        public enum FireState { Unlit, Lighting, Burning, LowFuel, Extinguished }
 
         /// <summary>one place on the fire</summary>
         public class CookSlot
@@ -44,9 +52,11 @@ namespace PrimalFrontier.World
             public float t;
             /// <summary>seconds until the next state (cook, boil, burn); 0 = never</summary>
             public float duration;
+            /// <summary>GameClock time the food was made (raw: when it went on; cooked: keeps the raw food's used-up spoil time)</summary>
+            public double madeAt;
             public bool IsEmpty => state == CookState.Empty;
             public bool IsWater => water != null;
-            public void Clear() { item = null; water = null; state = CookState.Empty; t = 0f; duration = 0f; }
+            public void Clear() { item = null; water = null; state = CookState.Empty; t = 0f; duration = 0f; madeAt = GameClock.Now; }
         }
 
         public const int MaxSlots = 6;
@@ -56,7 +66,7 @@ namespace PrimalFrontier.World
         public ItemDefinition fuelItem;
         public float heatRadius = 5f;
         public float heat = 16f;               // deg C at the fire
-        [Tooltip("fuel burns this much faster while rain falls on the fire (no shelter over it)")] public float rainBurnMultiplier = 2f;
+        [Tooltip("legacy, unused: rain fuel use now comes from SurvivalConfig (rainFuelMultiplier / heavyRainFuelMultiplier)")] public float rainBurnMultiplier = 2f;
         [Header("Food on the fire (visuals)")]
         [Tooltip("distance of the food from the centre (on the stones), m")] public float foodRadius = 0.42f;
         public float foodHeight = 0.12f;
@@ -66,6 +76,29 @@ namespace PrimalFrontier.World
         public bool IsLit { get; private set; }
         public float Fuel { get; private set; }
         public float MaxFuel => Mathf.Max(1f, C.maxFuelSeconds);
+        public FireState State { get; private set; } = FireState.Unlit;
+        /// <summary>fuel left, 0..1 of the maximum</summary>
+        public float Fuel01 => Mathf.Clamp01(Fuel / MaxFuel);
+        /// <summary>strength from fuel and the lighting ramp only (0 when out); weather not included (wildlife applies its own rain rule)</summary>
+        public float FuelIntensity01 => IsLit ? FuelStrength * LightingRamp : 0f;
+        /// <summary>how strong the fire is now: fuel, lighting ramp and rain on an uncovered fire (0 when out). Heat, light and flames follow it</summary>
+        public float Intensity01 => IsLit ? FuelStrength * LightingRamp * RainFactor : 0f;
+        /// <summary>a shelter / tent roof or a cave covers the fire (checked once a second)</summary>
+        public bool Sheltered { get; private set; }
+        /// <summary>rain falls on this fire now (not covered)</summary>
+        public bool RainedOn => _wet;
+        /// <summary>heavy rain (storm) falls on this uncovered fire</summary>
+        public bool HeavyRain => _wet && _heavy;
+        /// <summary>0..1 of the heavy-rain time that puts this fire out</summary>
+        public float Douse01 => C.heavyRainExtinguishSeconds > 0f ? Mathf.Clamp01(_douse / C.heavyRainExtinguishSeconds) : 0f;
+        /// <summary>cooking / boiling speed (a weak fire cooks slower)</summary>
+        public float CookRate => Mathf.Lerp(Mathf.Clamp(C.lowFireCookRate, 0.1f, 1f), 1f, Mathf.InverseLerp(C.minFireIntensity, 1f, FuelStrength));
+        /// <summary>state changed (old, new)</summary>
+        public event Action<FireState, FireState> StateChanged;
+
+        float FuelStrength => Fuel <= 0f ? 0f : Mathf.Lerp(Mathf.Clamp01(C.minFireIntensity), 1f, Mathf.Clamp01(Fuel / Mathf.Max(1f, C.fullIntensityFuelSeconds)));
+        float LightingRamp => State == FireState.Lighting ? Mathf.Lerp(0.25f, 1f, Mathf.Clamp01(_lightT / Mathf.Max(0.01f, C.lightingSeconds))) : 1f;
+        float RainFactor => !_wet ? 1f : _heavy ? Mathf.Clamp01(C.heavyRainFireIntensity) : Mathf.Clamp01(C.rainFireIntensity);
         /// <summary>places on the fire (SurvivalConfig.cookingSlots)</summary>
         public int SlotCount => Mathf.Clamp(C.cookingSlots, 1, MaxSlots);
         /// <summary>food items on the fire (raw, cooking, ready or burnt; boiling water does not count)</summary>
@@ -86,11 +119,13 @@ namespace PrimalFrontier.World
         static SurvivalConfig C => SurvivalConfig.Instance;
         readonly CookSlot[] _slots = NewSlots();
         static CookSlot[] NewSlots() { var a = new CookSlot[MaxSlots]; for (int i = 0; i < a.Length; i++) a[i] = new CookSlot(); return a; }
-        float _rainCheck; bool _wet; PlacedStructure _placed;
+        float _rainCheck; bool _wet, _heavy; PlacedStructure _placed;
+        float _lightT, _douse, _fxIntensity = -1f; bool _lowWarned;
 
         protected override void OnEnable() { base.OnEnable(); if (!All.Contains(this)) All.Add(this); }
         protected override void OnDisable() { base.OnDisable(); All.Remove(this); }
         void Awake() { if (!fx) fx = GetComponentInChildren<CampfireFx>(); }
+        void Start() { CheckWeather(); }
 
         public static bool LitNear(Vector3 p, float r)
         {
@@ -104,7 +139,7 @@ namespace PrimalFrontier.World
             {
                 if (!c || !c.IsLit) continue;
                 float d = Vector3.Distance(c.transform.position, p);
-                if (d < c.heatRadius) h = Mathf.Max(h, c.heat * (1f - d / c.heatRadius));
+                if (d < c.heatRadius) h = Mathf.Max(h, c.heat * Mathf.Lerp(0.45f, 1f, c.Intensity01) * (1f - d / c.heatRadius));
             }
             return h;
         }
@@ -178,9 +213,10 @@ namespace PrimalFrontier.World
         {
             if (!IsLit || inv == null || !IsCookable(raw)) return false;
             int i = FreeSlot(); if (i < 0) return false;
-            if (!inv.Remove(raw, 1)) return false;
+            int prefer = inv.ActiveStack != null && inv.ActiveItem == raw ? inv.ActiveSlot : -1;
+            if (!inv.RemoveOne(raw, prefer, out double madeAt)) return false;
             var s = _slots[i];
-            s.Clear(); s.item = raw; s.state = CookState.Cooking; s.duration = Mathf.Max(0.1f, raw.cookSeconds);
+            s.Clear(); s.item = raw; s.madeAt = madeAt; s.state = CookState.Cooking; s.duration = Mathf.Max(0.1f, raw.cookSeconds);
             SlotChanged(i);
             return true;
         }
@@ -214,7 +250,7 @@ namespace PrimalFrontier.World
             }
             else
             {
-                if (!s.item || inv.Add(s.item, 1) > 0) { PlayerInteraction.Notify(NoRoom(inv, s.item)); return false; }
+                if (!s.item || inv.Add(s.item, 1, false, s.madeAt) > 0) { PlayerInteraction.Notify(NoRoom(inv, s.item)); return false; }
                 GameEvents.Raise(GameEventType.FoodTaken, s.item.id, 1, transform.position);
             }
             s.Clear();
@@ -231,12 +267,31 @@ namespace PrimalFrontier.World
             catch (Exception e) { Debug.LogException(e, this); }
         }
 
+        /// <summary>rain / roof over the fire (once a second; also right after lighting)</summary>
+        void CheckWeather()
+        {
+            var p = transform.position + Vector3.up * 0.5f;
+            var wm = WeatherManager.Instance;
+            Sheltered = Shelter.Covers(p) || (ZoneManager.Instance && ZoneManager.Instance.IsIndoor(p));
+            _wet = wm && !Sheltered && wm.RainingAt(p);
+            _heavy = _wet && wm.Intensity >= C.heavyRainIntensity;
+        }
+
         void Tick(float dt)
         {
-            if (!IsLit) return;
+            if (!IsLit) { if (_douse > 0f) _douse = 0f; return; }
             _rainCheck -= dt;
-            if (_rainCheck <= 0f) { _rainCheck = 1f; var wm = WeatherManager.Instance; _wet = wm && wm.RainingAt(transform.position + Vector3.up * 0.5f); }
-            Fuel -= dt * (_wet ? Mathf.Max(1f, rainBurnMultiplier) : 1f);
+            if (_rainCheck <= 0f) { _rainCheck = 1f; CheckWeather(); }
+            Fuel -= dt * Mathf.Max(0f, C.fuelBurnRate) * (_wet ? Mathf.Max(1f, _heavy ? C.heavyRainFuelMultiplier : C.rainFuelMultiplier) : 1f);
+            // state: the lighting ramp, then burning / low on fuel
+            if (State == FireState.Lighting) { _lightT += dt; if (_lightT >= C.lightingSeconds) SetState(FireState.Burning); }
+            if (State == FireState.Burning && Fuel < C.lowFuelSeconds) SetState(FireState.LowFuel);
+            else if (State == FireState.LowFuel && Fuel >= C.lowFuelSeconds + 1f) SetState(FireState.Burning);
+            // heavy rain on an uncovered fire puts it out (faster when it is low); the meter falls back when it stops
+            float douseAt = C.heavyRainExtinguishSeconds;
+            if (_heavy && douseAt > 0f) _douse += dt * (State == FireState.LowFuel ? 2f : 1f);
+            else if (_douse > 0f) _douse = Mathf.Max(0f, _douse - dt * 2f);
+            float rate = CookRate;
             for (int i = 0; i < MaxSlots; i++)
             {
                 var s = _slots[i];
@@ -246,17 +301,52 @@ namespace PrimalFrontier.World
                         s.state = CookState.Cooking; SlotChanged(i);
                         break;
                     case CookState.Cooking:
-                        s.t += dt;
+                        s.t += dt * rate;
                         if (s.t >= s.duration) FinishCooking(i);
                         break;
                     case CookState.Ready:
                         if (s.IsWater || s.duration <= 0f) break;
-                        s.t += dt;
+                        s.t += dt * rate;
                         if (s.t >= s.duration) Burn(i);
                         break;
                 }
             }
-            if (Fuel <= 0f) { Fuel = 0f; SetLit(false); PlayerInteraction.Notify("The fire has burned out."); }
+            UpdateFxIntensity();
+            if (Fuel <= 0f) { Fuel = 0f; SetLit(false); PlayerInteraction.Notify("The fire has burned out."); return; }
+            if (douseAt > 0f && _douse >= douseAt) Douse();
+        }
+
+        /// <summary>heavy rain put the fire out: a hiss and a puff, the food stays on the stones</summary>
+        public void Douse()
+        {
+            if (!IsLit) return;
+            _douse = 0f;
+            if (fx) fx.Doused();
+            SetLit(false, false);
+            GameEvents.Raise(GameEventType.FireDoused, EventId, 1, transform.position);
+            if (PlayerWithin(20f)) PlayerInteraction.Notify("The rain has put the fire out. Build a shelter over it, or light it again when the storm passes.");
+        }
+
+        bool PlayerWithin(float r) { var pp = PlayerLocator.Position; return pp.HasValue && (pp.Value - transform.position).sqrMagnitude <= r * r; }
+
+        void SetState(FireState st)
+        {
+            if (State == st) return;
+            var old = State; State = st;
+            if (st == FireState.LowFuel && !_lowWarned) { _lowWarned = true; if (PlayerWithin(20f)) PlayerInteraction.Notify("The fire is burning low. Add fuel to keep it going."); }
+            else if (st == FireState.Burning) _lowWarned = false;
+            StateChanged?.Invoke(old, st);
+            GameEvents.Raise(GameEventType.FireStateChanged, EventId, (int)st, transform.position);
+            InvalidatePrompt();
+            UpdateFxIntensity();
+        }
+
+        void UpdateFxIntensity()
+        {
+            if (!fx) return;
+            float k = Intensity01;
+            if (Mathf.Abs(k - _fxIntensity) < 0.02f && (k > 0f) == (_fxIntensity > 0f)) return;
+            _fxIntensity = k; fx.SetIntensity(k);
         }
 
         void FinishCooking(int i)
@@ -274,6 +364,7 @@ namespace PrimalFrontier.World
                 var raw = s.item; var cooked = raw ? raw.cookedResult : null;
                 if (cooked)
                 {
+                    s.madeAt = Spoilage.CookedMadeAt(raw, s.madeAt, cooked);     // cooked food keeps the part of the spoil time already gone
                     s.item = cooked;
                     s.duration = cooked.burnSeconds > 0f ? cooked.burnSeconds : Mathf.Max(0f, raw.cookSeconds * C.burnAfterCookMultiplier);
                     GameEvents.Raise(GameEventType.FoodCooked, cooked.id, 1, transform.position);
@@ -306,14 +397,19 @@ namespace PrimalFrontier.World
             SlotChanged(i);
         }
 
+        /// <summary>light (burst: the Lighting ramp; without: straight to Burning, e.g. a restore) or put out (Extinguished)</summary>
         public void SetLit(bool on, bool burst = true)
         {
             if (IsLit == on) return;
             IsLit = on;
+            _douse = 0f; _lightT = 0f;
+            if (on) CheckWeather();
             if (fx) fx.SetLit(on, burst);
             NormalizeSlots();
             GameEvents.Raise(on ? GameEventType.FireLit : GameEventType.FireOut, EventId, 1, transform.position);
+            SetState(on ? (burst && C.lightingSeconds > 0f ? FireState.Lighting : Fuel < C.lowFuelSeconds ? FireState.LowFuel : FireState.Burning) : FireState.Extinguished);
             InvalidatePrompt();
+            UpdateFxIntensity();
         }
 
         string EventId { get { if (!_placed) _placed = GetComponent<PlacedStructure>(); return _placed ? _placed.itemId : null; } }
@@ -393,7 +489,7 @@ namespace PrimalFrontier.World
         }
 
         // ------------------------------------------------------------------ prompt (cached: rebuilt only when what it shows changes)
-        Act _pAct = (Act)(-1); UnityEngine.Object _pItem; int _pN1 = int.MinValue, _pN2 = int.MinValue;
+        Act _pAct = (Act)(-1); UnityEngine.Object _pItem; int _pN1 = int.MinValue, _pN2 = int.MinValue, _pN3 = int.MinValue;
         string _pText, _pSub;
         static readonly StringBuilder Sb = new StringBuilder(96);
         void InvalidatePrompt() { _pAct = (Act)(-1); }
@@ -418,9 +514,10 @@ namespace PrimalFrontier.World
                 case Act.Light: n1 = Mathf.CeilToInt(FuelSecondsOf(item)); break;
                 case Act.Warm: n1 = FireSeconds; n2 = Fuel >= MaxFuel - 1f ? 1 : 0; break;
             }
-            if (act != _pAct || item != _pItem || n1 != _pN1 || n2 != _pN2)
+            int n3 = (int)State * 4 + (HeavyRain ? 2 : 0) + (_wet ? 1 : 0);
+            if (act != _pAct || item != _pItem || n1 != _pN1 || n2 != _pN2 || n3 != _pN3)
             {
-                _pAct = act; _pItem = item; _pN1 = n1; _pN2 = n2;
+                _pAct = act; _pItem = item; _pN1 = n1; _pN2 = n2; _pN3 = n3;
                 BuildPrompt(act, idx, item, n1, n2);
             }
             sub = _pSub;
@@ -453,15 +550,20 @@ namespace PrimalFrontier.World
                 case Act.BoilHeld:
                 {
                     var t = (WaterType)n1;
-                    sb.Append("Boil ").Append(WaterRules.Label(t)).Append(" (").Append(Int(n2)).Append(" s)");
+                    sb.Append("Boil Water (").Append(Int(n2)).Append(" s)");
                     int loss = C.Water(t).boilChargeLoss;
-                    _pSub = loss > 0 ? (loss == 1 ? "It boils down: 1 drink is lost" : "It boils down: " + Int(loss) + " drinks are lost") : "Makes it safe to drink";
+                    string what = char.ToUpperInvariant(WaterRules.Label(t)[0]) + WaterRules.Label(t).Substring(1);
+                    _pSub = loss > 0 ? what + (loss == 1 ? ": it boils down, 1 drink is lost" : ": it boils down, " + Int(loss) + " drinks are lost") : what + ": boiling makes it safe to drink";
                     break;
                 }
                 case Act.AddFuel:
-                    sb.Append("Add ").Append(name).Append(" (fire ");
-                    Clock(sb, n1); sb.Append(')');
-                    var s2 = new StringBuilder(24).Append('+'); Clock(s2, n2); _pSub = s2.Append(" of fire").ToString();
+                    sb.Append("Add Fuel: ").Append(name).Append("  (+");
+                    Clock(sb, n2); sb.Append(')');
+                    var s2 = new StringBuilder(40).Append("Fire ");
+                    Clock(s2, n1);
+                    if (State == FireState.LowFuel) s2.Append("   burning low");
+                    if (HeavyRain) s2.Append("   the storm is putting it out"); else if (_wet) s2.Append("   rain: it burns faster");
+                    _pSub = s2.ToString();
                     break;
                 case Act.Light:
                 {
@@ -480,8 +582,10 @@ namespace PrimalFrontier.World
                 case Act.Warm:
                 {
                     sb.Append("Warm up");
-                    var s2c = new StringBuilder(40).Append("Fire ");
-                    Clock(s2c, n1); _pSub = s2c.Append(n2 == 1 ? "   (fuel full)" : "   (no fuel in your pack)").ToString();
+                    var s2c = new StringBuilder(48).Append("Fire ");
+                    Clock(s2c, n1); s2c.Append(n2 == 1 ? "   (fuel full)" : "   (no fuel in your pack)");
+                    if (State == FireState.LowFuel) s2c.Append("   burning low");
+                    _pSub = s2c.ToString();
                     break;
                 }
                 default: _pText = null; return;
@@ -543,15 +647,17 @@ namespace PrimalFrontier.World
         void RefreshFx()
         {
             if (!fx) return;
-            bool cooking = false;
+            bool cooking = false; Transform boilAt = null;
             for (int i = 0; i < MaxSlots; i++)
             {
                 var s = _slots[i];
                 if (s.state == CookState.Cooking && !s.IsWater) cooking = true;
+                if (s.state == CookState.Cooking && s.IsWater && !boilAt) boilAt = Anchor(i);
                 bool ready = s.state == CookState.Ready;
                 if (ready) fx.SetReady(i, Anchor(i), true); else fx.SetReady(i, null, false);
             }
             fx.SetCooking(cooking && IsLit);
+            fx.SetBoiling(IsLit ? boilAt : null);                 // bubbles + the WaterBoil loop while water heats
         }
 
         void RefreshVisual(int i)
@@ -619,10 +725,11 @@ namespace PrimalFrontier.World
         }
 
         // ================================================================== save
-        [Serializable] class SlotSave { public int index; public string item; public int state; public float t; public float duration; public bool container; public int water; public int waterType; public float durability; }
-        [Serializable] class SlotsSave { public List<SlotSave> slots = new List<SlotSave>(); }
+        [Serializable] class SlotSave { public int index; public string item; public int state; public float t; public float duration; public bool container; public int water; public int waterType; public float durability; public float age; }
+        /// <summary>fireState / douse: phase 3 (older saves: 0 = Unlit / dry, the lit flag in StructureData decides)</summary>
+        [Serializable] class SlotsSave { public List<SlotSave> slots = new List<SlotSave>(); public int fireState; public float douse; }
 
-        /// <summary>SaveSystem: lit / fuel are stored in StructureData; this keeps the slots (empty fire = null)</summary>
+        /// <summary>SaveSystem: lit / fuel are stored in StructureData; this keeps the slots and the fire state (a new, empty fire = null)</summary>
         public string CaptureState()
         {
             SlotsSave save = null;
@@ -636,9 +743,13 @@ namespace PrimalFrontier.World
                     index = i, item = s.item.id, state = (int)s.state, t = s.t, duration = s.duration,
                     container = s.IsWater, water = s.IsWater ? s.water.water : 0, waterType = s.IsWater ? (int)s.water.waterType : 0,
                     durability = s.IsWater ? s.water.durability : 0f,
+                    age = (float)Math.Max(0.0, GameClock.Now - s.madeAt),
                 });
             }
-            return save == null ? null : JsonUtility.ToJson(save);
+            if (save == null && State == FireState.Unlit && _douse <= 0f) return null;
+            if (save == null) save = new SlotsSave();
+            save.fireState = (int)State; save.douse = _douse;
+            return JsonUtility.ToJson(save);
         }
 
         /// <summary>rebuilds the slots; works before or after <see cref="Restore"/> (states follow the fire)</summary>
@@ -648,7 +759,10 @@ namespace PrimalFrontier.World
             SlotsSave save;
             try { save = JsonUtility.FromJson<SlotsSave>(state); }
             catch (Exception e) { Debug.LogWarning("[Campfire] unreadable slot state: " + e.Message, this); return; }
-            if (save == null || save.slots == null) return;
+            if (save == null) return;
+            if (!IsLit && Enum.IsDefined(typeof(FireState), save.fireState)) { var st = (FireState)save.fireState; if (st == FireState.Unlit || st == FireState.Extinguished) State = st; }
+            if (!float.IsNaN(save.douse)) _douse = Mathf.Max(0f, save.douse);
+            if (save.slots == null) { NormalizeSlots(); return; }
             var db = ItemDatabase.Instance;
             foreach (var d in save.slots)
             {
@@ -660,6 +774,7 @@ namespace PrimalFrontier.World
                 s.state = (CookState)Mathf.Clamp(d.state, 0, (int)CookState.Burned);
                 if (s.state == CookState.Empty) continue;
                 s.item = item; s.t = Mathf.Max(0f, d.t); s.duration = Mathf.Max(0f, d.duration);
+                s.madeAt = GameClock.Now - (float.IsNaN(d.age) ? 0f : Mathf.Max(0f, d.age));
                 if (d.container) s.water = new ItemStack(item, 1) { durability = d.durability, water = Mathf.Max(0, d.water), waterType = (WaterType)d.waterType };
             }
             NormalizeSlots();
@@ -668,10 +783,16 @@ namespace PrimalFrontier.World
         /// <summary>SaveSystem: lit / fuel. Never clears the slots (RestoreState may already have filled them).</summary>
         public void Restore(bool lit, float fuel)
         {
-            Fuel = Mathf.Max(0f, fuel);
-            if (lit && Fuel > 0f) SetLit(true, false);
-            else { IsLit = false; if (fx) fx.SetLit(false, false); }
+            Fuel = float.IsNaN(fuel) || float.IsInfinity(fuel) ? 0f : Mathf.Clamp(fuel, 0f, MaxFuel);
+            if (lit && Fuel > 0f)
+            {
+                if (IsLit) SetState(Fuel < C.lowFuelSeconds ? FireState.LowFuel : FireState.Burning);
+                else SetLit(true, false);
+            }
+            else if (IsLit) SetLit(false, false);
+            else if (fx) fx.SetLit(false, false);
             NormalizeSlots();
+            UpdateFxIntensity();
         }
     }
 }

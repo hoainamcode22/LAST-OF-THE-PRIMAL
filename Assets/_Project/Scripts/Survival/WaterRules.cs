@@ -24,6 +24,27 @@ namespace PrimalFrontier.Survival
         public static int Capacity(ItemStack s) => IsContainer(s) ? s.item.waterCharges : 0;
         public static bool IsFull(ItemStack s) => IsContainer(s) && s.water >= s.item.waterCharges;
         public static string Label(WaterType t) => t == WaterType.None ? "empty" : C.Water(t).label;
+
+        // ------------------------------------------------------------------ amounts in ml (charges stay the rule unit)
+        /// <summary>millilitres of this many charges (SurvivalConfig.mlPerCharge each)</summary>
+        public static int Ml(int charges) => Mathf.Max(0, charges) * Mathf.Max(1, C.mlPerCharge);
+        static readonly System.Collections.Generic.Dictionary<int, string> _mlShort = new System.Collections.Generic.Dictionary<int, string>(), _mlLong = new System.Collections.Generic.Dictionary<int, string>();
+        /// <summary>"500ml" (slot count text; cached, no allocation after the first use of an amount)</summary>
+        public static string MlShort(int charges)
+        {
+            int ml = Ml(charges);
+            if (!_mlShort.TryGetValue(ml, out var t)) _mlShort[ml] = t = ml.ToString(System.Globalization.CultureInfo.InvariantCulture) + "ml";
+            return t;
+        }
+        /// <summary>"500 / 750 ml"</summary>
+        public static string MlOf(ItemStack s)
+        {
+            if (!IsContainer(s)) return "";
+            int key = s.water * 1000 + s.item.waterCharges;
+            if (!_mlLong.TryGetValue(key, out var t))
+                _mlLong[key] = t = Ml(s.water).ToString(System.Globalization.CultureInfo.InvariantCulture) + " / " + Ml(s.item.waterCharges).ToString(System.Globalization.CultureInfo.InvariantCulture) + " ml";
+            return t;
+        }
         public static Color Color(WaterType t) => t == WaterType.None ? UnityEngine.Color.white : C.Water(t).color;
 
         /// <summary>water mixes only with the same kind (empty first to change it)</summary>
@@ -42,7 +63,16 @@ namespace PrimalFrontier.Survival
             if (add <= 0) return 0;
             s.water += add; s.waterType = t;
             GameEvents.Raise(GameEventType.WaterFilled, C.Water(t).eventId, add);
+            FillSound();
             return add;
+        }
+
+        /// <summary>the WaterFill sound at the player (fills happen in the player's hands)</summary>
+        static void FillSound()
+        {
+            if (!Application.isPlaying) return;
+            var p = World.PlayerLocator.Position;
+            Audio.SfxPlayer.Instance.Play(Audio.SfxId.WaterFill, p.HasValue ? p.Value + Vector3.up * 0.6f : Vector3.zero, 0.8f, p.HasValue ? 1f : 0f);
         }
 
         public static void Empty(ItemStack s)

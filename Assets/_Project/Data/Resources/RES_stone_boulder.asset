@@ -1,0 +1,45 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6c1c87829c145634e97f96d6e284623d, type: 3}
+  m_Name: RES_stone_boulder
+  m_EditorClassIdentifier: PrimalFrontier.Runtime::PrimalFrontier.World.ResourceDefinition
+  id: stone_boulder
+  displayName: Boulder
+  category: 0
+  size: 3
+  prompt: Gather Stone
+  item: {fileID: 11400000, guid: 2518013b5a7a70947a5fadec8cfec8f0, type: 2}
+  yieldRange: {x: 8, y: 15}
+  bonusItem: {fileID: 0}
+  bonusChance: 0
+  bestTool: 2
+  requiredTool: 2
+  handsFactor: 0.34
+  toolFactor: 1
+  gatherSeconds: 1.4
+  handAction: 16
+  toolAction: 3
+  toolWear: 1
+  handHint: Too big to break by hand. A pick breaks it.
+  punchable: 1
+  damagePerUnit: 5
+  respawnHours: 60
+  depletedLook: 3
+  damagedScale: 0.98
+  depletedScale: 0.95
+  sink: 0.03
+  radius: 1.5
+  hitVfx: 10
+  hitVfx2: 30
+  handSfx: 50
+  toolSfx: 12
+  depleteSfx: 0

@@ -33,6 +33,11 @@ namespace PrimalFrontier.World
         public int Remaining => meat + hide + bone;
         public bool IsEmpty => Remaining <= 0;
         public bool Sinking => _sinking;
+        /// <summary>game clock time the body starts to sink (save)</summary>
+        public double ExpireAt => _expireAt;
+        /// <summary>carcasses in the world (perception: they smell)</summary>
+        public static readonly System.Collections.Generic.List<Carcass> All = new System.Collections.Generic.List<Carcass>();
+        float _nextScent;
         /// <summary>meat bare hands can still tear off: half of the original meat (rounded up) minus what was taken</summary>
         public int HandMeatLeft => Mathf.Min(meat, Mathf.Max(0, (_meat0 + 1) / 2 - _meatTaken));
 
@@ -79,12 +84,33 @@ namespace PrimalFrontier.World
             _sinking = false; _shaped = false; Shaped();
             if (!body) body = gameObject;
             enabled = true;                                // nothing to take: the body just lies there until it expires
+            _nextScent = 0f;
         }
+
+        /// <summary>save / load: what is left on the body and when it sinks (after Setup)</summary>
+        public void RestoreLeft(int meatLeft, int hideLeft, int boneLeft, double expireAt)
+        {
+            meat = Mathf.Clamp(meatLeft, 0, meat); hide = Mathf.Clamp(hideLeft, 0, hide); bone = Mathf.Clamp(boneLeft, 0, bone);
+            _meatTaken = Mathf.Max(0, _meat0 - meat);
+            if (expireAt > 0) _expireAt = expireAt;
+            if (IsEmpty) BeginSink();
+        }
+
+        protected override void OnEnable() { base.OnEnable(); if (!All.Contains(this)) All.Add(this); }
+        protected override void OnDisable() { base.OnDisable(); All.Remove(this); }
 
         void Update()
         {
             if (_sinking) { Sink(); return; }
             if (_expireAt >= 0 && GameClock.Now >= _expireAt) BeginSink();
+            // a body smells of meat and blood, strongest while fresh (predators with a meat drive come to it)
+            if (Time.time >= _nextScent && Remaining > 0)
+            {
+                var pc = AI.PerceptionConfig.Instance;
+                _nextScent = Time.time + pc.carcassScentInterval;
+                float age01 = _expireAt > 0 ? Mathf.Clamp01(1f - (float)((_expireAt - GameClock.Now) / GameClock.Hours(Mathf.Max(0.1f, expireHours)))) : 0f;
+                Stimuli.Scent(transform.position + Vector3.up * 0.5f, Mathf.Lerp(pc.carcassScentFresh, pc.carcassScentOld, age01), ScentKind.Meat, StimulusSource.World);
+            }
         }
 
         // ------------------------------------------------------------------ interaction
@@ -152,6 +178,9 @@ namespace PrimalFrontier.World
 
         void CutFx(Vector3 at)
         {
+            var pc = AI.PerceptionConfig.Instance;
+            Stimuli.Noise(at, pc.butcherLoudness, NoiseTag.Gather, StimulusSource.Player);
+            Stimuli.Scent(at, pc.butcherBlood, ScentKind.Blood, StimulusSource.World);
             VfxPool.Instance.Play(VfxId.BloodSpray, at, Vector3.up, null, 0.35f);   // becomes dust when blood is off
             BloodFX.Drip(at, 0.5f, transform);
             SfxPlayer.Instance.Play(SfxId.HitFlesh, at, 0.4f);

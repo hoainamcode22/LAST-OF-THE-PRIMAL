@@ -31,6 +31,8 @@ namespace PrimalFrontier.Player
         public bool InteractHeld { get; private set; }
         public bool AttackPressed { get; private set; }
         public bool AttackHeld { get; private set; }
+        /// <summary>the separate heavy-attack button (touch HEAVY, gamepad right shoulder): heavy at once. On keyboard / mouse the heavy is "hold the attack button".</summary>
+        public bool HeavyPressed { get; private set; }
         public bool InventoryPressed { get; private set; }
         public bool JournalPressed { get; private set; }
         public bool CraftPressed { get; private set; }
@@ -49,9 +51,9 @@ namespace PrimalFrontier.Player
             public static Vector2 Move;                         // joystick, -1..1
             public static Vector2 LookDelta;                    // degrees since last frame (consumed)
             public static bool Sprint, Aim, AttackHeld, InteractHeld;
-            public static bool Jump, Crouch, Attack, Interact, Dodge, Inventory, Journal, Craft, Pause, Drop, Rotate;   // one frame
+            public static bool Jump, Crouch, Attack, Heavy, Interact, Dodge, Inventory, Journal, Craft, Pause, Drop, Rotate;   // one frame
             public static int Hotbar = -1;
-            public static void ClearFrame() { LookDelta = Vector2.zero; Jump = Crouch = Attack = Interact = Dodge = Inventory = Journal = Craft = Pause = Drop = Rotate = false; Hotbar = -1; }
+            public static void ClearFrame() { LookDelta = Vector2.zero; Jump = Crouch = Attack = Heavy = Interact = Dodge = Inventory = Journal = Craft = Pause = Drop = Rotate = false; Hotbar = -1; }
         }
 
         [Tooltip("degrees per mouse pixel")] public float mouseSensitivity = 0.12f;
@@ -62,10 +64,10 @@ namespace PrimalFrontier.Player
 
         /// <summary>Automated tests / cutscenes drive the character through this instead of devices.</summary>
         public static bool Simulate;
-        public class SimState { public Vector2 Move, Look; public bool Sprint, Walk, Aim, Jump, Crouch, Interact, InteractHold, Attack, AttackHold, Inventory, Journal, Craft, Pause, Drop, Dodge; public int Hotbar = -1; }
+        public class SimState { public Vector2 Move, Look; public bool Sprint, Walk, Aim, Jump, Crouch, Interact, InteractHold, Attack, AttackHold, Heavy, Inventory, Journal, Craft, Pause, Drop, Dodge; public int Hotbar = -1; }
         public static readonly SimState Sim = new SimState();
 
-        InputAction _move, _look, _lookStick, _zoom, _zoomKeys, _drop, _rotate, _sprint, _walk, _aim, _jump, _crouch, _interact, _attack, _inv, _journal, _craft, _pause, _dodge;
+        InputAction _move, _look, _lookStick, _zoom, _zoomKeys, _drop, _rotate, _sprint, _walk, _aim, _jump, _crouch, _interact, _attack, _heavy, _inv, _journal, _craft, _pause, _dodge;
         readonly InputAction[] _hot = new InputAction[8];
 
         void Awake()
@@ -90,6 +92,7 @@ namespace PrimalFrontier.Player
             _crouch = new InputAction("Crouch", InputActionType.Button, "<Keyboard>/c"); _crouch.AddBinding("<Keyboard>/leftCtrl"); _crouch.AddBinding("<Gamepad>/buttonEast");
             _interact = new InputAction("Interact", InputActionType.Button, "<Keyboard>/e"); _interact.AddBinding("<Gamepad>/buttonWest");
             _attack = new InputAction("Attack", InputActionType.Button, "<Mouse>/leftButton"); _attack.AddBinding("<Gamepad>/rightTrigger");
+            _heavy = new InputAction("Heavy", InputActionType.Button, "<Gamepad>/rightShoulder");      // keyboard / mouse: hold the attack button
             _inv = new InputAction("Inventory", InputActionType.Button, "<Keyboard>/tab"); _inv.AddBinding("<Keyboard>/i"); _inv.AddBinding("<Gamepad>/select");
             _journal = new InputAction("Journal", InputActionType.Button, "<Keyboard>/j");
             _craft = new InputAction("Craft", InputActionType.Button, "<Keyboard>/q");
@@ -117,7 +120,7 @@ namespace PrimalFrontier.Player
         System.Collections.Generic.IEnumerable<InputAction> All()
         {
             yield return _move; yield return _look; yield return _lookStick; yield return _zoom; yield return _zoomKeys; yield return _drop; yield return _rotate; yield return _sprint; yield return _walk; yield return _aim;
-            yield return _jump; yield return _crouch; yield return _interact; yield return _attack; yield return _inv; yield return _journal; yield return _craft; yield return _pause; yield return _dodge;
+            yield return _jump; yield return _crouch; yield return _interact; yield return _attack; yield return _heavy; yield return _inv; yield return _journal; yield return _craft; yield return _pause; yield return _dodge;
             foreach (var h in _hot) yield return h;
         }
 
@@ -133,7 +136,7 @@ namespace PrimalFrontier.Player
             if (GameplayBlocked)
             {
                 Move = Vector2.zero; Look = Vector2.zero; Zoom = 0; Sprint = Walk = Aim = false;
-                JumpPressed = CrouchPressed = InteractPressed = InteractHeld = AttackPressed = AttackHeld = DropPressed = RotatePressed = DodgePressed = false;
+                JumpPressed = CrouchPressed = InteractPressed = InteractHeld = AttackPressed = AttackHeld = HeavyPressed = DropPressed = RotatePressed = DodgePressed = false;
                 HotbarPressed = -1; HotbarScroll = 0;
                 Virtual.ClearFrame();
                 return;
@@ -142,9 +145,9 @@ namespace PrimalFrontier.Player
             {
                 Move = Vector2.ClampMagnitude(Sim.Move, 1f); Look = Sim.Look; Zoom = 0; Sprint = Sim.Sprint; Walk = Sim.Walk; Aim = Sim.Aim;
                 JumpPressed = Sim.Jump; CrouchPressed = Sim.Crouch; InteractPressed = Sim.Interact; InteractHeld = Sim.Interact || Sim.InteractHold;
-                AttackPressed = Sim.Attack; AttackHeld = Sim.Attack || Sim.AttackHold; HotbarPressed = Sim.Hotbar; HotbarScroll = 0;
+                AttackPressed = Sim.Attack; AttackHeld = Sim.Attack || Sim.AttackHold; HeavyPressed = Sim.Heavy; HotbarPressed = Sim.Hotbar; HotbarScroll = 0;
                 DropPressed = Sim.Drop; RotatePressed = false; DodgePressed = Sim.Dodge;
-                Sim.Jump = Sim.Crouch = Sim.Interact = Sim.Attack = Sim.Drop = Sim.Dodge = false; Sim.Hotbar = -1;       // one-frame buttons
+                Sim.Jump = Sim.Crouch = Sim.Interact = Sim.Attack = Sim.Heavy = Sim.Drop = Sim.Dodge = false; Sim.Hotbar = -1;       // one-frame buttons
                 return;
             }
             Move = Vector2.ClampMagnitude(_move.ReadValue<Vector2>(), 1f);
@@ -156,7 +159,7 @@ namespace PrimalFrontier.Player
             Sprint = _sprint.IsPressed(); Walk = _walk.IsPressed(); Aim = _aim.IsPressed();
             JumpPressed = _jump.WasPressedThisFrame(); CrouchPressed = _crouch.WasPressedThisFrame();
             InteractPressed = _interact.WasPressedThisFrame(); InteractHeld = _interact.IsPressed();
-            AttackPressed = _attack.WasPressedThisFrame(); AttackHeld = _attack.IsPressed();
+            AttackPressed = _attack.WasPressedThisFrame(); AttackHeld = _attack.IsPressed(); HeavyPressed = _heavy.WasPressedThisFrame();
             HotbarPressed = -1;
             for (int i = 0; i < 8; i++) if (_hot[i].WasPressedThisFrame()) HotbarPressed = i;
             HotbarScroll = _zoom.ReadValue<float>();
@@ -168,7 +171,7 @@ namespace PrimalFrontier.Player
                 Look += Virtual.LookDelta;
                 Sprint |= Virtual.Sprint; Aim |= Virtual.Aim;
                 JumpPressed |= Virtual.Jump; CrouchPressed |= Virtual.Crouch; DodgePressed |= Virtual.Dodge;
-                AttackPressed |= Virtual.Attack; AttackHeld |= Virtual.AttackHeld || Virtual.Attack;
+                AttackPressed |= Virtual.Attack; AttackHeld |= Virtual.AttackHeld || Virtual.Attack; HeavyPressed |= Virtual.Heavy;
                 InteractPressed |= Virtual.Interact; InteractHeld |= Virtual.InteractHeld || Virtual.Interact;
                 DropPressed |= Virtual.Drop; RotatePressed |= Virtual.Rotate;
                 if (Virtual.Hotbar >= 0) HotbarPressed = Virtual.Hotbar;

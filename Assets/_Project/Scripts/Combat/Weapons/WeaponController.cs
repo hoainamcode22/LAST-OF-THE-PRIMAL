@@ -29,6 +29,8 @@ namespace PrimalFrontier.Combat.Weapons
         /// <summary>a melee attack is between its start and the end of its recovery</summary>
         public bool IsAttacking => Current is MeleeWeapon m && m.Phase != AttackPhase.None;
         public AttackPhase CurrentPhase => Current is MeleeWeapon m ? m.Phase : AttackPhase.None;
+        /// <summary>the running melee attack is the heavy one</summary>
+        public bool CurrentIsHeavy => Current is MeleeWeapon m && m.CurrentIsHeavy;
         /// <summary>PlayerActions id of the running melee attack (0 = none)</summary>
         public int CurrentAttackAction => Current is MeleeWeapon m ? m.CurrentAction : PlayerActions.None;
         public bool IsDrawing => Current is RangedWeapon r && r.IsDrawing;
@@ -77,13 +79,38 @@ namespace PrimalFrontier.Combat.Weapons
             _bridge?.Dispose(); _bridge = null;
         }
 
-        /// <summary>the data this item fights with: its WeaponData, the legacy bow numbers for a bow without data, else null</summary>
+        [Header("Bare hands")]
+        [Tooltip("empty hands (and items with no weapon role) fight with this; empty = Resources/Combat/WPN_bare_hands or its defaults")]
+        public WeaponData bareHands;
+        /// <summary>the bare-hand data in use (the field, else the shared asset / defaults)</summary>
+        public WeaponData BareHandData => bareHands ? bareHands : WeaponData.BareHands;
+        /// <summary>the fists are the current weapon (empty hand or an item with no weapon role)</summary>
+        public bool BareHanded => _data != null && _data.unarmed;
+
+        /// <summary>
+        /// the data this item fights with: its WeaponData, the legacy bow numbers for a bow without data, the bare hands for
+        /// an empty hand or an item with no weapon role (wood, stone, fibre ...), else null (food, water, camp items and legacy
+        /// melee items keep their own paths in PlayerCombat)
+        /// </summary>
         public WeaponData ResolveData(ItemDefinition item)
         {
-            if (!item) return null;
+            if (!item) return BareHandData;
             if (item.weaponData) return item.weaponData;
             if (item.weapon == WeaponKind.Bow) return WeaponData.LegacyBow(item, legacyArrowSpeed, legacyDrawTime);
+            if (FightsBareHanded(item)) return BareHandData;
             return null;
+        }
+
+        /// <summary>
+        /// an item with no weapon role: no WeaponData, no weapon kind, no legacy damage, and nothing the attack button uses it
+        /// for (food, water, camp items, items a use handler claims). Holding it, the attack button punches.
+        /// </summary>
+        public static bool FightsBareHanded(ItemDefinition item)
+        {
+            if (!item) return true;
+            if (item.weaponData || item.weapon != WeaponKind.None || item.damage > 0f) return false;
+            if (item.IsFood || item.IsWaterContainer || item.IsPlaceable || item.lightRange > 0f) return false;
+            return !PlayerInteraction.HasUseHandler(item);
         }
 
         /// <summary>true when the active item fights through this controller</summary>
@@ -118,7 +145,7 @@ namespace PrimalFrontier.Combat.Weapons
                 if (Aiming) Current.OnAimChanged(true);
                 _model = _eq && _eq.HeldItem == item ? _eq.HeldObject : null;
                 Current.OnModelChanged(_model);
-                if (logAttacks) Log($"equip {item.id} ({(data.IsRanged ? "ranged" : "melee")}, {data.name})");
+                if (logAttacks) Log($"equip {(item ? item.id : "bare hands")} ({(data.IsRanged ? "ranged" : data.unarmed ? "unarmed" : "melee")}, {data.name})");
             }
             _bridge?.SetWeapon(data);
             WeaponChanged?.Invoke(Current);
@@ -126,10 +153,10 @@ namespace PrimalFrontier.Combat.Weapons
 
         // ------------------------------------------------------------------ input (from PlayerCombat)
         /// <summary>attack buttons for this frame; aiming is PlayerCombat.Aiming</summary>
-        public void HandleInput(bool pressed, bool held, bool aiming)
+        public void HandleInput(bool pressed, bool held, bool aiming, bool heavyPressed = false)
         {
             Sync();
-            Current?.HandleInput(new WeaponInput(pressed, held, aiming));
+            Current?.HandleInput(new WeaponInput(pressed, held, aiming, heavyPressed));
         }
 
         /// <summary>aim toggled (PlayerCombat.SetAim): the bow raises / lowers</summary>

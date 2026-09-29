@@ -3,6 +3,7 @@ using PrimalFrontier.Animation;
 using PrimalFrontier.Audio;
 using PrimalFrontier.UI;
 using PrimalFrontier.VFX;
+using PrimalFrontier.World;
 
 namespace PrimalFrontier.Player
 {
@@ -22,6 +23,10 @@ namespace PrimalFrontier.Player
         public Vector3 ActionFocusNormal { get; set; } = Vector3.up;
         [Tooltip("set by the food system before Eat: cooked food steams")]
         public bool HotFood { get; set; }
+        /// <summary>a ResourceNode plays its own per-type gather effects on each hit (the clip's OnGatherHit param is skipped)</summary>
+        public bool NodeDrivesGatherFx { get; set; }
+        /// <summary>surface under the last footstep (AI hearing: footstep loudness per terrain layer)</summary>
+        public Surface LastFootSurface { get; private set; } = Surface.Dirt;
 
         PlayerMotor _motor; PlayerAnimationDriver _drv; PlayerHealth _hp; PlayerFacial _face; Animator _anim; CharacterAnimationEvents _ev;
         PooledEffect _bleed;
@@ -63,7 +68,7 @@ namespace PrimalFrontier.Player
             switch (fn)
             {
                 case "OnFootstep": if (_ev.EventClipWeight >= footstepMinClipWeight) Footstep(param == "R"); break;
-                case "OnGatherHit": Gather(param); break;
+                case "OnGatherHit": if (!NodeDrivesGatherFx) Gather(param); break;
                 case "OnCraftTick":
                     Fx.Play(VfxId.CraftDust, HandsMid, Vector3.up); Sfx.Play(SfxId.Craft, HandsMid, 0.7f);
                     if (param == "knap" || Random.value < 0.25f) { Fx.Play(VfxId.CraftSparks, HandsMid, transform.forward); Sfx.Play(SfxId.CraftKnap, HandsMid, 0.6f); }
@@ -91,6 +96,7 @@ namespace PrimalFrontier.Player
             if (_motor.PlanarSpeed < footstepMinSpeed && vol >= 1f) return;
             var p = Bone(right ? HumanBodyBones.RightFoot : HumanBodyBones.LeftFoot, transform.position); p.y = transform.position.y;
             var s = SurfaceDetector.At(p);
+            LastFootSurface = s;
             float speedK = Mathf.Clamp01(_motor.PlanarSpeed / 6f);
             float quiet = _motor.IsCrouching ? 0.35f : 1f;
             VfxId fx = s switch { Surface.Sand => VfxId.FootSand, Surface.Mud => VfxId.FootMud, Surface.Rock => VfxId.FootRock, Surface.Water => VfxId.WaterDrops, Surface.Wood => VfxId.None, _ => VfxId.FootDirt };
@@ -109,6 +115,52 @@ namespace PrimalFrontier.Player
                 case "Gather_Stone": Fx.Play(VfxId.StoneChips, p, n); Sfx.Play(SfxId.StoneHit, p); break;
                 default: Fx.Play(VfxId.Leaves, p, Vector3.up); Sfx.Play(SfxId.LeafRustle, p); break;
             }
+        }
+
+        // ------------------------------------------------------------------ resource gathering (ResourceNode, TreeHarvest, strikes)
+        static float _nextCollectSfx, _nextHint; static string _lastHint;
+
+        /// <summary>one gather action on a node: its pooled particles (stone fragments + dust, wood chips + bark, leaves) and sound</summary>
+        public static void GatherHit(ResourceDefinition d, Vector3 point, Vector3 normal, bool byHand, int got)
+        {
+            if (d == null) return;
+            if (normal.sqrMagnitude < 1e-4f) normal = Vector3.up;
+            float k = got > 0 ? 1f : 0.65f;
+            if (d.hitVfx != VfxId.None) Fx.Play(d.hitVfx, point, normal, null, k);
+            if (d.hitVfx2 != VfxId.None) Fx.Play(d.hitVfx2, point, Vector3.up, null, 0.6f * k);
+            var sfx = byHand ? d.handSfx : d.toolSfx;
+            if (sfx != SfxId.None) Sfx.Play(sfx, point, byHand ? 0.8f : 1f);
+        }
+
+        /// <summary>the last unit came off: a bigger burst so the node never vanishes without a reason</summary>
+        public static void GatherDepleted(ResourceDefinition d, Vector3 point)
+        {
+            if (d == null) return;
+            if (d.hitVfx != VfxId.None) Fx.Play(d.hitVfx, point, Vector3.up, null, 1.5f);
+            var dust = d.category == ResourceCategory.Stone || d.category == ResourceCategory.Wood ? VfxId.DustImpact : d.category == ResourceCategory.Fish ? VfxId.WaterSplash : VfxId.Leaves;
+            Fx.Play(dust, point, Vector3.up, null, 1.2f);
+            var sfx = d.depleteSfx != SfxId.None ? d.depleteSfx : d.category switch
+            {
+                ResourceCategory.Stone => SfxId.StoneHit, ResourceCategory.Wood => SfxId.WoodBreak, ResourceCategory.Fish => SfxId.WaterSplash, _ => SfxId.LeafRustle,
+            };
+            Sfx.Play(sfx, point, 0.9f);
+        }
+
+        /// <summary>items went into the pack: a soft inventory sound (never more than one every 0.15 s)</summary>
+        public static void GatherCollected(Vector3 at)
+        {
+            if (Time.unscaledTime < _nextCollectSfx) return;
+            _nextCollectSfx = Time.unscaledTime + 0.15f;
+            Sfx.Play(SfxId.Pickup, at, 0.45f);
+        }
+
+        /// <summary>"too big to break by hand" style hints, at most one every 12 s (a new text shows at once)</summary>
+        public static void GatherHint(string text)
+        {
+            if (string.IsNullOrEmpty(text)) return;
+            if (text == _lastHint && Time.unscaledTime < _nextHint) return;
+            _lastHint = text; _nextHint = Time.unscaledTime + 12f;
+            PlayerInteraction.Notify(text);
         }
 
         void OnDamaged(float amount, Vector3 source, bool heavy)

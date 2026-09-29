@@ -36,8 +36,8 @@ namespace PrimalFrontier.UI
             R("Dodge (Né)", "V", 0, A("Dodge"), "<Keyboard>/v"),
 
             H("COMBAT  ·  CHIẾN ĐẤU", 0),
-            R("Attack (Tấn công)", "Left mouse", 0, A("Attack"), "<Mouse>/leftButton"),
-            R("Heavy attack (Đòn mạnh)", "Hold left mouse", 0, A("Attack"), "<Mouse>/leftButton"),
+            R("Attack / punch, tap again: combo (Đánh / đấm, combo)", "Left mouse", 0, A("Attack"), "<Mouse>/leftButton"),
+            R("Heavy attack / punch (Đòn mạnh / đấm mạnh)", "Hold left mouse", 0, A("Attack"), "<Mouse>/leftButton"),
             R("Aim (Ngắm)", "Right mouse (hold)", 0, A("Aim"), "<Mouse>/rightButton"),
             R("Block, sword / knife (Đỡ đòn)", "Hold right mouse", 0, A("Aim"), "<Mouse>/rightButton"),
             R("Bow: draw / shoot (Cung: kéo / bắn)", "Hold RMB, hold LMB, release", 0),

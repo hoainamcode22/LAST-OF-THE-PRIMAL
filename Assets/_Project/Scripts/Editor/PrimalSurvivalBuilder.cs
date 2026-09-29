@@ -25,8 +25,15 @@ namespace PrimalFrontier.EditorTools
     ///   when the real model arrives; otherwise kept (arg "rebuild" forces it).
     /// - Recipes leaf_cup (start), rain_collector (learned with its materials), tent (start); RCP_cooked_meat is taken
     ///   out of the ItemDatabase recipe list (asset kept) so meat is cooked only on the campfire. Max 40 recipes.
+    /// Phase 3 (same rules, hand edits win):
+    /// - Resources/StatusEffects/SE_&lt;id&gt; for every built-in status effect (StatusEffectDefinition.BuiltIn values); icons
+    ///   from Resources/UI/icon_status_&lt;id&gt;.png.
+    /// - Items raw_fish (cooks into cooked_fish), cooked_fish, burnt_fish, edible_plant with models / icons from Art (borrowed
+    ///   visuals until they exist); spoilHours on the foods that have none; the bandage becomes a treatment (cures bleeding,
+    ///   +15 health slowly, no longer "eaten").
+    /// - Logs the live recipe list (count, required ones present).
     /// Safe to run again. NEVER run PrimalGameplayBuilder after this (it overwrites item data and drops other items).
-    /// Bridge: PrimalSurvivalBuilder.Build (arg "" or "rebuild").
+    /// Bridge: PrimalSurvivalBuilder.Build (arg "" or "rebuild"); PrimalSurvivalBuilder.Inspect (content report).
     /// </summary>
     public static class PrimalSurvivalBuilder
     {
@@ -70,7 +77,10 @@ namespace PrimalFrontier.EditorTools
                 RetireCookedMeatRecipe();
                 BuildRecipes();
                 FillConfigRefs(cfg);
+                StatusEffectAssets();
+                Phase3Items();
                 CheckIcons();
+                RecipeReport();
             }
             finally
             {
@@ -429,6 +439,133 @@ namespace PrimalFrontier.EditorTools
             int n = _db.recipes.RemoveAll(r => r && r.id == "cooked_meat");
             if (n > 0) L($"recipe cooked_meat retired: removed from the ItemDatabase recipe list (asset {RecipesDir}/RCP_cooked_meat.asset kept); meat is cooked on the campfire slots");
             else L("recipe cooked_meat already retired (not in the ItemDatabase)");
+        }
+
+        // ------------------------------------------------------------------ phase 3
+        const string EffectsDir = "Assets/_Project/Resources/StatusEffects";
+
+        /// <summary>one asset per built-in status effect (created with the design values when missing; kept otherwise)</summary>
+        static void StatusEffectAssets()
+        {
+            Directory.CreateDirectory(EffectsDir);
+            foreach (var id in StatusEffectDefinition.BuiltInIds)
+            {
+                string p = $"{EffectsDir}/SE_{id}.asset";
+                var d = AssetDatabase.LoadAssetAtPath<StatusEffectDefinition>(p);
+                if (!d)
+                {
+                    d = StatusEffectDefinition.BuiltIn(id); d.hideFlags = HideFlags.None;
+                    AssetDatabase.CreateAsset(d, p); L($"status effect {id} created ({p})");
+                }
+                else L($"status effect {id} kept");
+                if (!d.icon)
+                {
+                    var icon = AssetDatabase.LoadAssetAtPath<Sprite>($"Assets/_Project/Resources/UI/icon_{d.iconName}.png");
+                    if (icon) { d.icon = icon; EditorUtility.SetDirty(d); L($"  {id}: icon icon_{d.iconName}.png"); }
+                    else L($"  {id}: icon pending (Resources/UI/icon_{d.iconName}.png; the HUD loads it by name meanwhile)");
+                }
+            }
+            StatusEffectDefinition.ClearCache();
+        }
+
+        static void Phase3Items()
+        {
+            var rawMeat = Find("raw_meat"); var cookedMeat = Find("cooked_meat"); var burntMeat = Find("burnt_meat");
+            var burntFish = Item("burnt_fish", "Burnt Fish", ItemCategory.Food, 0.25f, 10,
+                "Fish left on the fire too long. Charred and dry, but still a little food.",
+                Look("burnt_meat", "cooked_meat"), "ICON_BurntFish", "ITEM_BurntFish", i => { i.hunger = 4f; i.sicknessChance = 0.1f; i.spoilHours = 72f; });
+            var cookedFish = Item("cooked_fish", "Cooked Fish", ItemCategory.Food, 0.3f, 10,
+                "Flaky white fish roasted over the coals. Light, safe and good for you.",
+                Look("cooked_meat"), "ICON_CookedFish", "ITEM_CookedFish",
+                i => { i.hunger = 26f; i.thirst = 4f; i.health = 5f; i.isHot = true; i.spoilHours = 36f; });
+            var rawFish = Item("raw_fish", "Raw Fish", ItemCategory.Food, 0.4f, 10,
+                "A silver fish from the stream. Cook it on a campfire; raw it may make you sick, and it goes off fast.",
+                Look("raw_meat"), "ICON_RawFish", "ITEM_RawFish",
+                i => { i.hunger = 10f; i.thirst = 2f; i.sicknessChance = 0.25f; i.cookSeconds = 10f; i.spoilHours = 12f; });
+            Item("edible_plant", "Wild Greens", ItemCategory.Food, 0.1f, 20,
+                "Tender leaves and shoots from the forest edge. A little food, a little water, safe to eat raw.",
+                Look("berries", "fiber"), "ICON_EdiblePlant", "ITEM_EdiblePlant",
+                i => { i.hunger = 6f; i.thirst = 4f; i.stamina = 3f; i.spoilHours = 30f; });
+            // links (only when empty: hand edits win)
+            if (rawFish && cookedFish && !rawFish.cookedResult) { rawFish.cookedResult = cookedFish; EditorUtility.SetDirty(rawFish); L("raw_fish cooks into cooked_fish"); }
+            if (cookedFish && burntFish && !cookedFish.burntResult) { cookedFish.burntResult = burntFish; EditorUtility.SetDirty(cookedFish); L("cooked_fish burns into burnt_fish"); }
+            // spoilage on existing foods that have none (in-game hours)
+            void Spoil(string id, float hours)
+            {
+                var it = Find(id); if (!it) { L($"{id}: missing (no spoil time set)"); return; }
+                if (it.spoilHours > 0f) { L($"{id}: spoilHours kept ({F(it.spoilHours)} h)"); return; }
+                it.spoilHours = hours; EditorUtility.SetDirty(it); L($"{id}: spoilHours {F(hours)} h");
+            }
+            Spoil("raw_meat", 24f); Spoil("cooked_meat", 48f); Spoil("burnt_meat", 72f); Spoil("berries", 36f); Spoil("fruit", 48f); Spoil("fruit_mash", 24f);
+            // the bandage is a treatment, not food: cures bleeding, health back slowly (it went through Eat and never stopped bleeding).
+            // Its own roll model / icon replace the borrowed fibre ones (Item keeps everything else as it is)
+            if (Find("bandage")) Item("bandage", "Bandage", ItemCategory.Survival, 0.1f, 10, null, Look("fiber", "rope"), "ICON_Bandage", "ITEM_Bandage");
+            var bandage = Find("bandage");
+            if (bandage)
+            {
+                bool dirty = false;
+                if (bandage.cures == null || bandage.cures.Length == 0) { bandage.cures = new[] { StatusEffectIds.Bleeding }; dirty = true; L("bandage: cures bleeding"); }
+                if (bandage.health > 0f && bandage.healOverTime <= 0f) { bandage.healOverTime = 15f; bandage.health = 0f; dirty = true; L("bandage: +15 health over time (was +25 at once through Eat)"); }
+                if (bandage.description != null && bandage.description.Contains("(+25 health)"))
+                { bandage.description = "Soft fibre pads bound with a strip of hide. Stops bleeding and helps the wound close (+15 health, slowly)."; dirty = true; }
+                if (dirty) EditorUtility.SetDirty(bandage); else L("bandage: treatment data kept");
+            }
+            else W("bandage item missing (PrimalCraftingBuilder makes it)");
+        }
+
+        /// <summary>the live recipe list and the directive's required recipes (19): which are present</summary>
+        static void RecipeReport()
+        {
+            var ids = _db.recipes.Where(r => r).Select(r => r.id).ToList();
+            L($"recipes ({ids.Count}): {string.Join(", ", ids)}");
+            var outputs = new HashSet<string>(_db.recipes.Where(r => r && r.output).Select(r => r.output.id));
+            var want = new (string what, string[] any)[]
+            {
+                ("stone axe", new[] { "stone_axe" }), ("stone pick", new[] { "stone_pick" }), ("stone knife", new[] { "flint_knife", "stone_knife" }),
+                ("stone spear (also thrown)", new[] { "stone_spear" }), ("primitive bow", new[] { "bow" }), ("arrow", new[] { "arrow" }),
+                ("campfire", new[] { "campfire" }), ("torch", new[] { "torch" }), ("water container", new[] { "water_container", "leaf_cup", "leather_waterskin" }),
+                ("bedroll", new[] { "bedroll" }), ("storage", new[] { "storage" }), ("bandage", new[] { "bandage" }),
+            };
+            foreach (var (what, any) in want)
+                L($"  required {what}: " + (any.Any(outputs.Contains) ? "present (" + string.Join("/", any.Where(outputs.Contains)) + ")" : "MISSING"));
+            L("  cooked meat / cooked fish: campfire slots (raw_meat -> " + (Find("raw_meat") && Find("raw_meat").cookedResult ? Find("raw_meat").cookedResult.id : "none") +
+              ", raw_fish -> " + (Find("raw_fish") && Find("raw_fish").cookedResult ? Find("raw_fish").cookedResult.id : "none") + ")");
+        }
+
+        /// <summary>bridge: what the phase 3 content looks like in the project (no changes)</summary>
+        [PrimalBridgeCommand]
+        public static string Inspect(string arg)
+        {
+            var sb = new StringBuilder();
+            var db = AssetDatabase.LoadAssetAtPath<ItemDatabase>(DbPath);
+            if (db)
+            {
+                sb.AppendLine($"items {db.items.Count}, recipes {db.recipes.Count}");
+                foreach (var id in new[] { "raw_fish", "cooked_fish", "burnt_fish", "edible_plant", "bandage", "raw_meat", "cooked_meat", "berries", "fruit" })
+                {
+                    var it = db.Item(id);
+                    sb.AppendLine(it ? $"  {id}: hunger {F(it.hunger)} thirst {F(it.thirst)} health {F(it.health)} heal {F(it.healOverTime)} spoil {F(it.spoilHours)} h cures [{(it.cures != null ? string.Join(",", it.cures) : "")}] icon {(it.icon ? it.icon.name : "-")} model {(it.worldPrefab ? it.worldPrefab.name : "-")} cooks-> {(it.cookedResult ? it.cookedResult.id : "-")}" : $"  {id}: MISSING");
+                }
+            }
+            foreach (var id in StatusEffectDefinition.BuiltInIds)
+            {
+                var d = AssetDatabase.LoadAssetAtPath<StatusEffectDefinition>($"{EffectsDir}/SE_{id}.asset");
+                sb.AppendLine(d ? $"  SE_{id}: {d.displayName} {F(d.defaultSeconds)} s, hp/s {F(d.healthPerSecond)}, icon {(d.icon ? d.icon.name : "-")}" : $"  SE_{id}: MISSING");
+            }
+            var rc = AssetDatabase.LoadAssetAtPath<GameObject>($"{PrefabDir}/PFB_RainCollector.prefab");
+            if (rc)
+            {
+                var c = rc.GetComponent<RainCollector>(); var w = c ? c.waterSurface : null;
+                var mf = w ? w.GetComponent<MeshFilter>() : null; var mr = w ? w.GetComponent<MeshRenderer>() : null;
+                if (w && mf && mf.sharedMesh)
+                {
+                    var m = mf.sharedMesh; var n = m.normals.Length > 0 ? w.TransformDirection(m.normals[0]) : Vector3.zero;
+                    sb.AppendLine($"rain collector water: mesh {m.name} bounds {m.bounds.center}/{m.bounds.size}, local pos {w.localPosition} rot {w.localEulerAngles} scale {w.localScale}, " +
+                                  $"world normal {n}, material {(mr && mr.sharedMaterial ? mr.sharedMaterial.name + " (" + mr.sharedMaterial.shader.name + ")" : "none")}, heights empty {F(c.emptySurfaceHeight)} full {F(c.fullSurfaceHeight)}");
+                }
+                else sb.AppendLine("rain collector water: no mesh");
+            }
+            return sb.ToString();
         }
 
         static void CheckIcons()

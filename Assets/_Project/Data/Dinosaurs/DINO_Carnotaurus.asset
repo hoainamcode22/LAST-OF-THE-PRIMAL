@@ -54,3 +54,30 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 08124452e36bada44aecc9d42f93450f, type: 3}
   heavyFootsteps: 1
   journalId: carnotaurus
+  sprayLoot: 0
+  fleeZigZag: 0
+  alertSensitivity: 1
+  nightVision: 0.3
+  sightGain: 1
+  hearingGain: 1
+  smellSensitivity: 1
+  awarenessDecay: 0.07
+  memorySeconds: 15
+  herdShareRadius: 0
+  alarmCall: 0
+  meatDrive: 0.7
+  scentTrackRange: 8
+  fireFear:
+    predatorFear: 0.6
+    fearRadiusDay: 5
+    fearRadiusNight: 8
+    rainMultiplier: 0.6
+    fuelMultiplier: 0.6
+    response: 3
+    patienceSeconds: 18
+    ignoreBelowIntensity: 0
+    ignoreWhenProvoked: 1
+  activity: 2
+  drinkEveryHours: 14
+  drinkSearchRadius: 160
+  unarmedDamageScale: -1

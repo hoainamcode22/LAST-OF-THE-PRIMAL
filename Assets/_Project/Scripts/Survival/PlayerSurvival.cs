@@ -13,6 +13,10 @@ namespace PrimalFrontier.Survival
     /// multiplier of the two and adding their health drains. Eating (ConsumeItem), sleeping (ApplySleep) and respawning
     /// (ApplyRespawn) rules live here, not in the player controllers. Pays for sprinting (IStaminaSource) and hurts /
     /// heals through PlayerHealth. No allocations per frame.
+    /// Phase 3: sickness is the "sickness" status effect (PlayerStatusEffects; SickSeconds / MakeSick keep their meaning), status
+    /// multipliers (injuries, sickness) apply to speed, sprint cost, stamina and thirst; food health comes back slowly
+    /// (Recovering) and spoiled / aging food is worth less (Spoilage); wetness also rises in water and dries faster under a
+    /// roof or in the sun; the sun warms a little outside the shade. Wet / Cold are shown as status flags.
     /// </summary>
     [RequireComponent(typeof(PlayerHealth))]
     public class PlayerSurvival : MonoBehaviour, IStaminaSource
@@ -37,8 +41,8 @@ namespace PrimalFrontier.Survival
         public float bodyResponse = 0.02f;         // how fast the body follows the environment
         [Header("Damage / heal (HP per second; hunger / thirst damage comes from the SurvivalConfig tiers)")]
         public float freezeDamage = 0.2f;
-        public float sickDamage = 0.3f;
-        [Tooltip("while sick (Stomach_Sick): thirst drains faster, stamina comes back slower")] public float sickThirstMultiplier = 1.6f, sickStaminaRegen = 0.5f;
+        [Tooltip("legacy, unused (see the 'sickness' status effect)")] public float sickDamage = 0.3f;
+        [Tooltip("legacy, unused: sickness numbers now come from the 'sickness' StatusEffectDefinition")] public float sickThirstMultiplier = 1.6f, sickStaminaRegen = 0.5f;
         public float regenHealth = 0.12f;
         [Tooltip("health regenerates only while hunger and thirst are both above this")] public float regenNeedAbove = 55f;
 
@@ -48,14 +52,22 @@ namespace PrimalFrontier.Survival
         public float BodyTemperature { get; private set; }
         public float Wetness { get; private set; }               // 0..1
         public float EnvironmentTemperature { get; private set; } = 24f;
-        public float SickSeconds { get; private set; }
+        /// <summary>food poisoning time left (the "sickness" status effect)</summary>
+        public float SickSeconds { get { var fx = Effects; if (!fx) return 0f; float r = fx.RemainingOf(StatusEffectIds.Sickness); return float.IsInfinity(r) ? 0f : r; } }
+        /// <summary>standing in water (sea, pond, stream) this deep at the last check, m (0 = dry land)</summary>
+        public float WaterDepth { get; private set; }
+        /// <summary>0 = shade / night, 1 = full midday sun (last check)</summary>
+        public float SunExposure { get; private set; }
+        /// <summary>under a roof (shelter, tent, cave) at the last check</summary>
+        public bool Sheltered { get; private set; }
         public bool IsCold => BodyTemperature < coldBody;
         public bool IsFreezing => BodyTemperature < freezingBody;
         public bool IsStarving => Hunger <= 0.01f;
         public bool IsDehydrated => Thirst <= 0.01f;
-        public bool IsSick => SickSeconds > 0f;
-        /// <summary>maximum stamina after the hunger / thirst tiers</summary>
-        public float MaxStaminaNow => maxStamina * _maxMul;
+        public bool IsSick { get { var fx = Effects; return fx && fx.Has(StatusEffectIds.Sickness); } }
+        public bool IsWet => Wetness > Config.wetStatusAbove;
+        /// <summary>maximum stamina after the hunger / thirst tiers and status effects</summary>
+        public float MaxStaminaNow => maxStamina * _maxMul * (_fx ? _fx.MaxStaminaMultiplier : 1f);
         /// <summary>stamina regeneration multiplier of the hunger / thirst tiers (1 = fine; cold and sickness apply on top)</summary>
         public float NeedStaminaRegenMultiplier => _regenMul;
         /// <summary>health lost per second from hunger + thirst tiers</summary>
@@ -72,10 +84,15 @@ namespace PrimalFrontier.Survival
         public bool Paused { get; set; }
 
         public event Action<string> Warning;      // "Thirsty: find water soon." etc. (HUD)
+        /// <summary>a need went up: (HungerEventId / ThirstEventId, amount) for the "+30 Hydration" feedback</summary>
+        public event Action<string, float> NeedRestored;
+        /// <summary>a stack in the pack reached a new spoilage stage (item, stage)</summary>
+        public event Action<ItemDefinition, FoodStage> FoodStageChanged;
         /// <summary>GameEvents ids of NeedTierChanged (amount = tier index + 1, 0 = fine)</summary>
         public const string HungerEventId = "hunger", ThirstEventId = "thirst";
 
-        PlayerHealth _hp; InventorySystem _inv; SurvivalConfig _cfg;
+        PlayerHealth _hp; InventorySystem _inv; SurvivalConfig _cfg; PlayerStatusEffects _fx;
+        float _envTick, _spoilTick;
         float _lastStaminaUse = -10f; int _warnMask;
         int _hTier = int.MinValue, _tTier = int.MinValue;
         float _regenMul = 1f, _maxMul = 1f, _speedMul = 1f, _needDrain;
@@ -84,9 +101,21 @@ namespace PrimalFrontier.Survival
 
         SurvivalConfig Config { get { if (!_cfg) ApplyConfig(); return _cfg; } }
 
+        /// <summary>the status effects on this body (added when missing)</summary>
+        public PlayerStatusEffects Effects
+        {
+            get
+            {
+                if (!_fx) { _fx = GetComponent<PlayerStatusEffects>(); if (!_fx && this) _fx = gameObject.AddComponent<PlayerStatusEffects>(); }
+                return _fx;
+            }
+        }
+
         void Awake()
         {
             _hp = GetComponent<PlayerHealth>();
+            _ = Effects;
+            SurvivalItemUse.EnsureRegistered();
             ApplyConfig();
             var c = _cfg;
             Hunger = Mathf.Clamp(c.startHunger, 0f, 100f); Thirst = Mathf.Clamp(c.startThirst, 0f, 100f);
@@ -96,13 +125,14 @@ namespace PrimalFrontier.Survival
         }
         void Start()
         {
-            var m = GetComponent<PlayerMotor>(); if (m) { m.Stamina = this; m.Jumped += OnJumped; }
+            var m = GetComponent<PlayerMotor>(); if (m) { m.Stamina = this; m.Jumped += OnJumped; m.Landed += OnLanded; }
             BindInventory();
         }
         void OnEnable() { BindInventory(); }
         void OnDisable() { if (_inv) _inv.Changed -= OnInventoryChanged; }
-        void OnDestroy() { var m = GetComponent<PlayerMotor>(); if (m) m.Jumped -= OnJumped; }
+        void OnDestroy() { var m = GetComponent<PlayerMotor>(); if (m) { m.Jumped -= OnJumped; m.Landed -= OnLanded; } }
         void OnJumped() => UseStamina(jumpCost);
+        void OnLanded(float impact) { if (_hp && !Paused) _hp.Landed(impact); }
 
         void BindInventory()
         {
@@ -138,9 +168,9 @@ namespace PrimalFrontier.Survival
 
         // ---------------------------------------------------------------- IStaminaSource
         public bool CanSprint => !Overweight && Stamina > (Time.time - _lastStaminaUse < 0.2f ? 0.5f : 12f);
-        public void DrainSprint(float dt) { UseStamina(sprintCostPerSecond * dt); _sprinting = true; }
-        /// <summary>1 at the start stats; tiers, overweight and freezing slow the player</summary>
-        public float MoveSpeedMultiplier => (Overweight ? overweightSpeed : 1f) * _speedMul * (IsFreezing ? freezingSpeed : 1f);
+        public void DrainSprint(float dt) { UseStamina(sprintCostPerSecond * (_fx ? _fx.SprintCostMultiplier : 1f) * dt); _sprinting = true; }
+        /// <summary>1 at the start stats; tiers, overweight, freezing and status effects (leg injury) slow the player</summary>
+        public float MoveSpeedMultiplier => (Overweight ? overweightSpeed : 1f) * _speedMul * (IsFreezing ? freezingSpeed : 1f) * (_fx ? _fx.MoveSpeedMultiplier : 1f);
 
         public bool UseStamina(float amount)
         {
@@ -180,32 +210,68 @@ namespace PrimalFrontier.Survival
         // ---------------------------------------------------------------- consumption
         public void Consume(float hunger, float thirst, float health, float stamina)
         {
+            float h0 = Hunger, t0 = Thirst;
             Hunger = Mathf.Clamp(Hunger + hunger, 0f, 100f);
             Thirst = Mathf.Clamp(Thirst + thirst, 0f, 100f);
             RefreshTiers(true);
             Stamina = Mathf.Clamp(Stamina + stamina, 0f, MaxStaminaNow);
             if (health > 0f) _hp.Heal(health); else if (health < 0f) _hp.ApplyRaw(-health);
+            if (Hunger - h0 > 0.5f) NeedRestored?.Invoke(HungerEventId, Hunger - h0);
+            if (Thirst - t0 > 0.5f) NeedRestored?.Invoke(ThirstEventId, Thirst - t0);
         }
 
-        /// <summary>eat one unit of this item: its food values, and the sickness roll of item.sicknessChance (raw meat)</summary>
-        public bool ConsumeItem(ItemDefinition item)
+        /// <summary>eat one unit of this item (fresh): its food values, and the sickness roll of item.sicknessChance (raw meat)</summary>
+        public bool ConsumeItem(ItemDefinition item) => ConsumeItem(item, FoodStage.Fresh);
+
+        /// <summary>eat one unit from this stack (call before taking it out of the pack): the stack's spoilage stage counts</summary>
+        public bool ConsumeItem(ItemDefinition item, ItemStack from) => ConsumeItem(item, from != null && from.item == item ? Spoilage.Stage(from) : FoodStage.Fresh);
+
+        /// <summary>
+        /// eat one unit at this spoilage stage: hunger / thirst / stamina x Spoilage.Nutrition, the item's health comes back
+        /// slowly (Recovering), and the sickness roll (item.sicknessChance, higher when aging / spoiled)
+        /// </summary>
+        public bool ConsumeItem(ItemDefinition item, FoodStage stage)
         {
             if (item == null || !_hp || _hp.IsDead) return false;
-            Consume(item.hunger, item.thirst, item.health, item.stamina);
-            if (item.sicknessChance > 0f && UnityEngine.Random.value < item.sicknessChance)
-                MakeSick(Config.foodSickSeconds, "Your stomach turns. The " + (item.displayName ?? "food").ToLowerInvariant() + " was a risk.");
+            float k = Spoilage.Nutrition(stage);
+            Consume(item.hunger * k, item.thirst * k, 0f, item.stamina * k);
+            HealOverTime((item.health + item.healOverTime) * k);
+            float chance = Spoilage.SickChance(item, stage);
+            if (chance > 0f && UnityEngine.Random.value < chance)
+            {
+                string n = (item.displayName ?? "food").ToLowerInvariant();
+                if (stage == FoodStage.Spoiled) MakeSick(Config.spoiledSickSeconds, "Your stomach turns. The " + n + " had spoiled.");
+                else MakeSick(Config.foodSickSeconds, "Your stomach turns. The " + n + " was a risk.");
+            }
+            else if (stage == FoodStage.Spoiled) Warning?.Invoke("That " + (item.displayName ?? "food").ToLowerInvariant() + " had gone off. Not much good in it.");
             GameEvents.Raise(GameEventType.Ate, item.id, 1, transform.position);
             return true;
         }
 
-        /// <summary>Stomach_Sick: health drains a little, thirst faster, stamina recovers slower, for the given time</summary>
+        /// <summary>health back over time through the Recovering status (never all at once)</summary>
+        public void HealOverTime(float amount)
+        {
+            if (amount <= 0f || !_hp || _hp.IsDead) return;
+            var def = StatusEffectDefinition.Get(StatusEffectIds.Recovering);
+            var fx = Effects;
+            if (!def || !fx || def.healthPerSecond <= 0f) { _hp.Heal(amount); return; }
+            fx.Apply(def, 1f, amount / def.healthPerSecond, false);
+        }
+
+        /// <summary>food poisoning (the "sickness" status): health drains a little, thirst faster, stamina lower, for the given time</summary>
         public void MakeSick(float seconds, string reason = "Your stomach turns. Raw meat was a risk.")
         {
-            SickSeconds = Mathf.Max(SickSeconds, seconds); Warning?.Invoke(reason);
+            var fx = Effects; if (fx) fx.Apply(StatusEffectIds.Sickness, 1f, Mathf.Max(0.01f, seconds), false);
+            Warning?.Invoke(reason);
             GameEvents.Raise(GameEventType.GotSick, "stomach", Mathf.RoundToInt(seconds), transform.position);
         }
-        /// <summary>save / load: put the remaining sickness back without a warning</summary>
-        public void RestoreSickness(float seconds) { SickSeconds = Mathf.Max(0f, seconds); }
+        /// <summary>save / load: put the remaining sickness back without a warning (0 = not sick)</summary>
+        public void RestoreSickness(float seconds)
+        {
+            var fx = Effects; if (!fx) return;
+            fx.Remove(StatusEffectIds.Sickness, false, false);
+            if (seconds > 0f) fx.Apply(StatusEffectIds.Sickness, 1f, seconds, false);
+        }
 
         public void SetStats(float hunger, float thirst, float stamina, float body, float wet)
         {
@@ -219,7 +285,7 @@ namespace PrimalFrontier.Survival
         public void ResetToStart()
         {
             var c = Config;
-            SickSeconds = 0f;
+            if (Effects) _fx.Clear();
             SetStats(c.startHunger, c.startThirst, maxStamina, normalBody, 0f);
             OnInventoryChanged();
         }
@@ -228,7 +294,7 @@ namespace PrimalFrontier.Survival
         public void ApplyRespawn()
         {
             var c = Config;
-            SickSeconds = 0f;
+            if (Effects) _fx.Clear();
             SetStats(Mathf.Max(Hunger, c.respawnNeedFloor), Mathf.Max(Thirst, c.respawnNeedFloor), c.respawnStamina, c.respawnBodyTemp, 0f);
         }
 
@@ -245,7 +311,8 @@ namespace PrimalFrontier.Survival
             if (Hunger > floor) Hunger = Mathf.Max(floor, Hunger - hours * Mathf.Max(0f, c.sleepHungerPerHour));
             if (Thirst > floor) Thirst = Mathf.Max(floor, Thirst - hours * Mathf.Max(0f, c.sleepThirstPerHour));
             if (c.sleepHealthPerHour > 0f) _hp.Heal(hours * c.sleepHealthPerHour);
-            SickSeconds = Mathf.Max(0f, SickSeconds - hours * GameClock.SecondsPerHour);
+            // the night passes for the status effects too (sickness, injuries, wounds wear off) without their health effect
+            var fx = Effects; if (fx) fx.Advance(hours * GameClock.SecondsPerHour);
             RefreshTiers(true);
             Stamina = MaxStaminaNow;
         }
@@ -257,6 +324,14 @@ namespace PrimalFrontier.Survival
         public static Func<Vector3, bool> RainingAt = p => false;
         /// <summary>extra warmth at this spot (fires, shelter, torch), deg C</summary>
         public static Func<Vector3, float> HeatAt = p => 0f;
+        /// <summary>depth of water (sea, pond, stream) the feet at this spot stand in, m (0 = dry)</summary>
+        public static Func<Vector3, float> WaterDepthAt = p => 0f;
+        /// <summary>sun on this spot: 0 = shade / night / overcast .. 1 = full midday sun (checked every second or so)</summary>
+        public static Func<Vector3, float> SunAt = p => 0f;
+        /// <summary>under a roof (shelter, tent, cave)</summary>
+        public static Func<Vector3, bool> ShelteredAt = p => false;
+        /// <summary>seconds between the water / sun / roof checks</summary>
+        public const float EnvironmentCheckSeconds = 0.5f;
 
         void Update()
         {
@@ -264,35 +339,91 @@ namespace PrimalFrontier.Survival
             if (!ReferenceEquals(_cfg, SurvivalConfig.Instance)) ApplyConfig();      // tests / tools swapped the config
             float dt = Time.deltaTime; float m = dt / 60f;
             float k = _sprinting ? sprintMultiplier : 1f;
-            Hunger = Mathf.Max(0f, Hunger - hungerPerMinute * m * k);
-            Thirst = Mathf.Max(0f, Thirst - thirstPerMinute * m * k * (EnvironmentTemperature > hotAir ? hotAirThirstMultiplier : 1f) * (IsSick ? sickThirstMultiplier : 1f));
+            var fx = _fx;
+            Hunger = Mathf.Max(0f, Hunger - hungerPerMinute * m * k * (fx ? fx.HungerMultiplier : 1f));
+            Thirst = Mathf.Max(0f, Thirst - thirstPerMinute * m * k * (EnvironmentTemperature > hotAir ? hotAirThirstMultiplier : 1f) * (fx ? fx.ThirstMultiplier : 1f));
             RefreshTiers(true);
 
             // stamina
             float maxNow = MaxStaminaNow;
-            if (Time.time - _lastStaminaUse > regenDelay) Stamina = Mathf.Min(maxNow, Stamina + regenPerSecond * _regenMul * (IsCold ? coldStaminaRegen : 1f) * (IsSick ? sickStaminaRegen : 1f) * dt);
+            if (Time.time - _lastStaminaUse > regenDelay) Stamina = Mathf.Min(maxNow, Stamina + regenPerSecond * _regenMul * (IsCold ? coldStaminaRegen : 1f) * (fx ? fx.StaminaRegenMultiplier : 1f) * dt);
             else if (Stamina > maxNow) Stamina = maxNow;
 
-            // wetness + temperature
+            // water / sun / roof: a few times a second (a raycast for the shade)
             Vector3 p = transform.position;
+            var c = _cfg;
+            _envTick -= dt;
+            if (_envTick <= 0f)
+            {
+                _envTick = EnvironmentCheckSeconds;
+                WaterDepth = Mathf.Max(0f, WaterDepthAt(p));
+                Sheltered = ShelteredAt(p);
+                SunExposure = Sheltered ? 0f : Mathf.Clamp01(SunAt(p));
+            }
+
+            // wetness + temperature
             bool rain = RainingAt(p);
             float heat = HeatAt(p);
-            Wetness = Mathf.Clamp01(Wetness + (rain ? 0.04f : -(0.01f + heat * 0.004f)) * dt);
-            EnvironmentTemperature = AirTemperature(p) + heat - Wetness * 5f + (_sprinting ? 2f : 0f);
+            float wetIn = (rain ? c.rainWetPerSecond : 0f) + (WaterDepth > 0.05f ? c.waterWetPerSecond * Mathf.Clamp(WaterDepth / 0.8f, 0.25f, 1.5f) : 0f);
+            float dry = c.dryPerSecond + heat * c.heatDryPerDegree + (Sheltered ? c.shelterDryPerSecond : 0f) + SunExposure * c.sunDryPerSecond;
+            Wetness = Mathf.Clamp01(Wetness + (wetIn > 0f ? wetIn : -dry) * dt);
+            EnvironmentTemperature = AirTemperature(p) + heat - Wetness * 5f + (_sprinting ? 2f : 0f) + SunExposure * c.sunWarmth - (WaterDepth > 0.05f ? c.waterChill : 0f);
             // body drifts towards a target: comfortable air keeps 37, cold air pulls it down, heat pulls it back up
             float target = EnvironmentTemperature >= 18f ? normalBody : Mathf.Lerp(33.5f, normalBody, (EnvironmentTemperature - 4f) / 14f);
             BodyTemperature = Mathf.MoveTowards(BodyTemperature, target, bodyResponse * dt * (target > BodyTemperature ? 3f : 1f));
 
-            // damage / heal
+            // damage / heal (status effects drain / heal on their own: PlayerStatusEffects)
             float dmg = _needDrain;
             if (IsFreezing) dmg += freezeDamage;
-            if (SickSeconds > 0f) { SickSeconds = Mathf.Max(0f, SickSeconds - dt); dmg += sickDamage; }
+            bool resting = Sheltered || heat > 2f;
             if (dmg > 0f) _hp.ApplyRaw(dmg * dt);
-            else if (Hunger > regenNeedAbove && Thirst > regenNeedAbove && !IsCold && !_hp.IsBleeding) _hp.Heal(regenHealth * dt);
+            else if (Hunger > regenNeedAbove && Thirst > regenNeedAbove && !IsCold && !(fx && fx.BlocksRegen) && !_hp.IsBleeding)
+                _hp.Heal(regenHealth * (resting ? c.restRegenMultiplier : 1f) * dt);
+            // limb injuries heal faster while resting under a roof / by the fire
+            if (resting && fx && fx.Count > 0 && c.restInjuryHealMultiplier > 1f)
+            {
+                float extra = dt * (c.restInjuryHealMultiplier - 1f);
+                fx.Shorten(StatusEffectIds.LegInjury, extra); fx.Shorten(StatusEffectIds.ArmInjury, extra);
+            }
+
+            // derived status flags (HUD icons; nothing else reads them as rules)
+            if (fx) { fx.SetFlag(StatusEffectIds.Wet, Wetness > c.wetStatusAbove); fx.SetFlag(StatusEffectIds.Cold, IsCold); }
+
+            // spoilage: a slow look at the pack (stages are worked out from the time, nothing ticks per item)
+            _spoilTick -= dt;
+            if (_spoilTick <= 0f) { _spoilTick = Mathf.Max(0.5f, c.spoilCheckSeconds); CheckSpoilage(); }
 
             // hunger / thirst warnings come from the tier crossings; cold once per crossing
             Warn(4, IsCold, "You are getting cold. Find fire or shelter.");
             _sprinting = false;
+        }
+
+        // ---------------------------------------------------------------- spoilage
+        ItemDefinition[] _spoilItem; FoodStage[] _spoilStage;
+
+        /// <summary>
+        /// the pack is looked at every SurvivalConfig.spoilCheckSeconds (stages come from the time, nothing ticks per item):
+        /// when a stack's stage moved on, the slots refresh once and FoodStageChanged tells the HUD
+        /// </summary>
+        public void CheckSpoilage()
+        {
+            if (!_inv || _inv.Slots == null) return;
+            var slots = _inv.Slots;
+            if (_spoilItem == null || _spoilItem.Length != slots.Length) { _spoilItem = new ItemDefinition[slots.Length]; _spoilStage = new FoodStage[slots.Length]; }
+            bool changed = false;
+            for (int i = 0; i < slots.Length; i++)
+            {
+                var st = slots[i];
+                var item = st != null && !st.IsEmpty && Spoilage.Spoils(st.item) ? st.item : null;
+                var stage = item ? Spoilage.Stage(st) : FoodStage.Fresh;
+                if (item && item == _spoilItem[i] && stage != _spoilStage[i])
+                {
+                    changed = true;
+                    if (stage > _spoilStage[i]) FoodStageChanged?.Invoke(item, stage);
+                }
+                _spoilItem[i] = item; _spoilStage[i] = stage;
+            }
+            if (changed) _inv.ForceNotify();              // slot tints / labels
         }
 
         void Warn(int bit, bool on, string msg)

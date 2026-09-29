@@ -54,3 +54,30 @@ MonoBehaviour:
   - {fileID: 8300000, guid: b2a83416ee550d340b5bb7c39b5dce22, type: 3}
   heavyFootsteps: 1
   journalId: apex
+  sprayLoot: 0
+  fleeZigZag: 0
+  alertSensitivity: 1
+  nightVision: 0.3
+  sightGain: 0.9
+  hearingGain: 1.1
+  smellSensitivity: 1.3
+  awarenessDecay: 0.04
+  memorySeconds: 30
+  herdShareRadius: 0
+  alarmCall: 0
+  meatDrive: 0.9
+  scentTrackRange: 12
+  fireFear:
+    predatorFear: 0.3
+    fearRadiusDay: 4
+    fearRadiusNight: 6
+    rainMultiplier: 0.5
+    fuelMultiplier: 0.8
+    response: 3
+    patienceSeconds: 10
+    ignoreBelowIntensity: 0.4
+    ignoreWhenProvoked: 1
+  activity: 2
+  drinkEveryHours: 16
+  drinkSearchRadius: 160
+  unarmedDamageScale: -1

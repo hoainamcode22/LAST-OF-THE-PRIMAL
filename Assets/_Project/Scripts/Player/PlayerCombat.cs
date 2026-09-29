@@ -12,7 +12,9 @@ namespace PrimalFrontier.Player
 {
     /// <summary>
     /// Primary / aim buttons with the active item. Items with WeaponData (and every bow) fight through the
-    /// WeaponController (MeleeWeapon: light chain / heavy on hold / hitbox windows; RangedWeapon: aim, draw, release);
+    /// WeaponController (MeleeWeapon: light chain / heavy on hold / hitbox windows; RangedWeapon: aim, draw, release); so do
+    /// the bare hands (empty hand, or an item with no weapon role: WeaponData WPN_bare_hands, punch 1-2-3 / heavy on hold,
+    /// HitInfo.unarmed, see Documentation/BARE_HAND_COMBAT.md);
     /// this component keeps the gating, food / water / placeables, the spear throw (aim + attack), the dodge (V / pad
     /// north / touch button: short hop back with a brief invulnerable window), the block (hold the aim button with a melee
     /// weapon that has no throw: Sword_Block on the upper body, walk speed, no attacks until released, frontal hits reduced
@@ -92,16 +94,19 @@ namespace PrimalFrontier.Player
             var weapon = item ? item.weapon : WeaponKind.None;
             if (_in.DodgePressed) TryDodge();
 
-            // data-driven weapons and every bow: the WeaponController (the spear throw stays here)
+            // data-driven weapons, every bow and the bare hands (empty hand or an item with no weapon role): the
+            // WeaponController (the spear throw stays here); items the attack button uses (food, water, camp items, items a
+            // use handler claims) go to the use path below
             var data = _wc ? _wc.ResolveData(item) : null;
-            if (data != null && !item.IsFood && !item.IsWaterContainer && !item.IsPlaceable)
+            bool usable = item && (item.IsFood || item.IsWaterContainer || item.IsPlaceable || PlayerInteraction.HasUseHandler(item));
+            if (data != null && !usable)
             {
                 bool canThrow = data.throwable;
                 SetAim(_in.Aim && (canThrow || data.IsRanged));
                 UpdateBlock(_in.BlockHeld && CanBlockWith(data));
                 if (IsBlocking) { _wc.ResetInput(); _pressT = -1f; return; }      // no attacks behind the guard: release to strike
                 if (canThrow && Aiming && _in.AttackPressed) { _wc.ResetInput(); Throw(item); _pressT = -1f; return; }
-                _wc.HandleInput(_in.AttackPressed, _in.AttackHeld, Aiming);
+                _wc.HandleInput(_in.AttackPressed, _in.AttackHeld, Aiming, _in.HeavyPressed);
                 return;
             }
             EndBlock();
@@ -121,7 +126,7 @@ namespace PrimalFrontier.Player
             if (!_in.AttackPressed) return;
             _pressT = -1f;
             if (item == null) return;
-            if (item.IsFood || item.IsWaterContainer) { _pi.UseActiveConsumable(); return; }
+            if (item.IsFood || item.IsWaterContainer || PlayerInteraction.HasUseHandler(item)) { _pi.UseActiveConsumable(); return; }
             if (item.IsPlaceable) { Building.BuildSystem.Instance?.Begin(item); return; }
             if (item.damage > 0f) Melee(item, false);                     // knife / stone tools slash
         }
@@ -167,7 +172,7 @@ namespace PrimalFrontier.Player
 
         // ------------------------------------------------------------------ block
         /// <summary>melee weapons without a throw block (sword, knife, axe, pick ...); the spear aims / throws, the bow aims</summary>
-        public static bool CanBlockWith(WeaponData data) => data != null && !data.IsRanged && !data.throwable && data.attacks != null && data.attacks.Length > 0;
+        public static bool CanBlockWith(WeaponData data) => data != null && !data.unarmed && !data.IsRanged && !data.throwable && data.attacks != null && data.attacks.Length > 0;
 
         void UpdateBlock(bool want)
         {

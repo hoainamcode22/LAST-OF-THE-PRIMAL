@@ -27,7 +27,7 @@ namespace PrimalFrontier.Combat.Weapons
         Pending _queued;
         float _pressT = -1f; bool _heavyFired;
         float _startT; int _stateHash; bool _entered, _timeDriven;
-        bool _usesEvents; int _activeFrame = -1; bool _legacyDone;
+        bool _usesEvents; int _activeFrame = -1; bool _legacyDone; bool _sawActive;
         ItemStack _stack; bool _worn;
         WeaponHitbox _blade, _sphere, _hitbox; WeaponTrail _trail;
         float _equipUntil = -1f;
@@ -75,7 +75,7 @@ namespace PrimalFrontier.Combat.Weapons
             if (_phase != AttackPhase.None) Cancel();
             DetachBlade();
             base.OnModelChanged(model);
-            if (!model) return;
+            if (!model || Data.unarmed) return;                                     // fists: the held log / stone is not a blade
             var hb = model.GetOrAdd<WeaponHitbox>();
             if (!hb.SetupBlade(Data, Ctx.root, Ctx.meleeMask)) { Object.Destroy(hb); return; }   // no mesh: AttackOrigin sphere
             _blade = hb; _blade.Hit += OnHit;
@@ -92,6 +92,7 @@ namespace PrimalFrontier.Combat.Weapons
         // ------------------------------------------------------------------ input
         public override void HandleInput(WeaponInput input)
         {
+            if (input.heavyPressed && Data.HasHeavy) { _pressT = -1f; _heavyFired = true; Request(true); return; }   // HEAVY button (touch)
             if (input.pressed)
             {
                 _pressT = Time.time; _heavyFired = false;
@@ -150,7 +151,9 @@ namespace PrimalFrontier.Combat.Weapons
             bool strong = heavy || p.damageMultiplier > 1.1f;                       // combo finishers stagger like the heavy
             bool down = p.action == PlayerActions.SpearAttack2 || p.action == PlayerActions.SwordAttack3;
             _hitbox = _blade ? _blade : _sphere;
-            if (_hitbox) _hitbox.BeginSwing(dmg, strong, down, heavy ? Data.HeavyReach : Data.reach);
+            if (_hitbox) _hitbox.BeginSwing(dmg, strong, down, heavy ? Data.HeavyReach : Data.reach, heavy ? Data.heavyKnockback : Data.knockback * p.damageMultiplier);
+            _sawActive = false;
+            if (Data.effortSfx != Audio.SfxId.None && (heavy || p.damageMultiplier > 1.3f)) Audio.SfxPlayer.Instance.Play(Data.effortSfx, Ctx.root.position + Vector3.up * 1.5f, 0.7f);
             Ctx.anim.Play(p.action);                                                // our queue decides, not the driver buffer
             MarkCombat();
             SetPhase(AttackPhase.Startup);
@@ -219,7 +222,8 @@ namespace PrimalFrontier.Combat.Weapons
                 if (hb) hb.SetActive(true);
                 if (_trail && hb == _blade) _trail.Emit(true);
                 if (_profile != null && _profile.lunge > 0f && Ctx.motor) Ctx.motor.Burst(Ctx.root.forward * _profile.lunge, Mathf.Max(0.05f, _profile.lungeTime));
-                if (_timeDriven && Data.swingSfx != Audio.SfxId.None) Audio.SfxPlayer.Instance.Play(Data.swingSfx, Ctx.root.position + Vector3.up * 1.2f, 0.8f);
+                // clips with OnAttackStart play the swing there; clips without it (knife, placeholders) and time-driven attacks here
+                if ((_timeDriven || !_usesEvents) && Data.swingSfx != Audio.SfxId.None) Audio.SfxPlayer.Instance.Play(Data.swingSfx, Ctx.root.position + Vector3.up * 1.2f, 0.8f);
             }
             else if (was == AttackPhase.Active)
             {
@@ -244,7 +248,7 @@ namespace PrimalFrontier.Combat.Weapons
                     if (Data.swingSfx != Audio.SfxId.None) Audio.SfxPlayer.Instance.Play(Data.swingSfx, Ctx.root.position + Vector3.up * 1.2f, 0.8f);
                     break;
                 case "OnAttackActive":
-                    _usesEvents = true;
+                    _usesEvents = true; _sawActive = true;
                     if (_phase == AttackPhase.Startup) SetPhase(AttackPhase.Active);
                     break;
                 case "OnAttackEnd":
@@ -252,7 +256,14 @@ namespace PrimalFrontier.Combat.Weapons
                     if (_phase == AttackPhase.Startup || _phase == AttackPhase.Active) SetPhase(AttackPhase.Recovery);
                     break;
                 case "OnAttackHit":
-                    if (!_usesEvents && !_legacyDone) LegacyHit();
+                    if (!_usesEvents) { if (!_legacyDone) LegacyHit(); }
+                    else if (!_sawActive && _phase == AttackPhase.Startup)
+                    {
+                        // clip with OnAttackStart / OnAttackHit / OnAttackEnd but no OnAttackActive: the contact frame opens the
+                        // window (swept at once, live until OnAttackEnd), so the hit still comes from the animation event
+                        SetPhase(AttackPhase.Active);
+                        if (_hitbox) _hitbox.SweepNow();
+                    }
                     break;
             }
         }
@@ -273,7 +284,7 @@ namespace PrimalFrontier.Combat.Weapons
         {
             MarkCombat();
             Shake(_heavy ? 0.06f : 0.03f, 0.12f);
-            if (!_worn) { _worn = true; Wear(_stack, Data.durabilityCost * (_heavy ? 2f : 1f)); }  // once per swing
+            if (!_worn && !Data.unarmed) { _worn = true; Wear(_stack, Data.durabilityCost * (_heavy ? 2f : 1f)); }  // once per swing (fists never wear the held item)
             var comp = target as Component;
             GameEvents.Raise(GameEventType.CreatureHit, comp ? comp.name : "creature", 1, hit.point);
             if (Ctx.controller) Ctx.controller.RaiseHit(target, hit);

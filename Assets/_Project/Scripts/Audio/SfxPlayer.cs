@@ -17,6 +17,9 @@ namespace PrimalFrontier.Audio
         DinoStep, DinoStepHeavy,
         // appended (keep order: the library stores the numbers)
         WoodBreak, Thunder, ShipCreak, BreathIn, BreathOut, RoarDistant,
+        // phase 3 (registered by the Lead; clips come from Tools/Audio/sfx_synth.py via PrimalAudioBuilder)
+        PunchWhoosh, PunchHit, PunchHeavyHit, PlayerGrunt,
+        WaterFill, WaterBoil, BandageWrap, ToolBreak, FireHiss, BranchSnap, StoneGatherHand,
     }
 
     /// <summary>Pooled 3D one-shots with variant + pitch randomisation (never the same sample twice in a row).</summary>

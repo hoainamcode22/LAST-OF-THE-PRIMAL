@@ -3,7 +3,7 @@
 Result: **PASS**
 
 ```
-=== Player === 2026-09-28 23:16:12
+=== Player === 2026-09-29 15:21:47
 T-pose: from the skin bind pose (57 bones), arms to horizontal by side (L = -X, R = +X)
 T-pose L: upper arm (-1.00, 0.00, 0.00), forearm (-1.00, 0.00, 0.00)
 T-pose R: upper arm (1.00, 0.00, 0.00), forearm (1.00, 0.00, 0.00)
@@ -20,25 +20,29 @@ waiting for clip (state skipped): Walk_Stop
 waiting for clip (state skipped): Run_Stop
 waiting for clip (state skipped): Run_Pivot_180
 waiting for clip (state skipped): Turn_180
-waiting for clip (state skipped): Collect_Water
 waiting for clip (state skipped): Butcher
 waiting for clip (state skipped): Gather_Enter
 waiting for clip (state skipped): Gather_Exit
-waiting for clip (state skipped): Spear_Recovery
-waiting for clip (state skipped): Spear_Recovery
-waiting for clip (state skipped): Punch_L
-waiting for clip (state skipped): Punch_R
-waiting for clip (state skipped): Punch_Heavy
+placeholder clip for Collect_Water: Drink (waiting for the clip)
+placeholder clip for Gather_Stone_Hand: Gather_Plant (waiting for the clip)
+placeholder clip for Gather_Branch: Gather_Plant (waiting for the clip)
+placeholder clip for Bandage_Use: Use_Item (waiting for the clip)
+waiting for clip (state skipped): BareHand_Combo_End
+placeholder clip for BareHand_Punch_1: Knife_Attack (waiting for the clip)
+placeholder clip for BareHand_Punch_2: Sword_Attack_1 (waiting for the clip)
+placeholder clip for BareHand_Punch_3: Sword_Attack_2 (waiting for the clip)
+placeholder clip for BareHand_Heavy: Sword_Heavy (waiting for the clip)
 waiting for clip (state skipped): Kick
 waiting for clip (state skipped): Spear_Recovery
 waiting for clip (state skipped): Unarmed_Block
 waiting for clip (state skipped): Bow_FullDraw
 waiting for clip (state skipped): Bow_Equip
 waiting for clip (state skipped): Bow_Nock
-waiting for clip (state skipped): Unarmed_Idle
+waiting for clip (state skipped): BareHand_Idle
 waiting for clip (state skipped): Bow_Idle
 waiting for clip (state skipped): Spear_Idle
-Controller: Assets/Art/Characters/Player/Animations/PlayerAnimator.controller (states: 41 base + 9 upper body + 2 hit reaction, params 23, IK pass on)
+waiting for clip (state skipped): BareHand_HitReaction
+Controller: Assets/Art/Characters/Player/Animations/PlayerAnimator.controller (states: 49 base + 9 upper body + 2 hit reaction, params 23, IK pass on)
 Controller: new states StrafeLocomotion (2D VelX/VelZ, on Strafe), Sword_Attack_1/2/3 + Sword_Heavy (Attack, speed x AttackSpeed); upper body Sword_Idle, Sword_Block, Sword_Equip, Sword_Unequip; HitReaction (additive) Hurt_Additive on HurtLight
 TwistBoneDriver on the model (LowerArmTwist bones found)
 LOD: 3 levels (LOD0:72952 tris, LOD1:17107 tris, LOD2:5668 tris)

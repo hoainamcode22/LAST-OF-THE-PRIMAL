@@ -13,19 +13,86 @@ using PrimalFrontier.World;
 namespace PrimalFrontier.Core
 {
     /// <summary>
-    /// Writes / reads SaveData as JSON in persistentDataPath (atomic: temp file then replace). Captures player,
-    /// inventory, recipes, crafting queue, time, weather, journal, tutorial, onboarding tips, resource nodes, trees, pickups,
-    /// loot, structures.
-    /// Unknown item ids are skipped (never crash on an old save), newer versions are refused.
+    /// Writes / reads SaveData as JSON in persistentDataPath. Captures player, inventory, recipes, crafting queue, time,
+    /// weather, journal, tutorial, onboarding tips, resource nodes, trees, pickups, loot, structures, and the named
+    /// sections of any system that registered an <see cref="ISaveSection"/> (status effects, creatures, fruit...).
+    /// Safety (phase 3): the new file is written to a temp file and read back before it replaces the save; the previous
+    /// save is kept as save_N.json.bak. Loading validates the file and falls back to the backup when the save is missing,
+    /// damaged or unusable (LastError / LoadedFromBackup say so). Unknown item ids, bad numbers and broken sections are
+    /// skipped (never a crash on partly invalid data); newer versions are refused.
     /// </summary>
     public static class SaveSystem
     {
+        // ------------------------------------------------------------------ sections
+        static readonly List<ISaveSection> _sections = new List<ISaveSection>();
+        static readonly Dictionary<string, string> _loadedSections = new Dictionary<string, string>();
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)] static void ResetStatics() { _sections.Clear(); _loadedSections.Clear(); }
+
+        /// <summary>add a section (same key again = the newer one replaces the older registration)</summary>
+        public static void RegisterSection(ISaveSection section)
+        {
+            if (section == null || string.IsNullOrEmpty(section.SectionKey)) return;
+            for (int i = _sections.Count - 1; i >= 0; i--)
+            {
+                var s = _sections[i];
+                if (s == null || ReferenceEquals(s, section) || s.SectionKey == section.SectionKey) _sections.RemoveAt(i);
+            }
+            _sections.Add(section);
+        }
+        public static void UnregisterSection(ISaveSection section) { if (section != null) _sections.Remove(section); }
+        public static IReadOnlyList<ISaveSection> Sections => _sections;
+        /// <summary>the JSON of a section in the last loaded save (for a system that registers after the load); false when none</summary>
+        public static bool TryGetLoadedSection(string key, out string json) => _loadedSections.TryGetValue(key ?? "", out json);
+
+        /// <summary>fills d.sections from every registered section (Capture calls it; public for tools / tests)</summary>
+        public static void CaptureSections(SaveData d)
+        {
+            d.sections = new List<SectionData>();
+            foreach (var s in _sections.ToArray())
+            {
+                if (s == null) continue;
+                string key = null;
+                try
+                {
+                    key = s.SectionKey; if (string.IsNullOrEmpty(key)) continue;
+                    var json = s.CaptureSection();
+                    if (json != null) d.sections.Add(new SectionData { key = key, json = json });
+                }
+                catch (Exception e) { Debug.LogWarning($"[SaveSystem] section '{key}' not saved: {e.Message}"); }
+            }
+        }
+
+        /// <summary>restores every registered section found in the save; missing ones are left as they are, broken ones skipped</summary>
+        public static int RestoreSections(SaveData d)
+        {
+            _loadedSections.Clear();
+            if (d.sections != null) foreach (var sd in d.sections) if (sd != null && !string.IsNullOrEmpty(sd.key)) _loadedSections[sd.key] = sd.json;
+            int n = 0;
+            foreach (var s in _sections.ToArray())
+            {
+                if (s == null) continue;
+                string key = null;
+                try
+                {
+                    key = s.SectionKey;
+                    if (string.IsNullOrEmpty(key) || !_loadedSections.TryGetValue(key, out var json)) continue;
+                    s.RestoreSection(json); n++;
+                }
+                catch (Exception e) { Debug.LogWarning($"[SaveSystem] section '{key}' skipped (unreadable): {e.Message}"); }
+            }
+            return n;
+        }
+
         /// <summary>tests point this at a temp folder so a test run never writes over or deletes the player's own saves (null = normal)</summary>
         public static string FolderOverride;
         public static string Folder => string.IsNullOrEmpty(FolderOverride) ? Path.Combine(Application.persistentDataPath, "PrimalFrontier") : FolderOverride;
         public static string PathFor(int slot) => Path.Combine(Folder, $"save_{slot}.json");
-        public static bool Exists(int slot = 0) => File.Exists(PathFor(slot));
+        public static string BackupPathFor(int slot) => PathFor(slot) + ".bak";
+        /// <summary>a save (or its backup) exists for this slot</summary>
+        public static bool Exists(int slot = 0) => File.Exists(PathFor(slot)) || File.Exists(BackupPathFor(slot));
         public static string LastError { get; private set; }
+        /// <summary>the last Read had to use the backup (the main save was missing or damaged)</summary>
+        public static bool LoadedFromBackup { get; private set; }
 
         /// <summary>scene pickups taken this session (WorldPickup.Taken)</summary>
         static readonly HashSet<string> _taken = new HashSet<string>();
@@ -35,13 +102,30 @@ namespace PrimalFrontier.Core
 
         public static bool Save(GameManager gm, int slot = 0)
         {
+            try { return WriteSafe(Capture(gm), slot); }
+            catch (Exception e) { LastError = e.Message; Debug.LogError("[SaveSystem] save failed: " + e); return false; }
+        }
+
+        /// <summary>
+        /// write: temp file, read back and checked, the old save becomes the backup, then the temp replaces the save. A crash
+        /// or full disk at any step leaves the old save (or its backup) readable.
+        /// </summary>
+        public static bool WriteSafe(SaveData d, int slot = 0)
+        {
             try
             {
-                var d = Capture(gm);
                 Directory.CreateDirectory(Folder);
-                string path = PathFor(slot), tmp = path + ".tmp";
-                File.WriteAllText(tmp, JsonUtility.ToJson(d, true));
-                if (File.Exists(path)) File.Delete(path);
+                string path = PathFor(slot), tmp = path + ".tmp", bak = BackupPathFor(slot);
+                string json = JsonUtility.ToJson(d, true);
+                File.WriteAllText(tmp, json);
+                var check = Parse(File.ReadAllText(tmp), out string why);
+                if (check == null) { LastError = "Save check failed: " + why; Debug.LogError("[SaveSystem] " + LastError); TryDelete(tmp); return false; }
+                if (File.Exists(path))
+                {
+                    // keep the previous save as the backup only when it is itself readable (never replace a good backup with junk)
+                    if (Parse(SafeRead(path), out _) != null) File.Copy(path, bak, true);
+                    File.Delete(path);
+                }
                 File.Move(tmp, path);
                 LastError = null;
                 GameEvents.Raise(GameEventType.GameSaved, path);
@@ -50,20 +134,82 @@ namespace PrimalFrontier.Core
             catch (Exception e) { LastError = e.Message; Debug.LogError("[SaveSystem] save failed: " + e); return false; }
         }
 
+        /// <summary>the save of this slot; the backup when the save is missing, damaged or unusable (LoadedFromBackup)</summary>
         public static SaveData Read(int slot = 0)
         {
-            try
+            LoadedFromBackup = false;
+            string path = PathFor(slot), bak = BackupPathFor(slot);
+            if (!File.Exists(path) && !File.Exists(bak)) { LastError = "No save file."; return null; }
+            string why = "No save file.";
+            if (File.Exists(path))
             {
-                if (!Exists(slot)) { LastError = "No save file."; return null; }
-                var d = JsonUtility.FromJson<SaveData>(File.ReadAllText(PathFor(slot)));
-                if (d == null) { LastError = "Save file is empty or damaged."; return null; }
-                if (d.version > SaveData.CurrentVersion) { LastError = $"Save version {d.version} is newer than this game ({SaveData.CurrentVersion})."; return null; }
-                return d;
+                var d = Parse(SafeRead(path), out why);
+                if (d != null) { LastError = null; return d; }
+                Debug.LogWarning("[SaveSystem] save damaged (" + why + "), trying the backup");
             }
-            catch (Exception e) { LastError = "Save file is damaged: " + e.Message; Debug.LogError("[SaveSystem] " + e); return null; }
+            if (File.Exists(bak))
+            {
+                var b = Parse(SafeRead(bak), out string whyBak);
+                if (b != null) { LoadedFromBackup = true; LastError = "The save was damaged (" + why + "): loaded the backup."; return b; }
+                why += "; backup: " + whyBak;
+            }
+            LastError = why.StartsWith("Save version") ? why : "Save file is damaged: " + why;
+            return null;
         }
 
-        public static void Delete(int slot = 0) { try { if (Exists(slot)) File.Delete(PathFor(slot)); } catch { } }
+        static string SafeRead(string path) { try { return File.ReadAllText(path); } catch (Exception e) { return "!" + e.Message; } }
+        static void TryDelete(string path) { try { if (File.Exists(path)) File.Delete(path); } catch { } }
+
+        /// <summary>JSON -> checked SaveData (null + reason when unusable); fixes bad numbers and null lists in place</summary>
+        public static SaveData Parse(string json, out string why)
+        {
+            why = null;
+            if (string.IsNullOrWhiteSpace(json)) { why = "empty file"; return null; }
+            if (json[0] == '!') { why = "unreadable: " + json.Substring(1); return null; }
+            if (json.IndexOf("\"version\"", StringComparison.Ordinal) < 0) { why = "no version (not a save file)"; return null; }
+            SaveData d;
+            try { d = JsonUtility.FromJson<SaveData>(json); }
+            catch (Exception e) { why = "not valid JSON (" + e.Message + ")"; return null; }
+            if (d == null) { why = "empty or damaged"; return null; }
+            if (d.version > SaveData.CurrentVersion) { why = $"Save version {d.version} is newer than this game ({SaveData.CurrentVersion})."; return null; }
+            if (d.version <= 0) { why = "no version (not a save file)"; return null; }
+            Sanitize(d);
+            return d;
+        }
+
+        static float Num(float v, float fallback) => float.IsNaN(v) || float.IsInfinity(v) ? fallback : v;
+        static bool Bad(Vector3 v) => float.IsNaN(v.x) || float.IsNaN(v.y) || float.IsNaN(v.z) || float.IsInfinity(v.x) || float.IsInfinity(v.y) || float.IsInfinity(v.z);
+
+        /// <summary>partly invalid data is repaired or dropped: NaN / infinite numbers, null lists, entries without ids</summary>
+        static void Sanitize(SaveData d)
+        {
+            d.hour = Mathf.Repeat(Num(d.hour, 9f), 24f); d.day = Mathf.Max(1, d.day);
+            if (double.IsNaN(d.clock) || double.IsInfinity(d.clock) || d.clock < 0) d.clock = 0;
+            d.playSeconds = Mathf.Max(0f, Num(d.playSeconds, 0f)); d.weatherIntensity = Mathf.Clamp01(Num(d.weatherIntensity, 0f));
+            d.health = Num(d.health, 100f); d.hunger = Num(d.hunger, 80f); d.thirst = Num(d.thirst, 80f); d.stamina = Num(d.stamina, 100f);
+            d.bodyTemp = Num(d.bodyTemp, 37f); d.wetness = Mathf.Clamp01(Num(d.wetness, 0f)); d.sickSeconds = Mathf.Max(0f, Num(d.sickSeconds, 0f));
+            d.playerYaw = Num(d.playerYaw, 0f);
+            if (Bad(d.playerPos)) d.playerPos = Vector3.zero;
+            if (Bad(d.respawnPos)) { d.respawnPos = Vector3.zero; d.hasRespawn = false; }
+            d.inventory = (d.inventory ?? new List<SlotData>()).Where(s => s != null && !string.IsNullOrEmpty(s.item)).ToList();
+            d.knownRecipes = (d.knownRecipes ?? new List<string>()).Where(r => !string.IsNullOrEmpty(r)).ToList();
+            d.craftQueue = (d.craftQueue ?? new List<CraftJobData>()).Where(q => q != null && !string.IsNullOrEmpty(q.recipe)).ToList();
+            d.journal = (d.journal ?? new List<string>()).Where(x => x != null).ToList();
+            d.zonesVisited = (d.zonesVisited ?? new List<string>()).Where(x => x != null).ToList();
+            d.tipsSeen = (d.tipsSeen ?? new List<string>()).Where(x => x != null).ToList();
+            d.nodes = (d.nodes ?? new List<NodeData>()).Where(n => n != null && !string.IsNullOrEmpty(n.id)).ToList();
+            d.takenPickups = (d.takenPickups ?? new List<string>()).Where(x => x != null).ToList();
+            d.openedLoot = (d.openedLoot ?? new List<string>()).Where(x => x != null).ToList();
+            d.examined = (d.examined ?? new List<string>()).Where(x => x != null).ToList();
+            d.felledTrees = (d.felledTrees ?? new List<TreeData>()).Where(t => t != null).ToList();
+            d.structures = (d.structures ?? new List<StructureData>()).Where(s => s != null && !string.IsNullOrEmpty(s.item) && !Bad(s.pos)).ToList();
+            foreach (var s in d.structures) { s.fuel = Mathf.Max(0f, Num(s.fuel, 0f)); s.yaw = Num(s.yaw, 0f); if (s.contents == null) s.contents = new List<SlotData>(); s.contents.RemoveAll(c => c == null || string.IsNullOrEmpty(c.item)); }
+            d.dropped = (d.dropped ?? new List<DropData>()).Where(x => x != null && !string.IsNullOrEmpty(x.item) && !Bad(x.pos)).ToList();
+            d.sections = (d.sections ?? new List<SectionData>()).Where(x => x != null && !string.IsNullOrEmpty(x.key)).ToList();
+        }
+
+        /// <summary>removes the save of this slot, its backup and any temp file</summary>
+        public static void Delete(int slot = 0) { TryDelete(PathFor(slot)); TryDelete(BackupPathFor(slot)); TryDelete(PathFor(slot) + ".tmp"); }
 
         static List<SlotData> Slots(InventorySystem inv)
         {
@@ -72,7 +218,8 @@ namespace PrimalFrontier.Core
             for (int i = 0; i < inv.Slots.Length; i++)
             {
                 var s = inv.Slots[i]; if (s.IsEmptyOrNull()) continue;
-                l.Add(new SlotData { slot = i, item = s.item.id, count = s.count, durability = s.durability, water = s.water, dirty = s.dirty, waterType = (int)WaterRules.TypeOf(s) });
+                l.Add(new SlotData { slot = i, item = s.item.id, count = s.count, durability = s.durability, water = s.water, dirty = s.dirty, waterType = (int)WaterRules.TypeOf(s),
+                                     age = Spoilage.Spoils(s.item) ? s.AgeSeconds : 0f });
             }
             return l;
         }
@@ -82,11 +229,16 @@ namespace PrimalFrontier.Core
             if (!inv) return;
             inv.EnsureSlots();
             for (int i = 0; i < inv.Slots.Length; i++) inv.Slots[i] = null;
-            foreach (var s in data)
-            {
-                var it = db.Item(s.item); if (it == null || s.count <= 0 || s.slot < 0 || s.slot >= inv.Slots.Length) continue;
-                inv.Slots[s.slot] = RestoreWater(new ItemStack(it, Mathf.Min(s.count, it.maxStack)) { durability = s.durability }, s.water, s.waterType, s.dirty);
-            }
+            if (data != null && db != null)
+                foreach (var s in data)
+                {
+                    if (s == null) continue;
+                    var it = db.Item(s.item); if (it == null || s.count <= 0 || s.slot < 0 || s.slot >= inv.Slots.Length) continue;
+                    var st = new ItemStack(it, Mathf.Min(s.count, it.maxStack)) { durability = Mathf.Clamp(Num(s.durability, it.maxDurability), 0f, Mathf.Max(it.maxDurability, 0f)) };
+                    if (it.HasDurability && st.durability <= 0f) st.durability = it.maxDurability;
+                    st.madeAt = GameClock.Now - Mathf.Max(0f, Num(s.age, 0f));
+                    inv.Slots[s.slot] = RestoreWater(st, s.water, s.waterType, s.dirty);
+                }
             inv.ForceNotify();
         }
 
@@ -148,15 +300,36 @@ namespace PrimalFrontier.Core
             {
                 if (!pk || !pk.item) continue;
                 var st = pk.uniqueStack;
-                d.dropped.Add(new DropData { item = pk.item.id, count = st != null ? st.count : pk.count, durability = st != null ? st.durability : pk.item.maxDurability, water = st != null ? st.water : 0, dirty = st != null && st.dirty, waterType = st != null ? (int)WaterRules.TypeOf(st) : 0, pos = pk.transform.position });
+                d.dropped.Add(new DropData { item = pk.item.id, count = st != null ? st.count : pk.count, durability = st != null ? st.durability : pk.item.maxDurability, water = st != null ? st.water : 0, dirty = st != null && st.dirty, waterType = st != null ? (int)WaterRules.TypeOf(st) : 0, pos = pk.transform.position,
+                                             age = st != null && Spoilage.Spoils(st.item) ? st.AgeSeconds : 0f });
             }
+            CaptureSections(d);
             return d;
         }
 
-        /// <summary>apply onto a freshly reset world (GameManager.ResetWorld first)</summary>
+        /// <summary>
+        /// apply onto a freshly reset world (GameManager.ResetWorld first). Each part is applied on its own: a part that fails
+        /// on bad data is logged and skipped, the rest still loads.
+        /// </summary>
         public static void Apply(GameManager gm, SaveData d)
         {
+            if (d == null) return;
+            Sanitize(d);
             var db = ItemDatabase.Instance;
+            if (db == null) { Debug.LogError("[SaveSystem] no ItemDatabase: only the world state is restored"); }
+            Step("world", () => ApplyWorld(gm, d, db));
+            Step("sections", () => RestoreSections(d));
+            GameEvents.Raise(GameEventType.GameLoaded, "slot");
+        }
+
+        static void Step(string what, Action a)
+        {
+            try { a(); }
+            catch (Exception e) { Debug.LogWarning($"[SaveSystem] load: part '{what}' skipped: {e.Message}\n{e.StackTrace}"); }
+        }
+
+        static void ApplyWorld(GameManager gm, SaveData d, ItemDatabase db)
+        {
             // the reset before a load refunds the old crafting queue; whatever did not fit was spilled on the ground: not part of the save
             WorldPickup.ClearDropped();
             var tm = TimeManager.Instance; if (tm) tm.Set(Mathf.Max(1, d.day), d.hour);
@@ -165,7 +338,7 @@ namespace PrimalFrontier.Core
             if (wm && Enum.TryParse<WeatherState>(d.weather, out var ws)) wm.SetWeather(ws == WeatherState.Storm ? WeatherState.Rain : ws, 2f, true);
             gm.PlaySeconds = d.playSeconds;
             var p = gm.Player;
-            if (p)
+            if (p) Step("player", () =>
             {
                 p.GetComponent<PlayerMotor>().Warp(d.playerPos + Vector3.up * 0.05f, Quaternion.Euler(0, d.playerYaw, 0));
                 var hp = p.GetComponent<PlayerHealth>(); hp.SetHealth(Mathf.Max(1f, d.health));
@@ -177,14 +350,14 @@ namespace PrimalFrontier.Core
                 if (db != null) foreach (var r in db.recipes) if (r && r.knownAtStart) cr.Learn(r, false);   // recipes added after the save was made
                 // the queued jobs were paid when queued: restore them as they were (replaces any queue from before the load, no refund)
                 cr.RestoreQueue(d.craftQueue != null ? d.craftQueue.Where(q => q != null).Select(q => (q.recipe, q.progress)) : null, db);
-            }
+            });
             gm.SetRespawn(d.hasRespawn, d.respawnPos);
             gm.IntroDone = d.introDone;
             var tut = TutorialManager.Instance; if (tut) tut.Restore(d.tutorialStep, d.tutorialDone, d.tutorialStepId);
             var j = JournalSystem.Instance; if (j) j.SetUnlocked(d.journal);
             var z = ZoneManager.Instance; if (z) z.SetVisited(d.zonesVisited);
             UI.OnboardingTips.SetSeen(d.tipsSeen);
-            var nodes = d.nodes.ToDictionary(n => n.id, n => n);
+            var nodes = new Dictionary<string, NodeData>(); foreach (var n in d.nodes) nodes[n.id] = n;          // duplicate ids: the last wins
             var opened = new HashSet<string>(d.openedLoot); var examined = new HashSet<string>(d.examined); var taken = new HashSet<string>(d.takenPickups);
             _taken.Clear(); foreach (var t in taken) _taken.Add(t);
             foreach (var it in Interactable.Active.ToArray())
@@ -198,22 +371,28 @@ namespace PrimalFrontier.Core
                 }
             }
             var th = UnityEngine.Object.FindFirstObjectByType<TreeHarvest>();
-            if (th) th.Restore(d.felledTrees.ToDictionary(t => t.index, t => t.regrowAt));
+            if (th) { var felled = new Dictionary<int, double>(); foreach (var t in d.felledTrees) felled[t.index] = t.regrowAt; th.Restore(felled); }
+            if (db == null) return;
             foreach (var s in d.structures)
             {
-                var item = db.Item(s.item); if (item == null || !item.IsPlaceable) continue;
-                var go = BuildSystem.Spawn(item, s.pos, Quaternion.Euler(0, s.yaw, 0), s.uid);
-                var cf = go.GetComponent<Campfire>(); if (cf) cf.Restore(s.lit, s.fuel);
-                var sb = go.GetComponent<StorageBox>(); if (sb) FillSlots(sb.Inventory, s.contents, db);
-                var ss = go.GetComponent<Building.ISaveableStructure>(); if (ss != null && !string.IsNullOrEmpty(s.state)) ss.RestoreState(s.state);
+                var sd = s;
+                Step("structure " + sd.item, () =>
+                {
+                    var item = db.Item(sd.item); if (item == null || !item.IsPlaceable) return;
+                    var go = BuildSystem.Spawn(item, sd.pos, Quaternion.Euler(0, sd.yaw, 0), sd.uid);
+                    if (!go) return;
+                    var cf = go.GetComponent<Campfire>(); if (cf) cf.Restore(sd.lit, sd.fuel);
+                    var sb = go.GetComponent<StorageBox>(); if (sb) FillSlots(sb.Inventory, sd.contents, db);
+                    var ss = go.GetComponent<Building.ISaveableStructure>(); if (ss != null && !string.IsNullOrEmpty(sd.state)) ss.RestoreState(sd.state);
+                });
             }
             foreach (var dr in d.dropped)
             {
-                var item = db.Item(dr.item); if (item == null) continue;
-                var st = RestoreWater(new ItemStack(item, dr.count) { durability = dr.durability }, dr.water, dr.waterType, dr.dirty);
+                var item = db.Item(dr.item); if (item == null || dr.count <= 0) continue;
+                var st = RestoreWater(new ItemStack(item, dr.count) { durability = Num(dr.durability, item.maxDurability) }, dr.water, dr.waterType, dr.dirty);
+                st.madeAt = GameClock.Now - Mathf.Max(0f, Num(dr.age, 0f));
                 WorldPickup.DropStack(st, dr.pos + Vector3.up * 0.3f);
             }
-            GameEvents.Raise(GameEventType.GameLoaded, "slot");
         }
     }
 }

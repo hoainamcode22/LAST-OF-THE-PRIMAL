@@ -1,0 +1,45 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6c1c87829c145634e97f96d6e284623d, type: 3}
+  m_Name: RES_fiber_fern
+  m_EditorClassIdentifier: PrimalFrontier.Runtime::PrimalFrontier.World.ResourceDefinition
+  id: fiber_fern
+  displayName: Fern
+  category: 2
+  size: 0
+  prompt: Gather Fiber
+  item: {fileID: 11400000, guid: 60b1f5c88c22524448351e60f6c1aae0, type: 2}
+  yieldRange: {x: 1, y: 3}
+  bonusItem: {fileID: 0}
+  bonusChance: 0
+  bestTool: 4
+  requiredTool: 0
+  handsFactor: 1
+  toolFactor: 1
+  gatherSeconds: 1
+  handAction: 4
+  toolAction: 4
+  toolWear: 1
+  handHint: 
+  punchable: 1
+  damagePerUnit: 4
+  respawnHours: 16
+  depletedLook: 0
+  damagedScale: 0.75
+  depletedScale: 0.45
+  sink: 0.05
+  radius: 0.5
+  hitVfx: 11
+  hitVfx2: 0
+  handSfx: 13
+  toolSfx: 13
+  depleteSfx: 0

@@ -136,6 +136,7 @@ namespace PrimalFrontier.EditorTools
                 Puff(g, "Mist", new Color(0.42f, 0.04f, 0.03f, 0.5f), 6, 0.18f, 0.4f, 0.6f, 0.7f, 2.4f);
             });
             Add(VfxId.HitDust, 3, g => { Puff(g, "Dust", new Color(0.55f, 0.5f, 0.45f, 0.5f), 6, 0.1f, 0.25f, 0.6f, 0.8f); Chips(g, "Bits", _chip, stone, new Color(0.45f, 0.4f, 0.35f, 1), 4, 1.2f, 2.5f, 0.01f, 0.025f, 0.5f); });
+            BuildPhase3(lib);
             BuildBloodLibrary();
 
             BuildCampfire();
@@ -143,6 +144,73 @@ namespace PrimalFrontier.EditorTools
             AssetDatabase.DeleteAsset(libPath); AssetDatabase.CreateAsset(lib, libPath);
             AssetDatabase.SaveAssets();
             Debug.Log($"[PrimalVfxBuilder] {lib.entries.Count} effects -> {libPath}");
+        }
+
+        /// <summary>one pooled effect prefab (VFX_id) into the library</summary>
+        static void AddTo(VfxLibrary lib, VfxId id, int prewarm, Action<GameObject> build)
+        {
+            var go = new GameObject("VFX_" + id);
+            try
+            {
+                build(go);
+                go.AddComponent<PooledEffect>();
+                var p = PrefabUtility.SaveAsPrefabAsset(go, $"{Root}/Prefabs/VFX_{id}.prefab");
+                lib.entries.RemoveAll(e => e.id == id);
+                lib.entries.Add(new VfxLibrary.Entry { id = id, prefab = p, prewarm = prewarm });
+            }
+            finally { UnityEngine.Object.DestroyImmediate(go); }
+        }
+
+        /// <summary>
+        /// phase 3 / 3.5 effects, subtle and physical (no glow): punch contact puffs (blood comes from the creature), dust on
+        /// hard targets, a few warm motes for healing, bubbles for boiling water (loops until stopped)
+        /// </summary>
+        static void BuildPhase3(VfxLibrary lib)
+        {
+            var skin = new Color(0.66f, 0.6f, 0.52f, 0.32f); var dirt = new Color(0.46f, 0.38f, 0.30f, 0.5f);
+            var stone = new Color(0.55f, 0.55f, 0.53f, 1f); var speck = new Color(0.42f, 0.36f, 0.3f, 1f);
+            AddTo(lib, VfxId.PunchImpactSmall, 3, g => { Puff(g, "Puff", skin, 3, 0.04f, 0.09f, 0.35f, 0.4f, 2f); Chips(g, "Specks", _chip, speck, stone, 3, 0.6f, 1.2f, 0.006f, 0.012f, 0.3f); });
+            AddTo(lib, VfxId.PunchImpactHeavy, 2, g => { Puff(g, "Puff", skin, 6, 0.06f, 0.14f, 0.5f, 0.7f, 2.4f); Chips(g, "Specks", _chip, speck, stone, 6, 0.8f, 1.8f, 0.006f, 0.016f, 0.4f); });
+            AddTo(lib, VfxId.DustImpact, 3, g => { Puff(g, "Dust", dirt, 7, 0.08f, 0.2f, 0.8f, 0.6f, 2.6f); Chips(g, "Bits", _chip, stone, speck, 5, 1.0f, 2.2f, 0.01f, 0.025f, 0.5f); });
+            AddTo(lib, VfxId.Heal, 2, g =>
+            {
+                var ps = Emitter(g, "Motes", _soft, 1.2f, false); var m = ps.main;
+                m.startLifetime = R(0.8f, 1.2f); m.startSpeed = R(0.1f, 0.25f); m.startSize = R(0.03f, 0.06f); m.startColor = new Color(0.98f, 0.95f, 0.82f, 0.28f); m.gravityModifier = -0.04f;
+                Burst(ps, 6); Shape(ps, ParticleSystemShapeType.Sphere, 0, 0.18f); Fade(ps, 0.3f);
+            });
+            // boiling: a 1.5 s burst of small bubbles and a wisp or two, NOT a loop (it returns to the pool by itself); the
+            // caller replays it about once a second while the water boils, so a forgotten Stop can never leave it running
+            AddTo(lib, VfxId.BoilBubbles, 3, g =>
+            {
+                var ps = Emitter(g, "Bubbles", _drop, 1.5f, false); var m = ps.main;
+                m.startLifetime = R(0.2f, 0.4f); m.startSpeed = R(0.1f, 0.3f); m.startSize = R(0.008f, 0.018f); m.startColor = new Color(0.9f, 0.95f, 1f, 0.7f); m.gravityModifier = 0.5f;
+                var e = ps.emission; e.rateOverTime = 18f; Shape(ps, ParticleSystemShapeType.Cone, 8f, 0.08f); Shrink(ps);          // along the normal (play with Vector3.up)
+                var w = Emitter(g, "Wisps", _soft, 1.5f, false); var wm = w.main;
+                wm.startLifetime = R(1f, 1.6f); wm.startSpeed = R(0.1f, 0.25f); wm.startSize = R(0.04f, 0.08f); wm.startColor = new Color(1f, 1f, 1f, 0.16f); wm.gravityModifier = -0.04f;
+                var we = w.emission; we.rateOverTime = 2f; Shape(w, ParticleSystemShapeType.Cone, 10f, 0.06f); Grow(w, 3f); Fade(w); RandRot(w);
+            });
+        }
+
+        /// <summary>
+        /// bridge: PrimalVfxBuilder.AppendPhase3 - builds only the phase 3 prefabs with the existing materials and adds them to
+        /// Resources/VfxLibrary (the other effects, the campfire prefab and the blood library are left as they are)
+        /// </summary>
+        [PrimalBridgeCommand]
+        public static string AppendPhase3()
+        {
+            _soft = AssetDatabase.LoadAssetAtPath<Material>($"{Root}/Materials/M_VFX_Soft.mat");
+            _add = AssetDatabase.LoadAssetAtPath<Material>($"{Root}/Materials/M_VFX_Additive.mat");
+            _drop = AssetDatabase.LoadAssetAtPath<Material>($"{Root}/Materials/M_VFX_Drop.mat");
+            _chip = AssetDatabase.LoadAssetAtPath<Material>($"{Root}/Materials/M_VFX_Chip.mat");
+            _leaf = AssetDatabase.LoadAssetAtPath<Material>($"{Root}/Materials/M_VFX_Leaf.mat");
+            if (!_soft || !_drop || !_chip) return "materials missing: run the full PrimalVfxBuilder.Build first";
+            const string libPath = "Assets/_Project/Resources/VfxLibrary.asset";
+            var lib = AssetDatabase.LoadAssetAtPath<VfxLibrary>(libPath);
+            if (!lib) return "no VfxLibrary at " + libPath;
+            int before = lib.entries.Count;
+            BuildPhase3(lib);
+            EditorUtility.SetDirty(lib); AssetDatabase.SaveAssets();
+            return $"VfxLibrary {before} -> {lib.entries.Count} entries (PunchImpactSmall, PunchImpactHeavy, DustImpact, Heal, BoilBubbles)";
         }
 
         /// <summary>ground blood: four splat shapes and a pool, wet dark red (URP Lit transparent), Resources/BloodLibrary</summary>

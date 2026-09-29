@@ -6,7 +6,7 @@ using PrimalFrontier.Items;
 
 namespace PrimalFrontier.UI
 {
-    /// <summary>One inventory slot in the UI: icon, count, durability; click, double click, shift-click, drag & drop.</summary>
+    /// <summary>One inventory slot in the UI: icon, count (water in ml), durability, spoilage tint; click, double click, shift-click, drag & drop.</summary>
     public class SlotView : MonoBehaviour, IPointerClickHandler, IBeginDragHandler, IDragHandler, IEndDragHandler, IDropHandler, IPointerEnterHandler, IPointerExitHandler
     {
         public InventorySystem inventory; public int index;
@@ -41,8 +41,9 @@ namespace PrimalFrontier.UI
         {
             var s = Stack;
             icon.enabled = s != null && s.item.icon; if (s != null) icon.sprite = s.item.icon;
-            count.text = s == null ? "" : s.item.IsWaterContainer ? $"{s.water}/{s.item.waterCharges}" : s.count > 1 ? s.count.ToString() : "";
+            count.text = HUDManager.SlotCountText(s);
             count.color = HUDManager.WaterCountColor(s);
+            icon.color = s != null ? Survival.Spoilage.Tint(Survival.Spoilage.Stage(s)) : Color.white;     // aging / spoiled food is tinted
             bool d = s != null && s.item.HasDurability; dur.enabled = d;
             if (d) { float k = Mathf.Clamp01(s.durability / s.item.maxDurability); dur.fillAmount = k; dur.color = Color.Lerp(UIStyle.Bad, UIStyle.Good, k); }
             bg.sprite = Selected || Highlight ? UIStyle.SlotActive : UIStyle.Slot;

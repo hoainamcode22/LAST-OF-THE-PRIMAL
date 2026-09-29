@@ -110,11 +110,16 @@ namespace PrimalFrontier.Items
             {
                 var f = (ToolKind)bit; if ((k & f) == 0) continue;
                 if (sb.Length > 0) sb.Append(" or ");
-                sb.Append(f == ToolKind.Light ? "a torch" : World.ResourceNode.ToolName(f));
+                sb.Append(SingleToolName(f));
             }
             s = sb.Length > 0 ? sb.ToString() : "a tool";
             _toolLabels[k] = s; return s;
         }
+        /// <summary>"an axe", "a pick"... for one tool flag (kept here so crafting does not depend on the resource code)</summary>
+        public static string SingleToolName(ToolKind f) => f switch
+        {
+            ToolKind.Chop => "an axe", ToolKind.Mine => "a pick", ToolKind.Cut => "a knife", ToolKind.Hammer => "a hammer", ToolKind.Light => "a torch", _ => "a tool"
+        };
         public static string ToolReason(ToolKind k)
         {
             if (_toolReasons.TryGetValue(k, out var s)) return s;

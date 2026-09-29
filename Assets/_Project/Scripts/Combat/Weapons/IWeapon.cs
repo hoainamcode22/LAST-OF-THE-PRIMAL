@@ -12,7 +12,9 @@ namespace PrimalFrontier.Combat.Weapons
     public struct WeaponInput
     {
         public bool pressed, held, aiming;
-        public WeaponInput(bool pressed, bool held, bool aiming) { this.pressed = pressed; this.held = held; this.aiming = aiming; }
+        /// <summary>the separate heavy-attack button (touch HEAVY): heavy at once, no hold needed</summary>
+        public bool heavyPressed;
+        public WeaponInput(bool pressed, bool held, bool aiming, bool heavyPressed = false) { this.pressed = pressed; this.held = held; this.aiming = aiming; this.heavyPressed = heavyPressed; }
     }
 
     /// <summary>

@@ -28,6 +28,14 @@ namespace PrimalFrontier.Core
         CarcassButchered,
         // survival milestone 1 (appended)
         FoodBurned, WaterCollected, WaterEmptied, NeedTierChanged, FuelAdded, FoodTaken,
+        // perception (appended, AI): a creature starts to notice the player (id species, amount AwarenessLevel); a predator follows a food smell (position = source)
+        PlayerNoticed, ScentInvestigated,
+        // survival phase 3 (appended, SURV): a treatment item was used (id item; not Ate); a status effect started / ended (id effect);
+        // a food stack in the pack went off (id item, amount FoodStage); a tool / weapon broke in the inventory wear path (id item);
+        // a campfire changed FireState (id structure item, amount state); rain put a fire out (id structure item)
+        ItemUsed, StatusApplied, StatusEnded, FoodSpoiled, ToolBroken, FireStateChanged, FireDoused,
+        // resources (appended, RES): a terrain tree fell (id wood item, position the tree); a node was emptied (id resource definition, position the node)
+        TreeFelled, ResourceDepleted,
     }
 
     /// <summary>One gameplay fact ("added 3 wood", "entered cave", "lit a fire"). Tutorial, journal, audio and UI listen.</summary>

@@ -1,0 +1,18 @@
+DONE 2026-09-29 19:39:29
+passed 16  failed 0  skipped 0  inconclusive 0  time 60,5s
+  ok   PrimalFrontier.Tests.ResourceIslandTests.Every_Node_Near_The_Spawn_Prompts_And_Gives_Items
+  ok   PrimalFrontier.Tests.ResourceIslandTests.Punch_Fruit_Notes_And_Respawn
+  ok   PrimalFrontier.Tests.ResourceIslandTests.Save_Load_Keeps_Resource_State_And_The_Layer_Is_Cheap
+  ok   PrimalFrontier.Tests.ResourceIslandTests.Start_Area_Is_Stocked_And_Leads_To_Water
+  ok   PrimalFrontier.Tests.ResourceIslandTests.Tools_Beat_Hands_On_Stone_Wood_And_Trees
+  ok   PrimalFrontier.Tests.ResourceTests.Axe_Is_For_Wood_Hands_Only_Twig_A_Tree
+  ok   PrimalFrontier.Tests.ResourceTests.Bare_Hand_Strike_Gives_A_Small_Result_Tools_Do_Not
+  ok   PrimalFrontier.Tests.ResourceTests.Every_Definition_Is_Sane
+  ok   PrimalFrontier.Tests.ResourceTests.Fruit_Grows_Back_Only_After_Its_Time
+  ok   PrimalFrontier.Tests.ResourceTests.Fruit_That_Does_Not_Fit_Stays_On_The_Branch
+  ok   PrimalFrontier.Tests.ResourceTests.Fruit_With_A_Full_Pack_Stays_On_The_Tree
+  ok   PrimalFrontier.Tests.ResourceTests.Fruit_With_Room_Goes_Into_The_Pack_And_The_Bunch_Empties
+  ok   PrimalFrontier.Tests.ResourceTests.Hands_Give_One_Stone_A_Pick_Three_To_Five
+  ok   PrimalFrontier.Tests.ResourceTests.Hidden_Node_Never_Pops_In_Next_To_The_Player
+  ok   PrimalFrontier.Tests.ResourceTests.No_Per_Node_Update
+  ok   PrimalFrontier.Tests.ResourceTests.Node_Looks_Full_Damaged_Depleted_Regrowing

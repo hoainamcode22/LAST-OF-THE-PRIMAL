@@ -1,0 +1,104 @@
+scene Assets/_Project/Scenes/Island_VerticalSlice.unity dirty False
+root [Systems] children 15 active True
+root [Gameplay] children 11 active True
+root Player children 1 active True
+root Main Camera children 0 active True
+root [UI] children 9 active True
+root World children 7 active True
+root Markers children 4 active True
+root ENV_Island_Terrain children 0 active True
+root Sun children 0 active True
+root Global Volume children 0 active True
+root Water children 5 active True
+World/Rocks: 816 children
+   PFB_ENV_Rock_Large: 254 (nodes 254, colliders 254) size 6,57x4,56x6,65 mat M_Rock/Universal Render Pipeline/Lit/bcTrue prefab Assets/_Project/Prefabs/Environment/PFB_ENV_Rock_Large_01.prefab scale 0,91
+   PFB_ENV_Rock_Medium: 426 (nodes 426, colliders 426) size 2,51x1,67x2,48 mat M_Rock/Universal Render Pipeline/Lit/bcTrue prefab Assets/_Project/Prefabs/Environment/PFB_ENV_Rock_Medium_02.prefab scale 1,08
+   PFB_ENV_Rock_Small: 136 (nodes 0, colliders 136) size 0,82x0,66x0,82 mat M_Rock/Universal Render Pipeline/Lit/bcTrue prefab Assets/_Project/Prefabs/Environment/PFB_ENV_Rock_Small_02.prefab scale 1,44
+World/Cliffs: 14 children
+   PFB_ENV_Cave_Entrance: 1 (nodes 0, colliders 1) size 22,98x11,81x18,80 mat M_Rock/Universal Render Pipeline/Lit/bcTrue prefab Assets/_Project/Prefabs/Environment/PFB_ENV_Cave_Entrance.prefab scale 1,00
+   PFB_ENV_Cliff: 13 (nodes 0, colliders 13) size 13,47x12,07x9,71 mat M_Rock/Universal Render Pipeline/Lit/bcTrue prefab Assets/_Project/Prefabs/Environment/PFB_ENV_Cliff_02.prefab scale 0,99
+World/Shipwreck: 9 children
+   PFB_PROP_Ship_Deck: 1 (nodes 0, colliders 1) size 11,22x2,91x12,56 mat M_ShipPlanks/Universal Render Pipeline/Lit/bcTrue prefab Assets/_Project/Prefabs/Shipwreck/PFB_PROP_Ship_Deck.prefab scale 1,00
+   PFB_PROP_Ship_Hull: 1 (nodes 0, colliders 1) size 13,31x6,30x15,25 mat M_ShipPlanks/Universal Render Pipeline/Lit/bcTrue prefab Assets/_Project/Prefabs/Shipwreck/PFB_PROP_Ship_Hull.prefab scale 1,00
+   PFB_PROP_Ship_Mast: 1 (nodes 0, colliders 1) size 11,79x1,12x10,16 mat M_ShipBeam/Universal Render Pipeline/Lit/bcTrue prefab Assets/_Project/Prefabs/Shipwreck/PFB_PROP_Ship_Mast.prefab scale 1,00
+   PFB_PROP_Ship_MastStub: 1 (nodes 0, colliders 1) size 1,73x3,67x1,69 mat M_ShipBeam/Universal Render Pipeline/Lit/bcTrue prefab Assets/_Project/Prefabs/Shipwreck/PFB_PROP_Ship_MastStub.prefab scale 1,00
+   PFB_PROP_Ship_Ribs: 1 (nodes 0, colliders 1) size 13,28x6,70x15,06 mat M_ShipBeam/Universal Render Pipeline/Lit/bcTrue prefab Assets/_Project/Prefabs/Shipwreck/PFB_PROP_Ship_Ribs.prefab scale 1,00
+   PFB_PROP_Ship_Rope: 1 (nodes 0, colliders 0) size 2,81x1,41x5,44 mat M_Rope/Universal Render Pipeline/Lit/bcTrue prefab Assets/_Project/Prefabs/Shipwreck/PFB_PROP_Ship_Rope.prefab scale 1,00
+   PFB_PROP_Ship_Sail: 1 (nodes 0, colliders 0) size 9,13x0,87x8,16 mat M_SailCloth/Universal Render Pipeline/Lit/bcTrue prefab Assets/_Project/Prefabs/Shipwreck/PFB_PROP_Ship_Sail.prefab scale 1,00
+   PFB_PROP_Ship_Stern: 1 (nodes 0, colliders 1) size 7,31x6,58x7,30 mat M_ShipPlanks/Universal Render Pipeline/Lit/bcTrue prefab Assets/_Project/Prefabs/Shipwreck/PFB_PROP_Ship_Stern.prefab scale 1,00
+   PFB_PROP_Ship_SternRibs: 1 (nodes 0, colliders 1) size 7,74x7,05x7,00 mat M_ShipBeam/Universal Render Pipeline/Lit/bcTrue prefab Assets/_Project/Prefabs/Shipwreck/PFB_PROP_Ship_SternRibs.prefab scale 1,00
+World/Props: 15 children
+   PFB_PROP_Ship_Barrel: 3 (nodes 0, colliders 3) size 1,06x1,20x1,06 mat M_BarrelStaves/Universal Render Pipeline/Lit/bcTrue prefab Assets/_Project/Prefabs/Props/PFB_PROP_Ship_Barrel.prefab scale 1,00
+   PFB_PROP_Ship_Crate: 3 (nodes 0, colliders 3) size 1,25x0,94x1,22 mat M_CratePlanks/Universal Render Pipeline/Lit/bcTrue prefab Assets/_Project/Prefabs/Props/PFB_PROP_Ship_Crate.prefab scale 1,00
+   PFB_PROP_Ship_Crate_Broken: 2 (nodes 0, colliders 2) size 1,04x0,98x1,21 mat M_CratePlanks/Universal Render Pipeline/Lit/bcTrue prefab Assets/_Project/Prefabs/Props/PFB_PROP_Ship_Crate_Broken.prefab scale 1,00
+   PFB_PROP_Ship_Debris: 7 (nodes 0, colliders 7) size 5,12x0,37x5,18 mat M_CratePlanks/Universal Render Pipeline/Lit/bcTrue prefab Assets/_Project/Prefabs/Props/PFB_PROP_Ship_Debris.prefab scale 1,00
+World/Resources: 45 children
+   PFB_RES_BerryPlant: 9 (nodes 9, colliders 9) size 3,46x1,59x3,45 mat M_Foliage/Universal Render Pipeline/Lit/bcTrue prefab Assets/_Project/Prefabs/Resources/PFB_RES_BerryPlant_01.prefab scale 0,97
+   PFB_RES_Fiber: 14 (nodes 14, colliders 14) size 1,67x1,28x1,67 mat M_Foliage/Universal Render Pipeline/Lit/bcTrue prefab Assets/_Project/Prefabs/Resources/PFB_RES_Fiber_01.prefab scale 1,05
+   PFB_RES_Stone: 12 (nodes 12, colliders 12) size 1,22x0,35x1,24 mat M_Rock/Universal Render Pipeline/Lit/bcTrue prefab Assets/_Project/Prefabs/Resources/PFB_RES_Stone_01.prefab scale 1,01
+   PFB_RES_Wood: 10 (nodes 10, colliders 10) size 3,36x0,42x3,34 mat M_Driftwood/Universal Render Pipeline/Lit/bcTrue prefab Assets/_Project/Prefabs/Resources/PFB_RES_Wood_01.prefab scale 0,96
+World/Vegetation: 16 children
+   InteractiveBushes: 1 (nodes 0, colliders 1) size 461,68x35,45x387,82 mat M_Foliage_BushWind/PF/Foliage Wind/bcTrue prefab no prefab scale 1,00
+   PFB_ENV_FallenLog: 14 (nodes 0, colliders 14) size 5,36x0,93x5,24 mat M_Bark/Universal Render Pipeline/Lit/bcTrue prefab Assets/_Project/Prefabs/Environment/PFB_ENV_FallenLog_01.prefab scale 0,94
+   Thickets: 1 (nodes 0, colliders 1) size 410,18x31,60x362,09 mat M_Bark_BushWind/PF/Foliage Wind/bcTrue prefab no prefab scale 1,00
+World/Landmarks: 1 children
+   Volcano: 1 (nodes 0, colliders 0) size 690,00x269,34x970,00 mat M_VolcanoLava/PF/Landmark Lit/bcTrue prefab Assets/_Project/Prefabs/Environment/PFB_ENV_Volcano.prefab scale 1,00
+marker Zones/ZONE_StartBeach (0,0,1,8,205,0)
+marker Zones/ZONE_PlayerSpawn (-20,0,1,5,211,0)
+marker Zones/ZONE_Shipwreck (-45,0,-0,1,224,0)
+marker Zones/ZONE_Camp (18,0,4,3,178,0)
+marker Zones/ZONE_Pond (38,0,6,9,62,0)
+marker Zones/ZONE_Meadow (0,0,9,0,-20,0)
+marker Zones/ZONE_Rocky (-118,0,28,6,-128,0)
+marker Zones/ZONE_Cave (-18,0,18,4,-131,0)
+marker Habitats/HAB_Triceratops (-15,0,9,2,-35,0)
+marker Habitats/HAB_Parasaurolophus (70,0,9,9,5,0)
+marker Habitats/HAB_Ankylosaurus (155,0,6,8,-95,0)
+marker Habitats/HAB_Velociraptor (-165,0,12,4,30,0)
+marker Habitats/HAB_Carnotaurus (-95,0,11,9,-70,0)
+marker Habitats/HAB_ApexPredator (30,0,48,8,-235,0)
+marker ResourceAreas/RESAREA_Driftwood (-10,0,1,8,205,0)
+marker ResourceAreas/RESAREA_Stone (-95,0,19,7,-115,0)
+marker ResourceAreas/RESAREA_StreamStone (70,0,10,3,-60,0)
+marker ResourceAreas/RESAREA_Fiber (30,0,11,0,120,0)
+marker ResourceAreas/RESAREA_Berries (75,0,7,9,135,0)
+marker Water/WATER_Pond (38,0,9,5,62,0)
+spawn (-20,0,1,5,211,0)
+ResourceNodes total 803
+   stone / Rock / req Mine: 680 within 20 m 0, 40 m 0, 60 m 4, 100 m 24
+   berries / Berry bush / req None: 84 within 20 m 0, 40 m 3, 60 m 5, 100 m 8
+   fiber / Fibrous plant / req None: 14 within 20 m 0, 40 m 0, 60 m 0, 100 m 7
+   stone / Loose stones / req None: 15 within 20 m 0, 40 m 0, 60 m 0, 100 m 0
+   wood / Driftwood / req None: 10 within 20 m 1, 40 m 3, 60 m 4, 100 m 10
+   near spawn 10,3 m: World/Resources/PFB_RES_Wood_01 (Driftwood, charges 4x1)
+   near spawn 26,1 m: World/Resources/PFB_RES_Wood_01 (Driftwood, charges 4x1)
+   near spawn 26,7 m: World/Vegetation/Thickets/Thicket_60/ThicketBush_60_3_Berries (Berry bush, charges 3x2)
+   near spawn 30,6 m: World/Vegetation/Thickets/Thicket_60/ThicketBush_60_1_Berries (Berry bush, charges 3x2)
+   near spawn 35,9 m: World/Resources/PFB_RES_Wood_01 (Driftwood, charges 4x1)
+   near spawn 38,4 m: World/Vegetation/InteractiveBushes/Bush_047_Berries (Berry bush, charges 3x2)
+   near spawn 43,1 m: World/Resources/PFB_RES_Wood_01 (Driftwood, charges 4x1)
+   near spawn 45,0 m: World/Rocks/PFB_ENV_Rock_Medium_03 (Rock, charges 5x2)
+   near spawn 45,5 m: World/Vegetation/InteractiveBushes/Bush_088_Berries (Berry bush, charges 3x2)
+   near spawn 48,0 m: World/Rocks/PFB_ENV_Rock_Medium_02 (Rock, charges 5x2)
+   near spawn 53,8 m: World/Rocks/PFB_ENV_Rock_Medium_02 (Rock, charges 5x2)
+   near spawn 57,0 m: World/Rocks/PFB_ENV_Rock_Medium_03 (Rock, charges 5x2)
+   near spawn 58,3 m: World/Vegetation/InteractiveBushes/Bush_055_Berries (Berry bush, charges 3x2)
+WorldPickups 5: stone 5m, bone 342m, wood 7m, stone 9m, wood 12m
+water ENV_Pond_Water 'Pond water' fresh True bounds Center: (38.00, 9.55, 62.00), Extents: (23.00, 0.00, 23.00) closest to spawn 130,8 m
+water ENV_Stream_Water 'Stream water' fresh True bounds Center: (68.96, 18.57, -56.10), Extents: (29.43, 8.91, 102.92) closest to spawn 174,6 m
+climbable [Gameplay]/FruitTrees/FruitTree_1 (25,1,4,2,186,4) fruit 3 dist 51
+climbable [Gameplay]/FruitTrees/FruitTree_3 (82,8,8,3,130,5) fruit 3 dist 131
+climbable [Gameplay]/FruitTrees/FruitTree_2 (-8,9,9,4,-44,4) fruit 3 dist 256
+climbable [Gameplay]/FruitTrees/FruitTree_4 (26,7,10,8,80,5) fruit 3 dist 139
+bushes 452, berry nodes 75, within 60 m of spawn 9 (berries 5)
+   berry bush part World/Vegetation/Thickets/Thicket_19/ThicketBush_19_6_Berries/Visual/ENV_Bush_05/ENV_Bush_05_LOD0 mats M_Bark_BushWind/PF/Foliage Wind,M_Foliage_BushWind/PF/Foliage Wind col SphereCollider
+   berry bush part World/Vegetation/Thickets/Thicket_19/ThicketBush_19_6_Berries/Visual/ENV_Bush_05/ENV_Bush_05_LOD1 mats M_Bark_BushWind/PF/Foliage Wind,M_Foliage_BushWind/PF/Foliage Wind col SphereCollider
+terrain ENV_Island_Terrain pos (-320,0,-10,0,-320,0) size (640,0,80,0,640,0) layers TL_Sand,TL_Grass,TL_ForestFloor,TL_Rock,TL_Mud,TL_SandWet alphamap 1024
+trees 1322 prototypes PFB_ENV_Tree_01,PFB_ENV_Tree_02,PFB_ENV_Tree_03,PFB_ENV_Tree_04
+trees within 60 m of spawn 23
+details DET_ENV_Fern_01,DET_ENV_Grass_01,DET_ENV_Bush_01
+water obj WATER_Pond y 9,55
+decoration that looks gatherable (no node):
+   Rocks/PFB_ENV_Rock_Small: 136 renderers
+   Vegetation/PFB_ENV_FallenLog: 28 renderers
+   [Gameplay]/CaptainsLog: 1 renderers

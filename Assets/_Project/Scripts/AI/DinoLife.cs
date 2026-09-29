@@ -51,13 +51,19 @@ namespace PrimalFrontier.AI
             float dt = Time.deltaTime;
             bool alive = !_d || _d.IsAlive;
             Transform target = _d && alive ? _d.LookTarget : null;
-            _w = Mathf.MoveTowards(_w, target ? lookWeight : 0f, dt * 1.6f);
+            // no player to watch: look at the last stimulus (a noise, a shaking bush, a smell)
+            bool has = target;
+            if (target) _lookAt = target.position + Vector3.up * 1.5f;
+            else if (_d && alive && _d.TryGetLookPoint(out var lp)) { _lookAt = lp + Vector3.up * 0.8f; has = true; }
+            _w = Mathf.MoveTowards(_w, has ? lookWeight : 0f, dt * 1.6f);
             _tell = Mathf.MoveTowards(_tell, _d && _d.Telegraph > 0f ? 1f : 0f, dt * 7f);
-            Head(target);
-            Eyes(target, alive, dt);
+            Head(has);
+            Eyes(has, alive, dt);
         }
 
-        void Head(Transform target)
+        Vector3 _lookAt;
+
+        void Head(bool target)
         {
             if (!_head) return;
             // animation did not write the head this frame (culled / disabled): undo last frame's offset first
@@ -67,9 +73,9 @@ namespace PrimalFrontier.AI
             if (_anim && !_anim.enabled) return;
             _pre = _head.localRotation;
             Quaternion delta = Quaternion.identity;
-            if (_w > 0.001f && target)
+            if (_w > 0.001f)                  // fades out on the last look point when the target goes
             {
-                Vector3 to = target.position + Vector3.up * 1.5f - _head.position;
+                Vector3 to = _lookAt - _head.position;
                 Vector3 l = _model.InverseTransformDirection(to.normalized);
                 float yaw = Mathf.Clamp(Mathf.Atan2(l.x, l.z) * Mathf.Rad2Deg, -maxYaw, maxYaw);
                 float pitch = Mathf.Clamp(Mathf.Asin(Mathf.Clamp(l.y, -1f, 1f)) * Mathf.Rad2Deg, -maxPitch, maxPitch);
@@ -82,11 +88,12 @@ namespace PrimalFrontier.AI
             _lastSet = _head.localRotation; _haveLast = true;
         }
 
-        void Eyes(Transform target, bool alive, float dt)
+        void Eyes(bool target, bool alive, float dt)
         {
             if (!_eyeL && !_eyeR) return;
             float open = 1f;
             if (!alive) open = 0.3f;
+            else if (_d && _d.Sleeping) open = 0.12f;           // asleep: eyes closed
             else
             {
                 if (_blinkT < 0f && Time.time > _nextBlink) { _blinkT = 0f; _nextBlink = Time.time + Random.Range(blinkEvery.x, blinkEvery.y); }
@@ -101,14 +108,14 @@ namespace PrimalFrontier.AI
             Eye(_eyeR, _eyeRestR, _eyeScaleR, target, open);
         }
 
-        void Eye(Transform e, Quaternion rest, Vector3 scale, Transform target, float open)
+        void Eye(Transform e, Quaternion rest, Vector3 scale, bool target, float open)
         {
             if (!e) return;
             e.localScale = new Vector3(scale.x, scale.y * open, scale.z);
             Quaternion restW = (e.parent ? e.parent.rotation : Quaternion.identity) * rest;
-            if (target && _w > 0.001f)
+            if (_w > 0.001f)
             {
-                Vector3 to = target.position + Vector3.up * 1.5f - e.position;
+                Vector3 to = _lookAt - e.position;
                 var look = Quaternion.RotateTowards(restW, Quaternion.LookRotation(to, _model.up), eyeGlance);
                 e.rotation = Quaternion.Slerp(restW, look, _w);
             }

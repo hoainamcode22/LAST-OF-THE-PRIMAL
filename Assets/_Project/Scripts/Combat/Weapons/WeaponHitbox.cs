@@ -32,11 +32,13 @@ namespace PrimalFrontier.Combat.Weapons
         public bool Active { get; private set; }
         public int HitCount { get; private set; }
         public bool HasBlade => !sphereMode;
+        /// <summary>the last HitInfo this hitbox sent (tests, debug)</summary>
+        public HitInfo LastHit { get; private set; }
         public WeaponData Data => _data;
 
         readonly HashSet<IDamageable> _hitThisSwing = new HashSet<IDamageable>();
         WeaponData _data; Transform _owner; int _mask;
-        float _damage; bool _heavy; bool _downStroke;
+        float _damage; bool _heavy; bool _downStroke; float _knockback;
         Vector3 _lastBase, _lastTip; bool _hasLast;
 
         /// <summary>blade mode on a held model; false when the model has no mesh (use sphere mode instead)</summary>
@@ -106,10 +108,10 @@ namespace PrimalFrontier.Combat.Weapons
 
         // ------------------------------------------------------------------ swing
         /// <summary>a new swing: forget who was hit, set its damage (before the zone multiplier)</summary>
-        public void BeginSwing(float damage, bool heavy, bool downStroke, float sphereReach = -1f)
+        public void BeginSwing(float damage, bool heavy, bool downStroke, float sphereReach = -1f, float knockback = 0f)
         {
             _hitThisSwing.Clear(); HitCount = 0;
-            _damage = damage; _heavy = heavy; _downStroke = downStroke;
+            _damage = damage; _heavy = heavy; _downStroke = downStroke; _knockback = Mathf.Max(0f, knockback);
             if (sphereReach > 0f) reach = sphereReach;
             SetActive(false);
         }
@@ -142,12 +144,26 @@ namespace PrimalFrontier.Combat.Weapons
             _lastBase = b; _lastTip = t;
         }
 
-        void SweepSphere()
+        void SweepSphere() => SweepSphereFrom(transform.position, reach);
+
+        /// <summary>
+        /// the fallback volume in front of origin: a sphere, or with WeaponData.reachDown a capsule from there down to that
+        /// height above the owner's feet (bare hands reach small creatures and stone piles on the ground)
+        /// </summary>
+        int OverlapFallback(Vector3 origin, float r, Vector3 fwd)
         {
-            Vector3 fwd = _owner.forward;
-            Vector3 origin = transform.position;
-            int n = Physics.OverlapSphereNonAlloc(origin + fwd * reach * 0.6f, reach * 0.55f, Buffer, _mask, QueryTriggerInteraction.Collide);
-            Resolve(n, origin + fwd * 0.5f, fwd);
+            Vector3 c = origin + fwd * r * 0.6f; float rad = r * 0.55f;
+            float low = _data ? _data.reachDown : 0f;
+            if (low > 0f && _owner)
+            {
+                float bottomY = _owner.position.y + low + rad * 0.5f;
+                if (bottomY < c.y)
+                {
+                    Vector3 b = new Vector3(c.x, bottomY, c.z);
+                    return Physics.OverlapCapsuleNonAlloc(c, b, rad, Buffer, _mask, QueryTriggerInteraction.Collide);
+                }
+            }
+            return Physics.OverlapSphereNonAlloc(c, rad, Buffer, _mask, QueryTriggerInteraction.Collide);
         }
 
         /// <summary>one immediate pass (legacy OnAttackHit on a clip without window events)</summary>
@@ -165,7 +181,7 @@ namespace PrimalFrontier.Combat.Weapons
         {
             if (_owner == null) return;
             Vector3 fwd = _owner.forward;
-            int n = Physics.OverlapSphereNonAlloc(origin + fwd * sphereReach * 0.6f, sphereReach * 0.55f, Buffer, _mask, QueryTriggerInteraction.Collide);
+            int n = OverlapFallback(origin, sphereReach, fwd);
             Resolve(n, origin + fwd * 0.5f, fwd);
         }
 
@@ -209,14 +225,17 @@ namespace PrimalFrontier.Combat.Weapons
             var hit = new HitInfo
             {
                 damage = _damage * mult, point = pt, direction = dir, attacker = _owner.gameObject,
-                weapon = _data ? _data.kind : Items.WeaponKind.None, heavy = _heavy, zoneMultiplier = mult
+                weapon = _data ? _data.kind : Items.WeaponKind.None, heavy = _heavy, zoneMultiplier = mult,
+                unarmed = _data && _data.unarmed, knockback = _knockback,
             };
             bool flesh = IsFlesh(d);
             d.TakeHit(hit);
-            if (flesh) { if (_data && _data.hitVfx != VfxId.None) VfxPool.Instance.Play(_data.hitVfx, pt, -dir); }
+            var fleshVfx = _data ? (_heavy && _data.hitVfxHeavy != VfxId.None ? _data.hitVfxHeavy : _data.hitVfx) : VfxId.None;
+            if (flesh) { if (fleshVfx != VfxId.None) VfxPool.Instance.Play(fleshVfx, pt, -dir); }
             else VfxPool.Instance.Play(_data && _data.hitVfxHard != VfxId.None ? _data.hitVfxHard : VfxId.HitDust, pt, -dir);
-            SfxId sfx = _data ? _data.hitSfx : SfxId.HitFlesh;
+            SfxId sfx = _data ? (_heavy && _data.hitSfxHeavy != SfxId.None ? _data.hitSfxHeavy : _data.hitSfx) : SfxId.HitFlesh;
             if (sfx != SfxId.None) SfxPlayer.Instance.Play(sfx, pt);
+            LastHit = hit;
             Hit?.Invoke(d, hit, c);
         }
 

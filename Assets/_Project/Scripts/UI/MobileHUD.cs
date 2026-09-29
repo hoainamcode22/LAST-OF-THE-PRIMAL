@@ -11,8 +11,12 @@ namespace PrimalFrontier.UI
 {
     /// <summary>
     /// Touch controls (phones / tablets): floating move stick on the left, drag anywhere on the right to look,
-    /// buttons bottom-right (Attack, Jump, Dodge, a contextual Use / Climb / Pick button that only shows when there is
-    /// something to use, Aim only with a spear or bow; in build mode Build / Rotate / Cancel), tap a hotbar slot to hold it, Crouch and Run by the stick, small Menu / Bag / Craft / Journal
+    /// buttons bottom-right (Attack / Punch, a separate Heavy button for melee and bare hands, Jump, Dodge, a contextual
+    /// button that only shows when there is something to use and says what: GATHER / DRINK / FILL / HARVEST / CLIMB /
+    /// PICK UP / USE, Aim only with a spear or bow; in build mode Build / Rotate / Cancel), tap a hotbar slot to hold it,
+    /// Crouch and Run by the stick, small Menu / Bag / Craft / Journal.
+    /// Melee and bare hands: tap ATTACK = next light strike of the combo, holding it repeats light strikes, HEAVY = heavy
+    /// attack at once. A bow keeps "hold ATTACK to draw, release to shoot".
     /// buttons under the vitals. Everything sits inside the device safe area (notches, rounded corners) and scales with
     /// the screen (16:9, 18:9, 19.5:9, tablets). It only writes PlayerInputReader.Virtual: gameplay never reads touch.
     /// Shown automatically on touch devices; Settings > Touch controls forces it on / off. Layout lives in the scene
@@ -24,7 +28,10 @@ namespace PrimalFrontier.UI
         public float stickRadius = 110f;
 
         Canvas _canvas; RectTransform _safe, _stickBase, _knob, _moveZone;
-        GameObject _interactBtn, _aimBtn, _dodgeBtn, _rotateBtn, _cancelBtn; Text _interactLabel, _attackLabel; Image _runImg, _crouchImg, _aimImg;
+        GameObject _interactBtn, _aimBtn, _dodgeBtn, _rotateBtn, _cancelBtn, _heavyBtn; Text _interactLabel, _attackLabel; Image _runImg, _crouchImg, _aimImg;
+        [Tooltip("holding ATTACK with a melee weapon / bare hands repeats a light strike this often (s)")] public float attackRepeat = 0.32f;
+        bool _attackDown; float _attackNext; bool _holdMeansDraw;
+        PrimalFrontier.Combat.Weapons.WeaponController _wc;
         RectTransform _hotbarTaps; readonly RectTransform[] _taps = new RectTransform[8]; RectTransform[] _hudSlots; Canvas _hudCanvas; RectTransform _mapTap, _hudMap;
         Rect _lastSafe; Vector2Int _lastScreen;
         int _movePointer = -99, _lookPointer = -99; Vector2 _moveOrigin, _lookLast;
@@ -48,7 +55,9 @@ namespace PrimalFrontier.UI
                 _stickBase = UIFactory.Image(_moveZone, "StickBase", UIStyle.Slot, new Color(1, 1, 1, 0.45f), new Vector2(0, 0), new Vector2(0, 0), new Vector2(0.5f, 0.5f), new Vector2(230, 230), new Vector2(220, 220)).rectTransform;
                 _knob = UIFactory.Image(_stickBase, "Knob", UIStyle.SlotActive, new Color(1, 1, 1, 0.8f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(96, 96)).rectTransform;
                 // action buttons, bottom right (thumb arc)
-                _attackLabel = Btn("Attack", "ATTACK", new Vector2(-70, 90), 170, hold: v => PlayerInputReader.Virtual.AttackHeld = v, tap: () => PlayerInputReader.Virtual.Attack = true).GetComponentInChildren<Text>();
+                _attackLabel = Btn("Attack", "ATTACK", new Vector2(-70, 90), 170, hold: OnAttackHold, tap: () => { PlayerInputReader.Virtual.Attack = true; _attackNext = Time.unscaledTime + attackRepeat; }).GetComponentInChildren<Text>();
+                // separate heavy attack (melee / bare hands), up-left of ATTACK; hidden with a bow, food, camp items and in build mode
+                _heavyBtn = Btn("Heavy", "HEAVY", new Vector2(-195, 215), 96, tap: () => PlayerInputReader.Virtual.Heavy = true);
                 Btn("Jump", "JUMP", new Vector2(-270, 60), 118, tap: () => PlayerInputReader.Virtual.Jump = true);
                 _dodgeBtn = Btn("Dodge", "DODGE", new Vector2(-90, 290), 110, tap: () => PlayerInputReader.Virtual.Dodge = true);
                 // build mode: rotate the ghost, cancel (ATTACK becomes BUILD)
@@ -67,8 +76,11 @@ namespace PrimalFrontier.UI
                     _taps[i] = t.rectTransform;
                     if (Application.isPlaying) t.gameObject.GetOrAdd<TouchButton>().Down = () => PlayerInputReader.Virtual.Hotbar = slot;
                 }
-                _interactBtn = Btn("Use", "USE", new Vector2(-280, 230), 128, hold: v => PlayerInputReader.Virtual.InteractHeld = v, tap: () => PlayerInputReader.Virtual.Interact = true);
+                _interactBtn = Btn("Use", "USE", new Vector2(-320, 235), 128, hold: v => PlayerInputReader.Virtual.InteractHeld = v, tap: () => PlayerInputReader.Virtual.Interact = true);
                 _interactLabel = _interactBtn.GetComponentInChildren<Text>();
+                // a layout baked before the HEAVY button had USE where HEAVY now sits: move it only if it was never moved by hand
+                var useRt = (RectTransform)_interactBtn.transform;
+                if (UIFactory.Fresh(_heavyBtn.transform) && !UIFactory.Fresh(useRt) && useRt.anchoredPosition == new Vector2(-280, 230)) useRt.anchoredPosition = new Vector2(-320, 235);
                 _aimBtn = Btn("Aim", "AIM", new Vector2(-250, 390), 100, tap: () => _aimToggle = !_aimToggle);
                 _aimImg = _aimBtn.GetComponent<Image>();
                 // by the stick
@@ -87,7 +99,7 @@ namespace PrimalFrontier.UI
                 }
             }
             finally { UIFactory.EndBuild(); }
-            if (Application.isPlaying) { _canvas.gameObject.SetActive(false); _rotateBtn.SetActive(false); _cancelBtn.SetActive(false); }
+            if (Application.isPlaying) { _canvas.gameObject.SetActive(false); _rotateBtn.SetActive(false); _cancelBtn.SetActive(false); _heavyBtn.SetActive(false); }
         }
 
         GameObject Btn(string name, string label, Vector2 pos, float size, Action<bool> hold = null, Action tap = null, bool left = false)
@@ -173,7 +185,7 @@ namespace PrimalFrontier.UI
             if (show != Visible)
             {
                 Visible = show; _canvas.gameObject.SetActive(show);
-                if (!show) { _movePointer = _lookPointer = -99; PlayerInputReader.Virtual.Move = Vector2.zero; PlayerInputReader.Virtual.AttackHeld = PlayerInputReader.Virtual.InteractHeld = false; }
+                if (!show) { _movePointer = _lookPointer = -99; _attackDown = false; PlayerInputReader.Virtual.Move = Vector2.zero; PlayerInputReader.Virtual.AttackHeld = PlayerInputReader.Virtual.InteractHeld = false; }
             }
             PlayerInputReader.Virtual.Active = Visible;
             if (!Visible) return;
@@ -181,20 +193,29 @@ namespace PrimalFrontier.UI
             var player = PlayerLocator.Player;
             if (player && !_pi) { _pi = player.GetComponent<PlayerInteraction>(); _inv = player.GetComponent<InventorySystem>(); }
             if (player && !_climb) _climb = player.GetComponent<PlayerClimb>();
+            if (player && !_wc) _wc = player.GetComponent<PrimalFrontier.Combat.Weapons.WeaponController>();
             // contextual Use button: only when there is something to use; its label says what
             bool climbing = _climb && _climb.IsClimbing;
             string prompt = _pi ? _pi.Prompt : null;
             bool use = prompt != null && (_pi.PromptEnabled || climbing);
             if (_interactBtn.activeSelf != use) _interactBtn.SetActive(use);
-            if (use && _interactLabel)
-                _interactLabel.text = climbing ? (prompt.StartsWith("Pick") ? "PICK" : "CLIMB") : _pi.Target is Climbable ? "CLIMB" : prompt.StartsWith("Drink") ? "DRINK" : prompt.StartsWith("Fill") ? "FILL" : "USE";
+            if (use && _interactLabel) _interactLabel.text = ContextLabel(prompt, _pi.Target is Climbable, climbing);
             // build mode
             var bs = Building.BuildSystem.Instance; bool building = bs && bs.Active;
             if (_rotateBtn.activeSelf != building) { _rotateBtn.SetActive(building); _cancelBtn.SetActive(building); _dodgeBtn.SetActive(!building); }
             if (building && _interactBtn.activeSelf) _interactBtn.SetActive(false);
-            if (_attackLabel) _attackLabel.text = building ? "BUILD" : "ATTACK";
             FollowHotbar();
             var item = _inv ? _inv.ActiveItem : null;
+            // what ATTACK does with this item, and whether HEAVY applies
+            var data = _wc ? _wc.ResolveData(item) : null;
+            bool usable = item && (item.IsFood || item.IsWaterContainer || item.IsPlaceable || PlayerInteraction.HasUseHandler(item));
+            bool melee = data != null && !usable && !data.IsRanged;
+            _holdMeansDraw = !melee;                                             // bow draw, legacy spear: hold keeps its old meaning
+            bool heavy = melee && data.HasHeavy && !building;
+            if (_heavyBtn.activeSelf != heavy) _heavyBtn.SetActive(heavy);
+            if (_attackLabel) _attackLabel.text = AttackLabel(building, item, data, usable);
+            // holding ATTACK with a melee weapon / bare hands repeats light strikes (the combo continues); HEAVY does the heavy
+            if (_attackDown && melee && Time.unscaledTime >= _attackNext) { PlayerInputReader.Virtual.Attack = true; _attackNext = Time.unscaledTime + attackRepeat; }
             bool aimable = item && (item.weapon == WeaponKind.Spear || item.weapon == WeaponKind.Bow);
             if (_aimBtn.activeSelf != aimable) _aimBtn.SetActive(aimable);
             if (!aimable) _aimToggle = false;
@@ -203,6 +224,42 @@ namespace PrimalFrontier.UI
             Tint(_runImg, _sprintToggle); Tint(_aimImg, _aimToggle);
             var motor = player ? player.GetComponent<PlayerMotor>() : null;
             Tint(_crouchImg, motor && motor.IsCrouching);
+        }
+
+        void OnAttackHold(bool down)
+        {
+            _attackDown = down;
+            PlayerInputReader.Virtual.AttackHeld = down && _holdMeansDraw;      // melee: no hold-for-heavy on touch (HEAVY button)
+        }
+
+        /// <summary>label of the contextual touch button for an interaction prompt (GATHER / DRINK / FILL / HARVEST / CLIMB / PICK UP / USE)</summary>
+        public static string ContextLabel(string prompt, bool targetIsClimbable, bool climbing)
+        {
+            if (string.IsNullOrEmpty(prompt)) return "USE";
+            bool S(string w) => prompt.StartsWith(w, StringComparison.OrdinalIgnoreCase);
+            if (climbing) return S("Pick") || S("Harvest") ? "HARVEST" : "CLIMB";
+            if (targetIsClimbable || S("Climb")) return "CLIMB";
+            if (S("Drink")) return "DRINK";
+            if (S("Fill")) return "FILL";
+            if (S("Harvest") || S("Pick fruit") || S("Pick the") || S("Pick berries")) return "HARVEST";
+            if (S("Pick up")) return "PICK UP";
+            if (S("Gather") || S("Chop") || S("Mine") || S("Cut") || S("Collect") || S("Break") || S("Butcher") || S("Pick")) return "GATHER";
+            return "USE";
+        }
+
+        /// <summary>label of the main touch button: BUILD in build mode, PUNCH with bare hands, EAT / DRINK / PLACE for items it uses, else ATTACK</summary>
+        public static string AttackLabel(bool building, ItemDefinition item, PrimalFrontier.Combat.Weapons.WeaponData data, bool usable)
+        {
+            if (building) return "BUILD";
+            if (usable && item)
+            {
+                if (item.IsPlaceable) return "PLACE";
+                if (item.IsWaterContainer) return "DRINK";
+                if (item.IsFood) return "EAT";
+                return "USE";
+            }
+            if (data != null && data.unarmed) return "PUNCH";
+            return "ATTACK";
         }
 
         /// <summary>the tap targets sit exactly over the HUD hotbar slots, wherever the layout puts them</summary>

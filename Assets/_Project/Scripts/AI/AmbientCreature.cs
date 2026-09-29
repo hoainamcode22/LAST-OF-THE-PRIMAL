@@ -23,8 +23,15 @@ namespace PrimalFrontier.AI
         /// <summary>enabled ambient creatures (bushes look for one to startle)</summary>
         public static readonly System.Collections.Generic.List<AmbientCreature> All = new System.Collections.Generic.List<AmbientCreature>();
 
-        void OnEnable() { if (!All.Contains(this)) All.Add(this); }
-        void OnDisable() { All.Remove(this); }
+        void OnEnable() { if (!All.Contains(this)) All.Add(this); Stimuli.LoudNoise -= OnLoudNoise; Stimuli.LoudNoise += OnLoudNoise; }
+        void OnDisable() { All.Remove(this); if (All.Count == 0) Stimuli.LoudNoise -= OnLoudNoise; }
+
+        /// <summary>a loud noise (tree fall, fight, roar): every ambient creature within range turns away and hurries</summary>
+        static void OnLoudNoise(Vector3 p, float loudness)
+        {
+            float r = PerceptionConfig.Instance.ambientStartleRange * Mathf.Clamp(loudness * 0.5f, 0.5f, 1.5f), r2 = r * r;
+            for (int i = 0; i < All.Count; i++) { var a = All[i]; if (a && a.IsAlive && (a.transform.position - p).sqrMagnitude < r2) a.Startle(p); }
+        }
 
         /// <summary>something rustled nearby: turn away from it and hurry for a few seconds</summary>
         public void Startle(Vector3 from)
@@ -36,6 +43,9 @@ namespace PrimalFrontier.AI
             if (Vector3.Dot(tangent, to) > 0f) _dir = -_dir;
             _boostUntil = Time.time + 3f;
         }
+
+        /// <summary>still hurrying away from the last startle</summary>
+        public bool Startled => Time.time < _boostUntil;
 
         void Start()
         {
@@ -95,11 +105,11 @@ namespace PrimalFrontier.AI
         public void TakeHit(HitInfo hit)
         {
             if (_dead) return;
-            _health -= hit.damage;
+            _health -= hit.damage * (hit.unarmed ? DinosaurController.UnarmedScale(def) : 1f);
             if (_anim) _anim.SetTrigger(AnimParams.Hurt);
             if (_health <= 0f)
             {
-                _dead = true; if (_anim) _anim.SetBool(AnimParams.Dead, true);
+                _dead = true; DiedAt = GameClock.Now; if (_anim) _anim.SetBool(AnimParams.Dead, true);
                 GameEvents.Raise(GameEventType.CreatureKilled, def ? def.id : name, 1, transform.position);
                 if (def && def.meat > 0)
                 {
@@ -108,6 +118,24 @@ namespace PrimalFrontier.AI
                 }
             }
             else _dir = -_dir;
+        }
+
+        /// <summary>game clock time of death (-1 = alive)</summary>
+        public double DiedAt { get; private set; } = -1;
+
+        /// <summary>save / load: a dead flyer / swimmer comes back dead, its carcass with what was left (CreatureSave)</summary>
+        public void RestoreDead(DinosaurController.SavedState s)
+        {
+            if (!s.dead) return;
+            _dead = true; DiedAt = s.diedAt; if (_anim) _anim.SetBool(AnimParams.Dead, true);
+            transform.position = s.pos;
+            if (s.gone) { gameObject.SetActive(false); return; }
+            if (def && def.meat > 0 && s.carcass)
+            {
+                var c = GetComponent<Carcass>(); if (!c) c = gameObject.AddComponent<Carcass>();
+                c.Setup(def.displayName, def.id, def.meat, def.hide, def.bone);
+                c.RestoreLeft(s.meat, s.hide, s.bone, s.expireAt);
+            }
         }
     }
 }

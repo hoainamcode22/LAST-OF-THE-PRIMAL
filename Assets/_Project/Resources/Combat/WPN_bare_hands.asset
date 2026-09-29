@@ -1,0 +1,86 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 708317aaa7685594d9f75d6547b9978a, type: 3}
+  m_Name: WPN_bare_hands
+  m_EditorClassIdentifier: PrimalFrontier.Runtime::PrimalFrontier.Combat.Weapons.WeaponData
+  kind: 0
+  ranged: 0
+  damage: 4
+  heavyDamage: 9
+  staminaCost: 5
+  heavyStaminaMultiplier: 2.2
+  attackSpeed: 1.1
+  heavyHoldTime: 0.35
+  durabilityCost: 0
+  reach: 1
+  heavyReach: 1.15
+  hitRadius: 0.12
+  comboWindow: 1.1
+  attacks:
+  - action: 50
+    damageMultiplier: 1
+    staminaMultiplier: 1
+    activeStart: 0.28
+    activeEnd: 0.5
+    lunge: 0
+    lungeTime: 0.18
+  - action: 51
+    damageMultiplier: 1.1
+    staminaMultiplier: 1
+    activeStart: 0.28
+    activeEnd: 0.5
+    lunge: 0
+    lungeTime: 0.18
+  - action: 54
+    damageMultiplier: 1.4
+    staminaMultiplier: 1.3
+    activeStart: 0.3
+    activeEnd: 0.55
+    lunge: 1.2
+    lungeTime: 0.12
+  heavyAttack:
+    action: 52
+    damageMultiplier: 1
+    staminaMultiplier: 1
+    activeStart: 0.4
+    activeEnd: 0.62
+    lunge: 1.6
+    lungeTime: 0.15
+  unarmed: 1
+  knockback: 0.6
+  heavyKnockback: 2.5
+  reachDown: 0.3
+  throwable: 0
+  throwSpeed: 22
+  throwDamageMultiplier: 1.2
+  hitVfx: 28
+  hitSfx: 41
+  swingSfx: 40
+  hitVfxHard: 30
+  hitVfxHeavy: 29
+  hitSfxHeavy: 42
+  effortSfx: 43
+  trail: 0
+  trailColor: {r: 1, g: 0.93, b: 0.8, a: 0.55}
+  trailMaterial: {fileID: 0}
+  gripPosition: {x: 0, y: 0, z: 0}
+  gripEuler: {x: 0, y: 0, z: 0}
+  offHandGrip: {x: 0, y: 0, z: 0}
+  carrySocket: 0
+  equipAction: 0
+  equipTime: 0.5
+  drawTime: 0.9
+  projectileSpeedMin: 14
+  projectileSpeedMax: 42
+  minDraw: 0.25
+  recoverChance: 0.6
+  ammo: {fileID: 0}

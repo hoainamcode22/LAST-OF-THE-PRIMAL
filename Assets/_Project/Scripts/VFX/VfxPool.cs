@@ -14,6 +14,7 @@ namespace PrimalFrontier.VFX
         SpearImpact, ArrowImpact,
         DinoFootDust, DinoImpactDust,
         BloodSpray, BloodSprayHeavy, HitDust,          // appended: ids are serialised as ints in the library
+        PunchImpactSmall, PunchImpactHeavy, DustImpact, Heal, BoilBubbles,   // phase 3 (registered by the Lead)
     }
 
     /// <summary>

@@ -45,6 +45,20 @@ namespace PrimalFrontier.Player
         /// <summary>HUD message feed</summary>
         public static event Action<string> Message;
         public static void Notify(string msg) => Message?.Invoke(msg);
+        /// <summary>
+        /// items another system uses with the attack button / inventory Use (e.g. SURV: a bandage plays PlayerActions.BandageUse
+        /// and stops bleeding). handles(item) claims the item (it is then never punched with); use(player, stack) runs it and
+        /// returns true when something happened. Checked before food / water.
+        /// </summary>
+        public struct ItemUseHandler { public Func<ItemDefinition, bool> handles; public Func<PlayerInteraction, ItemStack, bool> use; }
+        public static readonly System.Collections.Generic.List<ItemUseHandler> UseHandlers = new System.Collections.Generic.List<ItemUseHandler>();
+        public static bool HasUseHandler(ItemDefinition item)
+        {
+            if (!item) return false;
+            for (int i = 0; i < UseHandlers.Count; i++) { var h = UseHandlers[i]; if (h.handles != null && h.handles(item)) return true; }
+            return false;
+        }
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)] static void ResetUseHandlers() => UseHandlers.Clear();
         /// <summary>world systems that are not in the Interactable list (terrain trees, ocean)</summary>
         public static readonly System.Collections.Generic.List<Func<PlayerInteraction, Interactable>> ExtraProviders = new System.Collections.Generic.List<Func<PlayerInteraction, Interactable>>();
         /// <summary>true while a menu / build mode / climbing owns the input</summary>
@@ -88,6 +102,10 @@ namespace PrimalFrontier.Player
         void Start()
         {
             _in = PlayerInputReader.Instance;
+            // Climbable.CanInteract needs a PlayerClimb, which only Climbable.Interact used to add: Interact is never called while
+            // CanInteract is false, so a fresh player could not start climbing (prompt greyed, E did nothing; test 2026-09-29).
+            // Added in Start: every Awake (the driver's Animator) has run.
+            if (!GetComponent<PlayerClimb>()) gameObject.AddComponent<PlayerClimb>();
             if (Crafting) Crafting.HandsFree = () => !InAction && Motor.PlanarSpeed < 0.25f && Motor.IsGrounded && Driver && !Driver.IsDead &&
                                                      (!Driver.IsBusy || Driver.CurrentAction == PlayerActions.Craft);
         }
@@ -294,6 +312,11 @@ namespace PrimalFrontier.Player
         {
             var st = ActiveStack; if (st == null) return false;
             var item = st.item;
+            for (int i = 0; i < UseHandlers.Count; i++)
+            {
+                var h = UseHandlers[i];
+                if (h.handles != null && h.use != null && h.handles(item)) return h.use(this, st);
+            }
             if (item.IsWaterContainer)
             {
                 if (st.water <= 0) { Notify("The " + item.displayName + " is empty. Fill it at water or a rain collector."); return false; }

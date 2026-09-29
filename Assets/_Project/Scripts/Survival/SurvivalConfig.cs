@@ -75,6 +75,7 @@ namespace PrimalFrontier.Survival
             new WaterProfile { type = WaterType.CleanWater, thirst = 30f, stamina = 5f, sickChance = 0f, sickSeconds = 0f, boilSeconds = 0f, boilResult = WaterType.CleanWater, boilChargeLoss = 0, label = "clean water", color = new Color(0.45f, 0.75f, 1f), eventId = "clean_water" },
         };
         [Tooltip("drinking straight from the pond / stream (hands): thirst gained, sickness uses the dirty water profile")] public float handDrinkThirst = 28f;
+        [Tooltip("millilitres in one charge (one drink); containers show their amount in ml")] [Min(1)] public int mlPerCharge = 250;
 
         [Header("Fire")]
         [Tooltip("burn seconds of a fuel item whose fuelSeconds is 0 but is the campfire's own fuel item (legacy wood)")] public float legacyFuelSeconds = 240f;
@@ -82,6 +83,18 @@ namespace PrimalFrontier.Survival
         [Tooltip("food / water slots on one campfire")] [Range(1, 6)] public int cookingSlots = 4;
         [Tooltip("a cooked result burns after cookSeconds x this when the item has no burnSeconds")] public float burnAfterCookMultiplier = 1.5f;
         [Tooltip("food that burns turns into this (burnt_meat); empty = the food is lost")] public ItemDefinition burntFood;
+        [Tooltip("multiplier on every fire's fuel use (1 = one fuel second per second)")] public float fuelBurnRate = 1f;
+        [Tooltip("seconds of the Lighting state after lighting: the flames grow from small to full")] public float lightingSeconds = 3f;
+        [Tooltip("the fire is LowFuel (smaller flames, a warning) below this many seconds of fuel")] public float lowFuelSeconds = 60f;
+        [Tooltip("fuel seconds that give a full-strength fire; less fuel = weaker flames, light and heat")] public float fullIntensityFuelSeconds = 180f;
+        [Tooltip("weakest a burning fire gets from low fuel (0..1)")] [Range(0, 1)] public float minFireIntensity = 0.3f;
+        [Tooltip("cooking / boiling speed at the weakest fire (1 = no slowdown)")] [Range(0.1f, 1)] public float lowFireCookRate = 0.6f;
+        [Tooltip("fire strength in normal rain on an uncovered fire (x intensity)")] [Range(0, 1)] public float rainFireIntensity = 0.7f;
+        [Tooltip("fuel use in normal rain on an uncovered fire (x)")] public float rainFuelMultiplier = 1.5f;
+        [Tooltip("weather intensity from which rain counts as heavy (WeatherManager: rain 0.75, storm 1)")] [Range(0, 1)] public float heavyRainIntensity = 0.9f;
+        [Tooltip("fuel use in heavy rain on an uncovered fire (x)")] public float heavyRainFuelMultiplier = 2f;
+        [Tooltip("fire strength in heavy rain on an uncovered fire (x intensity)")] [Range(0, 1)] public float heavyRainFireIntensity = 0.5f;
+        [Tooltip("seconds of heavy rain that put out an uncovered fire (x0.5 when the fuel is low); 0 = never")] public float heavyRainExtinguishSeconds = 45f;
 
         [Header("Rain collector")]
         public int collectorCapacity = 6;
@@ -92,6 +105,40 @@ namespace PrimalFrontier.Survival
         [Tooltip("hours over which the night offset fades in around sunset and out around sunrise")] public float nightBlendHours = 2f;
         public float torchWarmth = 2f;
         [Tooltip("air cools by altitudeCooling deg C per metre above altitudeCoolingStart")] public float altitudeCoolingStart = 30f, altitudeCooling = 0.06f;
+
+        [Header("Wetness / sun (per second)")]
+        [Tooltip("wetness gained in the rain")] public float rainWetPerSecond = 0.04f;
+        [Tooltip("wetness gained while standing in water (sea, pond, stream), at 0.8 m depth")] public float waterWetPerSecond = 0.3f;
+        [Tooltip("air felt this much colder while standing in water, deg C")] public float waterChill = 3f;
+        [Tooltip("drying in the open")] public float dryPerSecond = 0.01f;
+        [Tooltip("extra drying per deg C of fire / shelter warmth")] public float heatDryPerDegree = 0.004f;
+        [Tooltip("extra drying under a roof")] public float shelterDryPerSecond = 0.01f;
+        [Tooltip("extra drying in full sun")] public float sunDryPerSecond = 0.006f;
+        [Tooltip("warmer in full sun than in the shade, deg C (clear midday; clouds and evening lower it)")] public float sunWarmth = 2.5f;
+        [Tooltip("the Wet status shows above this wetness (0..1)")] [Range(0, 1)] public float wetStatusAbove = 0.3f;
+
+        [Header("Injuries (PlayerHealth damage path)")]
+        [Tooltip("one hit of this much damage opens a deep wound")] public float deepWoundDamage = 30f;
+        [Tooltip("a deep wound bleeds this long unless bandaged, s")] public float deepWoundSeconds = 75f;
+        [Tooltip("a cut while already bleeding becomes a deep wound")] public bool repeatCutDeepens = true;
+        [Tooltip("heavy hits from this damage may injure a leg or an arm")] public float injuryMinDamage = 25f;
+        [Range(0, 1)] public float injuryChance = 0.6f;
+        [Tooltip("share of limb injuries that hit the leg (the rest: the arm)")] [Range(0, 1)] public float legInjuryShare = 0.5f;
+        [Tooltip("seconds a limb injury lasts (sleep and rest shorten it)")] public float injurySeconds = 300f;
+        [Tooltip("landing faster than this (m/s) hurts the leg; 0 = never")] public float fallInjurySpeed = 13f;
+
+        [Header("Healing")]
+        [Tooltip("health regeneration x this while under a roof or by a lit fire")] public float restRegenMultiplier = 1.75f;
+        [Tooltip("limb injuries heal this many times faster while resting under a roof or by a fire")] public float restInjuryHealMultiplier = 2f;
+
+        [Header("Food spoilage (ItemDefinition.spoilHours; stages by the part of that time gone)")]
+        [Tooltip("food is Aging from this part of its spoil time (0..1)")] [Range(0, 1)] public float agingAt = 0.5f;
+        [Tooltip("food value of aging food (x hunger / thirst / health)")] [Range(0, 1)] public float agingNutrition = 0.8f;
+        [Tooltip("food value of spoiled food")] [Range(0, 1)] public float spoiledNutrition = 0.35f;
+        [Tooltip("extra sickness chance of aging food")] [Range(0, 1)] public float agingSickChance = 0.05f;
+        [Tooltip("sickness chance of spoiled food (at least)")] [Range(0, 1)] public float spoiledSickChance = 0.5f;
+        [Tooltip("food poisoning seconds from spoiled food")] public float spoiledSickSeconds = 60f;
+        [Tooltip("seconds between spoilage checks of the pack (no per-item update)")] public float spoilCheckSeconds = 5f;
 
         [Header("Sleep (per in-game hour asleep)")]
         public float sleepHungerPerHour = 2.2f, sleepThirstPerHour = 2.8f, sleepHealthPerHour = 4f;

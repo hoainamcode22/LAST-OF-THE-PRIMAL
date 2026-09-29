@@ -12,6 +12,9 @@ namespace PrimalFrontier.Items
         public int water;
         /// <summary>what the water charges are (salt / dirty / clean); None when empty</summary>
         public WaterType waterType;
+        /// <summary>GameClock time the food in this stack was made (count-weighted average when stacks merge). Only items with
+        /// ItemDefinition.spoilHours &gt; 0 use it (Survival/Spoilage); saved as an age so it survives the clock being restored.</summary>
+        public double madeAt;
         /// <summary>compatibility view of <see cref="waterType"/>: pond / stream water that was not boiled</summary>
         public bool dirty
         {
@@ -24,10 +27,20 @@ namespace PrimalFrontier.Items
             this.item = item; this.count = count;
             durability = item != null ? item.maxDurability : 0f;
             water = 0;
+            madeAt = Core.GameClock.Now;
+        }
+        /// <summary>seconds of game time since the food was made (0 or more)</summary>
+        public float AgeSeconds => (float)Math.Max(0.0, Core.GameClock.Now - madeAt);
+        /// <summary>call before adding <paramref name="n"/> units made at <paramref name="otherMadeAt"/> to this stack: the stack's age becomes the count-weighted average</summary>
+        public void MergeAge(double otherMadeAt, int n)
+        {
+            if (n <= 0 || item == null || item.spoilHours <= 0f) return;
+            int total = Math.Max(0, count) + n;
+            madeAt = total > 0 ? (madeAt * Math.Max(0, count) + otherMadeAt * n) / total : otherMadeAt;
         }
         public bool IsEmpty => item == null || count <= 0;
         public float Weight => IsEmpty ? 0f : item.weight * count;
-        public ItemStack Clone() => new ItemStack(item, count) { durability = durability, water = water, waterType = waterType };
+        public ItemStack Clone() => new ItemStack(item, count) { durability = durability, water = water, waterType = waterType, madeAt = madeAt };
         public bool CanMergeWith(ItemStack o) => o != null && !IsEmpty && !o.IsEmpty && o.item == item && item.maxStack > 1;
     }
 }

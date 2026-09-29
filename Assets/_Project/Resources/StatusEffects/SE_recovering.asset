@@ -1,0 +1,40 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4b6b46c9c0a921945b601d63a5c3aa5c, type: 3}
+  m_Name: SE_recovering
+  m_EditorClassIdentifier: PrimalFrontier.Runtime::PrimalFrontier.Survival.StatusEffectDefinition
+  id: recovering
+  displayName: Recovering
+  description: 'Good food or a dressed wound: health comes back slowly.'
+  icon: {fileID: 21300000, guid: 3e7385907b8a1ef4d8ca641892df25a6, type: 3}
+  iconName: status_recovering
+  color: {r: 0.55, g: 0.78, b: 0.42, a: 1}
+  showOnHud: 1
+  hudOrder: 6
+  saved: 1
+  defaultSeconds: 20
+  maxSeconds: 240
+  maxSeverity: 1
+  stacking: 1
+  healthPerSecond: 0.25
+  moveSpeedMultiplier: 1
+  sprintCostMultiplier: 1
+  staminaRegenMultiplier: 1
+  maxStaminaMultiplier: 1
+  thirstMultiplier: 1
+  hungerMultiplier: 1
+  attackMultiplier: 1
+  gatherMultiplier: 1
+  blocksHealthRegen: 0
+  appliedMessage: 
+  curedMessage: 
+  expiredMessage: 

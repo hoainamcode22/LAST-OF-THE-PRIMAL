@@ -5,7 +5,7 @@ using PrimalFrontier.Core;
 namespace PrimalFrontier.UI
 {
     /// <summary>Settings block shared by the title and pause menus: volumes, mouse, quality preset, resolution, fullscreen, VSync,
-    /// blood, touch controls, key hints (ContextHints).</summary>
+    /// blood, touch controls, key hints (ContextHints), stealth indicator (PerceptionIndicator).</summary>
     public static class SettingsPanel
     {
         public static RectTransform Build(Transform parent, System.Action onBack)
@@ -42,6 +42,8 @@ namespace PrimalFrontier.UI
             // added after the scene bake: a new row below the others grows the panel once (a baked panel keeps its size)
             var hints = Toggle("Key hints (Gợi ý phím)", () => GameSettings.Hints ? "ON" : "OFF", () => GameSettings.Hints = !GameSettings.Hints);
             if (UIFactory.Fresh(hints)) p.sizeDelta += new Vector2(0f, 120f);
+            var stealth = Toggle("Stealth hint (Ẩn nấp)", () => GameSettings.StealthHudNames[GameSettings.StealthHud], () => GameSettings.StealthHud = (GameSettings.StealthHud + 1) % 3);
+            if (UIFactory.Fresh(stealth)) p.sizeDelta += new Vector2(0f, 56f);
             UIFactory.Button(p, "Back", "BACK", () => onBack?.Invoke(), new Vector2(0.5f, 0), new Vector2(0.5f, 0), new Vector2(0.5f, 0), new Vector2(0, 30), new Vector2(260, 54), 24);
             return p;
         }

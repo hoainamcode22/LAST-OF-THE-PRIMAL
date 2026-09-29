@@ -44,3 +44,10 @@ MonoBehaviour:
   placePrefab: {fileID: 0}
   placeRadius: 1
   lightRange: 0
+  fuelSeconds: 0
+  burnSeconds: 0
+  burntResult: {fileID: 0}
+  spoilHours: 36
+  cures: []
+  healOverTime: 0
+  weaponData: {fileID: 0}

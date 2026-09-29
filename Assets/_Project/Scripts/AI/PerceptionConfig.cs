@@ -1,0 +1,164 @@
+using System;
+using System.Collections.Generic;
+using UnityEngine;
+using PrimalFrontier.Core;
+
+namespace PrimalFrontier.AI
+{
+    /// <summary>smell of one item: on a fire (cooking / ready) and per carried unit</summary>
+    [Serializable]
+    public struct ItemScent
+    {
+        public string itemId;
+        [Tooltip("puff strength while it cooks on a fire (raw)")] [Min(0)] public float cooking;
+        [Tooltip("puff strength while it sits ready on a fire (cooked)")] [Min(0)] public float onFire;
+        [Tooltip("puff strength per unit carried in the pack")] [Min(0)] public float carriedPerUnit;
+        public ItemScent(string id, float cooking, float onFire, float carried) { itemId = id; this.cooking = cooking; this.onFire = onFire; carriedPerUnit = carried; }
+    }
+
+    /// <summary>
+    /// Every global perception number (Resources/PerceptionConfig, made by PrimalPerceptionBuilder; a default instance is
+    /// used when the asset is missing). Per-species numbers live on DinosaurDefinition. See AI/PERCEPTION_DESIGN.md 11.
+    /// </summary>
+    [CreateAssetMenu(menuName = "Primal Frontier/Perception Config", fileName = "PerceptionConfig")]
+    public class PerceptionConfig : ScriptableObject
+    {
+        [Header("AI distance tiers (to the player)")]
+        [Tooltip("full senses, fast thinking")] public float nearDistance = 60f;
+        [Tooltip("full senses, slower thinking")] public float mediumDistance = 120f;
+        [Tooltip("scent and loud noises only, slow thinking; beyond = very far (frozen, Animator off)")] public float farDistance = 200f;
+        public float thinkNear = 0.2f, thinkMedium = 0.4f, thinkFar = 1f;
+        [Tooltip("very far: one coarse update per this many seconds")] public float veryFarStep = 1f;
+
+        [Header("Awareness states (0..1)")]
+        public float suspicious = 0.25f;
+        public float investigating = 0.5f;
+        public float alerted = 0.8f;
+        [Tooltip("a state drops only this far below its threshold")] public float hysteresis = 0.1f;
+        [Tooltip("seconds without a stimulus before awareness decays")] public float decayHold = 3f;
+
+        [Header("Sight")]
+        [Tooltip("awareness per second at the edge of the effective range, x lerp(edge, close)")] public float sightRate = 1f;
+        public float edgeMul = 0.25f, closeMul = 2f;
+        [Tooltip("effective sight is capped at sightRange x this")] public float rangeCap = 1.4f;
+        [Tooltip("seconds a chase still follows the live position after losing sight")] public float trackGrace = 1.5f;
+        [Tooltip("line-of-sight checks for all creatures together, per frame")] public int maxLosPerFrame = 6;
+        [Tooltip("inside bodyRadius x this the player is noticed at once (if visibility is above touchVisibility)")] public float touchBodyMul = 4f;
+        public float touchVisibility = 0.3f;
+
+        [Header("Light")]
+        public float nightAmbient = 0.25f;
+        public float overcastPenalty = 0.25f, rainVisPenalty = 0.2f;
+        public float torchLight = 1f, torchNightBeacon = 1.4f, torchCoverMul = 0.5f;
+        public float fireLightRadius = 10f, fireLight = 0.9f;
+        [Tooltip("light of a fire under a shelter")] public float shelteredFireLight = 0.6f;
+        public float caveLight = 0.4f;
+
+        [Header("Posture / motion")]
+        public float crouchPosture = 0.55f, climbPosture = 1.2f;
+        public float stillMotion = 0.5f, crouchWalkMotion = 0.7f, walkMotion = 0.8f, runMotion = 1f, sprintMotion = 1.2f;
+        [Tooltip("m/s: below = still")] public float stillSpeed = 0.2f;
+        [Tooltip("m/s: above = running (walk 1.35, run 3.8)")] public float runSpeedThreshold = 2.2f;
+
+        [Header("Cover")]
+        public float bushCover = 0.6f, bushCrouchedCover = 0.8f, bushMovingMul = 0.5f;
+        [Tooltip("per bush whose edge is within bushEdge m (thicket), capped")] public float nearBushCover = 0.15f;
+        public float bushEdge = 1.5f, thicketCap = 0.45f;
+        public float shelterCover = 0.3f;
+        [Tooltip("per standing tree within treeRadius, capped")] public float perTreeCover = 0.1f;
+        public float treeRadius = 8f, treeCap = 0.35f;
+        [Tooltip("felled trees within clearingRadius that make a clearing")] public int clearingFelled = 3;
+        public float clearingRadius = 12f, clearingExposure = 1.15f;
+
+        [Header("Hearing (loudness x the listener's hearingRange)")]
+        public float crouchStep = 0.15f, walkStep = 0.45f, runStep = 0.6f, sprintStep = 1f;
+        [Tooltip("by VFX.Surface: Dirt, Sand, Grass, Rock, Mud, Wood, Water")]
+        public float[] surfaceLoudness = { 1f, 0.75f, 0.8f, 1.2f, 1.1f, 1.3f, 1.5f };
+        [Tooltip("seconds between movement noise pulses")] public float pulseInterval = 0.25f;
+        [Tooltip("a movement pulse counts this much of a full noise")] public float pulseWeight = 0.25f;
+        public float noiseBumpMin = 0.15f, noiseBumpMax = 0.6f;
+        [Tooltip("hearing lost at full rain")] public float rainMask = 0.4f;
+        [Tooltip("m of position error at the edge of hearing")] public float noiseLocError = 6f;
+        [Tooltip("a noise closer than this fraction of its radius can reach Alerted")] public float loudCloseFraction = 0.35f;
+        public float chopLoudness = 1.2f, mineLoudness = 1.4f, handGatherLoudness = 0.25f, treeFallLoudness = 2.5f;
+        public float buildLoudness = 0.9f, combatLoudness = 1f, dodgeLoudness = 0.35f, landingLoudness = 0.4f, hardLandingLoudness = 0.8f;
+        public float hurtLoudness = 0.6f, fireLitLoudness = 0.3f, butcherLoudness = 0.3f;
+        public float bushBrushLoudness = 0.25f, bushLightLoudness = 0.4f, bushStrongLoudness = 0.7f, bushFlushLoudness = 1f;
+        [Tooltip("ambient flyers within this range startle at a loud noise")] public float ambientStartleRange = 40f;
+
+        [Header("Motion (shaking bushes)")]
+        public float motionRangeMul = 0.8f, motionBumpMin = 0.1f, motionBumpMax = 0.4f;
+
+        [Header("Scent")]
+        public float scentDrift = 1.4f, puffRadius0 = 2f, puffSpread = 0.2f, scentTau = 45f, rainScentCut = 0.7f, scentMaxAge = 120f;
+        [Tooltip("concentration x smellSensitivity needed to smell")] public float smellThreshold = 0.12f;
+        [Tooltip("awareness per second per unit of smelled concentration (player / player blood)")] public float smellRate = 0.5f;
+        [Tooltip("scent is sampled every Nth sensing tick")] public int scentEveryNthTick = 2;
+        public float bodyScent = 0.12f, bodyScentInterval = 3f, wetBodyMul = 0.5f;
+        public float bleedScent = 0.8f, bleedScentInterval = 2f;
+        public float carriedScentCap = 0.6f, carriedScentInterval = 3f;
+        public float fireSmoke = 0.3f, fireSmokeInterval = 6f, fireScentInterval = 3f;
+        [Tooltip("extra per additional food slot cooking")] public float extraSlotScent = 0.25f;
+        public float fireScentCap = 1.5f, burntSmoke = 0.8f, shelteredScentMul = 0.5f;
+        public float carcassScentFresh = 1.2f, carcassScentOld = 0.5f, carcassScentInterval = 4f, butcherBlood = 1.5f;
+        [Tooltip("smell of food items; items not listed but cookable use defaultRaw")]
+        public List<ItemScent> itemScents = new List<ItemScent>
+        {
+            new ItemScent("raw_meat", 1f, 0f, 0.12f), new ItemScent("cooked_meat", 0f, 0.5f, 0.04f),
+            new ItemScent("raw_fish", 0.9f, 0f, 0.1f), new ItemScent("cooked_fish", 0f, 0.45f, 0.03f),
+        };
+        public ItemScent defaultRaw = new ItemScent("", 0.6f, 0.3f, 0.05f);
+
+        [Header("Interest (food scent) and memory")]
+        public float interestRate = 1f, interestThreshold = 0.5f, interestDecay = 0.05f, interestCooldown = 60f;
+        [Tooltip("m of error per second of puff age, capped")] public float scentLocPerSecond = 0.1f, scentLocCap = 8f;
+        public float herdShareLevel = 0.6f, alarmShareLevel = 0.4f, shareCooldown = 2f;
+        public float searchRadius = 8f; public int searchPoints = 3; public float searchSeconds = 12f;
+
+        [Header("Campfire fear (movement)")]
+        [Tooltip("deg/s while circling a fire")] public float circleSpeed = 22f;
+        [Tooltip("m outside the fear radius where it waits / circles")] public float edgeMargin = 1.5f;
+
+        [Header("Bare-hand hits")]
+        [Tooltip("body radius at or below which a punch does full damage (larger: x (this / radius)^2)")] public float unarmedFullBody = 0.5f;
+        [Tooltip("body radius at or below which knockback moves the creature")] public float knockbackMaxBody = 0.8f;
+        public float knockbackSeconds = 0.3f;
+
+        [Header("Daily life")]
+        [Tooltip("sight / hearing gain while asleep")] public float sleepSight = 0.25f, sleepHearing = 0.6f;
+        public Vector2 sleepSeconds = new Vector2(45f, 90f), drinkSeconds = new Vector2(8f, 14f);
+        [Tooltip("wander radius multiplier while active at night (nocturnal) / for diurnal herds at night")] public float nightRoam = 1.4f, nightHuddle = 0.5f;
+
+        public PuffModel Puff => new PuffModel { drift = scentDrift, radius0 = puffRadius0, spread = puffSpread, tau = scentTau, rainCut = rainScentCut, maxAge = scentMaxAge };
+
+        public float SurfaceLoudness(int surface) => surfaceLoudness != null && surface >= 0 && surface < surfaceLoudness.Length ? surfaceLoudness[surface] : 1f;
+
+        /// <summary>smell data of an item (null id or unknown: default when cookable, else none)</summary>
+        public bool ScentOf(Items.ItemDefinition item, out ItemScent s)
+        {
+            s = default;
+            if (!item) return false;
+            if (itemScents != null)
+                for (int i = 0; i < itemScents.Count; i++) if (itemScents[i].itemId == item.id) { s = itemScents[i]; return true; }
+            if (item.cookedResult && item.cookedResult != item) { s = defaultRaw; return true; }
+            return false;
+        }
+
+        static PerceptionConfig _instance;
+        public static PerceptionConfig Instance
+        {
+            get
+            {
+                if (_instance) return _instance;
+                _instance = Resources.Load<PerceptionConfig>("PerceptionConfig");
+                if (!_instance) { _instance = CreateInstance<PerceptionConfig>(); _instance.name = "PerceptionConfig (default)"; _instance.hideFlags = HideFlags.DontSave; }
+                return _instance;
+            }
+        }
+        /// <summary>tests: use this config (null = the asset / default)</summary>
+        public static void Override(PerceptionConfig c) => _instance = c;
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void ResetStatics() { _instance = null; }
+    }
+}

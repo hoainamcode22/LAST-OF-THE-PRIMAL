@@ -21,6 +21,9 @@ namespace PrimalFrontier.Core
         /// <summary>on-screen touch controls: 0 automatic (touch devices), 1 always, 2 never</summary>
         public static int TouchControls { get => PlayerPrefs.GetInt("pf_touch", 0); set => PlayerPrefs.SetInt("pf_touch", Mathf.Clamp(value, 0, 2)); }
         public static readonly string[] TouchNames = { "AUTO", "ON", "OFF" };
+        /// <summary>stealth indicator (eye / noise ring / threat markers): 0 automatic (crouched or a predator near), 1 always, 2 off</summary>
+        public static int StealthHud { get => PlayerPrefs.GetInt("pf_stealthhud", 0); set => PlayerPrefs.SetInt("pf_stealthhud", Mathf.Clamp(value, 0, 2)); }
+        public static readonly string[] StealthHudNames = { "AUTO", "ALWAYS", "OFF" };
         public static BloodLevel Blood { get => (BloodLevel)Mathf.Clamp(PlayerPrefs.GetInt("pf_blood", (int)BloodLevel.Normal), 0, 2); set => PlayerPrefs.SetInt("pf_blood", (int)value); }
         public static readonly string[] BloodNames = { "OFF", "REDUCED", "NORMAL" };
         public static readonly string[] QualityNames = { "Low", "Medium", "High", "Ultra" };

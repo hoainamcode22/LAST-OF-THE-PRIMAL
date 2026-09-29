@@ -280,13 +280,18 @@ namespace PrimalFrontier.EditorTools
                     c.events = cm.events.Select(e => new AnimationEvent { functionName = e.function, stringParameter = e.param ?? "", time = Mathf.Clamp01(e.frame / (float)cm.frames) }).ToArray();
                 else if (DefaultHitAt.TryGetValue(name, out float hitAt))
                 {
-                    c.events = new[] { new AnimationEvent { functionName = "OnAttackStart", time = 0.1f }, new AnimationEvent { functionName = "OnAttackHit", time = hitAt },
-                                       new AnimationEvent { functionName = "OnAttackEnd", time = 0.75f } };
-                    L($"{name}: no events in the clip meta, default OnAttackStart / OnAttackHit ({hitAt:F2}) / OnAttackEnd used");
+                    c.events = new[] { new AnimationEvent { functionName = "OnAttackStart", time = 0.1f }, new AnimationEvent { functionName = "OnAttackActive", time = Mathf.Max(0.12f, hitAt - 0.06f) },
+                                       new AnimationEvent { functionName = "OnAttackHit", time = hitAt }, new AnimationEvent { functionName = "OnAttackEnd", time = Mathf.Min(0.9f, hitAt + 0.2f) } };
+                    L($"{name}: no events in the clip meta, default OnAttackStart / OnAttackActive / OnAttackHit ({hitAt:F2}) / OnAttackEnd used");
+                }
+                else if (DefaultGatherHitAt.TryGetValue(name, out float gatherAt))
+                {
+                    c.events = new[] { new AnimationEvent { functionName = gatherAt < 0f ? "OnUseItem" : "OnGatherHit", time = Mathf.Abs(gatherAt) } };
+                    L($"{name}: no events in the clip meta, default {c.events[0].functionName} at {Mathf.Abs(gatherAt):F2}");
                 }
                 else c.events = new AnimationEvent[0];
                 if (cm == null) { if (PhaseCClips.Contains(name)) L("new clip without meta (defaults): " + name); else F("clip without meta: " + name); }
-                if (cm == null && PhaseCClips.Contains(name)) { c.loopTime = name == "Unarmed_Block" || name == "Unarmed_Idle" || name == "Butcher" || name == "Bow_Idle" || name == "Spear_Idle" || name == "Bow_FullDraw"; c.loopPose = c.loopTime; }
+                if (cm == null && PhaseCClips.Contains(name)) { c.loopTime = LoopByDefault.Contains(name); c.loopPose = c.loopTime; }
                 list.Add(c);
             }
             mi.clipAnimations = list.ToArray();
@@ -438,11 +443,33 @@ namespace PrimalFrontier.EditorTools
 
         /// <summary>clips the Character agent delivers in phase C: a missing meta entry is logged, not failed</summary>
         static readonly HashSet<string> PhaseCClips = new HashSet<string> { "Gather_Enter", "Gather_Exit", "Walk_Start", "Walk_Stop", "Run_Start", "Run_Stop",
-            "Run_Pivot_180", "Turn_180", "Unarmed_Idle", "Punch_L", "Punch_R", "Punch_Heavy", "Kick", "Unarmed_Block", "Collect_Water", "Butcher",
-            "Bow_Equip", "Bow_Idle", "Bow_Nock", "Bow_FullDraw", "Spear_Idle", "Spear_Recovery" };
+            "Run_Pivot_180", "Turn_180", "Kick", "Unarmed_Block", "Collect_Water", "Butcher",
+            "Bow_Equip", "Bow_Idle", "Bow_Nock", "Bow_FullDraw", "Spear_Idle", "Spear_Recovery",
+            // phase 3.5 (bare hands, new gathers, bandage)
+            "BareHand_Idle", "BareHand_Punch_1", "BareHand_Punch_2", "BareHand_Punch_3", "BareHand_Heavy", "BareHand_HitReaction", "BareHand_Combo_End",
+            "Gather_Stone_Hand", "Gather_Branch", "Bandage_Use" };
 
-        /// <summary>default attack events for unarmed clips exported without events (fractions of the clip); the clip meta wins</summary>
-        static readonly Dictionary<string, float> DefaultHitAt = new Dictionary<string, float> { { "Punch_L", 0.35f }, { "Punch_R", 0.35f }, { "Punch_Heavy", 0.36f }, { "Kick", 0.42f } };
+        /// <summary>new clips that loop when the manifest has no entry for them</summary>
+        static readonly HashSet<string> LoopByDefault = new HashSet<string> { "Unarmed_Block", "BareHand_Idle", "Butcher", "Bow_Idle", "Spear_Idle", "Bow_FullDraw",
+            "Gather_Stone_Hand", "Gather_Branch" };
+
+        /// <summary>default attack events for unarmed clips exported without events (fraction of the clip at the contact); the clip meta wins</summary>
+        static readonly Dictionary<string, float> DefaultHitAt = new Dictionary<string, float> {
+            { "BareHand_Punch_1", 0.33f }, { "BareHand_Punch_2", 0.33f }, { "BareHand_Punch_3", 0.38f }, { "BareHand_Heavy", 0.42f }, { "Kick", 0.42f } };
+        /// <summary>default gather contact (OnGatherHit) for new gather clips without events; negative = OnUseItem (bandage)</summary>
+        static readonly Dictionary<string, float> DefaultGatherHitAt = new Dictionary<string, float> { { "Gather_Stone_Hand", 0.5f }, { "Gather_Branch", 0.5f }, { "Bandage_Use", -0.6f } };
+
+        /// <summary>
+        /// phase 3.5: a state whose clip is not in the FBX yet plays an existing clip meanwhile, so the gameplay (ids, events,
+        /// tests) runs now; the real clip replaces it at the next build once it is exported
+        /// </summary>
+        static AnimationClip Placeholder(List<AnimationClip> clips, string name, string stand)
+        {
+            var c = clips.FirstOrDefault(x => x.name == name);
+            if (c != null) return c;
+            L($"placeholder clip for {name}: {stand} (waiting for the clip)");
+            return Clip(clips, stand);
+        }
 
         static AnimationClip Clip(List<AnimationClip> clips, string name)
         {
@@ -573,8 +600,11 @@ namespace PrimalFrontier.EditorTools
                 (PA.Pickup, "Pickup", false), (PA.GatherWood, "Gather_Wood", true), (PA.GatherStone, "Gather_Stone", true), (PA.GatherPlant, "Gather_Plant", true),
                 (PA.Interact, "Interact", false), (PA.Craft, "Craft", true), (PA.Eat, "Eat", false), (PA.Drink, "Drink", false), (PA.Build, "Build", true),
                 (PA.UseItem, "Use_Item", false), (PA.Sleep, "Sleep", true), (PA.WakeUp, "Wake_Up", false), (PA.GetUp, "Get_Up", false) };
-            if (Opt(clips, "Collect_Water")) actions.Add((PA.CollectWater, "Collect_Water", false));
             if (Opt(clips, "Butcher")) actions.Add((PA.Butcher, "Butcher", true));
+            // phase 3.5 actions (RES / SURV use the ids now): placeholder clips until the real ones are exported
+            var placeholders = new Dictionary<string, string> { { "Collect_Water", "Drink" }, { "Gather_Stone_Hand", "Gather_Plant" }, { "Gather_Branch", "Gather_Plant" }, { "Bandage_Use", "Use_Item" } };
+            actions.Add((PA.CollectWater, "Collect_Water", false)); actions.Add((PA.GatherStoneHand, "Gather_Stone_Hand", true));
+            actions.Add((PA.GatherBranch, "Gather_Branch", true)); actions.Add((PA.BandageUse, "Bandage_Use", false));
             // phase A timing until enter / exit clips exist: loops (squat / kneel work) blend in over 0.35 s and out over 0.45 s
             // (hips drop ~1.1 m/s instead of ~2); one-shots 0.3 s in, 0.3 s out. The driver keeps movement off for the first 60 %
             // of an exit and brakes the motor before an action starts.
@@ -584,7 +614,8 @@ namespace PrimalFrontier.EditorTools
             var actionStates = new Dictionary<int, AnimatorState>();
             foreach (var (id, clipName, loop) in actions)
             {
-                var s = sm.AddState(clipName); s.motion = Clip(clips, clipName); s.tag = "Action"; actionStates[id] = s;
+                var s = sm.AddState(clipName); s.motion = placeholders.TryGetValue(clipName, out var stand) ? Placeholder(clips, clipName, stand) : Clip(clips, clipName);
+                s.tag = "Action"; actionStates[id] = s;
                 bool special = id == PA.Sleep || id == PA.WakeUp || id == PA.GetUp;
                 if (id == PA.GatherPlant && gatherClips)
                 {
@@ -610,21 +641,36 @@ namespace PrimalFrontier.EditorTools
             T(uncon, actionStates[PA.WakeUp], 0.05f).AddCondition(AnimatorConditionMode.Equals, PA.WakeUp, "Action");
             // attacks: IsAttacking + Action id; clip speed x AttackSpeed (WeaponData.attackSpeed, default 1)
             var attackStates = new Dictionary<string, AnimatorState>();
+            // bare hands (phase 3.5): BareHand_Punch_1 / 2 / 3 and BareHand_Heavy play placeholder clips until CHAR's clips are in the FBX
+            var attackStand = new Dictionary<string, string> { { "BareHand_Punch_1", "Knife_Attack" }, { "BareHand_Punch_2", "Sword_Attack_1" }, { "BareHand_Punch_3", "Sword_Attack_2" }, { "BareHand_Heavy", "Sword_Heavy" } };
+            var comboEnd = Opt(clips, "BareHand_Combo_End");
             foreach (var (id, clipName) in new (int, string)[] { (PA.AttackSpear, "Attack_Spear"), (PA.AttackSpearHeavy, "Attack_Spear_Heavy"), (PA.ThrowSpear, "Throw_Spear"),
                                                                  (PA.SpearAttack2, "Spear_Attack_2"), (PA.KnifeAttack, "Knife_Attack"),
                                                                  (PA.SwordAttack1, "Sword_Attack_1"), (PA.SwordAttack2, "Sword_Attack_2"), (PA.SwordAttack3, "Sword_Attack_3"),
-                                                                 (PA.SwordHeavy, "Sword_Heavy") }
-                                                                 .Concat(new (int, string)[] { (PA.PunchL, "Punch_L"), (PA.PunchR, "Punch_R"), (PA.PunchHeavy, "Punch_Heavy"), (PA.Kick, "Kick") }
-                                                                 .Where(a => PhaseCClips.Contains(a.Item2) ? Opt(clips, a.Item2) != null : true)))
+                                                                 (PA.SwordHeavy, "Sword_Heavy"),
+                                                                 (PA.BareHandPunch1, "BareHand_Punch_1"), (PA.BareHandPunch2, "BareHand_Punch_2"), (PA.BareHandPunch3, "BareHand_Punch_3"),
+                                                                 (PA.BareHandHeavy, "BareHand_Heavy") }
+                                                                 .Concat(new (int, string)[] { (PA.Kick, "Kick") }.Where(a => Opt(clips, a.Item2) != null)))
             {
-                var s = sm.AddState(clipName); s.motion = Clip(clips, clipName); s.tag = "Attack"; attackStates[clipName] = s;
+                var s = sm.AddState(clipName); s.motion = attackStand.TryGetValue(clipName, out var stand) ? Placeholder(clips, clipName, stand) : Clip(clips, clipName);
+                s.tag = "Attack"; attackStates[clipName] = s;
                 s.speedParameterActive = true; s.speedParameter = "AttackSpeed";
                 foreach (var from in grounded)
                 {
                     var tin = T(from, s, 0.1f); tin.AddCondition(AnimatorConditionMode.If, 0, "IsAttacking"); tin.AddCondition(AnimatorConditionMode.Equals, id, "Action");
                 }
-                if (!(clipName == "Attack_Spear" || clipName == "Spear_Attack_2") || !Opt(clips, "Spear_Recovery"))
+                bool viaRecovery = (clipName == "Attack_Spear" || clipName == "Spear_Attack_2") && clips.Any(x => x.name == "Spear_Recovery");
+                bool viaComboEnd = clipName == "BareHand_Punch_3" && comboEnd;
+                if (!viaRecovery && !viaComboEnd)
                     T(s, loco, 0.2f, true, 0.9f);            // back to Locomotion; the Strafe transition moves on from there
+            }
+            // phase 3.5: the third punch settles back into the guard through BareHand_Combo_End (tag Attack: the body is busy until it ends)
+            if (comboEnd)
+            {
+                var ce = sm.AddState("BareHand_Combo_End"); ce.motion = comboEnd; ce.tag = "Attack";
+                ce.speedParameterActive = true; ce.speedParameter = "AttackSpeed";
+                T(attackStates["BareHand_Punch_3"], ce, 0.1f, true, 0.88f);
+                T(ce, loco, 0.2f, true, 0.9f);
             }
             // phase C: spear attacks recover through Spear_Recovery when the clip exists
             if (Opt(clips, "Spear_Recovery") is AnimationClip spearRec)
@@ -736,9 +782,9 @@ namespace PrimalFrontier.EditorTools
                 Out(s, 0.2f, true, 0.9f).AddCondition(AnimatorConditionMode.NotEqual, id, "Action");
                 Out(s, 0.1f).AddCondition(AnimatorConditionMode.If, 0, "IsAttacking");
             }
-            foreach (var (clipName, kind) in new (string, Items.WeaponKind)[] { ("Unarmed_Idle", Items.WeaponKind.None), ("Bow_Idle", Items.WeaponKind.Bow), ("Spear_Idle", Items.WeaponKind.Spear) })
+            foreach (var (clipName, kind) in new (string, Items.WeaponKind)[] { ("BareHand_Idle", Items.WeaponKind.None), ("Bow_Idle", Items.WeaponKind.Bow), ("Spear_Idle", Items.WeaponKind.Spear) })
             {
-                var c = Opt(clips, clipName); if (c == null) continue;
+                var c = Opt(clips, clipName); if (c == null) continue;               // bare hands: guard pose after a punch (CombatMode, WeaponType 0)
                 var idleS = usm.AddState(clipName); idleS.motion = c;
                 foreach (var (mode, v) in new (AnimatorConditionMode, int)[] { (AnimatorConditionMode.Less, PA.BowAim), (AnimatorConditionMode.Greater, PA.CarryItem) })
                 {
@@ -768,6 +814,15 @@ namespace PrimalFrontier.EditorTools
             var hrIn = hsm.AddAnyStateTransition(hurtAdd); hrIn.duration = 0.05f; hrIn.hasExitTime = false; hrIn.hasFixedDuration = true; hrIn.canTransitionToSelf = true;
             hrIn.AddCondition(AnimatorConditionMode.If, 0, "HurtLight");
             var hrOut = hurtAdd.AddTransition(hrEmpty); hrOut.hasExitTime = true; hrOut.exitTime = 0.85f; hrOut.duration = 0.15f; hrOut.hasFixedDuration = true;
+            // phase 3.5: empty hands (WeaponType 0) flinch with BareHand_HitReaction when the clip exists; weapons keep Hurt_Additive
+            if (Opt(clips, "BareHand_HitReaction") is AnimationClip bhr)
+            {
+                var bh = hsm.AddState("BareHand_HitReaction"); bh.motion = bhr;
+                var bIn = hsm.AddAnyStateTransition(bh); bIn.duration = 0.05f; bIn.hasExitTime = false; bIn.hasFixedDuration = true; bIn.canTransitionToSelf = true;
+                bIn.AddCondition(AnimatorConditionMode.If, 0, "HurtLight"); bIn.AddCondition(AnimatorConditionMode.Equals, 0, "WeaponType");
+                hrIn.AddCondition(AnimatorConditionMode.NotEqual, 0, "WeaponType");
+                var bOut = bh.AddTransition(hrEmpty); bOut.hasExitTime = true; bOut.exitTime = 0.85f; bOut.duration = 0.15f; bOut.hasFixedDuration = true;
+            }
             // IK pass on the base layer: PlayerIK places the feet on the ground, turns the head, leans into turns
             var ls = ac.layers; ls[0].iKPass = true; ac.layers = ls;
             EditorUtility.SetDirty(ac);

@@ -1,0 +1,45 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6c1c87829c145634e97f96d6e284623d, type: 3}
+  m_Name: RES_wood_driftwood
+  m_EditorClassIdentifier: PrimalFrontier.Runtime::PrimalFrontier.World.ResourceDefinition
+  id: wood_driftwood
+  displayName: Driftwood
+  category: 1
+  size: 1
+  prompt: Gather Wood
+  item: {fileID: 11400000, guid: b44ddd1d863e4de47a95118bf8fd7b5d, type: 2}
+  yieldRange: {x: 2, y: 5}
+  bonusItem: {fileID: 0}
+  bonusChance: 0
+  bestTool: 1
+  requiredTool: 0
+  handsFactor: 1
+  toolFactor: 1
+  gatherSeconds: 1.2
+  handAction: 17
+  toolAction: 2
+  toolWear: 1
+  handHint: 
+  punchable: 1
+  damagePerUnit: 4
+  respawnHours: 24
+  depletedLook: 0
+  damagedScale: 0.75
+  depletedScale: 0.45
+  sink: 0.1
+  radius: 0.6
+  hitVfx: 9
+  hitVfx2: 27
+  handSfx: 49
+  toolSfx: 11
+  depleteSfx: 0

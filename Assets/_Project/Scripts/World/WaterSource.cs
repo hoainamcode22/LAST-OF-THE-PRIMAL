@@ -110,7 +110,8 @@ namespace PrimalFrontier.World
             int slot = p.Inventory.ActiveSlot;
             if (WaterRules.CanFill(st, type))
             {
-                p.DoOneShot(PlayerActions.Drink, "OnDrink", () => FillSlot(p, slot, type), FocusPoint, 2.0f, this);
+                // Collect_Water (kneel, scoop; placeholder Drink clip until CHAR's arrives): fills on its hand event or the timer
+                p.DoOneShot(PlayerActions.CollectWater, "OnDrink", () => FillSlot(p, slot, type), FocusPoint, 2.0f, this);
                 return;
             }
             p.DoOneShot(PlayerActions.Drink, "OnDrink", () => Drink(p), FocusPoint, 2.0f, this);
@@ -154,8 +155,7 @@ namespace PrimalFrontier.World
                 if (st.item != _item || _prompt == null) _prompt = "Fill " + st.item.displayName;
                 _item = st.item; _water = st.water; _cap = st.item.waterCharges; _type = type; _inside = WaterRules.TypeOf(st);
                 bool boil = SurvivalConfig.Instance.Water(type).boilSeconds > 0f && SurvivalConfig.Instance.Water(type).boilResult != type;
-                _sub = _water.ToString(CultureInfo.InvariantCulture) + "/" + _cap.ToString(CultureInfo.InvariantCulture) + " drinks, " + WaterRules.Label(type) +
-                       (boil ? " (boil it before drinking)" : "");
+                _sub = WaterRules.MlOf(st) + ", " + WaterRules.Label(type) + (boil ? " (boil it before drinking)" : "");
             }
             sub = _sub; return _prompt;
         }

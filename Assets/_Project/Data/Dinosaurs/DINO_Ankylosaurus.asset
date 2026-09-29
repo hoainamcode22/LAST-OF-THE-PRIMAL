@@ -54,3 +54,30 @@ MonoBehaviour:
   - {fileID: 8300000, guid: c29b444453eee9742960d58972d1eee5, type: 3}
   heavyFootsteps: 1
   journalId: ankylosaurus
+  sprayLoot: 0
+  fleeZigZag: 0
+  alertSensitivity: 1
+  nightVision: 0.1
+  sightGain: 0.6
+  hearingGain: 0.7
+  smellSensitivity: 0.6
+  awarenessDecay: 0.12
+  memorySeconds: 6
+  herdShareRadius: 0
+  alarmCall: 0
+  meatDrive: 0
+  scentTrackRange: 0
+  fireFear:
+    predatorFear: 0.5
+    fearRadiusDay: 5
+    fearRadiusNight: 7
+    rainMultiplier: 0.7
+    fuelMultiplier: 0.5
+    response: 0
+    patienceSeconds: 12
+    ignoreBelowIntensity: 0
+    ignoreWhenProvoked: 1
+  activity: 0
+  drinkEveryHours: 12
+  drinkSearchRadius: 160
+  unarmedDamageScale: -1

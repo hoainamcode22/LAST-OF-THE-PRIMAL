@@ -1,5 +1,5 @@
 """PRIMAL FRONTIER - original sound effects synthesized from scratch (numpy / scipy). No samples, no third-party audio.
-usage: python3 sfx_synth.py <out_dir>   -> SFX_<Id>_<n>.wav (mono 16-bit 44.1 kHz) and AMB_<Name>_Loop.wav"""
+usage: python3 sfx_synth.py <out_dir> [--only phase3]   -> SFX_<Id>_<n>.wav (mono 16-bit 44.1 kHz) and AMB_<Name>_Loop.wav"""
 import os, sys, numpy as np
 from scipy import signal
 from scipy.io import wavfile
@@ -24,12 +24,12 @@ def mix(*xs):
     n = max(len(x) for x in xs); out = np.zeros(n)
     for x in xs: out[:len(x)] += x
     return out
-def norm(x, peak=0.8):
+def norm(x, peak=0.8, fade=True):
     m = np.max(np.abs(x)) + 1e-9; x = x / m * peak
-    fade = min(len(x), int(SR * 0.004)); x[-fade:] *= np.linspace(1, 0, fade)
+    if fade: n = min(len(x), int(SR * 0.004)); x[-n:] *= np.linspace(1, 0, n)
     return x
-def save(out, name, x, peak=0.8):
-    x = norm(np.asarray(x, np.float64), peak)
+def save(out, name, x, peak=0.8, fade=True):
+    x = norm(np.asarray(x, np.float64), peak, fade)
     wavfile.write(os.path.join(out, name + ".wav"), SR, (x * 32767).astype(np.int16))
 
 def grains(d, rate, lo, hi, gdur=0.004):
@@ -182,6 +182,99 @@ def breath(inhale=False):
     e = np.sin(np.linspace(0, np.pi, len(n))) ** (0.8 if inhale else 1.5)
     return s * e
 
+# ---------------------------------------------------------------- phase 3 / 3.5 (bare hands, water, bandage, tools, fire)
+# Own seed, generated after the original table: adding them never changes the older sounds.
+def punch_whoosh():
+    d = rng.uniform(0.16, 0.22); n = noise(d); k = np.linspace(0, 1, len(n))
+    body = bp(n, 250, 1100) * (1 - k) + bp(n, 800, 2600) * k           # a fist moving past: low to mid air, short
+    return body * np.sin(np.linspace(0, np.pi, len(n))) ** 2.2 * 0.8
+def punch_hit():
+    f = rng.uniform(85, 120)
+    thud = mix(mode(0.2, f, 34, 1.0), mode(0.2, f * 2.1, 55, 0.3))     # body mass
+    knock = mode(0.12, rng.uniform(320, 420), 48, 0.55)                 # chest / arm
+    slap = bp(noise(0.03), 900, 2800) * env(int(SR * 0.03), 0.0004, 0.012) * 1.6   # skin / cloth contact (audible on phones)
+    low = lp(noise(0.1), 450) * env(int(SR * 0.1), 0.001, 0.03) * 0.6
+    return mix(thud, knock, slap, low)
+def punch_heavy_hit():
+    f = rng.uniform(58, 72)
+    thud = mix(mode(0.38, f, 16, 1.2), mode(0.3, f * 1.9, 30, 0.5), mode(0.16, rng.uniform(260, 340), 35, 0.5))
+    crunch = bp(noise(0.12), 500, 2200) * env(int(SR * 0.12), 0.001, 0.04) * 1.3
+    slap = bp(noise(0.04), 900, 3000) * env(int(SR * 0.04), 0.0004, 0.014) * 1.4
+    rattle = grains(0.2, 400, 900, 3500) * env(int(SR * 0.2), 0.004, 0.07) * 0.35
+    return mix(thud, crunch, slap, rattle)
+def player_grunt():
+    """short effort (exhale through a nearly closed mouth), not a hurt cry"""
+    d = rng.uniform(0.16, 0.24)
+    src = glottal(d, rng.uniform(118, 132), rng.uniform(96, 108), 0.03)
+    e = np.minimum(1.0, t(d) / 0.025) * np.sin(np.linspace(0.35 * np.pi, np.pi, len(src))) ** 0.8   # swells in, falls off
+    v = formants(src, (rng.uniform(430, 480), rng.uniform(850, 950), 2300), (7, 9, 11), (1.0, 0.45, 0.2)) * e
+    breath = bp(noise(d + 0.12), 400, 2800) * env(int(SR * (d + 0.12)), 0.01, d * 0.9, 1.6) * 0.3
+    return mix(v * 0.9, breath)
+def water_fill():
+    d = rng.uniform(1.3, 1.6); n = noise(d); tt = t(d)
+    pour = bp(n, 300, 2600) * 0.35 * (0.8 + 0.2 * np.sin(2 * np.pi * 7 * tt))
+    out = np.zeros(len(n))
+    for i in range(int(d * 26)):                                            # bubbles rise in pitch as the container fills
+        p = rng.integers(0, max(1, len(n) - int(SR * 0.05))); fill = p / len(n)
+        f = rng.uniform(260, 420) * (1 + 1.3 * fill); b = t(0.045); ph = np.cumsum(f * (1 + 0.6 * b / 0.045)) / SR
+        out[p:p + len(b)] += np.sin(2 * np.pi * ph) * np.exp(-b * 70) * rng.uniform(0.1, 0.3)
+    e = np.minimum(1, tt / 0.08) * np.minimum(1, (d - tt) / 0.25)
+    return (pour + out) * e
+def water_boil(d=4.0):
+    """seamless loop: low rumble, many small bubble pops, faint hiss"""
+    total = d + 1.5; n = int(SR * total); out = lp(noise(total), 180) * 0.25
+    for i in range(int(total * 34)):
+        p = rng.integers(0, max(1, n - int(SR * 0.03))); f = rng.uniform(180, 650); b = t(rng.uniform(0.012, 0.03))
+        out[p:p + len(b)] += np.sin(2 * np.pi * f * b * (1 + 1.5 * b / b[-1])) * np.exp(-b * 120) * rng.uniform(0.08, 0.35)
+    out += hp(noise(total), 3000) * 0.03
+    return loopify(out)
+def bandage_wrap():
+    d = rng.uniform(0.9, 1.1); n = int(SR * d); out = np.zeros(n)
+    rip = hp(noise(0.08), 1800) * env(int(SR * 0.08), 0.001, 0.03) * 0.5 + crackle(0.08, 300)[:int(SR * 0.08)] * 0.4
+    out[:len(rip)] += rip
+    for s0 in (0.12, 0.42, 0.72):                                           # three passes of cloth round the arm
+        L = int(SR * 0.24); p = int(SR * s0 * d / 1.0)
+        if p + L > n: L = n - p
+        g = bp(noise(L / SR), 1500, 6000) * np.sin(np.linspace(0, np.pi, L)) ** 1.5 * rng.uniform(0.4, 0.6)
+        g += grains(L / SR, 500, 2000, 7000)[:L] * 0.25
+        out[p:p + L] += g
+    return out
+def tool_break():
+    crack = mix(mode(0.3, rng.uniform(150, 190), 22, 0.9), bp(noise(0.25), 600, 3500) * env(int(SR * 0.25), 0.0005, 0.06, 3), lp(crackle(0.3, 160), 6000) * 0.8)
+    clink = pad(np.concatenate([np.zeros(int(SR * 0.12)), mix(mode(0.25, 1750, 40, 0.35), mode(0.25, 2900, 55, 0.2))]), 0.55)
+    thud = pad(np.concatenate([np.zeros(int(SR * 0.2)), lp(noise(0.1), 500) * env(int(SR * 0.1), 0.002, 0.03) * 0.5]), 0.55)
+    return mix(crack, clink, thud)
+def fire_hiss():
+    d = rng.uniform(1.1, 1.4); n = noise(d); tt = t(d)
+    steam = hp(n, 2500) * 0.5 * np.minimum(1, tt / 0.03) * np.exp(-tt * 2.2)
+    sizz = bp(noise(d), 4000, 9000) * 0.15 * (0.6 + 0.4 * np.sin(2 * np.pi * 11 * tt)) * np.exp(-tt * 3)
+    return mix(steam, sizz, crackle(d, 40) * 0.5)
+def branch_snap():
+    f = rng.uniform(0.85, 1.2)
+    click = bp(noise(0.015), 1500, 6000) * env(int(SR * 0.015), 0.0002, 0.003) * 0.6
+    body = mix(mode(0.18, 620 * f, 45, 0.9), mode(0.15, 1450 * f, 60, 0.6), mode(0.12, 2800 * f, 80, 0.3))
+    splinter = lp(pad(np.concatenate([np.zeros(int(SR * 0.02)), crackle(0.12, 260)]), 0.3), 6000) * 0.6
+    return mix(click, body, splinter, lp(noise(0.06), 600) * env(int(SR * 0.06), 0.001, 0.02) * 0.3)
+def stone_gather_hand():
+    """two stones knocked together softly as they are scooped, plus gravel"""
+    out = np.zeros(int(SR * 0.55))
+    for s0, a in ((0.0, 0.5), (rng.uniform(0.1, 0.16), 0.35)):
+        f = rng.uniform(0.9, 1.15)
+        k = mix(hp(noise(0.012), 3000) * env(int(SR * 0.012), 0.0002, 0.002) * 0.6, mode(0.14, 2100 * f, 60, 0.4), mode(0.12, 3300 * f, 75, 0.25))
+        p = int(SR * s0); out[p:p + len(k)] += k[:len(out) - p] * a
+    out += grains(0.55, 900, 1500, 6000) * np.sin(np.linspace(0, np.pi, len(out))) * 0.35
+    return out
+
+def phase3(out):
+    global rng
+    rng = np.random.default_rng(3535)
+    table = [("PunchWhoosh", punch_whoosh, 3), ("PunchHit", punch_hit, 3), ("PunchHeavyHit", punch_heavy_hit, 2), ("PlayerGrunt", player_grunt, 3),
+             ("WaterFill", water_fill, 2), ("WaterBoil", water_boil, 1), ("BandageWrap", bandage_wrap, 2), ("ToolBreak", tool_break, 2),
+             ("FireHiss", fire_hiss, 2), ("BranchSnap", branch_snap, 3), ("StoneGatherHand", stone_gather_hand, 3)]
+    for name, fn, n in table:
+        for i in range(n): save(out, f"SFX_{name}_{i + 1}", fn(), 0.6 if name == "WaterBoil" else 0.8, fade=name != "WaterBoil")   # the loop keeps its seam
+    print("phase3", sum(n for _, _, n in table), "sfx")
+
 def main(out):
     os.makedirs(out, exist_ok=True)
     amb = os.path.join(out, "..", "Ambience"); os.makedirs(amb, exist_ok=True)
@@ -198,6 +291,12 @@ def main(out):
         for i in range(n): save(out, f"SFX_{name}_{i + 1}", fn())
     for name, fn in (("Ocean", ocean), ("Wind", wind), ("Forest", forest), ("Night", night), ("Rain", rain), ("Fire", fire_loop), ("Storm", storm)):
         save(amb, f"AMB_{name}_Loop", fn(), 0.6)
+    phase3(out)
     print("done", len(os.listdir(out)), "sfx")
 
-if __name__ == "__main__": main(sys.argv[1])
+# usage: python3 sfx_synth.py <out_dir>                 everything (original table, ambience, phase 3)
+#        python3 sfx_synth.py <out_dir> --only phase3   only the phase 3 / 3.5 set (keeps the older files untouched)
+if __name__ == "__main__":
+    if len(sys.argv) > 3 and sys.argv[2] == "--only" and sys.argv[3] == "phase3":
+        os.makedirs(sys.argv[1], exist_ok=True); phase3(sys.argv[1])
+    else: main(sys.argv[1])

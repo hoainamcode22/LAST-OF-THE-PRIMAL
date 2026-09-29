@@ -18,3 +18,14 @@ prefabs they play nothing (safe).
 
 Wave 2 (after wave 1): BUILD (building pieces, snapping, validation, shelter purpose), WORLD (weather, day phases, wet
 surfaces, volcano danger, minimap / journal discovery, tutorial rework), MOBILE / UI, test scenes, QA end-to-end.
+
+## Cross-agent interfaces (agreed up front)
+
+- **Unity availability:** before any bridge use, ping with `$HOME/run.sh <fresh id> PrimalEditorBridge.Refresh "" 3`. No result = the editor is busy (owner in Play mode, or a stuck test run): keep working on code and retry later. Do not start a PlayMode run while another agent's run is going (the lock covers this).
+- **Deployed but not compiled yet** (Unity was stuck when the Lead wrote them): `Audio/SfxPlayer.cs` and `VFX/VfxPool.cs` (new ids), `Combat/IDamageable.cs` (`HitInfo.unarmed`, `HitInfo.knockback`). They compile at the next refresh.
+- **Save sections (SURV builds first):** `ISaveSection { string SectionKey { get; } string CaptureSection(); void RestoreSection(string json); }` plus `SaveSystem.RegisterSection(ISaveSection)` / `UnregisterSection`, stored as named JSON blobs in the save file (missing or broken section = skipped, never a crash). AI uses it for creatures; any agent may use it instead of editing SaveData.
+- **Status effects (SURV builds):** one player component (e.g. `PlayerStatusEffects`) with ScriptableObject definitions (`StatusEffectDefinition`): `Apply(def or id, severity, seconds)`, `Has(id)`, `Remove(id)`, event `Changed`. Bleeding is applied by the player's damage path (PlayerHealth, SURV) from hit severity; AI reads `Has(Bleeding)` for blood scent; U never applies effects directly.
+- **Campfire read API for AI (SURV):** `Campfire.All`, `IsLit`, `Fuel01` / `Intensity01`, `State` (Unlit / Lighting / Burning / LowFuel / Extinguished), `CookingCount`, `Sheltered`. AI only reads.
+- **Bare-hand hits (U / AI):** U sends normal `HitInfo` with `unarmed = true`, small damage and optional `knockback`; each creature (AI, `DinosaurController`) scales unarmed damage by species / size data (large creatures barely hurt) and applies knockback if small.
+- **Fish / edible plant:** SURV creates the items (`raw_fish`, `cooked_fish`, `edible_plant`) with icons and simple original models; RES places the nodes (fish near the stream / pond, edible plants at the forest edge) with its builder, skipping ids that do not exist yet.
+- **Clips from CHAR:** staging FBX + `clips_manifest.json` in `E:\Model game khủng long\export\staging\`. U moves them into Assets and wires them (BareHand_* names from the Phase 3.5 directive).

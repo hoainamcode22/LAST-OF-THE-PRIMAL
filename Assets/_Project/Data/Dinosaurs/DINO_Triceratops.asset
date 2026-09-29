@@ -54,3 +54,30 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 78ec7ee499ce18f4ca1142a830a11e7e, type: 3}
   heavyFootsteps: 1
   journalId: triceratops
+  sprayLoot: 0
+  fleeZigZag: 0
+  alertSensitivity: 1
+  nightVision: 0.1
+  sightGain: 0.8
+  hearingGain: 0.8
+  smellSensitivity: 0.5
+  awarenessDecay: 0.1
+  memorySeconds: 8
+  herdShareRadius: 30
+  alarmCall: 1
+  meatDrive: 0
+  scentTrackRange: 0
+  fireFear:
+    predatorFear: 0.7
+    fearRadiusDay: 6
+    fearRadiusNight: 9
+    rainMultiplier: 0.7
+    fuelMultiplier: 0.5
+    response: 0
+    patienceSeconds: 12
+    ignoreBelowIntensity: 0
+    ignoreWhenProvoked: 1
+  activity: 0
+  drinkEveryHours: 10
+  drinkSearchRadius: 160
+  unarmedDamageScale: -1

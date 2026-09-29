@@ -50,6 +50,8 @@ namespace PrimalFrontier.Player
         /// <summary>true while a full-body action / attack / hurt / death state owns the body</summary>
         public bool IsBusy { get; private set; }
         public bool IsAttackingState { get; private set; }
+        /// <summary>the base layer is in (or entering) a full-body Hurt / Hurt_Heavy state</summary>
+        public bool IsHurtState { get; private set; }
         public event Action<int> ActionStarted, ActionFinished;
 
         void Awake()
@@ -100,6 +102,7 @@ namespace PrimalFrontier.Player
             bool inTrans = animator.IsInTransition(0);
             IsBusy = inTrans ? actionTag(nx) : actionTag(st);          // blending out of an action already gives control back
             IsAttackingState = st.IsTag("Attack") || nx.IsTag("Attack");
+            IsHurtState = inTrans ? nx.IsTag("Hurt") : st.IsTag("Hurt");
             animator.SetBool(AnimParams.IsAttacking, PlayerActions.IsAttack(_pendingAction) || IsAttackingState);
             // upper-body poses (sword idle) give way while the base layer owns the whole body
             if (_hasBodyBusy)

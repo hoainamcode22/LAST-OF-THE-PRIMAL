@@ -16,12 +16,21 @@ namespace PrimalFrontier.UI
     /// fade and lightning flash. Minimal and dark so the island stays the star.
     /// Hunger / thirst show their SurvivalConfig tier word ("Thirsty") inside the bar; the hotbar water count takes the
     /// water type colour. Texts are rebuilt only when their value changes (no per-frame string allocations).
+    /// Phase 3: a row of status icons under the vitals (PlayerStatusEffects: bleeding, food poisoning, wet, cold, leg / arm
+    /// injury, recovering; rebuilt only when the effects change), a thin wetness bar under the temperature, "+30 Hydration"
+    /// notes, containers in ml, spoiling food tinted in the hotbar, one note for several recipes learned together, tool
+    /// break feedback (ToolBreak sound + a puff) and no repeat of the same note within a second.
     /// </summary>
     public class HUDManager : MonoBehaviour, IBakeableUI
     {
         public static HUDManager Instance { get; private set; }
 
         GameObject _player; PlayerHealth _hp; PlayerSurvival _sv; InventorySystem _inv; PlayerInteraction _pi; CraftingSystem _craft; PlayerCombat _combat;
+        PlayerStatusEffects _fx; int _cFxVersion = -1; RectTransform _statusRow; readonly List<Image> _statusIcons = new List<Image>(); readonly List<string> _statusIds = new List<string>();
+        Image _wetBar; Image _wetIcon; int _cWet = -1;
+        readonly List<string> _learnedNames = new List<string>(); Sprite _learnedIcon; float _learnedFlushAt = -1f;
+        string _lastNote; float _lastNoteT;
+        const int MaxStatusIcons = 8;
         Canvas _canvas, _top; CanvasGroup _hudGroup;
         Image _hpBar, _hungerBar, _thirstBar, _staminaBar, _tempBar; Text _hpVal, _hungerVal, _thirstVal, _staminaVal, _tempVal, _status;
         Text _hungerTier, _thirstTier;
@@ -61,7 +70,13 @@ namespace PrimalFrontier.UI
             Sample(_subtitle, "What was that?"); Sample(_bannerTitle, "DAY 1"); Sample(_bannerSub, "Dawn"); Sample(_markerDist, "120 m");
             Sample(_hungerTier, "Peckish"); Sample(_thirstTier, "Thirsty");
         }
-        void OnDestroy() { if (Instance == this) Instance = null; PlayerInteraction.Message -= Notify; GameEvents.Raised -= OnEvent; }
+        void OnDestroy()
+        {
+            if (Instance == this) Instance = null; PlayerInteraction.Message -= Notify; GameEvents.Raised -= OnEvent;
+            InventorySystem.ToolBroke -= OnToolBroke;
+            if (_fx) _fx.Message -= Notify;
+            if (_sv) { _sv.NeedRestored -= OnNeedRestored; _sv.FoodStageChanged -= OnFoodStage; }
+        }
 
         public void Bind(GameObject player)
         {
@@ -77,6 +92,15 @@ namespace PrimalFrontier.UI
             var tut = TutorialManager.Instance; if (tut) { tut.StepStarted -= OnStep; tut.StepStarted += OnStep; tut.Finished -= OnTutorialDone; tut.Finished += OnTutorialDone; }
             var j = JournalSystem.Instance; if (j) { j.Unlocked -= OnJournal; j.Unlocked += OnJournal; }
             if (_craft) { _craft.Learned -= OnLearned; _craft.Learned += OnLearned; }
+            if (_fx) { _fx.Message -= Notify; }
+            _fx = player.GetComponent<PlayerStatusEffects>(); _cFxVersion = -1;
+            if (_fx) { _fx.Message -= Notify; _fx.Message += Notify; }
+            if (_sv)
+            {
+                _sv.NeedRestored -= OnNeedRestored; _sv.NeedRestored += OnNeedRestored;
+                _sv.FoodStageChanged -= OnFoodStage; _sv.FoodStageChanged += OnFoodStage;
+            }
+            InventorySystem.ToolBroke -= OnToolBroke; InventorySystem.ToolBroke += OnToolBroke;
             RefreshHotbar();
         }
 
@@ -113,6 +137,22 @@ namespace PrimalFrontier.UI
             _hungerTier = Tier("hungerTier", -20 - 32);
             _thirstTier = Tier("thirstTier", -20 - 64);
             _status = UIFactory.Label(vit.transform, "Status", "", 16, UIStyle.Accent, TextAnchor.UpperLeft, UIStyle.Body, new Vector2(0, 0), new Vector2(1, 0), new Vector2(0, 0), new Vector2(18, -26), new Vector2(-30, 24));
+            // wetness: a thin bar under the temperature row (shown while wet)
+            float wetY = -20 - 4 * 32 - 12 - 18;
+            _wetIcon = UIFactory.Image(vit.transform, "WetnessIcon", UIStyle.Icon("status_wet"), new Color(0.55f, 0.78f, 1f, 0.95f), new Vector2(0, 1), new Vector2(0, 1), new Vector2(0, 0.5f), new Vector2(34, wetY), new Vector2(16, 16));
+            _wetBar = UIFactory.Bar(vit.transform, "WetnessBar", new Color(0.45f, 0.7f, 0.95f), new Vector2(0, 1), new Vector2(0, 1), new Vector2(0, 0.5f), new Vector2(54, wetY), new Vector2(200, 10));
+            // status effect icons: a row to the right of the vitals panel, along the top (the space under the panel holds the touch menu buttons)
+            _statusRow = UIFactory.Rect(root, "StatusIcons", new Vector2(0, 1), new Vector2(0, 1), new Vector2(0, 1), new Vector2(24 + 330 + 10, -24), new Vector2(MaxStatusIcons * 40, 38));
+            _statusIcons.Clear();
+            for (int i = 0; i < MaxStatusIcons; i++)
+            {
+                var bg = UIFactory.Image(_statusRow, "Status" + i, UIStyle.Slot, new Color(1, 1, 1, 0.85f), new Vector2(0, 1), new Vector2(0, 1), new Vector2(0, 1), new Vector2(i * 40, 0), new Vector2(36, 36));
+                var ic = UIFactory.Image(bg.transform, "Icon", null, Color.white, Vector2.zero, Vector2.one, new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero);
+                if (UIFactory.Fresh(ic)) { ic.rectTransform.offsetMin = new Vector2(4, 4); ic.rectTransform.offsetMax = new Vector2(-4, -4); }
+                ic.preserveAspect = true; ic.raycastTarget = false;
+                bg.gameObject.SetActive(false);
+                _statusIcons.Add(ic);
+            }
 
             // ---- compass + clock (top right)
             var comp = UIFactory.Image(root, "Compass", UIStyle.PanelDark, new Color(1, 1, 1, 0.8f), new Vector2(1, 1), new Vector2(1, 1), new Vector2(1, 1), new Vector2(-24, -24), new Vector2(360, 44));
@@ -217,7 +257,40 @@ namespace PrimalFrontier.UI
             Audio.SfxPlayer.Instance.Play2D(Audio.SfxId.UiObjective, 0.8f);
         }
 
-        public void Notify(string msg) => AddNote(msg, null, null);
+        /// <summary>a short note; the same text again within a second is dropped (several systems may report one thing)</summary>
+        public void Notify(string msg)
+        {
+            if (string.IsNullOrEmpty(msg)) return;
+            if (msg == _lastNote && Time.unscaledTime - _lastNoteT < 1f) return;
+            _lastNote = msg; _lastNoteT = Time.unscaledTime;
+            AddNote(msg, null, null);
+        }
+
+        void OnNeedRestored(string need, float amount)
+        {
+            int n = Mathf.RoundToInt(amount); if (n <= 0) return;
+            bool thirst = need == PlayerSurvival.ThirstEventId;
+            string key = thirst ? "restore_thirst" : "restore_hunger";
+            int total = n + (_stacked.TryGetValue(key, out var st) && st.g && Time.unscaledTime - st.t < 3f ? AddedTotal(key) : 0);
+            _added[key] = total;
+            AddNote("+" + NumText(total) + (thirst ? "  Hydration" : "  Food"), UIStyle.Icon(thirst ? "thirst" : "hunger"), key);
+        }
+
+        void OnFoodStage(ItemDefinition item, FoodStage stage)
+        {
+            if (!item) return;
+            AddNote(stage == FoodStage.Spoiled ? item.displayName + " has spoiled." : item.displayName + " is getting old. Eat or cook it soon.", item.icon, "spoil_" + item.id);
+            GameEvents.Raise(GameEventType.FoodSpoiled, item.id, (int)stage);
+        }
+
+        void OnToolBroke(ItemDefinition item, InventorySystem inv)
+        {
+            if (!item || !inv || inv != _inv) return;
+            var at = inv.transform.position + Vector3.up * 1.1f + inv.transform.forward * 0.3f;
+            Audio.SfxPlayer.Instance.Play(Audio.SfxId.ToolBreak, at, 0.9f);
+            VFX.VfxPool.Instance.Play(VFX.VfxId.DustImpact, at, Vector3.up, null, 0.5f);
+            Notify(item.displayName + " broke!");
+        }
 
         void AddNote(string msg, Sprite icon, string stackKey)
         {
@@ -277,7 +350,23 @@ namespace PrimalFrontier.UI
         float _objFlash;
         void OnTutorialDone() { ShowBanner("DAY ONE SURVIVED", "The island is larger than you thought", 6f); }
         void OnJournal(JournalSystem.Entry e) { AddNote("Journal: " + e.title + "   [J]", UIStyle.Icon("journal"), null); }
-        void OnLearned(RecipeDefinition r) { AddNote("New recipe: " + (r.output ? r.output.displayName : r.id), r.output ? r.output.icon : null, null); }
+        /// <summary>recipes learned in the same moment (one pickup can teach several) become one note, posted a moment later</summary>
+        void OnLearned(RecipeDefinition r)
+        {
+            if (!r) return;
+            _learnedNames.Add(r.output ? r.output.displayName : r.id);
+            if (_learnedNames.Count == 1) _learnedIcon = r.output ? r.output.icon : null;
+            if (_learnedFlushAt < 0f) _learnedFlushAt = Time.unscaledTime + 0.25f;
+        }
+
+        void FlushLearned()
+        {
+            _learnedFlushAt = -1f;
+            if (_learnedNames.Count == 0) return;
+            string msg = _learnedNames.Count == 1 ? "New recipe: " + _learnedNames[0] : "New recipes: " + string.Join(", ", _learnedNames);
+            AddNote(msg, _learnedIcon, null);
+            _learnedNames.Clear(); _learnedIcon = null;
+        }
         void OnActive(int i) { RefreshHotbar(); var it = _inv ? _inv.ActiveItem : null; _hotbarName.text = it ? it.displayName : ""; _hotbarNameT = Time.unscaledTime; }
 
         void RefreshHotbar()
@@ -289,8 +378,9 @@ namespace PrimalFrontier.UI
                 var s = _inv.Get(i);
                 _slotBg[i].sprite = i == _inv.ActiveSlot ? UIStyle.SlotActive : UIStyle.Slot;
                 _slotIcon[i].enabled = s != null && s.item.icon; if (s != null) _slotIcon[i].sprite = s.item.icon;
-                _slotCount[i].text = s == null ? "" : s.item.IsWaterContainer ? $"{s.water}/{s.item.waterCharges}" : s.count > 1 ? s.count.ToString() : "";
+                _slotCount[i].text = SlotCountText(s);
                 _slotCount[i].color = WaterCountColor(s);
+                if (s != null) _slotIcon[i].color = Spoilage.Tint(Spoilage.Stage(s));
                 bool dur = s != null && s.item.HasDurability;
                 _slotDur[i].enabled = dur; if (dur) { float k = Mathf.Clamp01(s.durability / s.item.maxDurability); _slotDur[i].fillAmount = k; _slotDur[i].color = Color.Lerp(UIStyle.Bad, UIStyle.Good, k); }
             }
@@ -320,6 +410,7 @@ namespace PrimalFrontier.UI
                 if (age > 5f) { Destroy(g.gameObject); _noteItems.RemoveAt(i); }
             }
             _hotbarName.color = new Color(1, 1, 1, Mathf.Clamp01(2.2f - (Time.unscaledTime - _hotbarNameT))) * UIStyle.Text;
+            if (_learnedFlushAt >= 0f && Time.unscaledTime >= _learnedFlushAt) FlushLearned();
 
             if (_player == null) return;
             // vitals (texts only when the shown value changes)
@@ -337,8 +428,18 @@ namespace PrimalFrontier.UI
                 SetTier(_hungerTier, _sv.HungerTier, _sv.HungerTierLabel, cfg.hungerTiers, ref _cHungerTier, ref _cHungerLabel, ref _hungerDrain);
                 SetTier(_thirstTier, _sv.ThirstTier, _sv.ThirstTierLabel, cfg.thirstTiers, ref _cThirstTier, ref _cThirstLabel, ref _thirstDrain);
                 Pulse(_hungerBar, _hungerDrain); Pulse(_thirstBar, _thirstDrain); Pulse(_hpBar, _hp && _hp.Normalized < 0.25f); Pulse(_tempBar, _sv.IsCold);
-                int mask = (_hp && _hp.IsBleeding ? 1 : 0) | (_sv.IsSick ? 2 : 0) | (_sv.Wetness > 0.3f ? 4 : 0) | (_sv.IsCold ? 8 : 0) | (_sv.Overweight ? 16 : 0);
-                if (mask != _cStatus) { _cStatus = mask; _status.text = StatusText(mask); }
+                if (!_fx) _fx = _player.GetComponent<PlayerStatusEffects>();
+                int ver = (_fx ? _fx.Version : 0) * 2 + (_sv.Overweight ? 1 : 0);
+                if (ver != _cFxVersion) { _cFxVersion = ver; RefreshStatus(); }
+                PulseStatus();
+                int wet = Mathf.RoundToInt(_sv.Wetness * 50f);
+                if (wet != _cWet)
+                {
+                    _cWet = wet;
+                    bool wetShown = wet > 0;
+                    if (_wetBar) { _wetBar.fillAmount = _sv.Wetness; var back = _wetBar.transform.parent; if (back && back.gameObject.activeSelf != wetShown) back.gameObject.SetActive(wetShown); }
+                    if (_wetIcon && _wetIcon.enabled != wetShown) _wetIcon.enabled = wetShown;
+                }
             }
             // compass
             var cam = Camera.main;
@@ -422,6 +523,59 @@ namespace PrimalFrontier.UI
             cacheIndex = index; cacheLabel = label;
             drain = index >= 0 && tiers != null && index < tiers.Length && tiers[index].healthDrain > 0f;
             if (t) { t.text = label ?? ""; t.color = drain ? UIStyle.Bad : UIStyle.Text; }
+        }
+
+        /// <summary>"500ml" for a container, the count for a stack, "" for one item</summary>
+        public static string SlotCountText(ItemStack s)
+        {
+            if (s == null) return "";
+            if (s.item.IsWaterContainer) return WaterRules.MlShort(s.water);
+            return s.count > 1 ? NumText(s.count) : "";
+        }
+
+        /// <summary>status icons + words from the player's effects (only when they changed)</summary>
+        void RefreshStatus()
+        {
+            _statusIds.Clear();
+            var sb = new System.Text.StringBuilder(64);
+            int n = 0;
+            if (_fx)
+            {
+                // HUD order: lower hudOrder first (small list: a simple selection pass)
+                var list = _fx.ActiveEffects; int count = list.Count;
+                var used = new bool[count];
+                for (int k = 0; k < count; k++)
+                {
+                    int best = -1;
+                    for (int i = 0; i < count; i++) if (!used[i] && list[i].def && list[i].def.showOnHud && (best < 0 || list[i].def.hudOrder < list[best].def.hudOrder)) best = i;
+                    if (best < 0) break;
+                    used[best] = true;
+                    var d = list[best].def;
+                    if (n < _statusIcons.Count)
+                    {
+                        var ic = _statusIcons[n];
+                        ic.sprite = d.icon ? d.icon : UIStyle.Icon(string.IsNullOrEmpty(d.iconName) ? "status_" + d.id : d.iconName);
+                        ic.color = d.color;
+                        ic.transform.parent.gameObject.SetActive(true);
+                        _statusIds.Add(d.id);
+                        n++;
+                    }
+                    sb.Append(d.displayName).Append("  ");
+                }
+            }
+            for (int i = n; i < _statusIcons.Count; i++) _statusIcons[i].transform.parent.gameObject.SetActive(false);
+            if (_sv && _sv.Overweight) sb.Append("Overburdened  ");
+            _status.text = sb.ToString();
+        }
+
+        /// <summary>the bleeding icon pulses</summary>
+        void PulseStatus()
+        {
+            for (int i = 0; i < _statusIds.Count && i < _statusIcons.Count; i++)
+            {
+                if (_statusIds[i] != StatusEffectIds.Bleeding) continue;
+                var ic = _statusIcons[i]; var c = ic.color; c.a = 0.55f + 0.45f * Mathf.Abs(Mathf.Sin(Time.unscaledTime * 4f)); ic.color = c;
+            }
         }
 
         /// <summary>status line for a flag mask (bleeding 1, sick 2, wet 4, cold 8, overburdened 16), built once per mask</summary>

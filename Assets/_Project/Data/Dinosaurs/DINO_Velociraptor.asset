@@ -54,3 +54,30 @@ MonoBehaviour:
   - {fileID: 8300000, guid: f5fbbe8c3a2356b47a8e48d5849d4380, type: 3}
   heavyFootsteps: 0
   journalId: velociraptor
+  sprayLoot: 0
+  fleeZigZag: 0
+  alertSensitivity: 1
+  nightVision: 0.45
+  sightGain: 1.1
+  hearingGain: 1.3
+  smellSensitivity: 1.4
+  awarenessDecay: 0.05
+  memorySeconds: 20
+  herdShareRadius: 45
+  alarmCall: 0
+  meatDrive: 1
+  scentTrackRange: 15
+  fireFear:
+    predatorFear: 0.85
+    fearRadiusDay: 7
+    fearRadiusNight: 10
+    rainMultiplier: 0.6
+    fuelMultiplier: 0.6
+    response: 2
+    patienceSeconds: 25
+    ignoreBelowIntensity: 0
+    ignoreWhenProvoked: 1
+  activity: 1
+  drinkEveryHours: 12
+  drinkSearchRadius: 160
+  unarmedDamageScale: -1

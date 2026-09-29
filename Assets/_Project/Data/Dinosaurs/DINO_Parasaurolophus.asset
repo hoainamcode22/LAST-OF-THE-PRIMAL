@@ -54,3 +54,30 @@ MonoBehaviour:
   - {fileID: 8300000, guid: fbde5cedd6eec2a43a511bd7b6a23d08, type: 3}
   heavyFootsteps: 1
   journalId: parasaurolophus
+  sprayLoot: 0
+  fleeZigZag: 0
+  alertSensitivity: 1
+  nightVision: 0.15
+  sightGain: 1.2
+  hearingGain: 1.4
+  smellSensitivity: 0.9
+  awarenessDecay: 0.06
+  memorySeconds: 12
+  herdShareRadius: 40
+  alarmCall: 1
+  meatDrive: 0
+  scentTrackRange: 0
+  fireFear:
+    predatorFear: 0.9
+    fearRadiusDay: 8
+    fearRadiusNight: 12
+    rainMultiplier: 0.7
+    fuelMultiplier: 0.5
+    response: 4
+    patienceSeconds: 8
+    ignoreBelowIntensity: 0
+    ignoreWhenProvoked: 0
+  activity: 0
+  drinkEveryHours: 8
+  drinkSearchRadius: 160
+  unarmedDamageScale: -1

@@ -54,7 +54,7 @@ namespace PrimalFrontier.Combat.Weapons
             if (inv == null || stack == null || stack.IsEmpty || !stack.item.HasDurability || amount <= 0f) return;
             if (ReferenceEquals(inv.ActiveStack, stack))
             {
-                if (inv.WearActive(amount)) PlayerInteraction.Notify(stack.item.displayName + " broke!");
+                if (inv.WearActive(amount)) Broke(stack.item.displayName);
                 return;
             }
             int slot = SlotOf(inv, stack);
@@ -64,7 +64,16 @@ namespace PrimalFrontier.Combat.Weapons
             string id = stack.item.id, name = stack.item.displayName;
             inv.SetSlot(slot, null);
             if (inv.raiseGameEvents) GameEvents.Raise(GameEventType.ItemRemoved, id, 1, inv.transform.position);
+            Broke(name);
+        }
+
+        /// <summary>a weapon / tool broke on a hit: the note, the snap sound and a little dust at the hand</summary>
+        void Broke(string name)
+        {
             PlayerInteraction.Notify(name + " broke!");
+            Vector3 at = Ctx.hierarchy && Ctx.hierarchy.RightHandWeaponSocket ? Ctx.hierarchy.RightHandWeaponSocket.position : Ctx.root.position + Vector3.up * 1.1f;
+            Audio.SfxPlayer.Instance.Play(Audio.SfxId.ToolBreak, at, 0.9f);
+            VFX.VfxPool.Instance.Play(VFX.VfxId.DustImpact, at, Vector3.up, null, 0.5f);
         }
 
         static int SlotOf(InventorySystem inv, ItemStack stack)

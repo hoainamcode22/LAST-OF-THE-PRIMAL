@@ -1,0 +1,50 @@
+PrimalResourceBuilder.Build 2026-09-29 19:09 arg ''
+ResourceDatabase: 17 resources, 6 tools + hands
+prefab Assets/_Project/Prefabs/Resources/Nodes/Resource_Stone_Small.prefab: stone_small, size 0,65x0,26x0,69, radius 0,29, solid
+prefab Assets/_Project/Prefabs/Resources/Nodes/Resource_Stone_Medium.prefab: stone_medium, size 0,80x0,62x0,75, radius 0,34, solid
+prefab Assets/_Project/Prefabs/Resources/Nodes/Resource_Stone_Medium_02.prefab: stone_medium, size 0,73x0,75x0,74, radius 0,33, solid
+prefab Assets/_Project/Prefabs/Resources/Nodes/Resource_Stone_Large.prefab: stone_large, size 1,71x1,12x1,19, radius 0,53, solid
+prefab Assets/_Project/Prefabs/Resources/Nodes/Resource_Wood_Branch.prefab: wood_branch, size 1,39x0,11x0,60, radius 0,27, trigger
+prefab Assets/_Project/Prefabs/Resources/Nodes/Resource_Wood_Branch_02.prefab: wood_branch, size 1,14x0,09x0,46, radius 0,27, trigger
+prefab Assets/_Project/Prefabs/Resources/Nodes/Resource_Wood_Driftwood.prefab: wood_driftwood, size 1,96x0,30x1,72, radius 0,77, solid
+prefab Assets/_Project/Prefabs/Resources/Nodes/Resource_Wood_SmallLog.prefab: wood_small_log, size 2,65x0,35x0,47, radius 0,30, solid
+prefab Assets/_Project/Prefabs/Resources/Nodes/Resource_Fiber_Plant.prefab: fiber_plant, size 1,10x1,12x1,15, radius 0,50, trigger
+prefab Assets/_Project/Prefabs/Resources/Nodes/Resource_Fiber_LongGrass.prefab: fiber_grass, size 1,31x1,43x1,30, radius 0,58, trigger
+prefab Assets/_Project/Prefabs/Resources/Nodes/Resource_Fiber_Fern.prefab: fiber_fern, size 1,78x0,51x1,81, radius 0,80, trigger
+prefab Assets/_Project/Prefabs/Resources/Nodes/Resource_Fiber_SmallBush.prefab: fiber_bush, size 1,13x0,51x0,99, radius 0,45, trigger
+prefab Assets/_Project/Prefabs/Resources/Nodes/Resource_Food_BerryBush.prefab: food_berry_bush, size 1,92x1,04x1,68, radius 0,75, trigger
+prefab Assets/_Project/Prefabs/Resources/Nodes/Resource_Food_FallenFruit.prefab: food_fallen_fruit, size 0,49x0,25x0,62, radius 0,22, trigger
+prefab Assets/_Project/Prefabs/Resources/Nodes/Resource_Food_EdiblePlant.prefab: food_edible_plant, size 0,25x0,20x0,21, radius 0,18, trigger
+prefab Assets/_Project/Prefabs/Resources/Nodes/Resource_Fish_Shoal.prefab: fish_shoal, size 0,56x0,12x0,37, radius 0,48, trigger
+terrain (640.00, 80.00, 640.00) at (-320.00, -10.00, -320.00), layers TL_Sand,TL_Grass,TL_ForestFloor,TL_Rock,TL_Mud,TL_SandWet, trees 1322, fresh water cells 1977
+converted: fiber_plant 14, food_berry_bush 9, food_berry_bush (bush) 75, stone_boulder 254, stone_large 426, stone_medium 136, stone_small 15, wood_deadwood 14, wood_driftwood 10; berry crops added 75
+first stones 7,0 m from the spawn
+start area: 6 groups around the spawn (-20.00, 1.49, 211.00), 19 nodes
+trail to fresh water: 4 waypoints ((-20,0,1,5,211,0) -> (18,0,4,3,178,0) -> (30,0,11,0,120,0) -> (34,3,9,5,88,7)), 5 clusters, 13 nodes
+water edges: 12 shore spots, 12 bank clusters (33 nodes), 7 fish shoals
+island clusters: 149 (Beach 18, ForestEdge 25, Forest 63, Rocky 29, Meadow 13, WaterEdge 1), 400 nodes
+new nodes total 476 under [Resources]
+TreeHarvest 'Trees': definition wood_tree
+fruit clusters with save ids: 12
+ResourceNodes in the scene: 1429 (0 without a definition)
+   fiber_bush: 34 (within 40 m of the spawn 0, 80 m 0)
+   fiber_fern: 52 (within 40 m of the spawn 0, 80 m 2)
+   fiber_grass: 48 (within 40 m of the spawn 4, 80 m 5)
+   fiber_plant: 42 (within 40 m of the spawn 2, 80 m 8)
+   fish_shoal: 7 (within 40 m of the spawn 0, 80 m 0)
+   food_berry_bush: 97 (within 40 m of the spawn 4, 80 m 9)
+   food_edible_plant: 17 (within 40 m of the spawn 0, 80 m 1)
+   food_fallen_fruit: 26 (within 40 m of the spawn 2, 80 m 5)
+   stone_boulder: 254 (within 40 m of the spawn 0, 80 m 0)
+   stone_large: 426 (within 40 m of the spawn 0, 80 m 12)
+   stone_medium: 184 (within 40 m of the spawn 2, 80 m 8)
+   stone_small: 112 (within 40 m of the spawn 4, 80 m 10)
+   wood_branch: 71 (within 40 m of the spawn 4, 80 m 8)
+   wood_deadwood: 14 (within 40 m of the spawn 0, 80 m 0)
+   wood_driftwood: 22 (within 40 m of the spawn 4, 80 m 9)
+   wood_small_log: 23 (within 40 m of the spawn 0, 80 m 1)
+start area (40 m) Stone: 6 nodes, 26 units
+start area (40 m) Wood: 8 nodes, 22 units
+start area (40 m) Fiber: 6 nodes, 17 units
+start area (40 m) Food: 6 nodes, 21 units
+scene saved Assets/_Project/Scenes/Island_VerticalSlice.unity

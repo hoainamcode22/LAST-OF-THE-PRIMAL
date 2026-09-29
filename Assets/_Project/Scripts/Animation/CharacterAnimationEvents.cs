@@ -50,6 +50,9 @@ namespace PrimalFrontier.Animation
         public void OnUseItem(string p) => Raise(nameof(OnUseItem), p);
         public void OnWakeUp(string p) => Raise(nameof(OnWakeUp), p);
         public void OnHarvest(string p) => Raise(nameof(OnHarvest), p);
+        /// <summary>Climb_Up / Climb_Down hand-foot contacts and the Climb_Start grab. Had no receivers: every climb logged errors.</summary>
+        public void OnClimbStep(string p) => Raise(nameof(OnClimbStep), p);
+        public void OnClimbGrab(string p) => Raise(nameof(OnClimbGrab), p);
         // combat
         public void OnAttackHit(string p) => Raise(nameof(OnAttackHit), p);
         /// <summary>end of the attack's startup (the swing begins)</summary>
@@ -62,6 +65,8 @@ namespace PrimalFrontier.Animation
         public void OnEquip(string p) => Raise(nameof(OnEquip), p);
         public void OnWeaponImpact(string p) => Raise(nameof(OnWeaponImpact), p);
         public void OnThrowRelease(string p) => Raise(nameof(OnThrowRelease), p);
+        /// <summary>Dodge clip, frame 4 (the push-off). Had no receiver: Unity logged an error on every dodge.</summary>
+        public void OnDodge(string p) => Raise(nameof(OnDodge), p);
         public void OnBowDrawStart(string p) => Raise(nameof(OnBowDrawStart), p);
         public void OnBowRelease(string p) => Raise(nameof(OnBowRelease), p);
         public void OnHurt(string p) => Raise(nameof(OnHurt), p);

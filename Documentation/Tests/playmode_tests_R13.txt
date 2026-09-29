@@ -1,0 +1,4 @@
+R_13 full PlayMode suite (RES agent), summary as read from Library/PrimalBridge/playmode_tests.txt at 12:33 UTC:
+DONE 2026-09-29 19:32:01
+passed 143  failed 0  skipped 8  inconclusive 0  time 714,6s
+(the per-test list was overwritten by the next run before it was copied)

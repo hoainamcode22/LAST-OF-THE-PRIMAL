@@ -69,7 +69,10 @@ namespace PrimalFrontier.Items
                                item.category == ItemCategory.Structure || item.IsWaterContainer);
 
         /// <summary>adds up to count; returns how many did NOT fit (0 = all added)</summary>
-        public int Add(ItemDefinition item, int count, bool ignoreWeight = false)
+        public int Add(ItemDefinition item, int count, bool ignoreWeight = false) => Add(item, count, ignoreWeight, GameClock.Now);
+
+        /// <summary>adds up to count of food made at <paramref name="madeAt"/> (GameClock; stacks it joins average their age); returns how many did NOT fit</summary>
+        public int Add(ItemDefinition item, int count, bool ignoreWeight, double madeAt)
         {
             if (item == null || count <= 0) return count;
             int fit = Mathf.Min(count, SpaceFor(item, ignoreWeight));
@@ -80,7 +83,7 @@ namespace PrimalFrontier.Items
                 {
                     var s = Slots[i];
                     if (s.IsEmptyOrNull() || s.item != item || s.count >= item.maxStack) continue;
-                    int k = Mathf.Min(left, item.maxStack - s.count); s.count += k; left -= k;
+                    int k = Mathf.Min(left, item.maxStack - s.count); s.MergeAge(madeAt, k); s.count += k; left -= k;
                 }
             // 2) empty slots (tools / food try the hotbar first, resources the bag)
             bool hot = PrefersHotbar(item);
@@ -92,7 +95,7 @@ namespace PrimalFrontier.Items
                 {
                     if (!Slots[i].IsEmptyOrNull()) continue;
                     int k = Mathf.Min(left, item.maxStack);
-                    Slots[i] = new ItemStack(item, k); left -= k;
+                    Slots[i] = new ItemStack(item, k) { madeAt = madeAt }; left -= k;
                 }
             }
             int added = fit - left;
@@ -112,7 +115,7 @@ namespace PrimalFrontier.Items
             if (stack.item.maxStack > 1 && Mathf.Approximately(stack.durability, stack.item.maxDurability) && stack.water == 0)
             {
                 if (SpaceFor(stack.item, ignoreWeight) < stack.count) return false;     // all or nothing: no duplication
-                return Add(stack.item, stack.count, ignoreWeight) == 0;
+                return Add(stack.item, stack.count, ignoreWeight, stack.madeAt) == 0;
             }
             if (!ignoreWeight && maxWeight > 0f && Weight + stack.Weight > maxWeight) return false;
             bool hot = PrefersHotbar(stack.item);
@@ -149,6 +152,26 @@ namespace PrimalFrontier.Items
             return true;
         }
 
+        /// <summary>
+        /// removes one of item, from <paramref name="preferSlot"/> when it holds that item, else like Remove (bag first);
+        /// madeAt = the GameClock time the removed food was made (cooking keeps its age). False and no change if none.
+        /// </summary>
+        public bool RemoveOne(ItemDefinition item, int preferSlot, out double madeAt)
+        {
+            madeAt = GameClock.Now;
+            if (item == null) return false;
+            int from = -1;
+            if (preferSlot >= 0 && preferSlot < Slots.Length && !Slots[preferSlot].IsEmptyOrNull() && Slots[preferSlot].item == item) from = preferSlot;
+            for (int i = Slots.Length - 1; i >= 0 && from < 0; i--) if (!Slots[i].IsEmptyOrNull() && Slots[i].item == item) from = i;
+            if (from < 0) return false;
+            var s = Slots[from]; madeAt = s.madeAt;
+            s.count--; if (s.count <= 0) Slots[from] = null;
+            Notify();
+            if (raiseGameEvents) GameEvents.Raise(GameEventType.ItemRemoved, item.id, 1, transform.position);
+            if (hotbarSize > 0 && from == ActiveSlot && Slots[from] == null) ActiveSlotChanged?.Invoke(ActiveSlot);
+            return true;
+        }
+
         /// <summary>takes count out of one slot and returns them as a new stack (null if empty)</summary>
         public ItemStack TakeFromSlot(int i, int count)
         {
@@ -178,7 +201,7 @@ namespace PrimalFrontier.Items
             {
                 int k = Mathf.Min(a.count, b.item.maxStack - b.count);
                 if (k <= 0) return false;
-                b.count += k; a.count -= k; if (a.count <= 0) Slots[from] = null;
+                b.MergeAge(a.madeAt, k); b.count += k; a.count -= k; if (a.count <= 0) Slots[from] = null;
             }
             else
             {
@@ -198,7 +221,7 @@ namespace PrimalFrontier.Items
             int n = a.count;
             if (a.item.maxStack > 1 && a.water == 0)
             {
-                int left = dst.Add(a.item, n);
+                int left = dst.Add(a.item, n, false, a.madeAt);
                 int moved = n - left; if (moved <= 0) return false;
                 a.count -= moved; if (a.count <= 0) Slots[from] = null;
                 Notify(); return true;
@@ -228,16 +251,21 @@ namespace PrimalFrontier.Items
             if (raiseGameEvents && ActiveItem != null) GameEvents.Raise(GameEventType.ItemEquipped, ActiveItem.id, 1, transform.position);
         }
 
-        /// <summary>uses durability of the active tool; breaks it at 0. Returns true if it broke.</summary>
+        /// <summary>a tool / weapon broke in <see cref="WearActive"/> (item, inventory): HUD note + sound (one place for every caller)</summary>
+        public static event Action<ItemDefinition, InventorySystem> ToolBroke;
+
+        /// <summary>uses durability of the active tool; breaks it at 0 (ToolBroke: the break sound, a puff and the note). Returns true if it broke.</summary>
         public bool WearActive(float amount)
         {
             var s = ActiveStack; if (s == null || !s.item.HasDurability) return false;
             s.durability -= amount;
             if (s.durability <= 0f)
             {
-                var id = s.item.id; Slots[ActiveSlot] = null; Notify();
+                var item = s.item; var id = item.id; Slots[ActiveSlot] = null; Notify();
                 if (raiseGameEvents) GameEvents.Raise(GameEventType.ItemRemoved, id, 1, transform.position);
+                if (raiseGameEvents) GameEvents.Raise(GameEventType.ToolBroken, id, 1, transform.position);
                 ActiveSlotChanged?.Invoke(ActiveSlot);
+                try { ToolBroke?.Invoke(item, this); } catch (Exception e) { Debug.LogException(e); }
                 return true;
             }
             Changed?.Invoke();

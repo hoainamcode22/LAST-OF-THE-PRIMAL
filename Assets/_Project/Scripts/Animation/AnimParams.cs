@@ -50,8 +50,11 @@ namespace PrimalFrontier.Animation
     {
         public const int None = 0, Pickup = 1, GatherWood = 2, GatherStone = 3, GatherPlant = 4, Interact = 5, Craft = 6, Eat = 7, Drink = 8,
             Build = 9, UseItem = 10, Sleep = 11, WakeUp = 12, GetUp = 13,
-            CollectWater = 14,                                                                 // full body one-shot (kneel, scoop): state only when the clip exists
+            CollectWater = 14,                                                                 // full body one-shot (kneel, scoop; placeholder Drink until the clip exists)
             Butcher = 15,                                                                      // full body loop (kneel, cut): state only when the clip exists
+            GatherStoneHand = 16,                                                              // full body loop, OnGatherHit (bare-hand stone; placeholder Gather_Plant)
+            GatherBranch = 17,                                                                 // full body loop, OnGatherHit (fallen branch; placeholder Gather_Plant)
+            BandageUse = 18,                                                                   // full body one-shot (wrap a wound; placeholder Use_Item)
             AttackSpear = 20, AttackSpearHeavy = 21, ThrowSpear = 22, SpearAttack2 = 23, KnifeAttack = 24,
             Dodge = 25,
             SwordAttack1 = 26, SwordAttack2 = 27, SwordAttack3 = 28, SwordHeavy = 29,        // full body
@@ -61,15 +64,19 @@ namespace PrimalFrontier.Animation
             BowEquip = 37, BowNock = 38,                                                       // upper body one-shots (clips pending)
             BowFullDraw = 39,                                                                  // upper body hold at full draw (clip pending)
             CarryItem = 40,
-            // unarmed attacks (full body one-shots, tag Attack, events OnAttackStart / OnAttackHit / OnAttackEnd). Play with
-            // PlayerAnimationDriver.Attack(id); the controller has the states once the clips are in the FBX.
-            PunchL = 50, PunchR = 51, PunchHeavy = 52, Kick = 53;
-        public static bool IsLooping(int a) => a == GatherWood || a == GatherStone || a == GatherPlant || a == Craft || a == Build || a == Sleep || a == Butcher;
+            // bare-hand attacks (full body one-shots, tag Attack, speed x AttackSpeed, events OnAttackStart / OnAttackActive /
+            // OnAttackHit / OnAttackEnd). Played by the bare-hand MeleeWeapon (WeaponData WPN_bare_hands); until the BareHand_*
+            // clips are in the FBX the states play placeholder clips (PrimalCharacterBuilder). Combo_End follows Punch_3.
+            BareHandPunch1 = 50, BareHandPunch2 = 51, BareHandHeavy = 52, Kick = 53, BareHandPunch3 = 54, BareHandComboEnd = 55;
+        public static bool IsLooping(int a) => a == GatherWood || a == GatherStone || a == GatherPlant || a == Craft || a == Build || a == Sleep || a == Butcher
+                                               || a == GatherStoneHand || a == GatherBranch;
         public static bool IsAttack(int a) => (a >= AttackSpear && a <= KnifeAttack) || (a >= SwordAttack1 && a <= SwordHeavy) || IsUnarmedAttack(a);
-        public static bool IsUnarmedAttack(int a) => a >= PunchL && a <= Kick;
+        public static bool IsUnarmedAttack(int a) => a >= BareHandPunch1 && a <= BareHandComboEnd;
+        public static bool IsHeavyAttack(int a) => a == AttackSpearHeavy || a == SwordHeavy || a == BareHandHeavy;
+        public static bool IsGather(int a) => a == GatherWood || a == GatherStone || a == GatherPlant || a == GatherStoneHand || a == GatherBranch || a == Butcher;
         public static bool IsUpperBody(int a) => a >= BowAim && a <= CarryItem;
         /// <summary>full-body actions the body must be (nearly) standing for: the driver brakes the motor before starting them</summary>
-        public static bool NeedsStop(int a) => (a >= Pickup && a <= Sleep) || a == CollectWater || a == Butcher;
+        public static bool NeedsStop(int a) => (a >= Pickup && a <= Sleep) || (a >= CollectWater && a <= BandageUse);
     }
 
     /// <summary>Values of the "LocoEvent" int parameter (phase C start / stop / pivot clips; unused until they exist).</summary>

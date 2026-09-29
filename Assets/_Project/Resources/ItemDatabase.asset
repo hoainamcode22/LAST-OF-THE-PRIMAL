@@ -50,6 +50,10 @@ MonoBehaviour:
   - {fileID: 11400000, guid: c5725bc82b8760c44bc4c748de5d2580, type: 2}
   - {fileID: 11400000, guid: 1e3d9d11982514346a7fbe6ffb4deb6b, type: 2}
   - {fileID: 11400000, guid: 193fb141c9aabb147ada9608f24f28d9, type: 2}
+  - {fileID: 11400000, guid: 948641fffb109e94da3654861cf4e6c1, type: 2}
+  - {fileID: 11400000, guid: f05e8ebd981c94543958e2e6c41a0c5e, type: 2}
+  - {fileID: 11400000, guid: 56eaae39eb0412e439888ac20719df17, type: 2}
+  - {fileID: 11400000, guid: 8354a6b11cd799247b62ef66f966b48c, type: 2}
   recipes:
   - {fileID: 11400000, guid: ac9750bebf8ef9d41afc79584eebdb75, type: 2}
   - {fileID: 11400000, guid: 9df4afaf6991bec488a07e7382fae297, type: 2}

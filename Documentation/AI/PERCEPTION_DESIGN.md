@@ -1,9 +1,115 @@
-# PERCEPTION SYSTEM (design, not implemented)
+# PERCEPTION SYSTEM (design + Phase 3 implementation)
 
 Owner request: the world reacts to the player. **PLAYER -> noise / smell / movement / light -> dinosaur detection ->
 predator or prey behaviour.** This document designs a data-driven perception layer that plugs into the existing
 classes (no new manager object), in three build phases: hearing + visibility, then scent + wind, then tree-density cover.
-Source read: `src/Scripts` (AI, World, Player, Core, Survival, UI) and `Documentation/Survival/*` on 2026-09-28.
+Sections 1-14 are the design (2026-09-28); section 0 is what Phase 3 built, how it differs, and the final numbers.
+
+---
+
+## 0. Implementation status (Phase 3, 2026-09-29)
+
+### 0.1 Status
+
+Evidence = PlayMode tests on the island (Unity 6000.3, editor) and without a scene; numbers from their logs.
+
+| Area | Status | Evidence |
+|---|---|---|
+| Stimuli hub (two rings, no allocation) | PASS | `PerceptionTests.Stimuli_Ring_*`, `Emit_Read_And_Sense_Allocate_Nothing` (median 16651 B/frame with 500 sensing rounds = 16651 B/frame idle; 64 KB probe seen) |
+| Vision: range from light / posture / motion / cover, FOV, budgeted line of sight (own hit zones ignored), timed | PASS | `Crouched_Still_In_Bush_At_Night_Is_Not_Detected` (cover 0.80, raptor sight 1.5 m, awareness 0.00 at 12 m for 8 s; standing 6 m away is noticed), `Still_At_25m_Unseen_Sprinting_Seen_Quickly` (still: sight 18-22 m, not noticed; sprinting: Engaged after 1.05 s at 19.9 m) |
+| Torch / night | PASS | `Torch_At_Night_Extends_Detection`: raptor sight 13.2 m in the dark -> 31.5 m with the torch |
+| Hearing: gait x surface pulses, gameplay noises through GameEvents | PASS | `Chopping_Noise_Draws_Predator_To_Investigate` (carnotaurus Investigate, 2.8 m from the noise), `Gameplay_Events_Become_Noises_*` (hit 1.0, build 0.9, hand gather 0.25, tree fall 2.5, flyers startle) |
+| Bushes / thickets: cover, rustle noise, visible shake | PASS | `Running_Into_A_Bush_Shakes_It_And_Draws_A_Look` (motion 0.86, rustle 1.0; a raptor at 15 m looks at the bush) |
+| Awareness meter, hysteresis, decay, noise ceiling, memory | PASS | `Awareness_Rises_*`, `Noise_Alone_Never_Engages_*`, `Motion_Flash_*` |
+| Last known position, search, give up (chase no longer omniscient) | PASS | `Lost_Target_Goes_To_Last_Known_Position_Then_Gives_Up` (destination 0.0 m from the last sighting, 92 m from the real player) |
+| Herd / pack sharing | PASS | `Herd_Shares_An_Alert` (mates at 0.60) |
+| Scent + wind (raw meat carried, food on fires, carcass blood, bleeding player, smoke), slow wind drift | PASS | `Scent_Is_Smelled_Downwind_Not_Upwind`, `Cooking_Meat_Downwind_Draws_A_Raptor_To_The_Fire_Edge` (followed, closest 11.9 m, fear radius 7.0 m, circling), `Cooking_Meat_Upwind_Is_Not_Smelled` (interest 0.00); `WindTests` green with the drift |
+| Configurable campfire fear per species (day / night radius, rain, fuel, fear, response, patience, apex ignore) | PASS | `Fire_Fear_Radius_Follows_Night_Rain_And_Fuel`, `Fire_Keeps_A_Raptor_Circling_Outside_Until_It_Goes_Out` (closest 8.3 m to the fire, radius 7.0 m; closes in once the fire is out) |
+| Cover / cleared areas (tree density, felled trees) | PASS | `Felling_Trees_Opens_The_Ground` (5 trees -> 0, cover 0.35 -> 0.00, exposure 1.15) |
+| Predator responses ignore / investigate / approach / circle / attack / retreat | PASS | the tests above + `DinosaurTests.Predator_Chases_And_Bites_*` (unchanged, green) |
+| Dinosaur life: eat, drink at water, wander, rest, sleep at night, react, search, flee, hunt | PASS | `Herbivores_Sleep_At_Night_And_Go_To_Water` (sleeps at 23:30; a parasaurolophus walks to the stream and drinks); `DinosaurTests` 4/4 |
+| AI tiers near / medium / far / very far | PASS | `AI_Tiers_Near_Medium_Far_Very_Far`: 30 / 90 / 160 / 259 m -> tier 0 / 1 / 2 / 3, Animator off only very far |
+| Bare-hand hits scaled by size, knockback on small creatures | PASS | `Bare_Hands_Knock_Small_*` (raptor -4.0, pushed 1.88 m/s; ankylosaurus -0.59 = 0.079 %), `BareHandIslandTests.Punch_Small_Creature_Hurts_Large_Barely` logs "AI scales unarmed hits" |
+| Creature save / restore | PARTIAL | logic PASS: `Creature_Save_Restores_Dead_Bodies_Carcass_And_Health` (11 restored, the killed raptor stays dead where it fell with its butchered carcass, a wounded triceratops keeps 500 HP, a broken section is skipped). Not yet in the save file: SURV's `ISaveSection` / `SaveSystem.RegisterSection` are not in the project; `CreatureSaveSection` is ready to register |
+| Population: killed creatures return | PASS | `Killed_Creature_Returns_After_Its_Respawn_Time_When_Far` (48 game hours by default, only once the body has sunk and the player is 120 m+ away) |
+| HUD indicator (default AUTO) + tips | PASS | `Stealth_Indicator_Auto_Shows_When_Crouched_And_Marks_Threats`; setting row "Stealth hint (Ẩn nấp)" AUTO / ALWAYS / OFF |
+| Performance | PASS | `Perception_Frame_Budget_And_Zero_Allocation` (final full run): sensing 0.028 ms per frame on average (11 creatures), worst frame 0.374 ms, at most 1 linecast in a frame; median 15.4 KB/frame with 4800 extra sensing ticks vs 16.3 KB idle (the idle KB are other systems) |
+| Full PlayMode suite | PASS | 110 passed, 0 failed, 7 skipped (diagnostic probe / capture tests), 503 s (2026-09-29 17:49) |
+
+### 0.2 What was built (files)
+
+| File | Role |
+|---|---|
+| `Core/Stimuli.cs` | static hub: transient ring 128 (noise, motion), scent ring 256 (puffs), pure puff maths, sequence-based Clear, LoudNoise hook |
+| `AI/PerceptionConfig.cs` | every global number (Resources/PerceptionConfig.asset, default instance when missing), item scent table |
+| `AI/DinoSenses.cs` | per creature: sight / hearing / motion / scent, awareness + interest + memory + look point, budgeted linecasts, stats |
+| `AI/DinosaurController.cs` | behaviour from awareness (approach, investigate, search, circle, retreat), daily life (sleep, drink), fire fear, 4 tiers, unarmed scaling + knockback, save state |
+| `AI/FireSense.cs` | the one reader of Campfire (intensity, shelter, rain, fear radius, firelight) |
+| `AI/CoverMap.cs` | terrain-tree grid (standing vs felled via `TreeHarvest.Felled`), bushes near a point |
+| `AI/DrinkSpots.cs` | fresh water points from the WaterSource meshes |
+| `AI/CreatureSave.cs` | creature section JSON (capture / restore), `CreatureSaveSection` |
+| `AI/DinosaurDefinition.cs` | appended perception, fire fear, daily life and bare-hand fields |
+| `AI/AmbientCreature.cs`, `AI/DinoLife.cs`, `AI/DinosaurSpawner.cs` | startle on loud noise + unarmed scaling + dead restore; look point + closed eyes asleep; respawn after hours |
+| `Player/PlayerSignature.cs` | 10 Hz player signature, movement pulses, GameEvents -> noises, player and fire scents |
+| `World/BushInteraction.cs`, `World/Carcass.cs` | bush cover / rustle / shake stimuli; carcass scent, save helpers |
+| `Core/WeatherManager.cs` | `WindDirection` / `WindStrength`, slow Perlin drift (+-60 deg over 8 game hours) |
+| `Core/GameManager.cs`, `Core/GameEvents.cs` (append) | adds PlayerSignature + indicator, clears stimuli on new game / load / sleep; `PlayerNoticed`, `ScentInvestigated` |
+| `UI/PerceptionIndicator.cs`, `UI/SettingsPanel.cs`, `Core/GameSettings.cs` | eye / noise ring / threat arcs, tips, setting |
+| `Editor/PrimalPerceptionBuilder.cs` | writes the species table into DINO_*.asset (perception fields only), creates / resets the config |
+| `Tests/PlayMode/PerceptionTests.cs`, `PerceptionIslandTests.cs` | 11 + 19 tests (allocation measured per frame by median, frames interleaved) |
+
+### 0.3 Differences from the design
+
+| Design | Built | Why |
+|---|---|---|
+| hooks in Campfire, TreeHarvest, ResourceNode, PlayerFeedback, Projectile, MeleeWeapon | noises from `GameEvents` (ResourceGathered + held tool, CreatureHit, StructurePlaced, FireLit, PlayerDodged) and motor / health events; fire scents sampled by `PlayerSignature` from `Campfire.All` | those files belong to other agents |
+| tree fall hook in `TreeHarvest.Fell` | `TreeHarvest.Felled.Count` rises within 5 s of a chop -> tree fall noise at the chop | no TreeFelled event yet (requested) |
+| missed arrows as distraction noises | not wired (no landing event from Projectile) | requested; `StimulusSource.Distraction` exists |
+| `ItemDefinition.scent` | `PerceptionConfig.itemScents` table (raw_meat, cooked_meat, raw_fish, cooked_fish; any other cookable item uses `defaultRaw`) | Items belong to SURV; data stays data |
+| footstep surface from `PlayerFeedback` | own allocation-free sample: collider names cached per collider; terrain: beach height = sand, steep = rock, else grass | PlayerFeedback belongs to RES (a shared `LastFootSurface` is requested) |
+| tiers 90 / 200 m (2 tiers + frozen) | near 60, medium 120, far 200, very far (frozen, Animator off); think 0.2 / 0.4 / 1.0 s | directive 84 |
+| fire fear 0..1 + one radius | `FireFearProfile` per species (owner decision): predatorFear, fearRadiusDay / Night, rainMultiplier, fuelMultiplier, response (Avoid / Observe / Circle / Wait / Leave), patienceSeconds, ignoreBelowIntensity, ignoreWhenProvoked | owner decision: configurable, not universally safe |
+| fire intensity from SURV (`Fuel01` / `Intensity01` / `State` / `Sheltered`) | interim in `FireSense`: intensity = fuel / 300 s, shelter = `Shelter.Covers`, rain = `WeatherManager.RainingAt` | SURV's read API is not in the project yet; one file to switch |
+| bleeding from `PlayerStatusEffects.Has(Bleeding)` | `PlayerHealth.IsBleeding` (one line in `PlayerSignature.IsBleeding`) | SURV's status effects are not in the project yet |
+| tree cover 0.08 per tree within 6 m | 0.1 per tree within 8 m (cap 0.35) | the island's densest 6 m circle holds only 3 trees |
+
+### 0.4 Final tuning values
+
+Global values are the section 11.1 table with these changes: `perTreeCover` 0.1, `treeRadius` 8 m; tiers near 60 m / medium
+120 m / far 200 m, think 0.2 / 0.4 / 1.0 s, very far step 1 s; campfire circle speed 22 deg/s lead, edge margin 1.5 m;
+bare hands: full damage at body radius <= 0.5 m, x (0.5 / radius)^2 above, knockback for radius <= 0.8 m over 0.3 s;
+sleep: sight x0.25, hearing x0.6, 45-90 s naps re-armed while the rest phase lasts; drinking 8-14 s; item scents raw meat
+1.0 cooking / 0.12 per carried unit, cooked meat 0.5 on a fire / 0.04 carried, raw fish 0.9 / 0.1, cooked fish 0.45 / 0.03.
+
+Species (written by `PrimalPerceptionBuilder`; sight / hearing ranges unchanged):
+
+| Species | nightVision | sight / hear / smell gain | decay /s | memory s | herd m | alarm | meatDrive | scentTrack m | activity | drink every h | unarmed x |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| Triceratops | 0.10 | 0.8 / 0.8 / 0.5 | 0.10 | 8 | 30 | yes | 0 | 0 | Diurnal | 10 | 0.111 |
+| Parasaurolophus | 0.15 | 1.2 / 1.4 / 0.9 | 0.06 | 12 | 40 | yes | 0 | 0 | Diurnal | 8 | 0.207 |
+| Ankylosaurus | 0.10 | 0.6 / 0.7 / 0.6 | 0.12 | 6 | 0 | no | 0 | 0 | Diurnal | 12 | 0.148 |
+| Velociraptor | 0.45 | 1.1 / 1.3 / 1.4 | 0.05 | 20 | 45 | no | 1.0 | 15 | Nocturnal (rests 11-15 h) | 12 | 1.000 |
+| Carnotaurus | 0.30 | 1.0 / 1.0 / 1.0 | 0.07 | 15 | 0 | no | 0.7 | 8 | Cathemeral | 14 | 0.174 |
+| Spinosaurus | 0.25 | 0.9 / 0.9 / 0.8 | 0.08 | 12 | 0 | no | 0.5 | 6 | Cathemeral | 6 | 0.098 |
+| Rift Tyrant (apex) | 0.30 | 0.9 / 1.1 / 1.3 | 0.04 | 30 | 0 | no | 0.9 | 12 | Cathemeral | 16 | 0.077 |
+| Pteranodon, Mosasaurus | ambient: startle at loud noises, no fire fear, no drinking | | | | | | | | | | 0.69 / 0.13 |
+
+Campfire fear (radius = lerp(day, night, NightFactor) x rain x lerp(1, intensity, fuel)):
+
+| Species | predatorFear | day / night m | rain x | fuel | response | patience s | ignores below | provoked ignores |
+|---|---|---|---|---|---|---|---|---|
+| Triceratops | 0.7 | 6 / 9 | 0.7 | 0.5 | Avoid | 12 | - | yes |
+| Parasaurolophus | 0.9 | 8 / 12 | 0.7 | 0.5 | Leave | 8 | - | no |
+| Ankylosaurus | 0.5 | 5 / 7 | 0.7 | 0.5 | Avoid | 12 | - | yes |
+| Velociraptor | 0.85 | 7 / 10 | 0.6 | 0.6 | Circle | 25 | - | yes |
+| Carnotaurus | 0.6 | 5 / 8 | 0.6 | 0.6 | Wait | 18 | - | yes |
+| Spinosaurus | 0.6 | 5 / 8 | 0.6 | 0.5 | Observe | 15 | - | yes |
+| Rift Tyrant | 0.3 (hesitates, then walks in) | 4 / 6 | 0.5 | 0.8 | Wait | 10 | intensity 0.4 | yes |
+
+Below 0.5 fear a creature only hesitates (patience x lerp(0.3, 1, fear x 2)) and then ignores that fire for 30 s; at 0.5
+and above it keeps outside with its response until its patience runs out, then goes home and avoids the fire for 45 s.
+A lit fire is therefore a strong deterrent for small predators, a delay for large ones, and no protection from the apex
+once it has made up its mind or when the fire is weak.
 
 ---
 
@@ -413,7 +519,7 @@ Debug: `OnDrawGizmosSelected` draws effective sight radius, hearing radius for l
 
 ---
 
-## 11. Tuning (starting values)
+## 11. Tuning (starting values; final values in 0.4)
 
 ### 11.1 Global (`PerceptionConfig`)
 

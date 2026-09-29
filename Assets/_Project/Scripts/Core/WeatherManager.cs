@@ -29,6 +29,12 @@ namespace PrimalFrontier.Core
         [Header("Wind (for foliage / water shaders)")]
         public Vector2 windDirection = new Vector2(0.8f, 0.6f);
         public float calmWind = 0.35f, stormWind = 1.4f;
+        [Tooltip("the wind slowly swings this many degrees either side of windDirection (0 = fixed)")] [Range(0, 180)] public float windDriftDegrees = 60f;
+        [Tooltip("in-game hours for one slow swing of the wind direction")] [Min(0.5f)] public float windDriftHours = 8f;
+        /// <summary>current wind direction (world xz, normalized): the way the wind blows, as _PF_Wind.xy; scent drifts along it</summary>
+        public Vector2 WindDirection { get; private set; } = new Vector2(0.8f, 0.6f);
+        /// <summary>current wind strength (calm 0.35 .. storm 1.4), as _PF_Wind.z</summary>
+        public float WindStrength { get; private set; } = 0.35f;
         [Header("Lightning (storms)")]
         public Color lightningColor = new Color(0.8f, 0.86f, 1f);
         public float lightningIntensity = 2.6f;
@@ -108,7 +114,8 @@ namespace PrimalFrontier.Core
             if (Time.time > _nextGust) { _nextGust = Time.time + UnityEngine.Random.Range(3f, 9f); _gustTarget = UnityEngine.Random.Range(0f, 1f); }
             _gust = Mathf.MoveTowards(_gust, _gustTarget, dt * 0.4f);
             float wind = Mathf.Lerp(calmWind, stormWind, Mathf.Max(Intensity, Overcast * 0.4f));
-            var wd = windDirection.sqrMagnitude > 0.001f ? windDirection.normalized : Vector2.right;
+            var wd = DriftedWind();
+            WindDirection = wd; WindStrength = wind;
             Shader.SetGlobalVector(WindId, new Vector4(wd.x, wd.y, wind, _gust));
             Shader.SetGlobalFloat(WetId, Wetness);
             Shader.SetGlobalFloat(OvercastId, Overcast);
@@ -144,6 +151,20 @@ namespace PrimalFrontier.Core
                 _thunderAt = -1f;
                 SfxPlayer.Instance.Play2D(SfxId.Thunder, _thunderVol);
             }
+        }
+
+        /// <summary>
+        /// windDirection turned by a slow, smooth swing (Perlin noise over the game clock, +- windDriftDegrees over about
+        /// windDriftHours): foliage follows without jumps and scent drifts with it, so the wind is worth checking.
+        /// </summary>
+        Vector2 DriftedWind()
+        {
+            var b = windDirection.sqrMagnitude > 0.001f ? windDirection.normalized : Vector2.right;
+            if (windDriftDegrees <= 0f) return b;
+            float t = (float)(GameClock.Now / System.Math.Max(1.0, GameClock.Hours(windDriftHours)));
+            float a = (Mathf.PerlinNoise(t, 0.37f) * 2f - 1f) * windDriftDegrees * Mathf.Deg2Rad;
+            float cs = Mathf.Cos(a), sn = Mathf.Sin(a);
+            return new Vector2(b.x * cs - b.y * sn, b.x * sn + b.y * cs);
         }
 
         public bool RainingAt(Vector3 p) => Intensity > 0.25f && !World.Shelter.Covers(p) && !(World.ZoneManager.Instance && World.ZoneManager.Instance.IsIndoor(p));

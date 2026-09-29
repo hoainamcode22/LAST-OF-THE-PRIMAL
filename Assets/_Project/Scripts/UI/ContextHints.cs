@@ -146,7 +146,7 @@ namespace PrimalFrontier.UI
 
     /// <summary>
     /// Contextual key hints (bottom right, 1-4 small lines such as "[LMB] Slash (Chém)   [Hold LMB] Heavy (Đòn mạnh)"):
-    /// the keys that matter right now, from the player's state: empty hands, tool, torch, sword / knife (attack, heavy,
+    /// the keys that matter right now, from the player's state: empty hands (punch, heavy punch, dodge), tool, torch, sword / knife (attack, heavy,
     /// hold RMB block), spear (thrust, heavy, aim + throw), bow (aim, draw, release), food / water, camp item (place mode),
     /// build placement, climbing, the inventory window, plus crouch (stealth), low stamina (sprint) and night (torch) lines.
     /// Key names come from <see cref="KeyNames"/> (the real bindings). Above the hints, one-line onboarding tips are shown
@@ -443,8 +443,10 @@ namespace PrimalFrontier.UI
             {
                 case HeldKind.Empty:
                 case HeldKind.Other:
+                    // bare hands (an item with no weapon role punches too): combo on repeated taps, heavy on hold
+                    _base.Add(Pair(H(Keys.attack, "Punch (Đấm)"), H("Hold " + Keys.attack, "Heavy punch (Đấm mạnh)")));
                     _base.Add(H(Keys.interact, "Interact / pick up (Tương tác / nhặt)"));
-                    _base.Add(H(Keys.hotbar, "Hold an item (Cầm đồ)"));
+                    _base.Add(Pair(H(Keys.dodge, "Dodge (Né)"), H(Keys.hotbar, "Hold an item (Cầm đồ)")));
                     _base.Add(Pair(H(Keys.inventory, "Bag (Túi đồ)"), H(Keys.craft, "Craft (Chế tạo)")));
                     break;
                 case HeldKind.Tool:

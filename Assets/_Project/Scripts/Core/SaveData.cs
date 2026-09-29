@@ -10,11 +10,13 @@ namespace PrimalFrontier.Core
     /// v4 (survival milestone 1): SlotData / DropData.waterType (WaterType int; v2/v3 migrate from dirty), StructureData.state
     /// (ISaveableStructure), player sickSeconds (older saves: 0 = not sick), tutorialStepId (step id; older saves: empty,
     /// the index is mapped through the pre-M1 step order).
+    /// v5 (phase 3): named sections (ISaveSection: status effects, creatures, fruit...), food age on slots / drops
+    /// (seconds since the food was made; older saves: 0 = fresh).
     /// </summary>
     [Serializable]
     public class SaveData
     {
-        public const int CurrentVersion = 4;          // 2: water containers remember unboiled water (older saves load as clean); 3: crafting queue
+        public const int CurrentVersion = 5;          // 2: water containers remember unboiled water (older saves load as clean); 3: crafting queue
         public int version = CurrentVersion;
         public string savedAt;
         public float playSeconds;
@@ -43,13 +45,17 @@ namespace PrimalFrontier.Core
         public List<TreeData> felledTrees = new List<TreeData>();
         public List<StructureData> structures = new List<StructureData>();
         public List<DropData> dropped = new List<DropData>();
+        // v5: systems that keep their own state (ISaveSection), as named JSON blobs (older saves: none)
+        public List<SectionData> sections = new List<SectionData>();
     }
 
-    [Serializable] public class SlotData { public int slot; public string item; public int count; public float durability; public int water; public bool dirty; public int waterType; }
+    [Serializable] public class SectionData { public string key; public string json; }
+
+    [Serializable] public class SlotData { public int slot; public string item; public int count; public float durability; public int water; public bool dirty; public int waterType; public float age; }   // age v5: food seconds old
     [Serializable] public class CraftJobData { public string recipe; public float progress; }
     [Serializable] public class NodeData { public string id; public int remaining; public double emptyUntil; }
     [Serializable] public class TreeData { public int index; public double regrowAt; }
-    [Serializable] public class DropData { public string item; public int count; public float durability; public int water; public bool dirty; public int waterType; public Vector3 pos; }
+    [Serializable] public class DropData { public string item; public int count; public float durability; public int water; public bool dirty; public int waterType; public Vector3 pos; public float age; }
     [Serializable]
     public class StructureData
     {
