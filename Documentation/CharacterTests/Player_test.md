@@ -3,13 +3,42 @@
 Result: **PASS**
 
 ```
-=== Player === 2026-09-28 15:42:24
+=== Player === 2026-09-28 23:16:12
+T-pose: from the skin bind pose (57 bones), arms to horizontal by side (L = -X, R = +X)
+T-pose L: upper arm (-1.00, 0.00, 0.00), forearm (-1.00, 0.00, 0.00)
+T-pose R: upper arm (1.00, 0.00, 0.00), forearm (1.00, 0.00, 0.00)
+T-pose mirror L vs R (deg): Clavicle 0.0 UpperArm 0.0 LowerArm 0.0 Hand 0.0 Thigh 0.0 Calf 0.0 Foot 0.0
 Twist bones LowerArmTwist_L/R found: avatar lowerArmTwist = 0 (TwistBoneDriver spreads the wrist twist)
 Avatar: valid=True human=True
 Importer: 58 clips configured (29 loops, 90 events)
 Materials: M_Player_Cloth, M_Player_Eye, M_Player_Hair, M_Player_Skin
 Clips in FBX: 58 (meta: 58)
-Controller: Assets/Art/Characters/Player/Animations/PlayerAnimator.controller (states: 41 base + 9 upper body + 2 hit reaction, params 18, IK pass on)
+Locomotion: Idle time-scaled x6,00 to Walk's cycle, state speed = LocoRate (standing: LocoIdleRate 0,167)
+waiting for clip (state skipped): Walk_Start
+waiting for clip (state skipped): Run_Start
+waiting for clip (state skipped): Walk_Stop
+waiting for clip (state skipped): Run_Stop
+waiting for clip (state skipped): Run_Pivot_180
+waiting for clip (state skipped): Turn_180
+waiting for clip (state skipped): Collect_Water
+waiting for clip (state skipped): Butcher
+waiting for clip (state skipped): Gather_Enter
+waiting for clip (state skipped): Gather_Exit
+waiting for clip (state skipped): Spear_Recovery
+waiting for clip (state skipped): Spear_Recovery
+waiting for clip (state skipped): Punch_L
+waiting for clip (state skipped): Punch_R
+waiting for clip (state skipped): Punch_Heavy
+waiting for clip (state skipped): Kick
+waiting for clip (state skipped): Spear_Recovery
+waiting for clip (state skipped): Unarmed_Block
+waiting for clip (state skipped): Bow_FullDraw
+waiting for clip (state skipped): Bow_Equip
+waiting for clip (state skipped): Bow_Nock
+waiting for clip (state skipped): Unarmed_Idle
+waiting for clip (state skipped): Bow_Idle
+waiting for clip (state skipped): Spear_Idle
+Controller: Assets/Art/Characters/Player/Animations/PlayerAnimator.controller (states: 41 base + 9 upper body + 2 hit reaction, params 23, IK pass on)
 Controller: new states StrafeLocomotion (2D VelX/VelZ, on Strafe), Sword_Attack_1/2/3 + Sword_Heavy (Attack, speed x AttackSpeed); upper body Sword_Idle, Sword_Block, Sword_Equip, Sword_Unequip; HitReaction (additive) Hurt_Additive on HurtLight
 TwistBoneDriver on the model (LowerArmTwist bones found)
 LOD: 3 levels (LOD0:72952 tris, LOD1:17107 tris, LOD2:5668 tris)
@@ -50,13 +79,13 @@ Jump               0,80s loop=N events=1
 Knife_Attack       0,87s loop=N events=1
 Land               0,67s loop=N events=1
 Pickup             1,33s loop=N events=1
-Run                0,67s loop=Y events=2 loopGap=0,0cm footSlide=0,02m/s (1% of 3,80) contactVel L(0.00, 0.00, -3.79) (7f) R(0.00, 0.00, -3.79) (7f)
-Run_Backward       0,80s loop=Y events=2 loopGap=0,0cm footSlide=0,02m/s (1% of 2,40) contactVel L(0.00, 0.00, 2.39) (7f) R(0.00, 0.00, 2.40) (7f)
+Run                0,67s loop=Y events=2 loopGap=0,0cm footSlide=0,02m/s (0% of 3,80) contactVel L(0.00, 0.00, -3.79) (7f) R(0.00, 0.00, -3.79) (7f)
+Run_Backward       0,80s loop=Y events=2 loopGap=0,0cm footSlide=0,01m/s (0% of 2,40) contactVel L(0.00, 0.00, 2.40) (7f) R(0.00, 0.00, 2.40) (7f)
 Sleep              4,00s loop=Y events=0 loopGap=0,0cm
 Spear_Attack_2     1,13s loop=N events=4
 Sprint             0,47s loop=Y events=2 loopGap=0,0cm footSlide=0,01m/s (0% of 6,20) contactVel L(0.00, 0.00, -6.20) (3f) R(0.00, 0.00, -6.20) (3f)
-Strafe_Run_L       0,60s loop=Y events=2 loopGap=0,0cm footSlide=0,02m/s (1% of 3,00) contactVel L(3.00, 0.00, 0.00) (8f) R(3.00, 0.00, 0.00) (8f)
-Strafe_Run_R       0,60s loop=Y events=2 loopGap=0,0cm footSlide=0,02m/s (1% of 3,00) contactVel L(-3.00, 0.00, 0.00) (8f) R(-3.00, 0.00, 0.00) (8f)
+Strafe_Run_L       0,60s loop=Y events=2 loopGap=0,0cm footSlide=0,01m/s (0% of 3,00) contactVel L(3.00, 0.00, 0.00) (8f) R(3.00, 0.00, -0.01) (8f)
+Strafe_Run_R       0,60s loop=Y events=2 loopGap=0,0cm footSlide=0,02m/s (1% of 3,00) contactVel L(-3.00, 0.00, 0.00) (8f) R(-3.00, 0.00, 0.01) (8f)
 Sword_Attack_1     1,00s loop=N events=4
 Sword_Attack_2     0,93s loop=N events=4
 Sword_Attack_3     1,13s loop=N events=5
@@ -70,8 +99,8 @@ Turn_Left          1,00s loop=Y events=2 loopGap=0,0cm
 Turn_Right         1,00s loop=Y events=2 loopGap=0,0cm
 Use_Item           1,33s loop=N events=1
 Wake_Up            6,00s loop=N events=3
-Walk               1,00s loop=Y events=2 loopGap=0,0cm footSlide=0,03m/s (2% of 1,35) contactVel L(0.00, 0.00, -1.35) (16f) R(0.00, 0.00, -1.35) (16f)
-Walk_Backward      1,00s loop=Y events=2 loopGap=0,0cm footSlide=0,04m/s (4% of 1,05) contactVel L(0.00, 0.00, 1.04) (12f) R(0.00, 0.00, 1.05) (12f)
+Walk               1,00s loop=Y events=2 loopGap=0,0cm footSlide=0,01m/s (1% of 1,35) contactVel L(0.00, 0.00, -1.35) (16f) R(0.00, 0.00, -1.35) (16f)
+Walk_Backward      1,00s loop=Y events=2 loopGap=0,0cm footSlide=0,01m/s (1% of 1,05) contactVel L(0.00, 0.00, 1.05) (12f) R(0.00, 0.00, 1.05) (12f)
 Walk_Left          0,80s loop=Y events=2 loopGap=0,0cm footSlide=0,02m/s (2% of 1,10) contactVel L(1.10, 0.00, 0.00) (15f) R(1.10, 0.00, 0.00) (15f)
 Walk_Right         0,80s loop=Y events=2 loopGap=0,0cm footSlide=0,02m/s (2% of 1,10) contactVel L(-1.10, 0.00, 0.00) (15f) R(-1.10, 0.00, 0.00) (15f)
 Sampler check: max bone travel across clips 1,99 m

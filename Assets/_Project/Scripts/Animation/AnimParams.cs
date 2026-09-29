@@ -35,6 +35,12 @@ namespace PrimalFrontier.Animation
         public static readonly int Strafe = Animator.StringToHash("Strafe");               // bool: facing locked to the camera (aim), 2D locomotion on VelX / VelZ
         public static readonly int FullBodyBusy = Animator.StringToHash("FullBodyBusy");   // bool: base layer runs an action / attack / hurt / death / climb state
         public static readonly int HurtLight = Animator.StringToHash("HurtLight");         // trigger: additive upper-body flinch (HitReaction layer); the legs keep moving
+        public static readonly int LocoRate = Animator.StringToHash("LocoRate");           // float: Locomotion / Strafe state speed (1 = normal); the driver lowers it to LocoIdleRate when standing
+        public static readonly int LocoIdleRate = Animator.StringToHash("LocoIdleRate");   // float: its default = Idle's own rate inside the tree (Idle is time-scaled to Walk's cycle)
+        // phase C (start / stop / pivot clips): off until the clips exist and PlayerAnimationDriver.useStartStopClips is on
+        public static readonly int UseLocoClips = Animator.StringToHash("UseLocoClips");   // bool: start / stop / pivot states may be entered
+        public static readonly int LocoEvent = Animator.StringToHash("LocoEvent");         // int (LocoEvents), set for one frame by the driver
+        public static readonly int LocoMirror = Animator.StringToHash("LocoMirror");       // bool: mirror the start / stop clip (lead foot)
         // dinosaur
         public static readonly int Alert = Animator.StringToHash("Alert");                 // bool
     }
@@ -44,15 +50,32 @@ namespace PrimalFrontier.Animation
     {
         public const int None = 0, Pickup = 1, GatherWood = 2, GatherStone = 3, GatherPlant = 4, Interact = 5, Craft = 6, Eat = 7, Drink = 8,
             Build = 9, UseItem = 10, Sleep = 11, WakeUp = 12, GetUp = 13,
+            CollectWater = 14,                                                                 // full body one-shot (kneel, scoop): state only when the clip exists
+            Butcher = 15,                                                                      // full body loop (kneel, cut): state only when the clip exists
             AttackSpear = 20, AttackSpearHeavy = 21, ThrowSpear = 22, SpearAttack2 = 23, KnifeAttack = 24,
             Dodge = 25,
             SwordAttack1 = 26, SwordAttack2 = 27, SwordAttack3 = 28, SwordHeavy = 29,        // full body
             BowAim = 30, BowDraw = 31, BowRelease = 32,
             SwordBlock = 33, SwordEquip = 34, SwordUnequip = 35,                               // upper body (30..40)
-            CarryItem = 40;
-        public static bool IsLooping(int a) => a == GatherWood || a == GatherStone || a == GatherPlant || a == Craft || a == Build || a == Sleep;
-        public static bool IsAttack(int a) => (a >= AttackSpear && a <= KnifeAttack) || (a >= SwordAttack1 && a <= SwordHeavy);
+            UnarmedBlock = 36,                                                                 // upper body hold (like SwordBlock), until StopAction
+            BowEquip = 37, BowNock = 38,                                                       // upper body one-shots (clips pending)
+            BowFullDraw = 39,                                                                  // upper body hold at full draw (clip pending)
+            CarryItem = 40,
+            // unarmed attacks (full body one-shots, tag Attack, events OnAttackStart / OnAttackHit / OnAttackEnd). Play with
+            // PlayerAnimationDriver.Attack(id); the controller has the states once the clips are in the FBX.
+            PunchL = 50, PunchR = 51, PunchHeavy = 52, Kick = 53;
+        public static bool IsLooping(int a) => a == GatherWood || a == GatherStone || a == GatherPlant || a == Craft || a == Build || a == Sleep || a == Butcher;
+        public static bool IsAttack(int a) => (a >= AttackSpear && a <= KnifeAttack) || (a >= SwordAttack1 && a <= SwordHeavy) || IsUnarmedAttack(a);
+        public static bool IsUnarmedAttack(int a) => a >= PunchL && a <= Kick;
         public static bool IsUpperBody(int a) => a >= BowAim && a <= CarryItem;
+        /// <summary>full-body actions the body must be (nearly) standing for: the driver brakes the motor before starting them</summary>
+        public static bool NeedsStop(int a) => (a >= Pickup && a <= Sleep) || a == CollectWater || a == Butcher;
+    }
+
+    /// <summary>Values of the "LocoEvent" int parameter (phase C start / stop / pivot clips; unused until they exist).</summary>
+    public static class LocoEvents
+    {
+        public const int None = 0, WalkStart = 1, RunStart = 2, WalkStop = 3, RunStop = 4, RunPivot180 = 5, Turn180 = 6;
     }
 
     /// <summary>Values of the player's "HealthState" int parameter.</summary>

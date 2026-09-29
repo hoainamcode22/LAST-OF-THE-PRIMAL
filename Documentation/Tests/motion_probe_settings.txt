@@ -62,3 +62,147 @@ Camera: distance 3.4 collisionRadius 0.22 collisionMask -1 ignoreMask 256 (layer
 Terrain trees: 1322 instances, prototypes: PFB_ENV_Tree_01 collider=True layer=Default; PFB_ENV_Tree_02 collider=True layer=Default; PFB_ENV_Tree_03 collider=True layer=Default; PFB_ENV_Tree_04 collider=True layer=Default
 TerrainCollider: yes
   node PFB_RES_Wood_01 'Driftwood' action 4 focus (-16.73, 2.29, 201.20) approach (0.87, 0.00, -0.50)
+== allon 2026-09-28 22:48:00
+Animator: applyRootMotion False, updateMode Normal, cullingMode CullUpdateTransforms (probe forces AlwaysAnimate), humanScale 1.0201, isHuman True, layers 3
+  layer 0 Base Layer weight 1
+  layer 1 UpperBody weight 1
+  layer 2 HitReaction weight 1
+Model child: (0.00, 0.00, 0.00) (0.00, 0.00, 0.00); root scale (1.00, 1.00, 1.00)
+Avatar: upperArmTwist 0.5 lowerArmTwist 0 upperLegTwist 0.5 lowerLegTwist 0.5 armStretch 0.05 legStretch 0.05 feetSpacing 0 translationDoF False
+PlayerIK: enabled True foot True look True (w 0.75 body 0.15 head 0.75 clamp 0.55) hand True elbowHint (0.35, -0.30, -0.10) lean max 9 scale 0.35 runningFootWeight 0.35
+TwistBoneDriver: enabled True ready True share 0.6 maxAngle 120
+Motor: walk 1.35 run 3.8 accel 10 decel 14 turnSpeed 600 turnSmoothTime 0.09
+Driver: speedDamp 0.08 velDamp 0.1
+Time: maximumDeltaTime 0.3333 vSync 1 targetFrameRate -1
+Camera: distance 3.4 collisionRadius 0.22 collisionMask -1 ignoreMask 256 (layers ignored: Player)
+Terrain trees: 1322 instances, prototypes: PFB_ENV_Tree_01 collider=True layer=Default; PFB_ENV_Tree_02 collider=True layer=Default; PFB_ENV_Tree_03 collider=True layer=Default; PFB_ENV_Tree_04 collider=True layer=Default
+TerrainCollider: yes
+  node PFB_RES_Wood_01 'Driftwood' action 4 focus (-16.73, 2.29, 201.20) approach (0.87, 0.00, -0.50)
+== allon 2026-09-28 23:19:21
+Animator: applyRootMotion False, updateMode Normal, cullingMode CullUpdateTransforms (probe forces AlwaysAnimate), humanScale 1.0723, isHuman True, layers 3
+  layer 0 Base Layer weight 1
+  layer 1 UpperBody weight 1
+  layer 2 HitReaction weight 1
+Model child: (0.00, 0.00, 0.00) (0.00, 0.00, 0.00); root scale (1.00, 1.00, 1.00)
+Avatar: upperArmTwist 1 lowerArmTwist 0 upperLegTwist 0.5 lowerLegTwist 0.5 armStretch 0.05 legStretch 0.05 feetSpacing 0 translationDoF False
+PlayerIK: enabled True foot True look True (w 0.75 body 0.15 head 0.75 clamp 0.55) hand True elbowHint (0.35, -0.30, -0.10) lean max 9 scale 0.35 runningFootWeight 0.35
+TwistBoneDriver: enabled True ready True share 0.6 maxAngle 120
+Motor: walk 1.35 run 3.8 accel 10 decel 14 turnSpeed 600 turnSmoothTime 0.09
+Driver: speedDamp 0.08 velDamp 0.1
+Time: maximumDeltaTime 0.3333 vSync 1 targetFrameRate -1
+Camera: distance 3.4 collisionRadius 0.22 collisionMask -1 ignoreMask 256 (layers ignored: Player)
+Terrain trees: 1322 instances, prototypes: PFB_ENV_Tree_01 collider=True layer=Default; PFB_ENV_Tree_02 collider=True layer=Default; PFB_ENV_Tree_03 collider=True layer=Default; PFB_ENV_Tree_04 collider=True layer=Default
+TerrainCollider: yes
+  node PFB_RES_Wood_01 'Driftwood' action 4 focus (-16.73, 2.29, 201.20) approach (0.87, 0.00, -0.50)
+== ikoff 2026-09-28 23:19:52
+Animator: applyRootMotion False, updateMode Normal, cullingMode CullUpdateTransforms (probe forces AlwaysAnimate), humanScale 1.0723, isHuman True, layers 3
+  layer 0 Base Layer weight 1
+  layer 1 UpperBody weight 1
+  layer 2 HitReaction weight 1
+Model child: (0.00, 0.00, 0.00) (0.00, 0.00, 0.00); root scale (1.00, 1.00, 1.00)
+Avatar: upperArmTwist 1 lowerArmTwist 0 upperLegTwist 0.5 lowerLegTwist 0.5 armStretch 0.05 legStretch 0.05 feetSpacing 0 translationDoF False
+PlayerIK: enabled True foot True look True (w 0.75 body 0.15 head 0.75 clamp 0.55) hand True elbowHint (0.35, -0.30, -0.10) lean max 9 scale 0.35 runningFootWeight 0.35
+TwistBoneDriver: enabled True ready True share 0.6 maxAngle 120
+Motor: walk 1.35 run 3.8 accel 10 decel 14 turnSpeed 600 turnSmoothTime 0.09
+Driver: speedDamp 0.08 velDamp 0.1
+Time: maximumDeltaTime 0.3333 vSync 1 targetFrameRate -1
+Camera: distance 3.4 collisionRadius 0.22 collisionMask -1 ignoreMask 256 (layers ignored: Player)
+Terrain trees: 1322 instances, prototypes: PFB_ENV_Tree_01 collider=True layer=Default; PFB_ENV_Tree_02 collider=True layer=Default; PFB_ENV_Tree_03 collider=True layer=Default; PFB_ENV_Tree_04 collider=True layer=Default
+TerrainCollider: yes
+  node PFB_RES_Wood_01 'Driftwood' action 4 focus (-16.73, 2.29, 201.20) approach (0.87, 0.00, -0.50)
+== twistoff 2026-09-28 23:20:22
+Animator: applyRootMotion False, updateMode Normal, cullingMode CullUpdateTransforms (probe forces AlwaysAnimate), humanScale 1.0723, isHuman True, layers 3
+  layer 0 Base Layer weight 1
+  layer 1 UpperBody weight 1
+  layer 2 HitReaction weight 1
+Model child: (0.00, 0.00, 0.00) (0.00, 0.00, 0.00); root scale (1.00, 1.00, 1.00)
+Avatar: upperArmTwist 1 lowerArmTwist 0 upperLegTwist 0.5 lowerLegTwist 0.5 armStretch 0.05 legStretch 0.05 feetSpacing 0 translationDoF False
+PlayerIK: enabled True foot True look True (w 0.75 body 0.15 head 0.75 clamp 0.55) hand True elbowHint (0.35, -0.30, -0.10) lean max 9 scale 0.35 runningFootWeight 0.35
+TwistBoneDriver: enabled True ready True share 0.6 maxAngle 120
+Motor: walk 1.35 run 3.8 accel 10 decel 14 turnSpeed 600 turnSmoothTime 0.09
+Driver: speedDamp 0.08 velDamp 0.1
+Time: maximumDeltaTime 0.3333 vSync 1 targetFrameRate -1
+Camera: distance 3.4 collisionRadius 0.22 collisionMask -1 ignoreMask 256 (layers ignored: Player)
+Terrain trees: 1322 instances, prototypes: PFB_ENV_Tree_01 collider=True layer=Default; PFB_ENV_Tree_02 collider=True layer=Default; PFB_ENV_Tree_03 collider=True layer=Default; PFB_ENV_Tree_04 collider=True layer=Default
+TerrainCollider: yes
+  node PFB_RES_Wood_01 'Driftwood' action 4 focus (-16.73, 2.29, 201.20) approach (0.87, 0.00, -0.50)
+== allon 2026-09-28 23:28:10
+Animator: applyRootMotion False, updateMode Normal, cullingMode CullUpdateTransforms (probe forces AlwaysAnimate), humanScale 1.0723, isHuman True, layers 3
+  layer 0 Base Layer weight 1
+  layer 1 UpperBody weight 1
+  layer 2 HitReaction weight 1
+Model child: (0.00, 0.00, 0.00) (0.00, 0.00, 0.00); root scale (1.00, 1.00, 1.00)
+Avatar: upperArmTwist 1 lowerArmTwist 0 upperLegTwist 0.5 lowerLegTwist 0.5 armStretch 0.05 legStretch 0.05 feetSpacing 0 translationDoF False
+PlayerIK: enabled True foot True look True (w 0.75 body 0.15 head 0.75 clamp 0.55) hand True elbowHint (0.35, -0.30, -0.10) lean max 9 scale 0.35 runningFootWeight 0.35
+TwistBoneDriver: enabled True ready True share 0.6 maxAngle 120
+Motor: walk 1.35 run 3.8 accel 10 decel 14 turnSpeed 600 turnSmoothTime 0.09
+Driver: speedDamp 0.08 velDamp 0.1
+Time: maximumDeltaTime 0.3333 vSync 1 targetFrameRate -1
+Camera: distance 3.4 collisionRadius 0.22 collisionMask -1 ignoreMask 256 (layers ignored: Player)
+Terrain trees: 1322 instances, prototypes: PFB_ENV_Tree_01 collider=True layer=Default; PFB_ENV_Tree_02 collider=True layer=Default; PFB_ENV_Tree_03 collider=True layer=Default; PFB_ENV_Tree_04 collider=True layer=Default
+TerrainCollider: yes
+  node PFB_RES_Wood_01 'Driftwood' action 4 focus (-16.73, 2.29, 201.20) approach (0.87, 0.00, -0.50)
+== ikoff 2026-09-28 23:28:41
+Animator: applyRootMotion False, updateMode Normal, cullingMode CullUpdateTransforms (probe forces AlwaysAnimate), humanScale 1.0723, isHuman True, layers 3
+  layer 0 Base Layer weight 1
+  layer 1 UpperBody weight 1
+  layer 2 HitReaction weight 1
+Model child: (0.00, 0.00, 0.00) (0.00, 0.00, 0.00); root scale (1.00, 1.00, 1.00)
+Avatar: upperArmTwist 1 lowerArmTwist 0 upperLegTwist 0.5 lowerLegTwist 0.5 armStretch 0.05 legStretch 0.05 feetSpacing 0 translationDoF False
+PlayerIK: enabled True foot True look True (w 0.75 body 0.15 head 0.75 clamp 0.55) hand True elbowHint (0.35, -0.30, -0.10) lean max 9 scale 0.35 runningFootWeight 0.35
+TwistBoneDriver: enabled True ready True share 0.6 maxAngle 120
+Motor: walk 1.35 run 3.8 accel 10 decel 14 turnSpeed 600 turnSmoothTime 0.09
+Driver: speedDamp 0.08 velDamp 0.1
+Time: maximumDeltaTime 0.3333 vSync 1 targetFrameRate -1
+Camera: distance 3.4 collisionRadius 0.22 collisionMask -1 ignoreMask 256 (layers ignored: Player)
+Terrain trees: 1322 instances, prototypes: PFB_ENV_Tree_01 collider=True layer=Default; PFB_ENV_Tree_02 collider=True layer=Default; PFB_ENV_Tree_03 collider=True layer=Default; PFB_ENV_Tree_04 collider=True layer=Default
+TerrainCollider: yes
+  node PFB_RES_Wood_01 'Driftwood' action 4 focus (-16.73, 2.29, 201.20) approach (0.87, 0.00, -0.50)
+== allon 2026-09-28 23:39:02
+Animator: applyRootMotion False, updateMode Normal, cullingMode CullUpdateTransforms (probe forces AlwaysAnimate), humanScale 1.0723, isHuman True, layers 3
+  layer 0 Base Layer weight 1
+  layer 1 UpperBody weight 1
+  layer 2 HitReaction weight 1
+Model child: (0.00, 0.00, 0.00) (0.00, 0.00, 0.00); root scale (1.00, 1.00, 1.00)
+Avatar: upperArmTwist 1 lowerArmTwist 0 upperLegTwist 0.5 lowerLegTwist 0.5 armStretch 0.05 legStretch 0.05 feetSpacing 0 translationDoF False
+PlayerIK: enabled True foot True look True (w 0.75 body 0.15 head 0.75 clamp 0.55) hand True elbowHint (0.35, -0.30, -0.10) lean max 9 scale 0.35 runningFootWeight 0.35
+TwistBoneDriver: enabled True ready True share 0.6 maxAngle 120
+Motor: walk 1.35 run 3.8 accel 10 decel 14 turnSpeed 600 turnSmoothTime 0.09
+Driver: speedDamp 0.08 velDamp 0.1
+Time: maximumDeltaTime 0.3333 vSync 1 targetFrameRate -1
+Camera: distance 3.4 collisionRadius 0.22 collisionMask -1 ignoreMask 256 (layers ignored: Player)
+Terrain trees: 1322 instances, prototypes: PFB_ENV_Tree_01 collider=True layer=Default; PFB_ENV_Tree_02 collider=True layer=Default; PFB_ENV_Tree_03 collider=True layer=Default; PFB_ENV_Tree_04 collider=True layer=Default
+TerrainCollider: yes
+  node PFB_RES_Wood_01 'Driftwood' action 4 focus (-16.73, 2.29, 201.20) approach (0.87, 0.00, -0.50)
+== allon 2026-09-28 23:43:03
+Animator: applyRootMotion False, updateMode Normal, cullingMode CullUpdateTransforms (probe forces AlwaysAnimate), humanScale 1.0723, isHuman True, layers 3
+  layer 0 Base Layer weight 1
+  layer 1 UpperBody weight 1
+  layer 2 HitReaction weight 1
+Model child: (0.00, 0.00, 0.00) (0.00, 0.00, 0.00); root scale (1.00, 1.00, 1.00)
+Avatar: upperArmTwist 1 lowerArmTwist 0 upperLegTwist 0.5 lowerLegTwist 0.5 armStretch 0.05 legStretch 0.05 feetSpacing 0 translationDoF False
+PlayerIK: enabled True foot True look True (w 0.75 body 0.15 head 0.75 clamp 0.55) hand True elbowHint (0.35, -0.30, -0.10) lean max 9 scale 0.35 runningFootWeight 0.35
+TwistBoneDriver: enabled True ready True share 0.6 maxAngle 120
+Motor: walk 1.35 run 3.8 accel 10 decel 14 turnSpeed 600 turnSmoothTime 0.09
+Driver: speedDamp 0.08 velDamp 0.1
+Time: maximumDeltaTime 0.3333 vSync 1 targetFrameRate -1
+Camera: distance 3.4 collisionRadius 0.22 collisionMask -1 ignoreMask 256 (layers ignored: Player)
+Terrain trees: 1322 instances, prototypes: PFB_ENV_Tree_01 collider=True layer=Default; PFB_ENV_Tree_02 collider=True layer=Default; PFB_ENV_Tree_03 collider=True layer=Default; PFB_ENV_Tree_04 collider=True layer=Default
+TerrainCollider: yes
+  node PFB_RES_Wood_01 'Driftwood' action 4 focus (-16.73, 2.29, 201.20) approach (0.87, 0.00, -0.50)
+== ikoff 2026-09-28 23:43:35
+Animator: applyRootMotion False, updateMode Normal, cullingMode CullUpdateTransforms (probe forces AlwaysAnimate), humanScale 1.0723, isHuman True, layers 3
+  layer 0 Base Layer weight 1
+  layer 1 UpperBody weight 1
+  layer 2 HitReaction weight 1
+Model child: (0.00, 0.00, 0.00) (0.00, 0.00, 0.00); root scale (1.00, 1.00, 1.00)
+Avatar: upperArmTwist 1 lowerArmTwist 0 upperLegTwist 0.5 lowerLegTwist 0.5 armStretch 0.05 legStretch 0.05 feetSpacing 0 translationDoF False
+PlayerIK: enabled True foot True look True (w 0.75 body 0.15 head 0.75 clamp 0.55) hand True elbowHint (0.35, -0.30, -0.10) lean max 9 scale 0.35 runningFootWeight 0.35
+TwistBoneDriver: enabled True ready True share 0.6 maxAngle 120
+Motor: walk 1.35 run 3.8 accel 10 decel 14 turnSpeed 600 turnSmoothTime 0.09
+Driver: speedDamp 0.08 velDamp 0.1
+Time: maximumDeltaTime 0.3333 vSync 1 targetFrameRate -1
+Camera: distance 3.4 collisionRadius 0.22 collisionMask -1 ignoreMask 256 (layers ignored: Player)
+Terrain trees: 1322 instances, prototypes: PFB_ENV_Tree_01 collider=True layer=Default; PFB_ENV_Tree_02 collider=True layer=Default; PFB_ENV_Tree_03 collider=True layer=Default; PFB_ENV_Tree_04 collider=True layer=Default
+TerrainCollider: yes
+  node PFB_RES_Wood_01 'Driftwood' action 4 focus (-16.73, 2.29, 201.20) approach (0.87, 0.00, -0.50)

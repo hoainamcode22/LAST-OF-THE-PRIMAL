@@ -29,9 +29,14 @@ namespace PrimalFrontier.Player
         [Range(0.2f, 0.9f)] public float analogWalkAt = 0.5f;
         [Tooltip("low-pass time of MeasuredPlanarSpeed (s)")] public float measuredSmooth = 0.08f;
         [Range(0, 1)] public float airControl = 0.25f;
-        public float turnSpeed = 600f;           // deg/s towards the move direction (max)
+        [Tooltip("deg/s max while aiming (the body follows the camera)")] public float turnSpeed = 600f;
+        [Tooltip("deg/s max turn rate by speed: standing / walking, running, sprinting (interpolated on planar speed)")]
+        public float walkTurnSpeed = 360f, runTurnSpeed = 300f, sprintTurnSpeed = 200f;
         [Tooltip("seconds to settle on a new heading: the body swings round and eases in / out instead of snapping")]
         public float turnSmoothTime = 0.09f;
+        [Tooltip("input more than this far (deg) from the current velocity at speed: the velocity turns round (pivot) instead of braking through zero")]
+        public float reversalAngle = 135f;
+        [Tooltip("share of the target speed kept while pivoting")] [Range(0.2f, 1f)] public float pivotSpeedFactor = 0.55f;
         public float gravity = -22f;
         public float jumpHeight = 0.95f;
         public float coyoteTime = 0.12f;
@@ -66,12 +71,25 @@ namespace PrimalFrontier.Player
         /// <summary>planar distance the controller really moved per second (low-passed): walking into a wall reads ~0</summary>
         public float MeasuredPlanarSpeed => _measured;
         public float TurnRate { get; private set; }                // deg/s, + = left
+        /// <summary>the facing followed the velocity / camera this frame (false: something else may turn the body)</summary>
+        public bool IsSteering { get; private set; }
+        /// <summary>planar speed the input asks for this frame (m/s)</summary>
+        public float TargetSpeed { get; private set; }
+        /// <summary>planar unit direction the input asks for this frame (zero without input)</summary>
+        public Vector3 TargetDirection { get; private set; }
+        /// <summary>a reversal is being turned through (velocity rotating instead of braking)</summary>
+        public bool PivotRequested => _pivoting;
+        /// <summary>max turn rate for the current planar speed (deg/s)</summary>
+        public float TurnCap(float speed) => speed <= walkSpeed ? walkTurnSpeed
+            : speed <= runSpeed ? Mathf.Lerp(walkTurnSpeed, runTurnSpeed, Mathf.InverseLerp(walkSpeed, runSpeed, speed))
+            : Mathf.Lerp(runTurnSpeed, sprintTurnSpeed, Mathf.InverseLerp(runSpeed, sprintSpeed, speed));
         public Vector3 GroundNormal { get; private set; } = Vector3.up;
         public string GroundTag { get; private set; } = "";
         public event System.Action Jumped;
         public event System.Action<float> Landed;                  // impact speed (m/s)
 
         Vector3 _vel; float _vy; float _lastGrounded; float _jumpQueued = -1f; float _prevYaw; float _yawVel; float _measured;
+        bool _pivoting; float _stepOffset0 = -1f;
         Vector3 _burst; float _burstUntil, _burstDur;
         /// <summary>short forced movement (dodge): velocity eases out over the duration, input and CanMove ignored</summary>
         public void Burst(Vector3 velocity, float seconds) { velocity.y = 0f; _burst = velocity; _burstDur = Mathf.Max(0.05f, seconds); _burstUntil = Time.time + _burstDur; }
@@ -120,12 +138,28 @@ namespace PrimalFrontier.Player
                 : Mathf.Lerp(walkTop, top, (mag - analogWalkAt) / (1f - analogWalkAt));
             if (Stamina != null) speed *= Stamina.MoveSpeedMultiplier;
             Vector3 target = dir * speed;
+            TargetSpeed = speed; TargetDirection = mag > 0.001f ? dir : Vector3.zero;
             if (IsSprinting && Stamina != null) Stamina.DrainSprint(dt);
 
             float rate = target.sqrMagnitude > _vel.sqrMagnitude ? acceleration : deceleration;
             if (!IsGrounded) rate *= airControl;
             Vector3 planar = new Vector3(_vel.x, 0, _vel.z);
-            planar = Vector3.MoveTowards(planar, target, rate * dt);
+            // reversal at speed: turn the velocity round at the turn cap (keeping some speed) instead of braking through zero,
+            // so the body pivots with running legs instead of spinning on the spot at the end of a skid
+            float pm = planar.magnitude;
+            if (!AimMode && IsGrounded && pm > 0.5f && speed > 0.1f && (_pivoting || Vector3.Angle(planar, target) > reversalAngle))
+            {
+                _pivoting = true;
+                Vector3 nd = Vector3.RotateTowards(planar / pm, target / speed, TurnCap(pm) * Mathf.Deg2Rad * dt, 0f);
+                float nm = Mathf.MoveTowards(pm, Mathf.Max(0.6f, speed * pivotSpeedFactor), deceleration * dt);
+                planar = nd * nm;
+                if (Vector3.Angle(planar, target) < 25f) _pivoting = false;
+            }
+            else
+            {
+                _pivoting = false;
+                planar = Vector3.MoveTowards(planar, target, rate * dt);
+            }
 
             // slopes: slide down surfaces steeper than the controller allows
             float slope = Vector3.Angle(GroundNormal, Vector3.up);
@@ -155,6 +189,10 @@ namespace PrimalFrontier.Player
             motion.y += _vy;
             float vyBefore = _vy;
             Vector3 p0 = transform.position;
+            // never climb onto a resource node (driftwood / stone piles, plants): the capsule perched on them while the feet stood
+            // on the ground below (probe 2026-09-28: 0.3 m pelvis dips); the controller's own step-up is switched off near them
+            if (_stepOffset0 < 0f) _stepOffset0 = Controller.stepOffset;
+            Controller.stepOffset = planar.sqrMagnitude > 0.01f && ResourceNodeAhead(planar.normalized, planar.magnitude * dt + 0.15f) ? 0.02f : _stepOffset0;
             var flags = Controller.Move(motion * dt);
             // blocked while walking into something low (step edge rides the round capsule bottom, so the flag can be Below)
             if (IsGrounded && _vy <= 0f && planar.sqrMagnitude > 0.01f)
@@ -171,12 +209,13 @@ namespace PrimalFrontier.Player
             ProbeGround();
             if (!wasGrounded && IsGrounded) Landed?.Invoke(-vyBefore);
 
-            // facing
+            // facing (turn rate capped by speed: walk ~360, run ~300, sprint ~200 deg/s)
             Vector3 face = AimMode ? fwd : new Vector3(_vel.x, 0, _vel.z);
-            if ((face.sqrMagnitude > 0.04f || AimMode) && !Bursting)
+            IsSteering = (face.sqrMagnitude > 0.04f || AimMode) && !Bursting;
+            if (IsSteering)
             {
                 var want = Quaternion.LookRotation(face.sqrMagnitude > 1e-4f ? face.normalized : transform.forward, Vector3.up);
-                float ts = IsSprinting ? turnSpeed * 0.75f : turnSpeed;
+                float ts = AimMode ? turnSpeed : TurnCap(PlanarSpeed);
                 float smooth = AimMode ? 0.03f : turnSmoothTime * (IsSprinting ? 1.5f : 1f);
                 float y = Mathf.SmoothDampAngle(transform.eulerAngles.y, want.eulerAngles.y, ref _yawVel, smooth, ts, dt);
                 transform.rotation = Quaternion.Euler(0f, y, 0f);
@@ -217,12 +256,24 @@ namespace PrimalFrontier.Player
             if (!Physics.Raycast(probe, Vector3.down, out var hit, maxStepHeight + 0.05f, groundMask, QueryTriggerInteraction.Ignore)) return;
             float h = hit.point.y - transform.position.y;
             if (h < 0.02f || h > maxStepHeight || Vector3.Angle(hit.normal, Vector3.up) > c.slopeLimit) return;
+            if (IsResourceNode(hit.collider)) return;                     // never step up onto a gatherable pile
             // room for the capsule on top of the step?
             Vector3 top = transform.position + Vector3.up * (h + 0.03f);
             int mask = groundMask & ~(1 << gameObject.layer);        // not our own capsule
             if (Physics.CheckCapsule(top + Vector3.up * (c.radius + 0.02f), top + Vector3.up * (c.height - c.radius), c.radius * 0.9f, mask, QueryTriggerInteraction.Ignore)) return;
             c.Move(Vector3.up * (h + 0.03f));
             c.Move(dir * 0.06f);
+        }
+
+        static bool IsResourceNode(Collider col) => col && col.GetComponentInParent<PrimalFrontier.World.ResourceNode>() != null;
+
+        /// <summary>a resource node collider in the capsule's path within dist (m)</summary>
+        bool ResourceNodeAhead(Vector3 dir, float dist)
+        {
+            var c = Controller;
+            Vector3 b = transform.position + Vector3.up * (c.radius + 0.05f), t = transform.position + Vector3.up * Mathf.Max(c.radius + 0.06f, c.stepOffset + c.radius);
+            int mask = groundMask & ~(1 << gameObject.layer);
+            return Physics.CapsuleCast(b, t, c.radius * 0.95f, dir, out var hit, dist, mask, QueryTriggerInteraction.Ignore) && IsResourceNode(hit.collider);
         }
 
         public bool SetCrouch(bool on)
@@ -245,12 +296,12 @@ namespace PrimalFrontier.Player
         public void Warp(Vector3 pos, Quaternion rot)
         {
             Controller.enabled = false; transform.SetPositionAndRotation(pos, rot); Controller.enabled = true;
-            _vel = Vector3.zero; _vy = 0f; _prevYaw = rot.eulerAngles.y; _measured = 0f;
+            _vel = Vector3.zero; _vy = 0f; _prevYaw = rot.eulerAngles.y; _measured = 0f; _pivoting = false; _yawVel = 0f;
         }
 
         void OnDisable() { _measured = 0f; }                      // climbing / cutscenes: no stale measured speed
 
         public void AddImpulse(Vector3 v) { _vel += new Vector3(v.x, 0, v.z); _vy += v.y; }
-        public void Stop() { _vel = Vector3.zero; }
+        public void Stop() { _vel = Vector3.zero; _pivoting = false; }
     }
 }

@@ -21,6 +21,7 @@ namespace PrimalFrontier.World
         public override float Range => 2.2f;
         public override float Radius => 0f;
         public override Vector3 FocusPoint => _focus;
+        public override bool LargeArea => true;
         public override int Priority => -2;
         public bool PlayerAtShore => _near;
         public const string SaltMessage = "Salt water. It burns your throat and makes the thirst worse.";

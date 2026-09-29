@@ -117,6 +117,8 @@ namespace PrimalFrontier.Tests
             aB.SetBool("IsGrounded", true);
             var rec = goB.AddComponent<MotionProbeRecorder>(); rec.Init(new ProbeRig(aB, goB.transform, rest), null, null, null, null);
             float speedCmd = 0f;
+            bool hasLocoRate = aB.parameters.Any(q => q.name == "LocoRate");
+            float locoIdle = aB.parameters.Where(q => q.name == "LocoIdleRate").Select(q => q.defaultFloat).DefaultIfEmpty(1f).First();
             IEnumerator Drive(string phase, float seconds, float speedTarget, int action)
             {
                 rec.phase = phase; aB.SetInteger("Action", action); float tt = 0f;
@@ -125,6 +127,7 @@ namespace PrimalFrontier.Tests
                     float dt = Time.deltaTime;
                     speedCmd = Mathf.MoveTowards(speedCmd, speedTarget, (speedTarget > speedCmd ? 10f : 14f) * dt);   // motor acceleration / deceleration
                     aB.SetFloat("Speed", speedCmd, 0.08f, dt);                                                              // driver damping
+                    if (hasLocoRate) aB.SetFloat("LocoRate", Mathf.Lerp(locoIdle, 1f, Mathf.Clamp01(aB.GetFloat("Speed") / 0.3f)));   // as PlayerAnimationDriver
                     yield return null; tt += dt;
                 }
             }
@@ -274,6 +277,30 @@ namespace PrimalFrontier.Tests
             SetBind(); MirrorReport(txt, "bind pose", all, go.transform);
             SetNode(); MirrorReport(txt, "node rest", all, go.transform);
 
+            // ---- 2b. twist settings: bind-pose round trip with avatars rebuilt in memory (same T-pose, other twist values)
+            if (mi)
+            {
+                txt.AppendLine("Twist settings (upperArm, lowerArm, upperLeg, lowerLeg): bind round trip, bone rotation change deg");
+                var combos = new (float ua, float la, float ul, float ll)[] { (0.5f, 0f, 0.5f, 0.5f), (1f, 0f, 1f, 1f), (1f, 1f, 1f, 1f), (0f, 0f, 0f, 0f), (1f, 0f, 0.5f, 0.5f), (1f, 0.5f, 1f, 1f), (0.5f, 0.5f, 0.5f, 0.5f) };
+                foreach (var cb in combos)
+                {
+                    var hd2 = mi.humanDescription; hd2.upperArmTwist = cb.ua; hd2.lowerArmTwist = cb.la; hd2.upperLegTwist = cb.ul; hd2.lowerLegTwist = cb.ll;
+                    SetNode();
+                    var av = AvatarBuilder.BuildHumanAvatar(go, hd2);
+                    if (!av || !av.isValid) { txt.AppendLine($"  {cb}: avatar invalid"); continue; }
+                    var h2 = new HumanPoseHandler(av, go.transform); var p2 = new HumanPose();
+                    SetBind();
+                    var before = go.GetComponentsInChildren<Transform>(true).ToDictionary(t => t, t => t.rotation);
+                    h2.GetHumanPose(ref p2); h2.SetHumanPose(ref p2);
+                    txt.Append($"  ua {cb.ua} la {cb.la} ul {cb.ul} ll {cb.ll}:");
+                    float worst = 0f;
+                    foreach (var n in new[] { "UpperArm_L", "LowerArm_L", "Hand_L", "UpperArm_R", "LowerArm_R", "Thigh_L", "Calf_L", "Foot_L" })
+                        if (all.TryGetValue(n, out var t)) { float d = Quaternion.Angle(before[t], t.rotation); worst = Mathf.Max(worst, d); txt.Append($" {n} {F(d)}"); }
+                    txt.AppendLine($"  | worst {F(worst)}");
+                    h2.Dispose(); Object.Destroy(av);
+                }
+            }
+
             // ---- 3. sub-frame sampling: the game samples between the 30 fps keys
             foreach (var n in new[] { "Run", "Walk", "Idle", "Gather_Plant" })
             {
@@ -362,6 +389,92 @@ namespace PrimalFrontier.Tests
         [UnityTest, Timeout(120000)] public IEnumerator B_Gameplay_AllOn() { yield return Gameplay("allon", true, true); }
         [UnityTest, Timeout(120000)] public IEnumerator C_Gameplay_IKOff() { yield return Gameplay("ikoff", false, true); }
         [UnityTest, Timeout(120000)] public IEnumerator D_Gameplay_TwistDriverOff() { yield return Gameplay("twistoff", true, false); }
+
+        // =====================================================================================================  F: first gather hit hitch
+        /// <summary>
+        /// what the first gather hit costs, piece by piece, on a freshly loaded island: the hit's VFX and SFX, the item
+        /// entering the inventory, every GameEvents listener on its own, the HUD message; first call vs second call, and the
+        /// frame after each (UI layout / canvas rebuild happens at render). Then a real hit. motion_probe_hitch.txt
+        /// </summary>
+        [UnityTest, Timeout(120000)]
+        public IEnumerator F_FirstHitHitch()
+        {
+            if (!On) Assert.Ignore("diagnostic probe: off (Library/PrimalBridge/probe_on.txt)");
+            LogAssert.ignoreFailingMessages = true;
+            yield return LoadIsland();
+            var p = _gm.Player; var pi = p.GetComponent<PlayerInteraction>();
+            var node = Interactable.Active.OfType<ResourceNode>().Where(n => n && n.requiredTool == ToolKind.None && n.CanInteract(pi))
+                .OrderBy(n => n.yieldItem && n.yieldItem.id == "wood" ? 0 : 1).ThenBy(n => (n.transform.position - p.transform.position).sqrMagnitude).FirstOrDefault();
+            Assert.IsNotNull(node, "hand-gatherable node");
+            node.charges = 99; node.Regrow();
+            var txt = new StringBuilder();
+            txt.AppendLine($"== {DateTime.Now:yyyy-MM-dd HH:mm:ss} node {node.name} yield {(node.yieldItem ? node.yieldItem.id : "-")}");
+            Vector3 pos = node.FocusPoint;
+            for (int i = 0; i < 20; i++) yield return null;              // let the loading frames settle
+            float settled = 0f; for (int i = 0; i < 10; i++) { yield return null; settled = Mathf.Max(settled, Time.unscaledDeltaTime); }
+            txt.AppendLine($"idle frame max {settled * 1000f:F0} ms");
+            var sw = new System.Diagnostics.Stopwatch();
+            IEnumerator Measure(string label, Action a)
+            {
+                for (int pass = 0; pass < 2; pass++)
+                {
+                    yield return null; yield return null;
+                    sw.Restart();
+                    try { a(); } catch (Exception e) { txt.AppendLine($"  {label}: exception {e.GetType().Name}: {e.Message}"); }
+                    sw.Stop();
+                    double call = sw.Elapsed.TotalMilliseconds;
+                    yield return null; float next = Time.unscaledDeltaTime;
+                    yield return null; float next2 = Time.unscaledDeltaTime;
+                    txt.AppendLine($"  {label} [{(pass == 0 ? "first" : "second")}]: call {call:F1} ms, next frames {next * 1000f:F0} / {next2 * 1000f:F0} ms");
+                }
+            }
+            yield return Measure("VfxPool.Play(Leaves)", () => PrimalFrontier.VFX.VfxPool.Instance.Play(PrimalFrontier.VFX.VfxId.Leaves, pos, Vector3.up));
+            yield return Measure("VfxPool.Play(WoodChips)", () => PrimalFrontier.VFX.VfxPool.Instance.Play(PrimalFrontier.VFX.VfxId.WoodChips, pos, Vector3.up));
+            yield return Measure("SfxPlayer.Play(LeafRustle)", () => PrimalFrontier.Audio.SfxPlayer.Instance.Play(PrimalFrontier.Audio.SfxId.LeafRustle, pos));
+            yield return Measure("PlayerInteraction.Notify", () => PlayerInteraction.Notify("probe message"));
+            // every GameEvents listener on its own (backing field of the static event)
+            var fld = typeof(GameEvents).GetField("Raised", BindingFlags.NonPublic | BindingFlags.Static);
+            var del = fld?.GetValue(null) as Delegate;
+            var ev = new GameEvent { type = GameEventType.ResourceGathered, id = node.yieldItem ? node.yieldItem.id : "wood", amount = 1, position = pos };
+            if (del != null)
+                foreach (var d in del.GetInvocationList())
+                {
+                    var dd = (Action<GameEvent>)d;
+                    yield return Measure($"GameEvents listener {d.Method.DeclaringType?.Name}.{d.Method.Name}", () => dd(ev));
+                }
+            else txt.AppendLine("  (no GameEvents listeners found)");
+            // recipe learning (what the first ItemAdded of a material triggers): each CraftingSystem.Learned listener and each
+            // GameEvents listener for JournalUnlocked, with a recipe that is not known yet (nothing is learned here)
+            var cr = p.GetComponent<CraftingSystem>(); var db = ItemDatabase.Instance;
+            var unknown = db ? db.recipes.FirstOrDefault(r => r && !r.knownAtStart && cr && !cr.IsKnown(r) && r.ingredients.Any(g => g.item && node.yieldItem && g.item.id == node.yieldItem.id)) : null;
+            int learnable = db ? db.recipes.Count(r => r && !r.knownAtStart && cr && !cr.IsKnown(r) && r.ingredients.Any(g => g.item && node.yieldItem && g.item.id == node.yieldItem.id)) : 0;
+            txt.AppendLine($"  recipes the first {(node.yieldItem ? node.yieldItem.id : "?")} teaches: {learnable}");
+            var fLearned = typeof(CraftingSystem).GetField("Learned", BindingFlags.NonPublic | BindingFlags.Instance);
+            var learned = cr && fLearned != null ? fLearned.GetValue(cr) as Delegate : null;
+            if (unknown && learned != null)
+                foreach (var d in learned.GetInvocationList()) { var dd = (Action<RecipeDefinition>)d; yield return Measure($"Crafting.Learned -> {d.Method.DeclaringType?.Name}.{d.Method.Name}", () => dd(unknown)); }
+            var evJ = new GameEvent { type = GameEventType.JournalUnlocked, id = unknown ? "recipe_" + unknown.id : "recipe_x", amount = 1, position = p.transform.position };
+            var raisedNow = fld?.GetValue(null) as Delegate;
+            if (raisedNow != null) foreach (var d in raisedNow.GetInvocationList()) { if (d.Target is PrimalFrontier.AI.DinosaurController) continue; var dd = (Action<GameEvent>)d; yield return Measure($"JournalUnlocked -> {d.Method.DeclaringType?.Name}.{d.Method.Name}", () => dd(evJ)); }
+            // the inventory path, split: Add with every listener detached, then each Changed / ActiveSlotChanged listener and each
+            // GameEvents listener for ItemAdded on its own (the item is really in the pack by then)
+            var inv = p.GetComponent<InventorySystem>();
+            var fChanged = typeof(InventorySystem).GetField("Changed", BindingFlags.NonPublic | BindingFlags.Instance);
+            var fActive = typeof(InventorySystem).GetField("ActiveSlotChanged", BindingFlags.NonPublic | BindingFlags.Instance);
+            var changed = fChanged?.GetValue(inv) as Delegate; var active = fActive?.GetValue(inv) as Delegate; var raised = fld?.GetValue(null) as Delegate;
+            fChanged?.SetValue(inv, null); fActive?.SetValue(inv, null); fld?.SetValue(null, null);
+            yield return null; yield return null;
+            sw.Restart(); inv.Add(node.yieldItem, 1); sw.Stop();
+            yield return null; txt.AppendLine($"  InventorySystem.Add, listeners detached [first]: call {sw.Elapsed.TotalMilliseconds:F1} ms, next frame {Time.unscaledDeltaTime * 1000f:F0} ms");
+            fChanged?.SetValue(inv, changed); fActive?.SetValue(inv, active); fld?.SetValue(null, raised);
+            if (changed != null) foreach (var d in changed.GetInvocationList()) { var dd = (Action)d; yield return Measure($"Inventory.Changed -> {d.Method.DeclaringType?.Name}.{d.Method.Name}", () => dd()); }
+            if (active != null) foreach (var d in active.GetInvocationList()) { var dd = (Action<int>)d; int slot = inv.ActiveSlot; yield return Measure($"Inventory.ActiveSlotChanged -> {d.Method.DeclaringType?.Name}.{d.Method.Name}", () => dd(slot)); }
+            var evAdd = new GameEvent { type = GameEventType.ItemAdded, id = node.yieldItem ? node.yieldItem.id : "wood", amount = 1, position = p.transform.position };
+            if (raised != null) foreach (var d in raised.GetInvocationList()) { var dd = (Action<GameEvent>)d; if (d.Target is MonoBehaviour mb && mb is PrimalFrontier.AI.DinosaurController) continue; yield return Measure($"ItemAdded -> {d.Method.DeclaringType?.Name}.{d.Method.Name}", () => dd(evAdd)); }
+            yield return Measure("PlayerInteraction.GiveOrDrop(yield, 1)", () => pi.GiveOrDrop(node.yieldItem, 1));
+            yield return Measure("ResourceNode.Hit (whole)", () => node.Hit(pi));
+            File.AppendAllText(Out("motion_probe_hitch.txt"), txt.ToString());
+        }
 
         IEnumerator LoadIsland()
         {
@@ -509,7 +622,15 @@ namespace PrimalFrontier.Tests
 
                 // ---- gather 2: from standing, 40 deg off the focus, cancel with E while standing
                 Vector3 d2 = Flat(p.transform.position - focus).normalized; if (d2.sqrMagnitude < 0.01f) d2 = appr;
-                Vector3 s2 = focus + d2 * (node.Radius + 1.0f); s2.y = TerrainY(s2) + 0.05f;
+                // stand next to the pile, never on its collider (the capsule perched on it skews the hips / pelvis numbers)
+                float dist2 = node.Radius + 1.0f; Vector3 s2 = focus + d2 * dist2; s2.y = TerrainY(s2) + 0.05f;
+                var nodeCols = node.GetComponentsInChildren<Collider>();
+                for (int k = 0; k < 12; k++)
+                {
+                    var hits = Physics.OverlapCapsule(s2 + Vector3.up * 0.35f, s2 + Vector3.up * 1.5f, 0.35f, ~0, QueryTriggerInteraction.Ignore);
+                    if (!hits.Any(h => nodeCols.Contains(h))) break;
+                    dist2 += 0.25f; s2 = focus + d2 * dist2; s2.y = TerrainY(s2) + 0.05f;
+                }
                 motor.Warp(s2, Quaternion.Euler(0f, 40f, 0f) * Quaternion.LookRotation(-d2));
                 if (cam) { cam.Yaw = p.transform.eulerAngles.y; cam.SnapBehindTarget(); }
                 yield return Hold("idle2", 1.0f, null);
@@ -688,7 +809,7 @@ namespace PrimalFrontier.Tests
         ProbeRig _rig; PlayerMotor _motor; PlayerAnimationDriver _drv; PlayerIK _ik; TwistBoneDriver _tw;
         float _prevYaw = float.NaN;
         static readonly Dictionary<int, string> Names = new Dictionary<int, string>();
-        static readonly string[] Fields = { "_wL", "_wR", "_lookW", "_offW", "_drawW", "_pelvis", "_lean" };
+        static readonly string[] Fields = { "_wL", "_wR", "_lookW", "_offW", "_drawW", "_pelvis", "_lean", "_bodyW" };
         FieldInfo[] _f;
 
         static MotionProbeRecorder()
@@ -707,8 +828,8 @@ namespace PrimalFrontier.Tests
             _f = Fields.Select(n => typeof(PlayerIK).GetField(n, BindingFlags.NonPublic | BindingFlags.Instance)).ToArray();
         }
 
-        public string Header() => "t,dt,udt,phase,inX,inY,yaw,yawRate,motorTurnRate,planar,measured,busy,canMove,pSpeed,pTurnSpeed,pAction,pVelX,pVelZ,state,stNorm,stLen,inTrans,next,nxNorm,trNorm,trDur,L1w,L1state,L2state," +
-                                  string.Join(",", Fields.Select(f => "ik" + f)) + ",ikSusp,twistL,twistR,rootY,terrainAtRoot,gFootL,gFootR,hitL,hitR," + ProbeRig.PoseHeader + "\n";
+        public string Header() => "t,dt,udt,phase,inX,inY,yaw,yawRate,motorTurnRate,planar,measured,busy,canMove,pSpeed,pTurnSpeed,pAction,pVelX,pVelZ,state,stNorm,stLen,stMul,inTrans,next,nxNorm,trNorm,trDur,L1w,L1state,L2state," +
+                                  string.Join(",", Fields.Select(f => "ik" + f)) + ",ikSusp,twistL,twistR,rootY,terrainAtRoot,gFootL,gFootR,hitL,hitR,rootX,rootZ,toeLx,toeLy,toeLz,toeRx,toeRy,toeRz,groundCol," + ProbeRig.PoseHeader + "\n";
 
         static string F(float v) => CharacterMotionProbe.F(v);
         static string B(bool b) => b ? "1" : "0";
@@ -726,7 +847,7 @@ namespace PrimalFrontier.Tests
             if (_motor) sb.Append(F(_motor.TurnRate)).Append(',').Append(F(_motor.PlanarSpeed)).Append(',').Append(F(_motor.MeasuredPlanarSpeed)).Append(','); else sb.Append(",,,");
             if (_drv) sb.Append(B(_drv.IsBusy)).Append(',').Append(B(_motor && _motor.CanMove)).Append(','); else sb.Append(",,");
             sb.Append(F(a.GetFloat("Speed"))).Append(',').Append(F(a.GetFloat("TurnSpeed"))).Append(',').Append(a.GetInteger("Action")).Append(',').Append(F(a.GetFloat("VelX"))).Append(',').Append(F(a.GetFloat("VelZ"))).Append(',');
-            sb.Append(N(st.shortNameHash)).Append(',').Append(F(st.normalizedTime)).Append(',').Append(F(st.length)).Append(',').Append(B(inT)).Append(',')
+            sb.Append(N(st.shortNameHash)).Append(',').Append(F(st.normalizedTime)).Append(',').Append(F(st.length)).Append(',').Append(F(st.speedMultiplier)).Append(',').Append(B(inT)).Append(',')
               .Append(inT ? N(nx.shortNameHash) : "").Append(',').Append(inT ? F(nx.normalizedTime) : "").Append(',').Append(inT ? F(tr.normalizedTime) : "").Append(',').Append(inT ? F(tr.duration) : "").Append(',');
             if (a.layerCount > 1) sb.Append(F(a.GetLayerWeight(1))).Append(',').Append(N(a.GetCurrentAnimatorStateInfo(1).shortNameHash)).Append(','); else sb.Append(",,");
             if (a.layerCount > 2) sb.Append(N(a.GetCurrentAnimatorStateInfo(2).shortNameHash)).Append(','); else sb.Append(',');
@@ -749,6 +870,22 @@ namespace PrimalFrontier.Tests
                 sb.Append(F(gy)).Append(',');
             }
             sb.Append(hitL).Append(',').Append(hitR).Append(',');
+            // world positions for foot-slide: root xz, the balls of the feet (toe joints)
+            var rp = _rig.root.position; sb.Append(F(rp.x)).Append(',').Append(F(rp.z)).Append(',');
+            foreach (var tb in new[] { HumanBodyBones.LeftToes, HumanBodyBones.RightToes })
+            {
+                var tt = a.GetBoneTransform(tb); var tp = tt ? tt.position : new Vector3(float.NaN, float.NaN, float.NaN);
+                sb.Append(F(tp.x)).Append(',').Append(F(tp.y)).Append(',').Append(F(tp.z)).Append(',');
+            }
+            // what the capsule stands on (same probe as PlayerMotor.ProbeGround)
+            string gc = "";
+            if (_motor && _motor.Controller)
+            {
+                var c = _motor.Controller; Vector3 o = rp + Vector3.up * (c.radius + 0.05f);
+                int m = ~(1 << _motor.gameObject.layer);
+                if (Physics.SphereCast(o, c.radius * 0.95f, Vector3.down, out var gh, 0.3f, m, QueryTriggerInteraction.Ignore)) gc = gh.collider is TerrainCollider ? "terrain" : gh.collider.name.Replace(',', ' ');
+            }
+            sb.Append(gc).Append(',');
             _rig.Pose(sb); sb.Append('\n');
             rows.Add(new Row { idx = rows.Count, t = t, norm = st.normalizedTime, phase = phase, state = N(st.shortNameHash), inTrans = inT });
         }

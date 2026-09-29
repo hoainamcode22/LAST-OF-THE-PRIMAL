@@ -29,6 +29,8 @@ namespace PrimalFrontier.Player
         [Tooltip("ankle height of a planted foot in the animation (m); higher = the foot is lifting")] public float plantedAnkle = 0.1f;
         public float maxPelvisDrop = 0.35f;
         public float pelvisSmooth = 10f;
+        [Tooltip("pelvis offset speed limit (m/s)")] public float pelvisMaxRate = 1.5f;
+        [Tooltip("both feet this far below the capsule's support (m): the capsule is perched on an edge, the pelvis does not drop")] public float perchGap = 0.12f;
         [Range(0, 1)] public float runningFootWeight = 0.35f;
         [Header("Look")]
         public bool lookIK = true;
@@ -36,6 +38,10 @@ namespace PrimalFrontier.Player
         [Range(0, 1)] public float bodyWeight = 0.15f, headWeight = 0.75f, eyesWeight = 1f;
         [Range(0, 1)] public float clampWeight = 0.55f;
         public float interactLookRange = 4f;
+        [Tooltip("body weight of the look while moving faster than a walk or turning faster than 90 deg/s (the chest stays with the hips)")]
+        [Range(0, 1)] public float movingBodyWeight = 0.03f;
+        [Tooltip("smoothing of the look point (s)")] public float lookSmoothTime = 0.15f;
+        [Tooltip("targets further than this from the body's forward are not looked at; the look eases to straight ahead instead")] public float lookCone = 95f;
         [Tooltip("set by gameplay: a creature, a sound, a cinematic target. Overrides the automatic choice")] public Transform LookTarget;
         /// <summary>climbing: hands (and feet) go onto this trunk's surface (set by PlayerClimb)</summary>
         [System.NonSerialized] public Climbable Climb;
@@ -59,11 +65,14 @@ namespace PrimalFrontier.Player
         Animator _a; PlayerMotor _motor; PlayerAnimationDriver _drv; PlayerInteraction _pi; Transform _root;
         PlayerEquipment _eq; PlayerHierarchy _hier; WeaponController _wc; Transform _head, _elbowL, _elbowR;
         float _pelvis, _wL, _wR, _lookW, _lean; Vector3 _lookPos; bool _hasLook;
+        float _bodyW = -1f, _moveK; Vector3 _lookVel;
         float _offW, _drawW, _drawK;
         Vector3 _goalPosL, _goalPosR; Quaternion _goalRotL = Quaternion.identity, _goalRotR = Quaternion.identity;
         float _appliedL, _appliedR; int _ikFrame = -1;
         HandPoint _grip, _bow, _nock;
         public float PelvisOffset => _pelvis;
+        /// <summary>the capsule rests on an edge above the ground under both feet (no pelvis drop this frame)</summary>
+        public bool Perched { get; private set; }
         /// <summary>switched off by states that own the whole body (climbing, lying, cinematics)</summary>
         public bool Suspended { get; set; }
 
@@ -96,10 +105,16 @@ namespace PrimalFrontier.Player
             float speedK = Mathf.Lerp(1f, runningFootWeight, Mathf.InverseLerp(1.5f, 4f, speed));
             var up = _root.up;
             float baseY = _root.position.y;
-            Foot(AvatarIKGoal.LeftFoot, ref _wL, feetOn, speedK, baseY, up, ref wantPelvis, dt);
-            Foot(AvatarIKGoal.RightFoot, ref _wR, feetOn, speedK, baseY, up, ref wantPelvis, dt);
-            if (!feetOn) wantPelvis = 0f;
-            _pelvis = Mathf.Lerp(_pelvis, Mathf.Clamp(wantPelvis, -maxPelvisDrop, 0.02f), 1f - Mathf.Exp(-pelvisSmooth * dt));
+            // perched: the capsule rests on a narrow prop / step edge while the ground under BOTH feet is clearly lower (a stair has
+            // one foot on the capsule's level). Then the body floats over the gap instead of sinking the pelvis to reach the ground.
+            Perched = feetOn && GroundUnder(AvatarIKGoal.LeftFoot, baseY) < -perchGap && GroundUnder(AvatarIKGoal.RightFoot, baseY) < -perchGap;
+            Foot(AvatarIKGoal.LeftFoot, ref _wL, feetOn && !Perched, speedK, baseY, up, ref wantPelvis, dt);
+            Foot(AvatarIKGoal.RightFoot, ref _wR, feetOn && !Perched, speedK, baseY, up, ref wantPelvis, dt);
+            if (!feetOn || Perched) wantPelvis = 0f;
+            // the pelvis follows the feet at the feet's own weight (0.35 at a run), eased and rate limited: a capsule perched on a
+            // step / prop edge no longer drops the body 0.2-0.3 m in a few frames (probe 2026-09-28)
+            float pelvisNext = Mathf.Lerp(_pelvis, Mathf.Clamp(wantPelvis, -maxPelvisDrop, 0.02f), 1f - Mathf.Exp(-pelvisSmooth * dt));
+            _pelvis = Mathf.MoveTowards(_pelvis, pelvisNext, pelvisMaxRate * dt);
 
             // ---------------- lean into turns
             float turn = _motor ? _motor.TurnRate : 0f;       // deg/s, + = left
@@ -109,17 +124,35 @@ namespace PrimalFrontier.Player
             if (Mathf.Abs(_pelvis) > 1e-4f || Mathf.Abs(_lean) > 0.01f)
             {
                 _a.bodyPosition += up * _pelvis;
-                if (Mathf.Abs(_lean) > 0.01f) _a.bodyRotation = Quaternion.AngleAxis(_lean, _root.forward) * _a.bodyRotation;
+                if (Mathf.Abs(_lean) > 0.01f)
+                {
+                    // lean about the ground under the capsule, not about the hips: the feet stay where they are and the body tilts
+                    // over them (rotating at the hips swung the planted feet sideways, 0.15-0.2 m per stance in a reversal)
+                    var q = Quaternion.AngleAxis(_lean, _root.forward);
+                    Vector3 pivot = _root.position;
+                    _a.bodyPosition = pivot + q * (_a.bodyPosition - pivot);
+                    _a.bodyRotation = q * _a.bodyRotation;
+                }
             }
 
             // ---------------- look
             Vector3 target = default;
             bool lookOn = lookIK && body && !actionOwnsBody && PickLook(out target);
-            if (lookOn) { _lookPos = _hasLook ? Vector3.Lerp(_lookPos, target, 1f - Mathf.Exp(-8f * dt)) : target; _hasLook = true; }
-            _lookW = Mathf.MoveTowards(_lookW, lookOn ? lookWeight : 0f, dt * 2.5f);
+            if (lookOn)
+            {
+                if (!_hasLook) { _lookPos = target; _lookVel = Vector3.zero; }
+                else _lookPos = Vector3.SmoothDamp(_lookPos, target, ref _lookVel, lookSmoothTime, Mathf.Infinity, dt);
+                _hasLook = true;
+            }
+            _lookW = Mathf.MoveTowards(_lookW, lookOn ? lookWeight : 0f, Mathf.Min(dt * 2.5f, 0.08f));
+            // chest stays with the hips while running / turning (the look twisted it +-33 deg in turns): low body weight, eased
+            float moveK = Mathf.Max(Mathf.InverseLerp(1.35f, 2.2f, speed), Mathf.InverseLerp(45f, 90f, Mathf.Abs(turn)));
+            _moveK = Mathf.MoveTowards(_moveK, moveK, dt * 4f);
+            float wantBody = Mathf.Lerp(bodyWeight, movingBodyWeight, moveK);
+            _bodyW = _bodyW < 0f ? wantBody : Mathf.MoveTowards(_bodyW, wantBody, Mathf.Min(dt * 1.5f, 0.05f));
             if (_lookW > 0.001f && _hasLook)
             {
-                _a.SetLookAtWeight(_lookW, bodyWeight, headWeight, eyesWeight, clampWeight);
+                _a.SetLookAtWeight(_lookW, _bodyW, headWeight, eyesWeight, clampWeight);
                 _a.SetLookAtPosition(_lookPos);
             }
             else _a.SetLookAtWeight(0f);
@@ -232,6 +265,13 @@ namespace PrimalFrontier.Player
             }
         }
 
+        /// <summary>ground height under the animated ankle relative to the capsule bottom (0 when nothing is hit)</summary>
+        float GroundUnder(AvatarIKGoal goal, float baseY)
+        {
+            Vector3 p = _a.GetIKPosition(goal);
+            return Physics.Raycast(new Vector3(p.x, baseY + rayAbove, p.z), Vector3.down, out var hit, rayAbove + rayBelow, groundMask, QueryTriggerInteraction.Ignore) ? hit.point.y - baseY : 0f;
+        }
+
         void Foot(AvatarIKGoal goal, ref float w, bool on, float speedK, float baseY, Vector3 up, ref float wantPelvis, float dt)
         {
             Vector3 p = _a.GetIKPosition(goal);                // animated ankle (world), before IK
@@ -244,7 +284,7 @@ namespace PrimalFrontier.Player
                 && Vector3.Angle(hit.normal, up) < 50f)
             {
                 float ground = hit.point.y - baseY;            // ground under this foot relative to the capsule bottom
-                if (planted > 0.5f) wantPelvis = Mathf.Min(wantPelvis, ground);
+                if (planted > 0.5f) wantPelvis = Mathf.Min(wantPelvis, ground * speedK);     // same weight as the foot goal
                 pos = new Vector3(p.x, hit.point.y + ankleUp, p.z);
                 // tilt the foot to the surface (limited so it never folds)
                 var tilt = Quaternion.FromToRotation(up, Vector3.Slerp(up, hit.normal, 0.8f));
@@ -289,7 +329,7 @@ namespace PrimalFrontier.Player
             target = default;
             Vector3 head = _root.position + Vector3.up * 1.6f;
             Vector3 fwd = _root.forward;
-            bool Ok(Vector3 t) { var d = t - head; d.y = 0f; return d.sqrMagnitude > 0.04f && Vector3.Angle(fwd, d) < 95f; }
+            bool Ok(Vector3 t) { var d = t - head; d.y = 0f; return d.sqrMagnitude > 0.04f && Vector3.Angle(fwd, d) < lookCone; }
             if (LookTarget && Ok(LookTarget.position)) { target = LookTarget.position + Vector3.up * 0.5f; return true; }
             var it = _pi ? _pi.Target : null;
             if (it && (it.transform.position - _root.position).sqrMagnitude < interactLookRange * interactLookRange && Ok(it.transform.position))
@@ -300,10 +340,20 @@ namespace PrimalFrontier.Player
             var cam = Camera.main;
             if (cam && (_motor == null || _motor.PlanarSpeed < 4.5f))
             {
+                // where the camera looks, kept inside a cone that narrows while moving / turning (no weight drop at the cone edge:
+                // the point is rotated onto the edge, and the eased look point follows it)
                 var t = cam.transform.position + cam.transform.forward * 12f;
-                if (Ok(t)) { target = t; return true; }
+                var d = t - head; float dy = d.y; d.y = 0f;
+                if (d.sqrMagnitude > 0.04f)
+                {
+                    float limit = Mathf.Lerp(80f, 35f, _moveK);
+                    float a = Vector3.SignedAngle(fwd, d, Vector3.up);
+                    if (Mathf.Abs(a) > limit) d = Quaternion.AngleAxis(Mathf.Sign(a) * limit, Vector3.up) * fwd * d.magnitude;
+                    target = head + d + Vector3.up * dy; return true;
+                }
             }
-            return false;
+            // nothing to look at: straight ahead
+            target = head + fwd * 8f; return true;
         }
     }
 }

@@ -1,0 +1,367 @@
+== 2026-09-28 22:48:27 node PFB_RES_Wood_01 yield wood
+idle frame max 23 ms
+  VfxPool.Play(Leaves) [first]: call 0,5 ms, next frames 17 / 16 ms
+  VfxPool.Play(Leaves) [second]: call 0,1 ms, next frames 16 / 18 ms
+  VfxPool.Play(WoodChips) [first]: call 0,4 ms, next frames 22 / 21 ms
+  VfxPool.Play(WoodChips) [second]: call 0,1 ms, next frames 12 / 13 ms
+  SfxPlayer.Play(LeafRustle) [first]: call 0,3 ms, next frames 16 / 21 ms
+  SfxPlayer.Play(LeafRustle) [second]: call 0,1 ms, next frames 22 / 17 ms
+  PlayerInteraction.Notify [first]: call 1,6 ms, next frames 17 / 13 ms
+  PlayerInteraction.Notify [second]: call 1,1 ms, next frames 21 / 25 ms
+  GameEvents listener ContextHints.OnEvent [first]: call 0,2 ms, next frames 16 / 18 ms
+  GameEvents listener ContextHints.OnEvent [second]: call 0,0 ms, next frames 16 / 17 ms
+  GameEvents listener CraftingSystem.OnGameEvent [first]: call 0,0 ms, next frames 15 / 16 ms
+  GameEvents listener CraftingSystem.OnGameEvent [second]: call 0,0 ms, next frames 15 / 17 ms
+  GameEvents listener DinosaurController.OnGameEvent [first]: call 0,0 ms, next frames 17 / 18 ms
+  GameEvents listener DinosaurController.OnGameEvent [second]: call 0,0 ms, next frames 16 / 17 ms
+  GameEvents listener DinosaurController.OnGameEvent [first]: call 0,0 ms, next frames 16 / 16 ms
+  GameEvents listener DinosaurController.OnGameEvent [second]: call 0,0 ms, next frames 17 / 17 ms
+  GameEvents listener DinosaurController.OnGameEvent [first]: call 0,0 ms, next frames 17 / 17 ms
+  GameEvents listener DinosaurController.OnGameEvent [second]: call 0,0 ms, next frames 14 / 14 ms
+  GameEvents listener DinosaurController.OnGameEvent [first]: call 0,0 ms, next frames 14 / 15 ms
+  GameEvents listener DinosaurController.OnGameEvent [second]: call 0,0 ms, next frames 23 / 26 ms
+  GameEvents listener DinosaurController.OnGameEvent [first]: call 0,0 ms, next frames 21 / 23 ms
+  GameEvents listener DinosaurController.OnGameEvent [second]: call 0,0 ms, next frames 20 / 20 ms
+  GameEvents listener TutorialManager.OnEvent [first]: call 0,0 ms, next frames 16 / 18 ms
+  GameEvents listener TutorialManager.OnEvent [second]: call 0,0 ms, next frames 16 / 16 ms
+  GameEvents listener DinosaurController.OnGameEvent [first]: call 0,0 ms, next frames 16 / 16 ms
+  GameEvents listener DinosaurController.OnGameEvent [second]: call 0,0 ms, next frames 17 / 16 ms
+  GameEvents listener DinosaurController.OnGameEvent [first]: call 0,0 ms, next frames 17 / 17 ms
+  GameEvents listener DinosaurController.OnGameEvent [second]: call 0,0 ms, next frames 17 / 16 ms
+  GameEvents listener DinosaurController.OnGameEvent [first]: call 0,0 ms, next frames 17 / 17 ms
+  GameEvents listener DinosaurController.OnGameEvent [second]: call 0,0 ms, next frames 16 / 15 ms
+  GameEvents listener DinosaurController.OnGameEvent [first]: call 0,0 ms, next frames 16 / 14 ms
+  GameEvents listener DinosaurController.OnGameEvent [second]: call 0,0 ms, next frames 14 / 15 ms
+  GameEvents listener DinosaurController.OnGameEvent [first]: call 0,0 ms, next frames 27 / 22 ms
+  GameEvents listener DinosaurController.OnGameEvent [second]: call 0,0 ms, next frames 14 / 18 ms
+  GameEvents listener DinosaurController.OnGameEvent [first]: call 0,0 ms, next frames 24 / 23 ms
+  GameEvents listener DinosaurController.OnGameEvent [second]: call 0,0 ms, next frames 13 / 17 ms
+  GameEvents listener JournalSystem.OnEvent [first]: call 0,0 ms, next frames 15 / 14 ms
+  GameEvents listener JournalSystem.OnEvent [second]: call 0,0 ms, next frames 19 / 19 ms
+  GameEvents listener HUDManager.OnEvent [first]: call 0,0 ms, next frames 21 / 20 ms
+  GameEvents listener HUDManager.OnEvent [second]: call 0,0 ms, next frames 30 / 27 ms
+  PlayerInteraction.GiveOrDrop(yield, 1) [first]: call 78,2 ms, next frames 101 / 26 ms
+  PlayerInteraction.GiveOrDrop(yield, 1) [second]: call 0,3 ms, next frames 16 / 16 ms
+  ResourceNode.Hit (whole) [first]: call 0,5 ms, next frames 17 / 16 ms
+  ResourceNode.Hit (whole) [second]: call 0,3 ms, next frames 17 / 17 ms
+== 2026-09-28 22:50:55 node PFB_RES_Wood_01 yield wood
+idle frame max 19 ms
+  VfxPool.Play(Leaves) [first]: call 2,8 ms, next frames 20 / 18 ms
+  VfxPool.Play(Leaves) [second]: call 0,2 ms, next frames 21 / 19 ms
+  VfxPool.Play(WoodChips) [first]: call 0,4 ms, next frames 15 / 14 ms
+  VfxPool.Play(WoodChips) [second]: call 0,2 ms, next frames 15 / 14 ms
+  SfxPlayer.Play(LeafRustle) [first]: call 1,0 ms, next frames 14 / 15 ms
+  SfxPlayer.Play(LeafRustle) [second]: call 0,1 ms, next frames 14 / 13 ms
+  PlayerInteraction.Notify [first]: call 1,4 ms, next frames 17 / 19 ms
+  PlayerInteraction.Notify [second]: call 1,0 ms, next frames 15 / 16 ms
+  GameEvents listener ContextHints.OnEvent [first]: call 0,2 ms, next frames 17 / 17 ms
+  GameEvents listener ContextHints.OnEvent [second]: call 0,0 ms, next frames 20 / 16 ms
+  GameEvents listener CraftingSystem.OnGameEvent [first]: call 0,0 ms, next frames 14 / 14 ms
+  GameEvents listener CraftingSystem.OnGameEvent [second]: call 0,0 ms, next frames 14 / 15 ms
+  GameEvents listener DinosaurController.OnGameEvent [first]: call 0,0 ms, next frames 18 / 15 ms
+  GameEvents listener DinosaurController.OnGameEvent [second]: call 0,0 ms, next frames 13 / 14 ms
+  GameEvents listener DinosaurController.OnGameEvent [first]: call 0,0 ms, next frames 15 / 20 ms
+  GameEvents listener DinosaurController.OnGameEvent [second]: call 0,0 ms, next frames 54 / 51 ms
+  GameEvents listener DinosaurController.OnGameEvent [first]: call 0,0 ms, next frames 51 / 42 ms
+  GameEvents listener DinosaurController.OnGameEvent [second]: call 0,0 ms, next frames 43 / 35 ms
+  GameEvents listener DinosaurController.OnGameEvent [first]: call 0,0 ms, next frames 14 / 13 ms
+  GameEvents listener DinosaurController.OnGameEvent [second]: call 0,0 ms, next frames 13 / 15 ms
+  GameEvents listener DinosaurController.OnGameEvent [first]: call 0,0 ms, next frames 18 / 18 ms
+  GameEvents listener DinosaurController.OnGameEvent [second]: call 0,0 ms, next frames 18 / 19 ms
+  GameEvents listener TutorialManager.OnEvent [first]: call 0,0 ms, next frames 18 / 22 ms
+  GameEvents listener TutorialManager.OnEvent [second]: call 0,0 ms, next frames 16 / 19 ms
+  GameEvents listener DinosaurController.OnGameEvent [first]: call 0,0 ms, next frames 18 / 19 ms
+  GameEvents listener DinosaurController.OnGameEvent [second]: call 0,0 ms, next frames 15 / 16 ms
+  GameEvents listener DinosaurController.OnGameEvent [first]: call 0,0 ms, next frames 22 / 20 ms
+  GameEvents listener DinosaurController.OnGameEvent [second]: call 0,0 ms, next frames 19 / 19 ms
+  GameEvents listener DinosaurController.OnGameEvent [first]: call 0,0 ms, next frames 27 / 28 ms
+  GameEvents listener DinosaurController.OnGameEvent [second]: call 0,0 ms, next frames 18 / 15 ms
+  GameEvents listener DinosaurController.OnGameEvent [first]: call 0,0 ms, next frames 13 / 14 ms
+  GameEvents listener DinosaurController.OnGameEvent [second]: call 0,0 ms, next frames 15 / 14 ms
+  GameEvents listener DinosaurController.OnGameEvent [first]: call 0,0 ms, next frames 16 / 16 ms
+  GameEvents listener DinosaurController.OnGameEvent [second]: call 0,0 ms, next frames 20 / 20 ms
+  GameEvents listener DinosaurController.OnGameEvent [first]: call 0,0 ms, next frames 20 / 23 ms
+  GameEvents listener DinosaurController.OnGameEvent [second]: call 0,0 ms, next frames 19 / 22 ms
+  GameEvents listener JournalSystem.OnEvent [first]: call 0,0 ms, next frames 14 / 16 ms
+  GameEvents listener JournalSystem.OnEvent [second]: call 0,0 ms, next frames 16 / 14 ms
+  GameEvents listener HUDManager.OnEvent [first]: call 0,0 ms, next frames 15 / 21 ms
+  GameEvents listener HUDManager.OnEvent [second]: call 0,0 ms, next frames 23 / 23 ms
+  InventorySystem.Add, listeners detached [first]: call 2,8 ms, next frame 24 ms
+  Inventory.Changed -> PlayerEquipment.Refresh [first]: call 0,3 ms, next frames 20 / 22 ms
+  Inventory.Changed -> PlayerEquipment.Refresh [second]: call 0,0 ms, next frames 17 / 19 ms
+  Inventory.Changed -> HUDManager.RefreshHotbar [first]: call 0,1 ms, next frames 22 / 18 ms
+  Inventory.Changed -> HUDManager.RefreshHotbar [second]: call 0,1 ms, next frames 17 / 15 ms
+  Inventory.Changed -> InventoryUI.RefreshAll [first]: call 0,4 ms, next frames 20 / 21 ms
+  Inventory.Changed -> InventoryUI.RefreshAll [second]: call 0,1 ms, next frames 19 / 19 ms
+  Inventory.Changed -> PlayerSurvival.OnInventoryChanged [first]: call 0,0 ms, next frames 17 / 16 ms
+  Inventory.Changed -> PlayerSurvival.OnInventoryChanged [second]: call 0,0 ms, next frames 27 / 28 ms
+  Inventory.ActiveSlotChanged -> PlayerEquipment.OnSlot [first]: call 0,2 ms, next frames 17 / 19 ms
+  Inventory.ActiveSlotChanged -> PlayerEquipment.OnSlot [second]: call 0,0 ms, next frames 14 / 15 ms
+  Inventory.ActiveSlotChanged -> HUDManager.OnActive [first]: call 0,0 ms, next frames 13 / 14 ms
+  Inventory.ActiveSlotChanged -> HUDManager.OnActive [second]: call 0,0 ms, next frames 15 / 14 ms
+  ItemAdded -> ContextHints.OnEvent [first]: call 2,0 ms, next frames 19 / 18 ms
+  ItemAdded -> ContextHints.OnEvent [second]: call 0,0 ms, next frames 14 / 14 ms
+  ItemAdded -> CraftingSystem.OnGameEvent [first]: call 83,5 ms, next frames 111 / 26 ms
+  ItemAdded -> CraftingSystem.OnGameEvent [second]: call 0,0 ms, next frames 18 / 29 ms
+  ItemAdded -> TutorialManager.OnEvent [first]: call 0,0 ms, next frames 19 / 17 ms
+  ItemAdded -> TutorialManager.OnEvent [second]: call 0,0 ms, next frames 17 / 14 ms
+  ItemAdded -> JournalSystem.OnEvent [first]: call 0,0 ms, next frames 16 / 17 ms
+  ItemAdded -> JournalSystem.OnEvent [second]: call 0,0 ms, next frames 19 / 18 ms
+  ItemAdded -> HUDManager.OnEvent [first]: call 8,7 ms, next frames 33 / 25 ms
+  ItemAdded -> HUDManager.OnEvent [second]: call 0,5 ms, next frames 18 / 17 ms
+  PlayerInteraction.GiveOrDrop(yield, 1) [first]: call 1,1 ms, next frames 15 / 18 ms
+  PlayerInteraction.GiveOrDrop(yield, 1) [second]: call 0,3 ms, next frames 15 / 13 ms
+  ResourceNode.Hit (whole) [first]: call 1,4 ms, next frames 16 / 15 ms
+  ResourceNode.Hit (whole) [second]: call 0,3 ms, next frames 15 / 14 ms
+== 2026-09-28 22:55:04 node PFB_RES_Wood_01 yield wood
+idle frame max 70 ms
+  VfxPool.Play(Leaves) [first]: call 4,9 ms, next frames 32 / 31 ms
+  VfxPool.Play(Leaves) [second]: call 0,4 ms, next frames 55 / 33 ms
+  VfxPool.Play(WoodChips) [first]: call 0,6 ms, next frames 33 / 30 ms
+  VfxPool.Play(WoodChips) [second]: call 0,2 ms, next frames 36 / 29 ms
+  SfxPlayer.Play(LeafRustle) [first]: call 1,6 ms, next frames 35 / 39 ms
+  SfxPlayer.Play(LeafRustle) [second]: call 0,2 ms, next frames 39 / 32 ms
+  PlayerInteraction.Notify [first]: call 2,8 ms, next frames 31 / 33 ms
+  PlayerInteraction.Notify [second]: call 2,0 ms, next frames 36 / 35 ms
+  GameEvents listener ContextHints.OnEvent [first]: call 0,4 ms, next frames 31 / 39 ms
+  GameEvents listener ContextHints.OnEvent [second]: call 0,0 ms, next frames 41 / 38 ms
+  GameEvents listener CraftingSystem.OnGameEvent [first]: call 0,0 ms, next frames 29 / 41 ms
+  GameEvents listener CraftingSystem.OnGameEvent [second]: call 0,0 ms, next frames 51 / 42 ms
+  GameEvents listener DinosaurController.OnGameEvent [first]: call 0,0 ms, next frames 39 / 31 ms
+  GameEvents listener DinosaurController.OnGameEvent [second]: call 0,0 ms, next frames 32 / 45 ms
+  GameEvents listener DinosaurController.OnGameEvent [first]: call 0,0 ms, next frames 30 / 30 ms
+  GameEvents listener DinosaurController.OnGameEvent [second]: call 0,0 ms, next frames 28 / 31 ms
+  GameEvents listener DinosaurController.OnGameEvent [first]: call 0,0 ms, next frames 43 / 33 ms
+  GameEvents listener DinosaurController.OnGameEvent [second]: call 0,0 ms, next frames 29 / 27 ms
+  GameEvents listener DinosaurController.OnGameEvent [first]: call 0,0 ms, next frames 48 / 48 ms
+  GameEvents listener DinosaurController.OnGameEvent [second]: call 0,0 ms, next frames 30 / 35 ms
+  GameEvents listener DinosaurController.OnGameEvent [first]: call 0,0 ms, next frames 21 / 20 ms
+  GameEvents listener DinosaurController.OnGameEvent [second]: call 0,0 ms, next frames 24 / 22 ms
+  GameEvents listener TutorialManager.OnEvent [first]: call 0,0 ms, next frames 25 / 24 ms
+  GameEvents listener TutorialManager.OnEvent [second]: call 0,0 ms, next frames 19 / 22 ms
+  GameEvents listener DinosaurController.OnGameEvent [first]: call 0,0 ms, next frames 34 / 25 ms
+  GameEvents listener DinosaurController.OnGameEvent [second]: call 0,0 ms, next frames 19 / 15 ms
+  GameEvents listener DinosaurController.OnGameEvent [first]: call 0,0 ms, next frames 13 / 14 ms
+  GameEvents listener DinosaurController.OnGameEvent [second]: call 0,0 ms, next frames 19 / 17 ms
+  GameEvents listener DinosaurController.OnGameEvent [first]: call 0,0 ms, next frames 23 / 22 ms
+  GameEvents listener DinosaurController.OnGameEvent [second]: call 0,0 ms, next frames 17 / 20 ms
+  GameEvents listener DinosaurController.OnGameEvent [first]: call 0,0 ms, next frames 19 / 19 ms
+  GameEvents listener DinosaurController.OnGameEvent [second]: call 0,0 ms, next frames 14 / 12 ms
+  GameEvents listener DinosaurController.OnGameEvent [first]: call 0,0 ms, next frames 19 / 20 ms
+  GameEvents listener DinosaurController.OnGameEvent [second]: call 0,0 ms, next frames 21 / 18 ms
+  GameEvents listener DinosaurController.OnGameEvent [first]: call 0,0 ms, next frames 17 / 17 ms
+  GameEvents listener DinosaurController.OnGameEvent [second]: call 0,0 ms, next frames 18 / 20 ms
+  GameEvents listener JournalSystem.OnEvent [first]: call 0,0 ms, next frames 19 / 20 ms
+  GameEvents listener JournalSystem.OnEvent [second]: call 0,0 ms, next frames 14 / 13 ms
+  GameEvents listener HUDManager.OnEvent [first]: call 0,0 ms, next frames 20 / 32 ms
+  GameEvents listener HUDManager.OnEvent [second]: call 0,0 ms, next frames 28 / 33 ms
+  recipes the first wood teaches: 3
+  Crafting.Learned -> HUDManager.OnLearned [first]: call 3,4 ms, next frames 48 / 42 ms
+  Crafting.Learned -> HUDManager.OnLearned [second]: call 2,3 ms, next frames 42 / 47 ms
+  Crafting.Learned -> InventoryUI.OnLearned [first]: call 36,8 ms, next frames 56 / 17 ms
+  Crafting.Learned -> InventoryUI.OnLearned [second]: call 23,8 ms, next frames 42 / 25 ms
+  JournalUnlocked -> ContextHints.OnEvent [first]: call 0,3 ms, next frames 30 / 23 ms
+  JournalUnlocked -> ContextHints.OnEvent [second]: call 0,0 ms, next frames 20 / 22 ms
+  JournalUnlocked -> CraftingSystem.OnGameEvent [first]: call 0,0 ms, next frames 28 / 21 ms
+  JournalUnlocked -> CraftingSystem.OnGameEvent [second]: call 0,0 ms, next frames 17 / 14 ms
+  JournalUnlocked -> TutorialManager.OnEvent [first]: call 0,0 ms, next frames 15 / 14 ms
+  JournalUnlocked -> TutorialManager.OnEvent [second]: call 0,0 ms, next frames 14 / 17 ms
+  JournalUnlocked -> JournalSystem.OnEvent [first]: call 0,0 ms, next frames 18 / 21 ms
+  JournalUnlocked -> JournalSystem.OnEvent [second]: call 0,0 ms, next frames 24 / 24 ms
+  JournalUnlocked -> HUDManager.OnEvent [first]: call 0,0 ms, next frames 16 / 15 ms
+  JournalUnlocked -> HUDManager.OnEvent [second]: call 0,0 ms, next frames 15 / 15 ms
+  InventorySystem.Add, listeners detached [first]: call 1,5 ms, next frame 14 ms
+  Inventory.Changed -> PlayerEquipment.Refresh [first]: call 0,1 ms, next frames 13 / 14 ms
+  Inventory.Changed -> PlayerEquipment.Refresh [second]: call 0,0 ms, next frames 12 / 13 ms
+  Inventory.Changed -> HUDManager.RefreshHotbar [first]: call 0,0 ms, next frames 14 / 16 ms
+  Inventory.Changed -> HUDManager.RefreshHotbar [second]: call 0,1 ms, next frames 30 / 33 ms
+  Inventory.Changed -> InventoryUI.RefreshAll [first]: call 0,3 ms, next frames 16 / 19 ms
+  Inventory.Changed -> InventoryUI.RefreshAll [second]: call 0,1 ms, next frames 19 / 16 ms
+  Inventory.Changed -> PlayerSurvival.OnInventoryChanged [first]: call 0,0 ms, next frames 20 / 26 ms
+  Inventory.Changed -> PlayerSurvival.OnInventoryChanged [second]: call 0,0 ms, next frames 16 / 14 ms
+  Inventory.ActiveSlotChanged -> PlayerEquipment.OnSlot [first]: call 0,3 ms, next frames 17 / 15 ms
+  Inventory.ActiveSlotChanged -> PlayerEquipment.OnSlot [second]: call 0,0 ms, next frames 20 / 18 ms
+  Inventory.ActiveSlotChanged -> HUDManager.OnActive [first]: call 0,1 ms, next frames 21 / 22 ms
+  Inventory.ActiveSlotChanged -> HUDManager.OnActive [second]: call 0,0 ms, next frames 19 / 18 ms
+  ItemAdded -> ContextHints.OnEvent [first]: call 3,1 ms, next frames 25 / 26 ms
+  ItemAdded -> ContextHints.OnEvent [second]: call 0,0 ms, next frames 19 / 19 ms
+  ItemAdded -> CraftingSystem.OnGameEvent [first]: call 57,8 ms, next frames 71 / 13 ms
+  ItemAdded -> CraftingSystem.OnGameEvent [second]: call 0,0 ms, next frames 18 / 28 ms
+  ItemAdded -> TutorialManager.OnEvent [first]: call 0,0 ms, next frames 23 / 23 ms
+  ItemAdded -> TutorialManager.OnEvent [second]: call 0,0 ms, next frames 17 / 18 ms
+  ItemAdded -> JournalSystem.OnEvent [first]: call 0,0 ms, next frames 26 / 35 ms
+  ItemAdded -> JournalSystem.OnEvent [second]: call 0,0 ms, next frames 14 / 14 ms
+  ItemAdded -> HUDManager.OnEvent [first]: call 7,7 ms, next frames 35 / 25 ms
+  ItemAdded -> HUDManager.OnEvent [second]: call 0,7 ms, next frames 21 / 20 ms
+  PlayerInteraction.GiveOrDrop(yield, 1) [first]: call 1,2 ms, next frames 23 / 27 ms
+  PlayerInteraction.GiveOrDrop(yield, 1) [second]: call 0,4 ms, next frames 25 / 25 ms
+  ResourceNode.Hit (whole) [first]: call 1,2 ms, next frames 12 / 11 ms
+  ResourceNode.Hit (whole) [second]: call 0,3 ms, next frames 10 / 11 ms
+== 2026-09-28 23:21:04 node PFB_RES_Wood_01 yield wood
+idle frame max 27 ms
+  VfxPool.Play(Leaves) [first]: call 0,9 ms, next frames 23 / 20 ms
+  VfxPool.Play(Leaves) [second]: call 0,2 ms, next frames 28 / 24 ms
+  VfxPool.Play(WoodChips) [first]: call 0,8 ms, next frames 28 / 21 ms
+  VfxPool.Play(WoodChips) [second]: call 0,4 ms, next frames 25 / 21 ms
+  SfxPlayer.Play(LeafRustle) [first]: call 0,3 ms, next frames 21 / 20 ms
+  SfxPlayer.Play(LeafRustle) [second]: call 0,1 ms, next frames 27 / 30 ms
+  PlayerInteraction.Notify [first]: call 2,7 ms, next frames 26 / 29 ms
+  PlayerInteraction.Notify [second]: call 1,5 ms, next frames 25 / 19 ms
+  GameEvents listener ContextHints.OnEvent [first]: call 0,2 ms, next frames 22 / 17 ms
+  GameEvents listener ContextHints.OnEvent [second]: call 0,0 ms, next frames 23 / 23 ms
+  GameEvents listener CraftingSystem.OnGameEvent [first]: call 0,0 ms, next frames 17 / 17 ms
+  GameEvents listener CraftingSystem.OnGameEvent [second]: call 0,0 ms, next frames 19 / 18 ms
+  GameEvents listener DinosaurController.OnGameEvent [first]: call 0,0 ms, next frames 18 / 19 ms
+  GameEvents listener DinosaurController.OnGameEvent [second]: call 0,0 ms, next frames 19 / 18 ms
+  GameEvents listener DinosaurController.OnGameEvent [first]: call 0,0 ms, next frames 23 / 19 ms
+  GameEvents listener DinosaurController.OnGameEvent [second]: call 0,0 ms, next frames 22 / 22 ms
+  GameEvents listener DinosaurController.OnGameEvent [first]: call 0,0 ms, next frames 17 / 16 ms
+  GameEvents listener DinosaurController.OnGameEvent [second]: call 0,0 ms, next frames 17 / 17 ms
+  GameEvents listener DinosaurController.OnGameEvent [first]: call 0,0 ms, next frames 19 / 19 ms
+  GameEvents listener DinosaurController.OnGameEvent [second]: call 0,0 ms, next frames 20 / 20 ms
+  GameEvents listener DinosaurController.OnGameEvent [first]: call 0,0 ms, next frames 22 / 21 ms
+  GameEvents listener DinosaurController.OnGameEvent [second]: call 0,0 ms, next frames 20 / 19 ms
+  GameEvents listener TutorialManager.OnEvent [first]: call 0,0 ms, next frames 26 / 21 ms
+  GameEvents listener TutorialManager.OnEvent [second]: call 0,0 ms, next frames 20 / 17 ms
+  GameEvents listener DinosaurController.OnGameEvent [first]: call 0,0 ms, next frames 18 / 18 ms
+  GameEvents listener DinosaurController.OnGameEvent [second]: call 0,0 ms, next frames 15 / 21 ms
+  GameEvents listener DinosaurController.OnGameEvent [first]: call 0,0 ms, next frames 25 / 26 ms
+  GameEvents listener DinosaurController.OnGameEvent [second]: call 0,0 ms, next frames 20 / 19 ms
+  GameEvents listener DinosaurController.OnGameEvent [first]: call 0,0 ms, next frames 17 / 16 ms
+  GameEvents listener DinosaurController.OnGameEvent [second]: call 0,0 ms, next frames 17 / 17 ms
+  GameEvents listener DinosaurController.OnGameEvent [first]: call 0,0 ms, next frames 18 / 24 ms
+  GameEvents listener DinosaurController.OnGameEvent [second]: call 0,0 ms, next frames 34 / 30 ms
+  GameEvents listener DinosaurController.OnGameEvent [first]: call 0,0 ms, next frames 26 / 27 ms
+  GameEvents listener DinosaurController.OnGameEvent [second]: call 0,0 ms, next frames 16 / 17 ms
+  GameEvents listener DinosaurController.OnGameEvent [first]: call 0,0 ms, next frames 22 / 21 ms
+  GameEvents listener DinosaurController.OnGameEvent [second]: call 0,0 ms, next frames 19 / 18 ms
+  GameEvents listener JournalSystem.OnEvent [first]: call 0,0 ms, next frames 18 / 19 ms
+  GameEvents listener JournalSystem.OnEvent [second]: call 0,0 ms, next frames 26 / 23 ms
+  GameEvents listener HUDManager.OnEvent [first]: call 0,0 ms, next frames 22 / 20 ms
+  GameEvents listener HUDManager.OnEvent [second]: call 0,0 ms, next frames 18 / 17 ms
+  recipes the first wood teaches: 3
+  Crafting.Learned -> HUDManager.OnLearned [first]: call 2,5 ms, next frames 28 / 34 ms
+  Crafting.Learned -> HUDManager.OnLearned [second]: call 3,1 ms, next frames 25 / 20 ms
+  Crafting.Learned -> InventoryUI.OnLearned [first]: call 27,7 ms, next frames 49 / 19 ms
+  Crafting.Learned -> InventoryUI.OnLearned [second]: call 33,3 ms, next frames 60 / 30 ms
+  JournalUnlocked -> ContextHints.OnEvent [first]: call 0,2 ms, next frames 18 / 23 ms
+  JournalUnlocked -> ContextHints.OnEvent [second]: call 0,0 ms, next frames 17 / 20 ms
+  JournalUnlocked -> CraftingSystem.OnGameEvent [first]: call 0,0 ms, next frames 24 / 22 ms
+  JournalUnlocked -> CraftingSystem.OnGameEvent [second]: call 0,0 ms, next frames 19 / 18 ms
+  JournalUnlocked -> TutorialManager.OnEvent [first]: call 0,0 ms, next frames 16 / 20 ms
+  JournalUnlocked -> TutorialManager.OnEvent [second]: call 0,0 ms, next frames 21 / 24 ms
+  JournalUnlocked -> JournalSystem.OnEvent [first]: call 0,0 ms, next frames 19 / 18 ms
+  JournalUnlocked -> JournalSystem.OnEvent [second]: call 0,0 ms, next frames 15 / 19 ms
+  JournalUnlocked -> HUDManager.OnEvent [first]: call 0,0 ms, next frames 27 / 26 ms
+  JournalUnlocked -> HUDManager.OnEvent [second]: call 0,0 ms, next frames 20 / 22 ms
+  InventorySystem.Add, listeners detached [first]: call 0,0 ms, next frame 18 ms
+  Inventory.Changed -> PlayerEquipment.Refresh [first]: call 0,2 ms, next frames 16 / 17 ms
+  Inventory.Changed -> PlayerEquipment.Refresh [second]: call 0,0 ms, next frames 26 / 24 ms
+  Inventory.Changed -> HUDManager.RefreshHotbar [first]: call 0,0 ms, next frames 26 / 22 ms
+  Inventory.Changed -> HUDManager.RefreshHotbar [second]: call 0,1 ms, next frames 22 / 21 ms
+  Inventory.Changed -> InventoryUI.RefreshAll [first]: call 0,2 ms, next frames 22 / 17 ms
+  Inventory.Changed -> InventoryUI.RefreshAll [second]: call 0,1 ms, next frames 21 / 24 ms
+  Inventory.Changed -> PlayerSurvival.OnInventoryChanged [first]: call 0,0 ms, next frames 22 / 23 ms
+  Inventory.Changed -> PlayerSurvival.OnInventoryChanged [second]: call 0,0 ms, next frames 18 / 17 ms
+  Inventory.ActiveSlotChanged -> PlayerEquipment.OnSlot [first]: call 0,2 ms, next frames 19 / 18 ms
+  Inventory.ActiveSlotChanged -> PlayerEquipment.OnSlot [second]: call 0,0 ms, next frames 23 / 23 ms
+  Inventory.ActiveSlotChanged -> HUDManager.OnActive [first]: call 0,0 ms, next frames 22 / 21 ms
+  Inventory.ActiveSlotChanged -> HUDManager.OnActive [second]: call 0,0 ms, next frames 16 / 17 ms
+  ItemAdded -> ContextHints.OnEvent [first]: call 0,3 ms, next frames 19 / 19 ms
+  ItemAdded -> ContextHints.OnEvent [second]: call 0,0 ms, next frames 23 / 20 ms
+  ItemAdded -> CraftingSystem.OnGameEvent [first]: call 103,5 ms, next frames 132 / 27 ms
+  ItemAdded -> CraftingSystem.OnGameEvent [second]: call 0,0 ms, next frames 17 / 16 ms
+  ItemAdded -> TutorialManager.OnEvent [first]: call 0,0 ms, next frames 17 / 18 ms
+  ItemAdded -> TutorialManager.OnEvent [second]: call 0,0 ms, next frames 16 / 17 ms
+  ItemAdded -> JournalSystem.OnEvent [first]: call 0,0 ms, next frames 17 / 17 ms
+  ItemAdded -> JournalSystem.OnEvent [second]: call 0,0 ms, next frames 26 / 21 ms
+  ItemAdded -> HUDManager.OnEvent [first]: call 1,7 ms, next frames 23 / 24 ms
+  ItemAdded -> HUDManager.OnEvent [second]: call 0,1 ms, next frames 18 / 17 ms
+  PlayerInteraction.GiveOrDrop(yield, 1) [first]: call 0,5 ms, next frames 18 / 20 ms
+  PlayerInteraction.GiveOrDrop(yield, 1) [second]: call 0,5 ms, next frames 21 / 24 ms
+  ResourceNode.Hit (whole) [first]: call 0,6 ms, next frames 23 / 24 ms
+  ResourceNode.Hit (whole) [second]: call 0,2 ms, next frames 14 / 16 ms
+== 2026-09-28 23:44:06 node PFB_RES_Wood_01 yield wood
+idle frame max 32 ms
+  VfxPool.Play(Leaves) [first]: call 1,0 ms, next frames 38 / 51 ms
+  VfxPool.Play(Leaves) [second]: call 0,2 ms, next frames 71 / 57 ms
+  VfxPool.Play(WoodChips) [first]: call 0,8 ms, next frames 38 / 61 ms
+  VfxPool.Play(WoodChips) [second]: call 0,2 ms, next frames 29 / 41 ms
+  SfxPlayer.Play(LeafRustle) [first]: call 0,4 ms, next frames 20 / 20 ms
+  SfxPlayer.Play(LeafRustle) [second]: call 0,1 ms, next frames 50 / 34 ms
+  PlayerInteraction.Notify [first]: call 2,8 ms, next frames 29 / 26 ms
+  PlayerInteraction.Notify [second]: call 2,2 ms, next frames 30 / 26 ms
+  GameEvents listener ContextHints.OnEvent [first]: call 0,5 ms, next frames 30 / 24 ms
+  GameEvents listener ContextHints.OnEvent [second]: call 0,0 ms, next frames 19 / 18 ms
+  GameEvents listener CraftingSystem.OnGameEvent [first]: call 0,0 ms, next frames 17 / 25 ms
+  GameEvents listener CraftingSystem.OnGameEvent [second]: call 0,0 ms, next frames 34 / 34 ms
+  GameEvents listener DinosaurController.OnGameEvent [first]: call 0,0 ms, next frames 25 / 20 ms
+  GameEvents listener DinosaurController.OnGameEvent [second]: call 0,0 ms, next frames 21 / 21 ms
+  GameEvents listener DinosaurController.OnGameEvent [first]: call 0,0 ms, next frames 36 / 31 ms
+  GameEvents listener DinosaurController.OnGameEvent [second]: call 0,0 ms, next frames 20 / 18 ms
+  GameEvents listener DinosaurController.OnGameEvent [first]: call 0,0 ms, next frames 21 / 18 ms
+  GameEvents listener DinosaurController.OnGameEvent [second]: call 0,0 ms, next frames 23 / 26 ms
+  GameEvents listener DinosaurController.OnGameEvent [first]: call 0,0 ms, next frames 38 / 28 ms
+  GameEvents listener DinosaurController.OnGameEvent [second]: call 0,0 ms, next frames 18 / 24 ms
+  GameEvents listener DinosaurController.OnGameEvent [first]: call 0,0 ms, next frames 19 / 19 ms
+  GameEvents listener DinosaurController.OnGameEvent [second]: call 0,0 ms, next frames 19 / 19 ms
+  GameEvents listener TutorialManager.OnEvent [first]: call 0,0 ms, next frames 24 / 26 ms
+  GameEvents listener TutorialManager.OnEvent [second]: call 0,0 ms, next frames 27 / 21 ms
+  GameEvents listener DinosaurController.OnGameEvent [first]: call 0,0 ms, next frames 20 / 16 ms
+  GameEvents listener DinosaurController.OnGameEvent [second]: call 0,0 ms, next frames 18 / 19 ms
+  GameEvents listener DinosaurController.OnGameEvent [first]: call 0,0 ms, next frames 19 / 21 ms
+  GameEvents listener DinosaurController.OnGameEvent [second]: call 0,0 ms, next frames 27 / 31 ms
+  GameEvents listener DinosaurController.OnGameEvent [first]: call 0,0 ms, next frames 27 / 22 ms
+  GameEvents listener DinosaurController.OnGameEvent [second]: call 0,0 ms, next frames 22 / 25 ms
+  GameEvents listener DinosaurController.OnGameEvent [first]: call 0,0 ms, next frames 32 / 31 ms
+  GameEvents listener DinosaurController.OnGameEvent [second]: call 0,0 ms, next frames 22 / 25 ms
+  GameEvents listener DinosaurController.OnGameEvent [first]: call 0,0 ms, next frames 29 / 31 ms
+  GameEvents listener DinosaurController.OnGameEvent [second]: call 0,0 ms, next frames 26 / 23 ms
+  GameEvents listener DinosaurController.OnGameEvent [first]: call 0,0 ms, next frames 19 / 24 ms
+  GameEvents listener DinosaurController.OnGameEvent [second]: call 0,0 ms, next frames 26 / 27 ms
+  GameEvents listener JournalSystem.OnEvent [first]: call 0,0 ms, next frames 23 / 23 ms
+  GameEvents listener JournalSystem.OnEvent [second]: call 0,0 ms, next frames 18 / 21 ms
+  GameEvents listener HUDManager.OnEvent [first]: call 0,0 ms, next frames 23 / 24 ms
+  GameEvents listener HUDManager.OnEvent [second]: call 0,0 ms, next frames 31 / 38 ms
+  recipes the first wood teaches: 3
+  Crafting.Learned -> HUDManager.OnLearned [first]: call 2,2 ms, next frames 30 / 25 ms
+  Crafting.Learned -> HUDManager.OnLearned [second]: call 2,6 ms, next frames 33 / 33 ms
+  Crafting.Learned -> InventoryUI.OnLearned [first]: call 32,0 ms, next frames 56 / 27 ms
+  Crafting.Learned -> InventoryUI.OnLearned [second]: call 42,6 ms, next frames 70 / 19 ms
+  JournalUnlocked -> ContextHints.OnEvent [first]: call 0,2 ms, next frames 20 / 20 ms
+  JournalUnlocked -> ContextHints.OnEvent [second]: call 0,0 ms, next frames 26 / 26 ms
+  JournalUnlocked -> CraftingSystem.OnGameEvent [first]: call 0,0 ms, next frames 32 / 31 ms
+  JournalUnlocked -> CraftingSystem.OnGameEvent [second]: call 0,0 ms, next frames 32 / 26 ms
+  JournalUnlocked -> TutorialManager.OnEvent [first]: call 0,0 ms, next frames 17 / 17 ms
+  JournalUnlocked -> TutorialManager.OnEvent [second]: call 0,0 ms, next frames 19 / 21 ms
+  JournalUnlocked -> JournalSystem.OnEvent [first]: call 0,0 ms, next frames 18 / 23 ms
+  JournalUnlocked -> JournalSystem.OnEvent [second]: call 0,0 ms, next frames 24 / 26 ms
+  JournalUnlocked -> HUDManager.OnEvent [first]: call 0,0 ms, next frames 22 / 22 ms
+  JournalUnlocked -> HUDManager.OnEvent [second]: call 0,0 ms, next frames 21 / 20 ms
+  InventorySystem.Add, listeners detached [first]: call 0,0 ms, next frame 35 ms
+  Inventory.Changed -> PlayerEquipment.Refresh [first]: call 0,3 ms, next frames 30 / 30 ms
+  Inventory.Changed -> PlayerEquipment.Refresh [second]: call 0,0 ms, next frames 25 / 24 ms
+  Inventory.Changed -> HUDManager.RefreshHotbar [first]: call 0,1 ms, next frames 38 / 42 ms
+  Inventory.Changed -> HUDManager.RefreshHotbar [second]: call 0,1 ms, next frames 31 / 27 ms
+  Inventory.Changed -> InventoryUI.RefreshAll [first]: call 0,4 ms, next frames 23 / 23 ms
+  Inventory.Changed -> InventoryUI.RefreshAll [second]: call 0,3 ms, next frames 22 / 25 ms
+  Inventory.Changed -> PlayerSurvival.OnInventoryChanged [first]: call 0,0 ms, next frames 34 / 31 ms
+  Inventory.Changed -> PlayerSurvival.OnInventoryChanged [second]: call 0,0 ms, next frames 33 / 33 ms
+  Inventory.ActiveSlotChanged -> PlayerEquipment.OnSlot [first]: call 0,3 ms, next frames 41 / 34 ms
+  Inventory.ActiveSlotChanged -> PlayerEquipment.OnSlot [second]: call 0,0 ms, next frames 36 / 29 ms
+  Inventory.ActiveSlotChanged -> HUDManager.OnActive [first]: call 0,1 ms, next frames 25 / 25 ms
+  Inventory.ActiveSlotChanged -> HUDManager.OnActive [second]: call 0,1 ms, next frames 31 / 28 ms
+  ItemAdded -> ContextHints.OnEvent [first]: call 0,3 ms, next frames 32 / 37 ms
+  ItemAdded -> ContextHints.OnEvent [second]: call 0,0 ms, next frames 31 / 27 ms
+  ItemAdded -> CraftingSystem.OnGameEvent [first]: call 126,8 ms, next frames 154 / 61 ms
+  ItemAdded -> CraftingSystem.OnGameEvent [second]: call 0,0 ms, next frames 21 / 25 ms
+  ItemAdded -> TutorialManager.OnEvent [first]: call 0,0 ms, next frames 29 / 28 ms
+  ItemAdded -> TutorialManager.OnEvent [second]: call 0,0 ms, next frames 25 / 24 ms
+  ItemAdded -> JournalSystem.OnEvent [first]: call 0,0 ms, next frames 20 / 26 ms
+  ItemAdded -> JournalSystem.OnEvent [second]: call 0,0 ms, next frames 22 / 24 ms
+  ItemAdded -> HUDManager.OnEvent [first]: call 4,2 ms, next frames 26 / 29 ms
+  ItemAdded -> HUDManager.OnEvent [second]: call 0,1 ms, next frames 36 / 29 ms
+  PlayerInteraction.GiveOrDrop(yield, 1) [first]: call 0,5 ms, next frames 20 / 19 ms
+  PlayerInteraction.GiveOrDrop(yield, 1) [second]: call 0,3 ms, next frames 21 / 19 ms
+  ResourceNode.Hit (whole) [first]: call 0,5 ms, next frames 22 / 21 ms
+  ResourceNode.Hit (whole) [second]: call 0,3 ms, next frames 17 / 16 ms

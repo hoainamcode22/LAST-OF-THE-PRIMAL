@@ -19,11 +19,19 @@ Node rest vs skin bind pose (aligned on Pelvis): bone | total angle deg | roll a
   Calf_L: 45.2184 | 44.5028 | 8.2245 (pos diff 0.2232 m)
   Thigh_R: 19.5966 | -4.2706 | 19.1299 (pos diff 0 m)
   Calf_R: 17.3869 | -5.6302 | 16.4571 (pos diff 0.1505 m)
-Round trip of the BIND pose, bone rotation change deg: Clavicle_L 0  UpperArm_L 9.0739  LowerArm_L 55.752  Hand_L 0  Clavicle_R 0  UpperArm_R 38.9664  LowerArm_R 14.1229  Hand_R 0  Spine 0  Chest 0  Thigh_L 1.8553  Calf_L 23.0683  
-Round trip of the NODE rest, bone rotation change deg: Clavicle_L 0  UpperArm_L 41.1683  LowerArm_L 83.0592  Hand_L 0  Clavicle_R 0  UpperArm_R 24.0327  LowerArm_R 23.1432  Hand_R 0  Spine 0  Chest 0  Thigh_L 5.1018  Calf_L 4.2181  
-  node-rest muscles: LeftShoulderDown-Up=0 LeftShoulderFront-Back=0 LeftArmDown-Up=1.2723 LeftArmFront-Back=-1.1068 LeftArmTwistIn-Out=0.9309 LeftForearmStretch=0.4418 LeftForearmTwistIn-Out=-0.9229 LeftHandDown-Up=0 LeftHandIn-Out=-0.0007 RightShoulderDown-Up=0 RightShoulderFront-Back=0 RightArmDown-Up=-0.7167 RightArmFront-Back=0.3072 RightArmTwistIn-Out=0.0198 RightForearmStretch=-0.0896 RightForearmTwistIn-Out=0.2571 RightHandDown-Up=0 RightHandIn-Out=0
-Avatar T-pose L: upper arm dir (1.00, 0.00, 0.00) forearm dir (1.00, 0.00, 0.00) hand dir (0.46, 0.61, -0.65) palm normal (index-little x fwd) (0.53, -0.74, -0.33)
-Avatar T-pose R: upper arm dir (1.00, 0.00, 0.00) forearm dir (1.00, 0.00, 0.00) hand dir (0.69, -0.17, -0.70) palm normal (index-little x fwd) (0.07, 0.95, -0.16)
-Mirror L vs R (avatar T-pose), angle deg: Clavicle 89.8091  UpperArm 180  LowerArm 180  LowerArmTwist 180  Hand 96.206  Thigh 14.4802  Calf 16.653  Foot 9.5741  
+Round trip of the BIND pose, bone rotation change deg: Clavicle_L 0  UpperArm_L 3.1292  LowerArm_L 3.129  Hand_L 0  Clavicle_R 0  UpperArm_R 3.1297  LowerArm_R 3.129  Hand_R 0  Spine 0  Chest 0  Thigh_L 1.7738  Calf_L 1.9612  
+Round trip of the NODE rest, bone rotation change deg: Clavicle_L 0  UpperArm_L 0.6168  LowerArm_L 0.8176  Hand_L 0  Clavicle_R 0  UpperArm_R 0  LowerArm_R 0.6367  Hand_R 0  Spine 0  Chest 0  Thigh_L 19.3376  Calf_L 0.5651  
+  node-rest muscles: LeftShoulderDown-Up=0 LeftShoulderFront-Back=0 LeftArmDown-Up=-0.2132 LeftArmFront-Back=-0.1135 LeftArmTwistIn-Out=0.1466 LeftForearmStretch=0.4418 LeftForearmTwistIn-Out=-0.8836 LeftHandDown-Up=0.5337 LeftHandIn-Out=-1.2529 RightShoulderDown-Up=0 RightShoulderFront-Back=0 RightArmDown-Up=-0.5591 RightArmFront-Back=0.0915 RightArmTwistIn-Out=-0.3766 RightForearmStretch=-0.0896 RightForearmTwistIn-Out=0.3214 RightHandDown-Up=-0.0838 RightHandIn-Out=1.143
+Avatar T-pose L: upper arm dir (-1.00, 0.00, 0.00) forearm dir (-1.00, 0.00, 0.00) hand dir (-1.00, 0.00, 0.00) palm normal (index-little x fwd) (0.00, -0.97, 0.03)
+Avatar T-pose R: upper arm dir (1.00, 0.00, 0.00) forearm dir (1.00, 0.00, 0.00) hand dir (1.00, 0.00, 0.00) palm normal (index-little x fwd) (0.00, 0.97, -0.03)
+Mirror L vs R (avatar T-pose), angle deg: Clavicle 0  UpperArm 0  LowerArm 0  LowerArmTwist 0  Hand 0  Thigh 0  Calf 0  Foot 0  
 Mirror L vs R (bind pose), angle deg: Clavicle 0  UpperArm 0  LowerArm 0  LowerArmTwist 0  Hand 0  Thigh 0  Calf 0  Foot 0  
 Mirror L vs R (node rest), angle deg: Clavicle 89.8091  UpperArm 67.9678  LowerArm 45.8064  LowerArmTwist 80.0878  Hand 175.2023  Thigh 14.4802  Calf 16.653  Foot 9.5741  
+Twist settings (upperArm, lowerArm, upperLeg, lowerLeg): bind round trip, bone rotation change deg
+  ua 0,5 la 0 ul 0,5 ll 0,5: UpperArm_L 4.2694 LowerArm_L 3.129 Hand_L 0 UpperArm_R 4.269 LowerArm_R 3.1292 Thigh_L 1.7738 Calf_L 1.9612 Foot_L 0  | worst 4.2694
+  ua 1 la 0 ul 1 ll 1: UpperArm_L 3.1292 LowerArm_L 3.129 Hand_L 0 UpperArm_R 3.1297 LowerArm_R 3.129 Thigh_L 3.2949 Calf_L 0 Foot_L 0  | worst 3.2949
+  ua 1 la 1 ul 1 ll 1: UpperArm_L 3.1292 LowerArm_L 0 Hand_L 0 UpperArm_R 3.1297 LowerArm_R 0 Thigh_L 3.2949 Calf_L 0 Foot_L 0  | worst 3.2949
+  ua 0 la 0 ul 0 ll 0: UpperArm_L 11.668 LowerArm_L 3.129 Hand_L 0 UpperArm_R 11.6679 LowerArm_R 3.129 Thigh_L 0.2712 Calf_L 3.9203 Foot_L 0  | worst 11.668
+  ua 1 la 0 ul 0,5 ll 0,5: UpperArm_L 3.1292 LowerArm_L 3.129 Hand_L 0 UpperArm_R 3.1297 LowerArm_R 3.129 Thigh_L 1.7738 Calf_L 1.9612 Foot_L 0  | worst 3.1297
+  ua 1 la 0,5 ul 1 ll 1: UpperArm_L 3.1292 LowerArm_L 1.5637 Hand_L 0 UpperArm_R 3.1297 LowerArm_R 1.5637 Thigh_L 3.2949 Calf_L 0 Foot_L 0  | worst 3.2949
+  ua 0,5 la 0,5 ul 0,5 ll 0,5: UpperArm_L 4.2694 LowerArm_L 1.5642 Hand_L 0 UpperArm_R 4.269 LowerArm_R 1.5622 Thigh_L 1.7738 Calf_L 1.9612 Foot_L 0  | worst 4.2694

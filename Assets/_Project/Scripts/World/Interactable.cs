@@ -54,6 +54,9 @@ namespace PrimalFrontier.World
         }
         /// <summary>distance measured to the closest point of the object (big rocks, shelters)</summary>
         public virtual float Radius => 0.3f;
+        /// <summary>spans a large area (sea, pond, stream): its transform can be far from the water, so the interaction scan never
+        /// culls it by transform distance; the focus point (nearest water to the player) decides</summary>
+        public virtual bool LargeArea => false;
         public void RefreshBounds() => _b = null;
 
         protected virtual void OnEnable() { if (!Active.Contains(this)) Active.Add(this); }

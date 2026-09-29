@@ -122,6 +122,9 @@ namespace PrimalFrontier.EditorTools
             var clips = LoadClips(fbx);
             L($"Clips in FBX: {clips.Count} (meta: {meta?.clips?.Length ?? 0})");
             var controller = spec.Humanoid ? BuildPlayerController(spec, clips) : BuildDinoController(spec, clips, meta);
+            // write the controller before the prefab references it: an unsaved (dirty) controller was not resolved by the saved
+            // prefab (2026-09-28: the prefab's Animator came back with a null controller, disk file = empty stub)
+            EditorUtility.SetDirty(controller); AssetDatabase.SaveAssetIfDirty(controller);
             var prefab = BuildPrefab(spec, fbx, controller);
             bool ok = Test(spec, prefab, clips, meta);
             AssetDatabase.SaveAssets();
@@ -136,7 +139,26 @@ namespace PrimalFrontier.EditorTools
             var dir = $"{spec.Folder}/Animations";
             var file = Directory.Exists(dir) ? Directory.GetFiles(dir, "*_anim.json").FirstOrDefault() : null;
             if (file == null) { F("anim meta json missing"); return null; }
-            return JsonUtility.FromJson<AnimMeta>(File.ReadAllText(file));
+            var meta = JsonUtility.FromJson<AnimMeta>(File.ReadAllText(file));
+            // phase C: the Character agent's clips_manifest.json (same clip schema: name, frames, loop, speed, events) placed next to
+            // the anim json adds / overrides clip entries (event frames for the new clips)
+            string man = $"{dir}/clips_manifest.json";
+            if (File.Exists(man))
+            {
+                try
+                {
+                    var extra = JsonUtility.FromJson<AnimMeta>(File.ReadAllText(man));
+                    if (extra?.clips != null && extra.clips.Length > 0)
+                    {
+                        var by = (meta.clips ?? new ClipMeta[0]).ToDictionary(c => c.name, c => c);
+                        foreach (var c in extra.clips) if (c != null && !string.IsNullOrEmpty(c.name)) by[c.name] = c;
+                        meta.clips = by.Values.ToArray();
+                        L($"clips_manifest.json: {extra.clips.Length} clip entries merged");
+                    }
+                }
+                catch (Exception e) { F("clips_manifest.json unreadable: " + e.Message); }
+            }
+            return meta;
         }
 
         static readonly (HumanBodyBones hb, string bone)[] HumanMap =
@@ -191,21 +213,38 @@ namespace PrimalFrontier.EditorTools
                     human.Add(new HumanBone { boneName = bone, humanName = HumanTrait.BoneName[(int)hb], limit = new HumanLimit { useDefaultValues = true } });
                 }
                 var skel = new List<SkeletonBone>();
-                // world-space T-pose fix for the upper arms
+                // T-pose = the SKIN BIND POSE (the pose the mesh was bound in: the Blender rest A-pose) with the arms raised to
+                // horizontal. Never the model's node transforms: the FBX nodes can hold an animated frame (audit 2026-09-28: the
+                // left arm crossed the chest, so every left-arm muscle wrapped at 180 deg). Arm target by side: the model faces
+                // +Z, so the character's left is -X and its right is +X.
                 var inst = UnityEngine.Object.Instantiate(model);
                 try
                 {
-                    var t2 = inst.GetComponentsInChildren<Transform>(true).ToDictionary(t => t.name, t => t);
+                    inst.transform.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
+                    int bound = ApplySkinBindPose(inst);
+                    if (bound == 0) F("T-pose: no skinned mesh with bind poses, T-pose from the node transforms");
+                    else L($"T-pose: from the skin bind pose ({bound} bones), arms to horizontal by side (L = -X, R = +X)");
+                    var t2 = inst.GetComponentsInChildren<Transform>(true).GroupBy(t => t.name).ToDictionary(g => g.First().name, g => g.First());
                     foreach (var side in new[] { "L", "R" })
                     {
-                        var ua = t2["UpperArm_" + side]; var la = t2["LowerArm_" + side];
-                        var dir = (la.position - ua.position).normalized;
-                        var target = new Vector3(Mathf.Sign(dir.x), 0f, 0f);
-                        ua.rotation = Quaternion.FromToRotation(dir, target) * ua.rotation;
-                        var ha = t2["Hand_" + side];
-                        var dir2 = (ha.position - la.position).normalized;
-                        la.rotation = Quaternion.FromToRotation(dir2, target) * la.rotation;
+                        var target = inst.transform.rotation * (side == "L" ? Vector3.left : Vector3.right);
+                        var ua = t2["UpperArm_" + side]; var la = t2["LowerArm_" + side]; var ha = t2["Hand_" + side];
+                        ua.rotation = Quaternion.FromToRotation((la.position - ua.position).normalized, target) * ua.rotation;
+                        la.rotation = Quaternion.FromToRotation((ha.position - la.position).normalized, target) * la.rotation;
+                        // hand straight along the forearm (wrist muscles centred); the roll (palm) stays as bound
+                        if (t2.TryGetValue("Middle_01_" + side, out var mid))
+                            ha.rotation = Quaternion.FromToRotation((mid.position - ha.position).normalized, target) * ha.rotation;
+                        L(System.FormattableString.Invariant($"T-pose {side}: upper arm {inst.transform.InverseTransformDirection((la.position - ua.position).normalized)}, forearm {inst.transform.InverseTransformDirection((ha.position - la.position).normalized)}"));
                     }
+                    // mirror check: left bone vs mirrored right bone (x -> -x); a symmetric rig gives the same angle on every arm bone
+                    var mirror = new StringBuilder("T-pose mirror L vs R (deg):");
+                    foreach (var b in new[] { "Clavicle", "UpperArm", "LowerArm", "Hand", "Thigh", "Calf", "Foot" })
+                        if (t2.TryGetValue(b + "_L", out var tl) && t2.TryGetValue(b + "_R", out var tr))
+                        {
+                            var ql = tl.rotation; var m = new Quaternion(ql.x, -ql.y, -ql.z, ql.w);
+                            mirror.Append(System.FormattableString.Invariant($" {b} {Quaternion.Angle(m, tr.rotation):F1}"));
+                        }
+                    L(mirror.ToString());
                     foreach (var t in inst.GetComponentsInChildren<Transform>(true))
                         skel.Add(new SkeletonBone { name = t == inst.transform ? model.name : t.name, position = t.localPosition, rotation = t.localRotation, scale = t.localScale });
                 }
@@ -214,7 +253,9 @@ namespace PrimalFrontier.EditorTools
                 hd.human = human.ToArray(); hd.skeleton = skel.ToArray();
                 // forearm twist bones: TwistBoneDriver spreads the wrist twist, so the avatar must not roll the lower arm too
                 bool twistBones = byName.ContainsKey("LowerArmTwist_L");
-                hd.upperArmTwist = 0.5f; hd.lowerArmTwist = twistBones ? 0f : 0.5f; hd.upperLegTwist = 0.5f; hd.lowerLegTwist = 0.5f;
+                // upper arm roll stays on the upper arm bone (as authored; no upper-arm twist bone): bind-pose round trip 3.1 deg vs 4.3 at
+                // 0.5 (probe E twist sweep, 2026-09-28); forearm roll goes to the hand, the TwistBoneDriver spreads it (lowerArmTwist 0)
+                hd.upperArmTwist = 1f; hd.lowerArmTwist = twistBones ? 0f : 0.5f; hd.upperLegTwist = 0.5f; hd.lowerLegTwist = 0.5f;
                 L(twistBones ? "Twist bones LowerArmTwist_L/R found: avatar lowerArmTwist = 0 (TwistBoneDriver spreads the wrist twist)"
                              : "No forearm twist bones: avatar lowerArmTwist = 0.5");
                 hd.armStretch = 0.05f; hd.legStretch = 0.05f; hd.feetSpacing = 0f; hd.hasTranslationDoF = false;
@@ -235,10 +276,17 @@ namespace PrimalFrontier.EditorTools
                 c.lockRootRotation = true; c.keepOriginalOrientation = true;
                 c.lockRootHeightY = true; c.keepOriginalPositionY = true;
                 c.lockRootPositionXZ = true; c.keepOriginalPositionXZ = true;
-                if (cm != null && cm.events != null && cm.frames > 0)
+                if (cm != null && cm.events != null && cm.events.Length > 0 && cm.frames > 0)
                     c.events = cm.events.Select(e => new AnimationEvent { functionName = e.function, stringParameter = e.param ?? "", time = Mathf.Clamp01(e.frame / (float)cm.frames) }).ToArray();
+                else if (DefaultHitAt.TryGetValue(name, out float hitAt))
+                {
+                    c.events = new[] { new AnimationEvent { functionName = "OnAttackStart", time = 0.1f }, new AnimationEvent { functionName = "OnAttackHit", time = hitAt },
+                                       new AnimationEvent { functionName = "OnAttackEnd", time = 0.75f } };
+                    L($"{name}: no events in the clip meta, default OnAttackStart / OnAttackHit ({hitAt:F2}) / OnAttackEnd used");
+                }
                 else c.events = new AnimationEvent[0];
-                if (cm == null) F("clip without meta: " + name);
+                if (cm == null) { if (PhaseCClips.Contains(name)) L("new clip without meta (defaults): " + name); else F("clip without meta: " + name); }
+                if (cm == null && PhaseCClips.Contains(name)) { c.loopTime = name == "Unarmed_Block" || name == "Unarmed_Idle" || name == "Butcher" || name == "Bow_Idle" || name == "Spear_Idle" || name == "Bow_FullDraw"; c.loopPose = c.loopTime; }
                 list.Add(c);
             }
             mi.clipAnimations = list.ToArray();
@@ -252,6 +300,25 @@ namespace PrimalFrontier.EditorTools
                 if (spec.Humanoid && !avatar.isHuman) F("avatar is not humanoid");
             }
             L($"Importer: {list.Count} clips configured ({list.Count(c => c.loopTime)} loops, {list.Sum(c => c.events.Length)} events)");
+        }
+
+        /// <summary>puts every bone of the largest skinned mesh at its bind pose (parents first); bones outside the skin keep their
+        /// local transform, so they follow. Returns the number of bones placed.</summary>
+        static int ApplySkinBindPose(GameObject inst)
+        {
+            SkinnedMeshRenderer body = null;
+            foreach (var smr in inst.GetComponentsInChildren<SkinnedMeshRenderer>(true))
+                if (smr.sharedMesh && smr.bones.Length == smr.sharedMesh.bindposes.Length && (!body || smr.bones.Length > body.bones.Length)) body = smr;
+            if (!body) return 0;
+            var bp = body.sharedMesh.bindposes; var bones = body.bones; var toWorld = body.transform.localToWorldMatrix;
+            int Depth(Transform t) { int d = 0; while (t.parent) { d++; t = t.parent; } return d; }
+            int n = 0;
+            foreach (int i in Enumerable.Range(0, bones.Length).Where(i => bones[i]).OrderBy(i => Depth(bones[i])))
+            {
+                var m = toWorld * bp[i].inverse;
+                bones[i].SetPositionAndRotation(m.GetColumn(3), m.rotation); n++;
+            }
+            return n;
         }
 
         static List<AnimationClip> LoadClips(string fbx) =>
@@ -361,6 +428,22 @@ namespace PrimalFrontier.EditorTools
         }
 
         // ------------------------------------------------------------------ controller (player)
+        /// <summary>a clip that may not be in the FBX yet (phase C): null + a log line instead of a failure</summary>
+        static AnimationClip Opt(List<AnimationClip> clips, string name)
+        {
+            var c = clips.FirstOrDefault(x => x.name == name);
+            if (c == null) L("waiting for clip (state skipped): " + name);
+            return c;
+        }
+
+        /// <summary>clips the Character agent delivers in phase C: a missing meta entry is logged, not failed</summary>
+        static readonly HashSet<string> PhaseCClips = new HashSet<string> { "Gather_Enter", "Gather_Exit", "Walk_Start", "Walk_Stop", "Run_Start", "Run_Stop",
+            "Run_Pivot_180", "Turn_180", "Unarmed_Idle", "Punch_L", "Punch_R", "Punch_Heavy", "Kick", "Unarmed_Block", "Collect_Water", "Butcher",
+            "Bow_Equip", "Bow_Idle", "Bow_Nock", "Bow_FullDraw", "Spear_Idle", "Spear_Recovery" };
+
+        /// <summary>default attack events for unarmed clips exported without events (fractions of the clip); the clip meta wins</summary>
+        static readonly Dictionary<string, float> DefaultHitAt = new Dictionary<string, float> { { "Punch_L", 0.35f }, { "Punch_R", 0.35f }, { "Punch_Heavy", 0.36f }, { "Kick", 0.42f } };
+
         static AnimationClip Clip(List<AnimationClip> clips, string name)
         {
             var c = clips.FirstOrDefault(x => x.name == name);
@@ -397,16 +480,33 @@ namespace PrimalFrontier.EditorTools
                 ("WeaponType", AnimatorControllerParameterType.Int), ("IsMoving", AnimatorControllerParameterType.Bool),
                 ("AttackSpeed", AnimatorControllerParameterType.Float), ("FullBodyBusy", AnimatorControllerParameterType.Bool),
                 // light hit: additive flinch on the HitReaction layer (PlayerAnimationDriver.Hurt(false))
-                ("HurtLight", AnimatorControllerParameterType.Trigger) })
+                ("HurtLight", AnimatorControllerParameterType.Trigger),
+                // Locomotion state speed (Idle time-scaled to Walk's cycle), phase C start / stop / pivot selection
+                ("LocoRate", AnimatorControllerParameterType.Float), ("LocoIdleRate", AnimatorControllerParameterType.Float), ("UseLocoClips", AnimatorControllerParameterType.Bool),
+                ("LocoEvent", AnimatorControllerParameterType.Int), ("LocoMirror", AnimatorControllerParameterType.Bool) })
                 ac.AddParameter(n, t);
             var p = ac.parameters;
-            foreach (var x in p) { if (x.name == "IsGrounded") x.defaultBool = true; else if (x.name == "AttackSpeed") x.defaultFloat = 1f; }
+            // Idle's rate inside the time-synced Locomotion tree: Idle is time-scaled to Walk's cycle, the state speed brings it back
+            var idleClip = Clip(clips, "Idle"); var walkClip = Clip(clips, "Walk");
+            float idleScale = idleClip && walkClip && walkClip.length > 0.01f ? Mathf.Max(1f, idleClip.length / walkClip.length) : 1f;
+            foreach (var x in p)
+            {
+                if (x.name == "IsGrounded") x.defaultBool = true; else if (x.name == "AttackSpeed") x.defaultFloat = 1f;
+                else if (x.name == "LocoRate") x.defaultFloat = 1f;                  // no driver: normal rate (walk / run correct, Idle plays fast)
+                else if (x.name == "LocoIdleRate") x.defaultFloat = 1f / idleScale;  // PlayerAnimationDriver: LocoRate while standing still
+            }
             ac.parameters = p;
             var sm = ac.layers[0].stateMachine;
             // locomotion: 1D on planar speed (m/s); thresholds = the clips' authored speeds so feet do not slide
             var loco = ac.CreateBlendTreeInController("Locomotion", out var bt, 0);
             bt.blendType = BlendTreeType.Simple1D; bt.blendParameter = "Speed"; bt.useAutomaticThresholds = false;
-            bt.AddChild(Clip(clips, "Idle"), 0f); bt.AddChild(Clip(clips, "Walk"), 1.35f); bt.AddChild(Clip(clips, "Run"), 3.8f); bt.AddChild(Clip(clips, "Sprint"), 6.2f);
+            bt.AddChild(idleClip, 0f); bt.AddChild(walkClip, 1.35f); bt.AddChild(Clip(clips, "Run"), 3.8f); bt.AddChild(Clip(clips, "Sprint"), 6.2f);
+            // 1D trees sync the children's normalized time: Idle (6 s) mixed with Walk (1 s) slowed the steps to 0.3x at 0.7 m/s.
+            // Idle plays idleScale x faster inside the tree (same cycle as Walk); LocoRate (driver) slows the state to Idle's own
+            // rate when standing still. The state stays "Locomotion" (gameplay, tests and the intro refer to it).
+            var btc = bt.children; btc[0].timeScale = idleScale; bt.children = btc;
+            loco.speedParameterActive = true; loco.speedParameter = "LocoRate";
+            L($"Locomotion: Idle time-scaled x{idleScale:F2} to Walk's cycle, state speed = LocoRate (standing: LocoIdleRate {1f / idleScale:F3})");
             sm.defaultState = loco;
             loco.iKOnFeet = true;                        // humanoid foot IK: planted feet stay where the clip put them
             // idle life: the driver fires IdleVariant after standing still for a while
@@ -439,8 +539,22 @@ namespace PrimalFrontier.EditorTools
                 ("Walk_Left", -1.1f, 0f), ("Strafe_Run_L", -3f, 0f), ("Walk_Right", 1.1f, 0f), ("Strafe_Run_R", 3f, 0f) })
                 st2.AddChild(Clip(clips, clipName), new Vector2(x, z));
             strafe.iKOnFeet = true;
+            { var sc = st2.children; for (int i = 0; i < sc.Length; i++) if (sc[i].motion == idleClip) sc[i].timeScale = idleScale; st2.children = sc; }
+            strafe.speedParameterActive = true; strafe.speedParameter = "LocoRate";
             // every grounded "free" state: jump / fall / actions / attacks start from any of them
-            var grounded = new[] { loco, strafe, crouch, turn, idleVar };
+            // phase C start / stop / pivot / turn states (only when the clips exist; entered only with UseLocoClips, see the driver)
+            var locoExtra = new List<AnimatorState>();
+            foreach (var (clipName, ev) in new (string, int)[] { ("Walk_Start", LocoEvents.WalkStart), ("Run_Start", LocoEvents.RunStart), ("Walk_Stop", LocoEvents.WalkStop),
+                                                                 ("Run_Stop", LocoEvents.RunStop), ("Run_Pivot_180", LocoEvents.RunPivot180), ("Turn_180", LocoEvents.Turn180) })
+            {
+                var c = Opt(clips, clipName); if (c == null) continue;
+                var s = sm.AddState(clipName); s.motion = c; s.tag = "Loco"; s.iKOnFeet = true;
+                s.mirrorParameterActive = true; s.mirrorParameter = "LocoMirror";
+                var tin = T(loco, s, 0.1f); tin.AddCondition(AnimatorConditionMode.If, 0, "UseLocoClips"); tin.AddCondition(AnimatorConditionMode.Equals, ev, "LocoEvent");
+                T(s, loco, 0.15f, true, 0.85f);
+                locoExtra.Add(s);
+            }
+            var grounded = new[] { loco, strafe, crouch, turn, idleVar }.Concat(locoExtra).ToArray();
             // air: derived from IsGrounded + VerticalVelocity (no jump trigger needed)
             var jump = sm.AddState("Jump"); jump.motion = Clip(clips, "Jump");
             var fall = sm.AddState("Fall"); fall.motion = Clip(clips, "Fall");
@@ -455,36 +569,70 @@ namespace PrimalFrontier.EditorTools
             T(jump, land, 0.05f).AddCondition(AnimatorConditionMode.If, 0, "IsGrounded");
             T(land, loco, 0.2f, true, 0.6f);
             // full-body actions: Action = id (gameplay resets one-shots to 0 once entered; loops run until Action changes)
-            var actions = new (int id, string clip, bool loop)[] {
+            var actions = new List<(int id, string clip, bool loop)> {
                 (PA.Pickup, "Pickup", false), (PA.GatherWood, "Gather_Wood", true), (PA.GatherStone, "Gather_Stone", true), (PA.GatherPlant, "Gather_Plant", true),
                 (PA.Interact, "Interact", false), (PA.Craft, "Craft", true), (PA.Eat, "Eat", false), (PA.Drink, "Drink", false), (PA.Build, "Build", true),
                 (PA.UseItem, "Use_Item", false), (PA.Sleep, "Sleep", true), (PA.WakeUp, "Wake_Up", false), (PA.GetUp, "Get_Up", false) };
+            if (Opt(clips, "Collect_Water")) actions.Add((PA.CollectWater, "Collect_Water", false));
+            if (Opt(clips, "Butcher")) actions.Add((PA.Butcher, "Butcher", true));
+            // phase A timing until enter / exit clips exist: loops (squat / kneel work) blend in over 0.35 s and out over 0.45 s
+            // (hips drop ~1.1 m/s instead of ~2); one-shots 0.3 s in, 0.3 s out. The driver keeps movement off for the first 60 %
+            // of an exit and brakes the motor before an action starts.
+            const float LoopIn = 0.35f, LoopOut = 0.45f, OneShotIn = 0.3f, OneShotOut = 0.3f;
+            var gatherEnter = Opt(clips, "Gather_Enter"); var gatherExit = Opt(clips, "Gather_Exit");
+            bool gatherClips = gatherEnter && gatherExit;
             var actionStates = new Dictionary<int, AnimatorState>();
             foreach (var (id, clipName, loop) in actions)
             {
                 var s = sm.AddState(clipName); s.motion = Clip(clips, clipName); s.tag = "Action"; actionStates[id] = s;
+                bool special = id == PA.Sleep || id == PA.WakeUp || id == PA.GetUp;
+                if (id == PA.GatherPlant && gatherClips)
+                {
+                    // phase C: stand -> squat -> loop -> stand, short blends
+                    var enter = sm.AddState("Gather_Enter"); enter.motion = gatherEnter; enter.tag = "Action";
+                    var exit = sm.AddState("Gather_Exit"); exit.motion = gatherExit; exit.tag = "Action";
+                    foreach (var from in grounded) T(from, enter, 0.12f).AddCondition(AnimatorConditionMode.Equals, id, "Action");
+                    T(enter, s, 0.1f, true, 0.95f);
+                    T(enter, exit, 0.1f).AddCondition(AnimatorConditionMode.NotEqual, id, "Action");
+                    T(s, exit, 0.12f).AddCondition(AnimatorConditionMode.NotEqual, id, "Action");
+                    T(exit, loco, 0.15f, true, 0.9f);
+                    L("Gather_Plant: enter / exit clips wired (0.12 / 0.1 / 0.15 s blends)");
+                    continue;
+                }
                 foreach (var from in grounded)
-                    T(from, s, 0.2f).AddCondition(AnimatorConditionMode.Equals, id, "Action");
-                if (loop && id != PA.Sleep) T(s, loco, 0.3f).AddCondition(AnimatorConditionMode.NotEqual, id, "Action");
-                else if (!loop) T(s, loco, 0.25f, true, 0.94f);
+                    T(from, s, special ? 0.2f : loop ? LoopIn : OneShotIn).AddCondition(AnimatorConditionMode.Equals, id, "Action");
+                if (loop && id != PA.Sleep) T(s, loco, LoopOut).AddCondition(AnimatorConditionMode.NotEqual, id, "Action");
+                else if (!loop) T(s, loco, special ? 0.25f : OneShotOut, true, 0.94f);
             }
             T(actionStates[PA.Sleep], actionStates[PA.GetUp], 0.4f).AddCondition(AnimatorConditionMode.NotEqual, PA.Sleep, "Action");
             // opening: frozen first frame of Wake_Up (lying on the sand) until the intro sets Action = WakeUp
             var uncon = sm.AddState("Unconscious"); uncon.motion = Clip(clips, "Wake_Up"); uncon.speed = 0f; uncon.tag = "Action";
             T(uncon, actionStates[PA.WakeUp], 0.05f).AddCondition(AnimatorConditionMode.Equals, PA.WakeUp, "Action");
             // attacks: IsAttacking + Action id; clip speed x AttackSpeed (WeaponData.attackSpeed, default 1)
+            var attackStates = new Dictionary<string, AnimatorState>();
             foreach (var (id, clipName) in new (int, string)[] { (PA.AttackSpear, "Attack_Spear"), (PA.AttackSpearHeavy, "Attack_Spear_Heavy"), (PA.ThrowSpear, "Throw_Spear"),
                                                                  (PA.SpearAttack2, "Spear_Attack_2"), (PA.KnifeAttack, "Knife_Attack"),
                                                                  (PA.SwordAttack1, "Sword_Attack_1"), (PA.SwordAttack2, "Sword_Attack_2"), (PA.SwordAttack3, "Sword_Attack_3"),
-                                                                 (PA.SwordHeavy, "Sword_Heavy") })
+                                                                 (PA.SwordHeavy, "Sword_Heavy") }
+                                                                 .Concat(new (int, string)[] { (PA.PunchL, "Punch_L"), (PA.PunchR, "Punch_R"), (PA.PunchHeavy, "Punch_Heavy"), (PA.Kick, "Kick") }
+                                                                 .Where(a => PhaseCClips.Contains(a.Item2) ? Opt(clips, a.Item2) != null : true)))
             {
-                var s = sm.AddState(clipName); s.motion = Clip(clips, clipName); s.tag = "Attack";
+                var s = sm.AddState(clipName); s.motion = Clip(clips, clipName); s.tag = "Attack"; attackStates[clipName] = s;
                 s.speedParameterActive = true; s.speedParameter = "AttackSpeed";
                 foreach (var from in grounded)
                 {
                     var tin = T(from, s, 0.1f); tin.AddCondition(AnimatorConditionMode.If, 0, "IsAttacking"); tin.AddCondition(AnimatorConditionMode.Equals, id, "Action");
                 }
-                T(s, loco, 0.2f, true, 0.9f);                // back to Locomotion; the Strafe transition moves on from there
+                if (!(clipName == "Attack_Spear" || clipName == "Spear_Attack_2") || !Opt(clips, "Spear_Recovery"))
+                    T(s, loco, 0.2f, true, 0.9f);            // back to Locomotion; the Strafe transition moves on from there
+            }
+            // phase C: spear attacks recover through Spear_Recovery when the clip exists
+            if (Opt(clips, "Spear_Recovery") is AnimationClip spearRec)
+            {
+                var rec = sm.AddState("Spear_Recovery"); rec.motion = spearRec; rec.tag = "Attack";
+                rec.speedParameterActive = true; rec.speedParameter = "AttackSpeed";
+                foreach (var n in new[] { "Attack_Spear", "Spear_Attack_2" }) if (attackStates.TryGetValue(n, out var a)) T(a, rec, 0.1f, true, 0.9f);
+                T(rec, loco, 0.2f, true, 0.9f);
             }
             // dodge: from anywhere (also cancels an attack's recovery), short blends
             var dodge = sm.AddState("Dodge"); dodge.motion = Clip(clips, "Dodge"); dodge.tag = "Action";
@@ -577,6 +725,36 @@ namespace PrimalFrontier.EditorTools
             Out(swordIdle, 0.1f).AddCondition(AnimatorConditionMode.If, 0, "IsAttacking");
             Out(swordIdle, 0.15f).AddCondition(AnimatorConditionMode.If, 0, "FullBodyBusy");
             var su = Out(swordIdle, 0.2f); su.AddCondition(AnimatorConditionMode.Greater, PA.BowAim - 1, "Action"); su.AddCondition(AnimatorConditionMode.Less, PA.CarryItem + 1, "Action");
+            // phase C upper-body states (only when the clips exist): unarmed block (hold), bow equip / nock (one-shots), full draw
+            // (hold), and combat idles for bare hands / bow / spear built like Sword_Idle
+            if (Opt(clips, "Unarmed_Block")) { var ub = Upper(PA.UnarmedBlock, "Unarmed_Block"); Out(ub, 0.2f).AddCondition(AnimatorConditionMode.NotEqual, PA.UnarmedBlock, "Action"); }
+            if (Opt(clips, "Bow_FullDraw")) { var fd = Upper(PA.BowFullDraw, "Bow_FullDraw"); Out(fd, 0.2f).AddCondition(AnimatorConditionMode.NotEqual, PA.BowFullDraw, "Action"); }
+            foreach (var (id, clipName) in new (int, string)[] { (PA.BowEquip, "Bow_Equip"), (PA.BowNock, "Bow_Nock") })
+            {
+                if (!Opt(clips, clipName)) continue;
+                var s = Upper(id, clipName);
+                Out(s, 0.2f, true, 0.9f).AddCondition(AnimatorConditionMode.NotEqual, id, "Action");
+                Out(s, 0.1f).AddCondition(AnimatorConditionMode.If, 0, "IsAttacking");
+            }
+            foreach (var (clipName, kind) in new (string, Items.WeaponKind)[] { ("Unarmed_Idle", Items.WeaponKind.None), ("Bow_Idle", Items.WeaponKind.Bow), ("Spear_Idle", Items.WeaponKind.Spear) })
+            {
+                var c = Opt(clips, clipName); if (c == null) continue;
+                var idleS = usm.AddState(clipName); idleS.motion = c;
+                foreach (var (mode, v) in new (AnimatorConditionMode, int)[] { (AnimatorConditionMode.Less, PA.BowAim), (AnimatorConditionMode.Greater, PA.CarryItem) })
+                {
+                    var tin = empty.AddTransition(idleS); tin.duration = 0.25f; tin.hasExitTime = false; tin.hasFixedDuration = true;
+                    tin.AddCondition(AnimatorConditionMode.Equals, (int)kind, "WeaponType");
+                    tin.AddCondition(AnimatorConditionMode.If, 0, "CombatMode");
+                    tin.AddCondition(AnimatorConditionMode.IfNot, 0, "IsAttacking");
+                    tin.AddCondition(AnimatorConditionMode.IfNot, 0, "FullBodyBusy");
+                    tin.AddCondition(mode, v, "Action");
+                }
+                Out(idleS, 0.25f).AddCondition(AnimatorConditionMode.NotEqual, (int)kind, "WeaponType");
+                Out(idleS, 0.25f).AddCondition(AnimatorConditionMode.IfNot, 0, "CombatMode");
+                Out(idleS, 0.1f).AddCondition(AnimatorConditionMode.If, 0, "IsAttacking");
+                Out(idleS, 0.15f).AddCondition(AnimatorConditionMode.If, 0, "FullBodyBusy");
+                var ou = Out(idleS, 0.2f); ou.AddCondition(AnimatorConditionMode.Greater, PA.BowAim - 1, "Action"); ou.AddCondition(AnimatorConditionMode.Less, PA.CarryItem + 1, "Action");
+            }
             // hit reaction layer: a light hit adds the Hurt clip on top of whatever the body does (additive, upper-body mask),
             // so the base layer keeps its locomotion and the motor keeps moving. HurtLight (trigger) restarts it on every hit;
             // back to Empty at exit time. Heavy hits keep the full-body Hurt_Heavy state (HealthState 2); the base Hurt state

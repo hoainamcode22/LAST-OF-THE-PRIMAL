@@ -107,6 +107,94 @@ namespace PrimalFrontier.EditorTools
             return sb.ToString();
         }
 
+        /// <summary>open scenes and whether they have unsaved changes (check before a builder that opens a new scene)</summary>
+        [PrimalBridgeCommand]
+        public static string SceneState()
+        {
+            var sb = new StringBuilder();
+            for (int i = 0; i < UnityEditor.SceneManagement.EditorSceneManager.sceneCount; i++)
+            {
+                var sc = UnityEditor.SceneManagement.EditorSceneManager.GetSceneAt(i);
+                sb.AppendLine($"{sc.path} loaded={sc.isLoaded} dirty={sc.isDirty}");
+            }
+            return sb.ToString();
+        }
+
+        /// <summary>re-open a scene after a builder left an empty one (refuses when the open scene has unsaved changes)</summary>
+        [PrimalBridgeCommand]
+        public static string OpenScene(string path)
+        {
+            var cur = UnityEditor.SceneManagement.EditorSceneManager.GetActiveScene();
+            if (cur.isDirty && !string.IsNullOrEmpty(cur.path)) return $"refused: {cur.path} has unsaved changes";
+            UnityEditor.SceneManagement.EditorSceneManager.OpenScene(string.IsNullOrEmpty(path) ? "Assets/_Project/Scenes/Island_VerticalSlice.unity" : path, UnityEditor.SceneManagement.OpenSceneMode.Single);
+            return "opened " + UnityEditor.SceneManagement.EditorSceneManager.GetActiveScene().path;
+        }
+
+        /// <summary>state of the player's prefab / controller / avatar assets (after a builder run)</summary>
+        [PrimalBridgeCommand]
+        public static string ControllerCheck()
+        {
+            var sb = new StringBuilder();
+            const string cp = "Assets/Art/Characters/Player/Animations/PlayerAnimator.controller";
+            var ac = AssetDatabase.LoadAssetAtPath<UnityEditor.Animations.AnimatorController>(cp);
+            sb.AppendLine($"controller asset: {(ac ? ac.name : "null")} guid {AssetDatabase.AssetPathToGUID(cp)} layers {(ac ? ac.layers.Length : -1)} params {(ac ? ac.parameters.Length : -1)} dirty {(ac ? EditorUtility.IsDirty(ac) : false)}");
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(PlayerPrefab);
+            foreach (var an in prefab ? prefab.GetComponentsInChildren<Animator>(true) : new Animator[0])
+                sb.AppendLine($"prefab animator on {an.name}: controller {(an.runtimeAnimatorController ? AssetDatabase.GetAssetPath(an.runtimeAnimatorController) : "null")} avatar {(an.avatar ? an.avatar.name + " valid " + an.avatar.isValid : "null")}");
+            var inst = (GameObject)PrefabUtility.InstantiatePrefab(prefab);
+            try { var an = inst.GetComponent<Animator>(); sb.AppendLine($"instance animator: {(an ? (an.runtimeAnimatorController ? an.runtimeAnimatorController.name : "controller null") : "no animator")}"); }
+            finally { Object.DestroyImmediate(inst); }
+            return sb.ToString();
+        }
+
+        /// <summary>serialized values on the player prefab (in memory) that differ from the code defaults of a fresh component</summary>
+        [PrimalBridgeCommand]
+        public static string PlayerFieldDiff()
+        {
+            var sb = new StringBuilder();
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Project/Prefabs/Player/PFB_Player.prefab");
+            if (!prefab) return "no prefab";
+            var sceneMotor = Object.FindFirstObjectByType<PrimalFrontier.Player.PlayerMotor>(FindObjectsInactive.Include);
+            var types = new[] { typeof(PrimalFrontier.Player.PlayerMotor), typeof(PrimalFrontier.Player.PlayerAnimationDriver), typeof(PrimalFrontier.Player.PlayerIK), typeof(PrimalFrontier.Player.PlayerInteraction) };
+            var tmp = new GameObject("_fielddiff") { hideFlags = HideFlags.HideAndDontSave };
+            try
+            {
+                foreach (var t in types)
+                {
+                    var fresh = tmp.GetComponent(t); if (!fresh) fresh = tmp.AddComponent(t);
+                    var b = new SerializedObject(fresh);
+                    foreach (var (label, host) in new[] { ("prefab", prefab), ("scene", sceneMotor ? sceneMotor.gameObject : null) })
+                    {
+                    var onHost = host ? host.GetComponentInChildren(t, true) : null;
+                    if (!onHost) { sb.AppendLine($"{label} {t.Name}: missing"); continue; }
+                    var a = new SerializedObject(onHost);
+                    var it = a.GetIterator(); int n = 0, d = 0;
+                    for (bool enter = true; it.NextVisible(enter); enter = false)
+                    {
+                        var q = b.FindProperty(it.propertyPath);
+                        if (q == null || it.propertyType == SerializedPropertyType.ObjectReference) continue;
+                        string va = Val(it), vb = Val(q); if (va == null) continue; n++;
+                        if (va != vb) { d++; sb.AppendLine($"{label} {t.Name}.{it.propertyPath}: {va} (code {vb})"); }
+                    }
+                    sb.AppendLine($"{label} {t.Name}: {n} values, {d} differ");
+                    }
+                }
+            }
+            finally { Object.DestroyImmediate(tmp); }
+            return sb.ToString();
+        }
+
+        static string Val(SerializedProperty p) => p.propertyType switch
+        {
+            SerializedPropertyType.Float => p.floatValue.ToString("R"),
+            SerializedPropertyType.Integer => p.intValue.ToString(),
+            SerializedPropertyType.Boolean => p.boolValue.ToString(),
+            SerializedPropertyType.Enum => p.enumValueIndex.ToString(),
+            SerializedPropertyType.Vector3 => p.vector3Value.ToString("R"),
+            SerializedPropertyType.Vector2 => p.vector2Value.ToString("R"),
+            _ => null
+        };
+
         /// <summary>every skinned bone to its skin bind pose (the pose the mesh was bound in)</summary>
         static void SetBindPose(Animator anim)
         {

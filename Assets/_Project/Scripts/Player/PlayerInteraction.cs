@@ -19,6 +19,10 @@ namespace PrimalFrontier.Player
     {
         public float searchRadius = 3.2f;
         public float maxAngle = 75f;
+        [Header("Face the work (eased, only once the motor stops steering)")]
+        [Tooltip("deg/s max")] public float focusTurnSpeed = 180f;
+        [Tooltip("s to settle on the focus")] public float focusSmoothTime = 0.12f;
+        [Tooltip("deg per frame max (long frames must not snap)")] public float focusMaxStep = 5f;
 
         public PlayerMotor Motor { get; private set; }
         public PlayerAnimationDriver Driver { get; private set; }
@@ -58,7 +62,7 @@ namespace PrimalFrontier.Player
         RunningAction _act;
         CharacterAnimationEvents _events;
         PlayerInputReader _in;
-        float _holdT; float _nextScan;
+        float _holdT; float _nextScan; float _focusVel;
 
         void Awake()
         {
@@ -159,7 +163,7 @@ namespace PrimalFrontier.Player
             {
                 var it = list[i];
                 if (it == null) continue;
-                if ((it.transform.position - me).sqrMagnitude > r2 && it.Radius < 2f) continue;
+                if (!it.LargeArea && it.Radius < 2f && (it.transform.position - me).sqrMagnitude > r2) continue;   // water bodies: focus decides
                 Consider(it);
             }
             foreach (var prov in ExtraProviders) Consider(prov(this));
@@ -201,7 +205,7 @@ namespace PrimalFrontier.Player
 
         void SetFocus(Vector3? focus)
         {
-            _act.hasFocus = focus.HasValue; _act.focus = focus ?? Vector3.zero;
+            _act.hasFocus = focus.HasValue; _act.focus = focus ?? Vector3.zero; _focusVel = 0f;
             if (Feedback) { Feedback.ActionFocusPoint = focus; if (focus.HasValue) Feedback.ActionFocusNormal = (transform.position + Vector3.up - focus.Value).normalized; }
         }
 
@@ -217,11 +221,19 @@ namespace PrimalFrontier.Player
         void UpdateAction()
         {
             if (_act == null) return;
-            // face the work
-            if (_act.hasFocus)
+            // face the work: eased (SmoothDampAngle, max focusTurnSpeed and focusMaxStep per frame), and only once the motor no longer
+            // steers the body (it braked below 0.2 m/s) and the action is not waiting for the brake: two scripts turning the body
+            // in the same frames gave single-frame jumps of 13-16 deg (probe 2026-09-28, was 540 deg/s)
+            if (_act.hasFocus && !(Motor && Motor.IsSteering) && !(Driver && Driver.Braking))
             {
                 Vector3 d = _act.focus - transform.position; d.y = 0;
-                if (d.sqrMagnitude > 0.01f) transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.LookRotation(d), 540f * Time.deltaTime);
+                if (d.sqrMagnitude > 0.01f)
+                {
+                    float cur = transform.eulerAngles.y, want = Quaternion.LookRotation(d).eulerAngles.y;
+                    float y = Mathf.SmoothDampAngle(cur, want, ref _focusVel, focusSmoothTime, focusTurnSpeed, Mathf.Max(1e-4f, Time.deltaTime));
+                    float step = Mathf.Clamp(Mathf.DeltaAngle(cur, y), -focusMaxStep, focusMaxStep);
+                    transform.rotation = Quaternion.Euler(0f, cur + step, 0f);
+                }
             }
             float t = Time.time - _act.started;
             if (!_act.loop)

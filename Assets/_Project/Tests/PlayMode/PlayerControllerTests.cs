@@ -13,6 +13,7 @@ namespace PrimalFrontier.Tests
     {
         GameObject _course, _player, _cam, _input;
         PlayerMotor _motor; PlayerAnimationDriver _drv; Animator _anim; ThirdPersonCamera _tpc;
+        string _mm = "";
 
         [UnitySetUp]
         public IEnumerator SetUp()
@@ -63,7 +64,19 @@ namespace PrimalFrontier.Tests
 
         IEnumerator MoveAndMeasure(float seconds, System.Action<float, float> check)
         {
-            Vector3 p0 = _player.transform.position; yield return new WaitForSeconds(seconds);
+            Vector3 p0 = _player.transform.position, pl = p0; float end = Time.time + seconds;
+            int frames = 0, slow = 0, noMove = 0, short_ = 0; float maxDt = 0f, lost = 0f;
+            while (Time.time < end)      // same wait as WaitForSeconds, plus frame stats for the failure message
+            {
+                yield return null;
+                float dt = Time.deltaTime; frames++; maxDt = Mathf.Max(maxDt, dt);
+                if (dt > 0.05f) { slow++; lost += dt - 0.05f; }   // the motor integrates at most 0.05 s per frame
+                Vector3 step = _player.transform.position - pl; step.y = 0; pl = _player.transform.position;
+                if (!_motor.CanMove) noMove++;
+                if (step.magnitude < 0.8f * _motor.PlanarSpeed * Mathf.Min(dt, 0.05f)) short_++;
+            }
+            _mm = $"[frames {frames} maxDt {maxDt * 1000f:F0}ms over50ms {slow} lost {lost:F3}s CanMove-off {noMove} short-steps {short_}]";
+            Debug.Log("MoveAndMeasure " + _mm);
             Vector3 d = _player.transform.position - p0; d.y = 0;
             check(d.magnitude, _motor.PlanarSpeed);
         }
@@ -75,7 +88,7 @@ namespace PrimalFrontier.Tests
             yield return MoveAndMeasure(1.0f, (dist, spd) =>
             {
                 Assert.AreEqual(_motor.runSpeed, spd, 0.25f, "run speed");
-                Assert.AreEqual(_motor.runSpeed, dist, 0.35f, "distance per second");
+                Assert.AreEqual(_motor.runSpeed, dist, 0.35f, "distance per second " + _mm);
             });
             Assert.IsTrue(_motor.IsGrounded, "grounded while running");
             Assert.IsTrue(InState("Locomotion"));

@@ -28,6 +28,7 @@ namespace PrimalFrontier.World
         public override float Range => 2.0f;
         public override float Radius => 0f;
         public override Vector3 FocusPoint => _focus;
+        public override bool LargeArea => true;
         public override int Priority => -1;
         /// <summary>what a container filled here holds (not fresh = salt, clean spring = clean, else unboiled)</summary>
         public WaterType SourceType => !fresh ? WaterType.SaltWater : clean ? WaterType.CleanWater : WaterType.DirtyWater;
