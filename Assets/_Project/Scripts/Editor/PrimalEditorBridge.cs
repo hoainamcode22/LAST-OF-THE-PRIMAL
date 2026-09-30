@@ -86,6 +86,50 @@ namespace PrimalFrontier.EditorTools
 
         // ------------------------------------------------------------------ small commands
         [PrimalBridgeCommand] static string Refresh() { AssetDatabase.Refresh(); return "refreshed"; }
+        /// <summary>saves every open scene (Lead, 2026-09-30); agents call it before releasing the bridge lock after scene edits</summary>
+        [PrimalBridgeCommand] static string SaveScene()
+        {
+            bool ok = UnityEditor.SceneManagement.EditorSceneManager.SaveOpenScenes();
+            return (ok ? "saved " : "SAVE FAILED ") + UnityEditor.SceneManagement.EditorSceneManager.GetActiveScene().path;
+        }
+        /// <summary>is the active scene dirty (unsaved)?</summary>
+        [PrimalBridgeCommand] static string SceneState()
+        {
+            var sc = UnityEditor.SceneManagement.EditorSceneManager.GetActiveScene();
+            return $"{sc.path} dirty={sc.isDirty} playing={EditorApplication.isPlaying}";
+        }
         [PrimalBridgeCommand] static string Ping() => $"editor {Application.unityVersion}, scene {UnityEditor.SceneManagement.EditorSceneManager.GetActiveScene().path}";
+
+        /// <summary>Console check: reads the editor Console (errors / exceptions / asserts / import errors, and warnings),
+        /// writes every entry to Library/PrimalBridge/console.txt and returns the counts plus the first unique error lines.
+        /// arg "clear" clears the Console after reading (only for a clean baseline before a check).</summary>
+        [PrimalBridgeCommand] static string ConsoleCheck(string arg)
+        {
+            var asm = typeof(UnityEditor.Editor).Assembly;
+            var le = asm.GetType("UnityEditor.LogEntries"); var entryT = asm.GetType("UnityEditor.LogEntry");
+            if (le == null || entryT == null) return "LogEntries not found (Unity API changed)";
+            const int errMask = 1 | 2 | 16 | 64 | 256 | 2048 | 8192 | 131072 | 2097152, warnMask = 128 | 512 | 4096;
+            var fMsg = entryT.GetField("message"); var fMode = entryT.GetField("mode");
+            var get = le.GetMethod("GetEntryInternal", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+            int n = (int)le.GetMethod("StartGettingEntries", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic).Invoke(null, null);
+            int errs = 0, warns = 0; var all = new StringBuilder(); var firstErr = new System.Collections.Generic.List<string>();
+            try
+            {
+                var e = Activator.CreateInstance(entryT);
+                for (int i = 0; i < n; i++)
+                {
+                    get.Invoke(null, new object[] { i, e });
+                    int mode = (int)fMode.GetValue(e); string msg = (string)fMsg.GetValue(e) ?? "";
+                    string kind = (mode & errMask) != 0 ? "ERROR" : (mode & warnMask) != 0 ? "WARN" : "log";
+                    if (kind == "ERROR") { errs++; string head = msg.Split('\n')[0]; if (firstErr.Count < 20 && !firstErr.Contains(head)) firstErr.Add(head); }
+                    else if (kind == "WARN") warns++;
+                    all.AppendLine($"[{kind}] {msg.Replace("\r", "")}");
+                }
+            }
+            finally { le.GetMethod("EndGettingEntries", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic).Invoke(null, null); }
+            Directory.CreateDirectory(Dir); File.WriteAllText(Path.Combine(Dir, "console.txt"), all.ToString());
+            if (arg == "clear") le.GetMethod("Clear", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)?.Invoke(null, null);
+            return $"console: {n} entries, {errs} errors, {warns} warnings" + (firstErr.Count > 0 ? "\n" + string.Join("\n", firstErr) : "");
+        }
     }
 }

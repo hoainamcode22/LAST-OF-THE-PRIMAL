@@ -1,5 +1,5 @@
 """PRIMAL FRONTIER - original sound effects synthesized from scratch (numpy / scipy). No samples, no third-party audio.
-usage: python3 sfx_synth.py <out_dir> [--only phase3]   -> SFX_<Id>_<n>.wav (mono 16-bit 44.1 kHz) and AMB_<Name>_Loop.wav"""
+usage: python3 sfx_synth.py <out_dir> [--only phase3|pc]   -> SFX_<Id>_<n>.wav (mono 16-bit 44.1 kHz) and AMB_<Name>_Loop.wav"""
 import os, sys, numpy as np
 from scipy import signal
 from scipy.io import wavfile
@@ -275,6 +275,54 @@ def phase3(out):
         for i in range(n): save(out, f"SFX_{name}_{i + 1}", fn(), 0.6 if name == "WaterBoil" else 0.8, fade=name != "WaterBoil")   # the loop keeps its seam
     print("phase3", sum(n for _, _, n in table), "sfx")
 
+# ---------------------------------------------------------------- PC phase (U): wood / grass steps, chewing, scooping water, climbing
+def foot_wood():
+    """bare / wrapped foot on a log, plank of the wreck or a root: a short hollow knock"""
+    f = rng.uniform(170, 230)
+    body = mix(mode(0.16, f, 38, 1.0), mode(0.12, f * 2.3, 60, 0.4), mode(0.1, f * 4.1, 90, 0.15))
+    click = bp(noise(0.012), 1200, 4500) * env(int(SR * 0.012), 0.0002, 0.003) * 0.35
+    return mix(body, click, lp(noise(0.05), 600) * env(int(SR * 0.05), 0.001, 0.015) * 0.35)
+def foot_grass():
+    """through low plants: a soft swish over a light thud"""
+    d = rng.uniform(0.18, 0.24)
+    sw = bp(noise(d), 1500, 6500) * np.sin(np.linspace(0, np.pi, int(SR * d))) ** 1.2 * 0.5
+    return mix(sw, lp(noise(0.08), 350) * env(int(SR * 0.08), 0.003, 0.03) * 0.8, grains(d, 500, 2000, 7000) * 0.2)
+def chew():
+    """two or three quiet bites with a closed mouth"""
+    out = np.zeros(int(SR * 0.7)); t0 = 0.0
+    for i in range(rng.integers(2, 4)):
+        L = int(SR * rng.uniform(0.07, 0.11)); p = int(SR * t0)
+        if p + L > len(out): break
+        g = grains(L / SR, 1400, 900, 4200)[:L] * np.sin(np.linspace(0, np.pi, L)) + lp(noise(L / SR), 300)[:L] * np.sin(np.linspace(0, np.pi, L)) * 0.6
+        out[p:p + L] += g * rng.uniform(0.6, 1.0); t0 += rng.uniform(0.2, 0.26)
+    return out
+def water_scoop():
+    """cupped hands into shallow water and out"""
+    d = 0.5; out = bp(noise(d), 500, 3500) * env(int(SR * d), 0.01, 0.12, 3) * 0.5
+    for i in range(7):
+        p = rng.integers(0, int(SR * 0.3)); f = rng.uniform(350, 800); b = t(0.04)
+        out[p:p + len(b)] += np.sin(2 * np.pi * np.cumsum(f * (1 + 0.8 * b / 0.04)) / SR) * np.exp(-b * 80) * rng.uniform(0.15, 0.35)
+    drip = pad(np.concatenate([np.zeros(int(SR * 0.32)), bp(noise(0.12), 1500, 6000) * env(int(SR * 0.12), 0.002, 0.04) * 0.3]), d)
+    return mix(out, drip)
+def climb_grab():
+    """palm on rock or bark: a soft slap and a little grit"""
+    f = rng.uniform(130, 170)
+    return mix(mode(0.12, f, 45, 0.8), bp(noise(0.03), 900, 3500) * env(int(SR * 0.03), 0.0005, 0.01) * 0.9, grains(0.15, 600, 2500, 7000) * env(int(SR * 0.15), 0.005, 0.05) * 0.4)
+def climb_scrape():
+    """a foot finding a hold: short gritty scrape"""
+    d = rng.uniform(0.2, 0.3)
+    sc = grains(d, 1600, 1800, 7000) * np.sin(np.linspace(0, np.pi, int(SR * d))) ** 0.8 * 0.6
+    return mix(sc, bp(noise(d), 300, 1200) * np.sin(np.linspace(0, np.pi, int(SR * d))) * 0.25)
+
+def pcphase(out):
+    global rng
+    rng = np.random.default_rng(4242)
+    table = [("FootWood", foot_wood, 4), ("FootGrass", foot_grass, 4), ("Chew", chew, 3), ("WaterScoop", water_scoop, 2),
+             ("ClimbGrab", climb_grab, 3), ("ClimbScrape", climb_scrape, 3)]
+    for name, fn, n in table:
+        for i in range(n): save(out, f"SFX_{name}_{i + 1}", fn(), 0.7 if name.startswith("Foot") else 0.8)
+    print("pc", sum(n for _, _, n in table), "sfx")
+
 def main(out):
     os.makedirs(out, exist_ok=True)
     amb = os.path.join(out, "..", "Ambience"); os.makedirs(amb, exist_ok=True)
@@ -292,11 +340,13 @@ def main(out):
     for name, fn in (("Ocean", ocean), ("Wind", wind), ("Forest", forest), ("Night", night), ("Rain", rain), ("Fire", fire_loop), ("Storm", storm)):
         save(amb, f"AMB_{name}_Loop", fn(), 0.6)
     phase3(out)
+    pcphase(out)
     print("done", len(os.listdir(out)), "sfx")
 
 # usage: python3 sfx_synth.py <out_dir>                 everything (original table, ambience, phase 3)
 #        python3 sfx_synth.py <out_dir> --only phase3   only the phase 3 / 3.5 set (keeps the older files untouched)
+#        python3 sfx_synth.py <out_dir> --only pc       only the PC-phase set
 if __name__ == "__main__":
-    if len(sys.argv) > 3 and sys.argv[2] == "--only" and sys.argv[3] == "phase3":
-        os.makedirs(sys.argv[1], exist_ok=True); phase3(sys.argv[1])
+    if len(sys.argv) > 3 and sys.argv[2] == "--only" and sys.argv[3] in ("phase3", "pc"):
+        os.makedirs(sys.argv[1], exist_ok=True); (phase3 if sys.argv[3] == "phase3" else pcphase)(sys.argv[1])
     else: main(sys.argv[1])

@@ -1,0 +1,10 @@
+PrimalResourceBuilder.Phase1Lava 2026-09-30 16:09 arg 'dry' (dry run)
+terrain (640.00, 80.00, 640.00) at (-320.00, -10.00, -320.00), layers TL_Sand,TL_Grass,TL_ForestFloor,TL_Rock,TL_Mud,TL_SandWet,TL_Moss,TL_DarkSoil,TL_Ash, trees 1479
+fresh water cells 4780 from 8 active bodies: ENV_River_Water 1483, ENV_WaterfallPool_Water 53, ENV_SpringStream_Water 56, ENV_Wetland_Water 1620, ENV_RiverMouth_Water 170, ENV_Spring_Water 9, ENV_LowerRiver_Water 515, ENV_Pond_Water 874
+locations (18): beach (0,0,1,8,205,0) r70, canyon (-136,0,23,4,-125,0) r36, cave (-18,0,18,4,-131,0) r15, deep_forest (168,0,8,1,20,0) r60, forest (-40,0,10,7,125,0) r60, fossil_bed (-128,4,23,5,-120,0) r10, herbivore_valley (6,0,9,2,-40,0) r85, meadow (-2,0,9,2,-28,0) r70, migration_view (-40,0,25,4,-92,0) r10, nest (-152,0,13,2,-28,0) r14, old_camp (122,0,12,2,-66,0) r12, predator_territory (-105,0,21,6,-76,0) r45, ridge (108,0,47,8,-208,0) r45, river (66,0,10,7,-45,0) r55, shipwreck (-45,0,-0,1,224,0) r25, volcano (-122,0,44,4,-216,0) r45, waterfall (93,5,19,4,-160,0) r24, wetland (102,0,0,4,172,0) r38
+lava vent (-100,0,44,7,-232,0) (pool r 1,9 m), channel 56 pts to (-135,5,44,4,-208,5)
+before: nodes within 3 m of the channel 0 (segments) / 0 (points, ENV's check), within 6 m of the vent 1 [Cluster_039_Rocky/Resource_Stone_Medium_0186]; PFB_ENV_Rock_Large_03 at (-99,2,45,0,-239,4), 7,5 m from the vent, 7,5 m from the channel
+   Rocks/PFB_ENV_Rock_Large_03 (stone_boulder) already clear: 7,9 m from the vent, 7,9 m from the channel
+other nodes within 3 m of the channel or on the vent: 0
+after: nodes within 3 m of the channel 0 (segments) / 0 (points, ENV's check), within 6 m of the vent 1 [Cluster_039_Rocky/Resource_Stone_Medium_0186]; PFB_ENV_Rock_Large_03 at (-99,2,45,0,-239,4), 7,5 m from the vent, 7,5 m from the channel
+VERIFY 1435 active nodes: off the ground 0, in fresh water (not fish) 0, below sea level 0

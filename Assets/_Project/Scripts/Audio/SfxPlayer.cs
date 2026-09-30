@@ -20,6 +20,8 @@ namespace PrimalFrontier.Audio
         // phase 3 (registered by the Lead; clips come from Tools/Audio/sfx_synth.py via PrimalAudioBuilder)
         PunchWhoosh, PunchHit, PunchHeavyHit, PlayerGrunt,
         WaterFill, WaterBoil, BandageWrap, ToolBreak, FireHiss, BranchSnap, StoneGatherHand,
+        // PC phase (U): footsteps on wood / grass, chewing, hands scooping water, climbing grips and foot scrapes
+        FootWood, FootGrass, Chew, WaterScoop, ClimbGrab, ClimbScrape,
     }
 
     /// <summary>Pooled 3D one-shots with variant + pitch randomisation (never the same sample twice in a row).</summary>
@@ -71,8 +73,13 @@ namespace PrimalFrontier.Audio
             }
         }
 
+        /// <summary>every Play request with a known id (tests, debug overlays): (id, position)</summary>
+        public static event System.Action<SfxId, Vector3> Played;
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)] static void ResetPlayed() => Played = null;
+
         public AudioSource Play(SfxId id, Vector3 pos, float volume = 1f, float spatial = 1f)
         {
+            if (id != SfxId.None) Played?.Invoke(id, pos);
             if (id == SfxId.None || !_map.TryGetValue(id, out var e)) return null;
             int n = e.clips.Length, k = Random.Range(0, n);
             if (n > 1 && _last.TryGetValue(id, out var prev) && prev == k) k = (k + 1) % n;

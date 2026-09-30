@@ -1,0 +1,84 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a680d24947751ff46bfd489842d3f354, type: 3}
+  m_Name: MIS_opt_weapon
+  m_EditorClassIdentifier: PrimalFrontier.Runtime::PrimalFrontier.Story.MissionDefinition
+  id: opt_weapon
+  chapter: 1
+  order: 65
+  main: 0
+  endsChapter: 0
+  title: A Weapon
+  objective: Make a weapon before going inland
+  lateObjective: 
+  clue: 
+  requires:
+  - wake
+  startMode: 0
+  startWhen:
+  - kind: 0
+    events: CreatureSighted
+    ids: 
+    check: 
+    count: 1
+    distinct: 0
+    radius: 0
+    hourFrom: 0
+    hourTo: 0
+  - kind: 0
+    events: PredatorWarning
+    ids: 
+    check: 
+    count: 1
+    distinct: 0
+    radius: 0
+    hourFrom: 0
+    hourTo: 0
+  - kind: 5
+    events: 
+    ids: first_night
+    check: 
+    count: 1
+    distinct: 0
+    radius: 0
+    hourFrom: 0
+    hourTo: 0
+  completeMode: 0
+  complete:
+  - kind: 0
+    events: ItemCrafted
+    ids: stone_spear|bow|hunting_bow|flint_sword|flint_knife|butcher_knife
+    check: 
+    count: 1
+    distinct: 0
+    radius: 0
+    hourFrom: 0
+    hourTo: 0
+  - kind: 3
+    events: 
+    ids: stone_spear|bow|hunting_bow|flint_sword|flint_knife|butcher_knife
+    check: has_item
+    count: 1
+    distinct: 0
+    radius: 0
+    hourFrom: 0
+    hourTo: 0
+  deadline: 0
+  deadlineHour: 18
+  marker: 0
+  markerId: 
+  markerAfterHours: 0
+  startLine: 
+  doneLine: 
+  lateLine: 
+  journalPage: 
+  startCue: 

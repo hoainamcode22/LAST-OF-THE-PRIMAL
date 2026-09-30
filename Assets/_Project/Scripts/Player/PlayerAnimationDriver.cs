@@ -38,7 +38,7 @@ namespace PrimalFrontier.Player
         public bool useStartStopClips = false;
         [Tooltip("seconds of standing still before an idle variation (look around, shift weight) plays; random in this range")]
         public Vector2 idleVariationEvery = new Vector2(7f, 14f);
-        float _idleT, _idleNext = 9f; int _hasIdleVariant = -1;
+        float _idleT, _idleNext = 9f; int _hasIdleVariant = -1; bool _hasIdleMirror, _lastIdleMirror; int _idleSameSide;
 
         PlayerMotor _motor;
         int _pendingAction = PlayerActions.None; bool _pendingIsOneShot; float _pendingTime;
@@ -52,6 +52,8 @@ namespace PrimalFrontier.Player
         public bool IsAttackingState { get; private set; }
         /// <summary>the base layer is in (or entering) a full-body Hurt / Hurt_Heavy state</summary>
         public bool IsHurtState { get; private set; }
+        /// <summary>standing still in Locomotion (idle breathing / variations apply)</summary>
+        public bool IsIdleStill { get; private set; }
         public event Action<int> ActionStarted, ActionFinished;
 
         void Awake()
@@ -62,6 +64,7 @@ namespace PrimalFrontier.Player
             if (animator && !animator.GetComponent<TwistBoneDriver>()) animator.gameObject.AddComponent<TwistBoneDriver>(); // forearm twist (off without twist bones)
             if (!GetComponent<PlayerState>()) gameObject.AddComponent<PlayerState>();                         // what the player is doing (read-only)
             if (!GetComponent<PlayerWetLook>()) gameObject.AddComponent<PlayerWetLook>();                     // darker, shinier when wet
+            if (!GetComponent<PlayerBodyFx>()) gameObject.AddComponent<PlayerBodyFx>();                       // chewing, drips, breathing
         }
 
         void Update()
@@ -151,10 +154,17 @@ namespace PrimalFrontier.Player
 
             // idle life: after standing still for a while, look around / shift weight (Idle_Variation), then back
             bool still = _motor.PlanarSpeed < 0.05f && _motor.IsGrounded && !IsBusy && !IsDead && !_motor.IsCrouching && st.IsName("Locomotion") && !inTrans;
+            IsIdleStill = still;
             _idleT = still ? _idleT + dt : 0f;
             if (_idleT > _idleNext)
             {
-                if (_hasIdleVariant < 0) { _hasIdleVariant = 0; foreach (var prm in animator.parameters) if (prm.nameHash == AnimParams.IdleVariant) _hasIdleVariant = 1; }
+                if (_hasIdleVariant < 0)
+                {
+                    _hasIdleVariant = 0; _hasIdleMirror = false;
+                    foreach (var prm in animator.parameters) { if (prm.nameHash == AnimParams.IdleVariant) _hasIdleVariant = 1; else if (prm.nameHash == AnimParams.IdleMirror) _hasIdleMirror = true; }
+                }
+                // weight shift / look around, to either side (never the same side three times running)
+                if (_hasIdleMirror) { bool m = _idleSameSide >= 2 ? !_lastIdleMirror : UnityEngine.Random.value < 0.5f; _idleSameSide = m == _lastIdleMirror ? _idleSameSide + 1 : 1; _lastIdleMirror = m; animator.SetBool(AnimParams.IdleMirror, m); }
                 if (_hasIdleVariant == 1) animator.SetTrigger(AnimParams.IdleVariant);
                 _idleT = 0f; _idleNext = UnityEngine.Random.Range(idleVariationEvery.x, idleVariationEvery.y);
             }
@@ -290,12 +300,23 @@ namespace PrimalFrontier.Player
             _wasMoving = moving; _prevSpeedCmd = cmd;
         }
 
-        /// <summary>opening: freeze on the first frame of Wake_Up (lying on the sand)</summary>
+        /// <summary>opening: lying on the sand (Unconscious loop, same first frame as Wake_Up) until Action = WakeUp</summary>
         public void SetUnconscious()
         {
             if (!animator) return;
             animator.Play("Unconscious", 0, 0f);
             animator.SetInteger(AnimParams.Action, PlayerActions.None);
+            CurrentAction = PlayerActions.WakeUp;
+        }
+
+        /// <summary>knockout: faint from standing (Unconscious_Collapse), then the Unconscious loop until Action = WakeUp;
+        /// SetUnconscious when the controller has no collapse state</summary>
+        public void Collapse()
+        {
+            if (!animator) return;
+            if (!animator.HasState(0, Animator.StringToHash("Unconscious_Collapse"))) { SetUnconscious(); return; }
+            animator.SetInteger(AnimParams.Action, PlayerActions.None);
+            animator.SetTrigger(AnimParams.Collapse);
             CurrentAction = PlayerActions.WakeUp;
         }
     }

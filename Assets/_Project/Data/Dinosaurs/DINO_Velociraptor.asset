@@ -81,3 +81,36 @@ MonoBehaviour:
   drinkEveryHours: 12
   drinkSearchRadius: 160
   unarmedDamageScale: -1
+  behaviour:
+    nightFear: 0.5
+    aggression: 0.5
+    investigation: 0.5
+  locomotion:
+    weight: -1
+    swayDegrees: 1.2
+    leanDegrees: 2.5
+    tailBalance: 12
+    accelPitch: 0.8
+    stepShake: 0
+    pivotRate: 0.6
+  tracks:
+    shape: 0
+    printSize: 0.4
+    stride: 2
+    gauge: 0.6
+    droppingsSize: 0
+    scratchHeight: 0
+  wildlifeTuned: 0
+  hunt:
+    hunts: 1
+    prey: parasaurolophus
+    hungerPerHour: 0.09
+    hungerToHunt: 0.6
+    chargeDistance: 16
+    chaseSeconds: 10
+    killChance: 0.3
+    strikes: 3
+    woundFraction: 0.1
+    eatsMeat: 1
+    restHoursAfterMeal: 2
+    tuned: 1

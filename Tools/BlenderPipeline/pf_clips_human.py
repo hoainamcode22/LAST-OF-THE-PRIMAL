@@ -45,7 +45,8 @@ def apply(rig, p):
     for sd in LR:
         rig.arm(sd, *p["a" + sd]); rig.elbow(sd, p["e" + sd]); rig.wrist(sd, *p["w" + sd])
         rig.clavicle(sd, *p["c" + sd]); rig.fingers(sd, *p["f" + sd])
-    if p["fk"] > 0.5:
+    fk = p["fk"]
+    if fk > 0.001:
         for sd in LR:
             hf, ab, kn, an = p["l" + sd]
             s = 1 if sd == "L" else -1
@@ -54,7 +55,13 @@ def apply(rig, p):
             rig.set_rot(f"Calf_{sd}", q_axis((1, 0, 0), kn))
             rig.set_rot(f"Foot_{sd}", q_axis((1, 0, 0), -an))
             rig.set_rot(f"Toe_{sd}", Quaternion())
-        return None
+        if fk >= 0.999:
+            return None
+        # B6 (2026-09-30): partial FK weight = blend window between the FK legs (with their ground snap) and the IK legs;
+        # Baker.bake solves the IK, then slerps the legs back towards these FK rotations by the weight (no one-frame pop)
+        rig._fkw = fk
+        rig._fkq = {f"{b}_{sd}": rig.obj.pose.bones[f"{b}_{sd}"].rotation_quaternion.copy() for sd in LR for b in ("Thigh", "Calf", "Foot", "Toe")}
+        rig._fkdz = ground_delta(rig) if getattr(rig, "_ground", True) else 0.0
     feet = {}
     for sd in LR:
         dx, dy, dz, pitch, yaw, tb = p["ft" + sd]
@@ -65,6 +72,18 @@ def apply(rig, p):
 GROUND_RADII = {"Pelvis": 0.115, "Spine": 0.11, "Spine_Upper": 0.12, "Chest": 0.12, "Neck": 0.055, "Head": 0.095,
                 "Thigh_L": 0.075, "Thigh_R": 0.075, "Calf_L": 0.05, "Calf_R": 0.05, "Foot_L": 0.035, "Foot_R": 0.035, "Toe_L": 0.015, "Toe_R": 0.015,
                 "UpperArm_L": 0.045, "UpperArm_R": 0.045, "LowerArm_L": 0.035, "LowerArm_R": 0.035, "Hand_L": 0.025, "Hand_R": 0.025}
+
+def ground_delta(rig):
+    """vertical pelvis move that would put the lowest body surface on the ground (z = 0), not applied"""
+    bpy.context.view_layer.update()
+    ob = rig.obj; M = ob.matrix_world; lo = 1e9
+    for b, r in GROUND_RADII.items():
+        pb = ob.pose.bones.get(b)
+        if not pb: continue
+        h = M @ pb.head; t = M @ pb.tail
+        for k in range(5):
+            lo = min(lo, h.z + (t.z - h.z) * k / 4 - r)
+    return -lo
 
 def ground_snap(rig):
     """FK poses (lying / sitting): move the pelvis vertically so the lowest body surface touches the ground (z = 0)"""
@@ -90,11 +109,21 @@ class Baker:
         rig.new_action(name, frames, loop)
         prev = {}
         for f in range(frames + 1):
-            rig.reset()
+            rig.reset(); rig._fkw = 0.0; rig._ground = getattr(fn, "ground", True)
             feet = fn(f)
             if feet:
+                w = getattr(rig, "_fkw", 0.0)
+                if w:
+                    pb = rig.obj.pose.bones["Pelvis"]; Rp = rig.obj.data.bones["Pelvis"].matrix_local.to_3x3()
+                    pb.location = pb.location + Rp.inverted() @ Vector((0, 0, w * rig._fkdz))
                 for sd, tg in feet.items():
                     rig.solve_leg(sd, *tg)
+                if w:
+                    for bn, q in rig._fkq.items():
+                        pbn = rig.obj.pose.bones[bn]; qi = pbn.rotation_quaternion.copy()
+                        if qi.dot(q) < 0: q = -q
+                        pbn.rotation_quaternion = qi.slerp(q, w)
+                    rig._fkw = 0.0
             elif feet is None and getattr(fn, "ground", True):
                 ground_snap(rig)
             for pb in rig.obj.pose.bones:
@@ -227,7 +256,9 @@ def foot_events(frames, D):
 def build_all(rig, which=None):
     B = Baker(rig)
     import pf_clips_weapons as W
-    def want(n): return (which is None or n in which) and n not in W.OVERRIDES   # weapon clips come from pf_clips_weapons
+    import pf_clips_c as C
+    # weapon clips come from pf_clips_weapons, the CHAR-phase clips (locomotion v2, idle v2, turns, new sets) from pf_clips_c
+    def want(n): return (which is None or n in which) and n not in W.OVERRIDES and n not in C.OVERRIDES
     # ---- idle
     if want("Idle"):
         def idle(f, N=180):
@@ -410,8 +441,11 @@ def build_all(rig, which=None):
             # collapse backwards onto the ground with FK legs (feet leave the ground)
             k = ease((f - 24) / 26.0, "in")
             p = {kk: lerp(knees[kk], lying[kk], k) for kk in knees}
-            p["fk"] = 1.0
-            p["lL"] = lerp((20, 0, 30, 20), lying["lL"], k); p["lR"] = lerp((-60, 0, 110, 40), lying["lR"], k)
+            p["fk"] = ease(min(1.0, (f - 24) / 10.0), "smooth")         # B6: IK -> FK over 10 frames
+            p["ftL"] = knees["ftL"]; p["ftR"] = knees["ftR"]             # the IK side of the blend keeps the kneel feet
+            # FK legs start from the kneel's own angles (left knee up, right knee down): the original (20, 30) / (-60, 110)
+            # start stood the body up on a straight left leg once the ground snap applied
+            p["lL"] = lerp((70, 0, 95, 10), lying["lL"], k); p["lR"] = lerp((-10, 0, 110, 35), lying["lR"], k)
             return apply(rig, p)
         B.bake("Death", 60, False, death, events=[(50, "OnBodyFall", "")], notes="ends lying on the back")
     if want("Get_Up"):
@@ -424,8 +458,8 @@ def build_all(rig, which=None):
                 k = ease((f - 20) / 14.0)
                 kneel = P(**kneel_R, sp=(18, 0, 0), aL=(20, -30, 0, 0), aR=(40, -20, 0, 0), eR=30)
                 p = {kk: lerp(sit[kk], kneel[kk], k) for kk in sit}
-                if k < 0.5: p["fk"] = 1.0
-                else: p["fk"] = 0.0
+                p["fk"] = 1.0 - ease(min(1.0, max(0.0, (k - 0.25) / 0.5)), "smooth")   # B6: FK -> IK over ~6 frames
+                p["lL"] = sit["lL"]; p["lR"] = sit["lR"]
                 return apply(rig, p)
             k = ease((f - 34) / 26.0, "inout")
             kneel = P(**kneel_R, sp=(18, 0, 0), aL=(20, -30, 0, 0), aR=(40, -20, 0, 0), eR=30)
@@ -502,7 +536,8 @@ def build_all(rig, which=None):
             if f <= 120:     # sit -> kneel (switch to IK once the weight is over the knees)
                 k = ease((f - 108) / 12.0)
                 p = {kk: lerp(sit[kk], kneel[kk], k) for kk in sit}
-                p["fk"] = 1.0 if k < 0.5 else 0.0
+                p["fk"] = 1.0 - ease(min(1.0, max(0.0, (k - 0.25) / 0.5)), "smooth")   # B6: FK -> IK over ~6 frames
+                p["lL"] = sit["lL"]; p["lR"] = sit["lR"]
                 return apply(rig, p)
             return apply(rig, interp(IK, f))
         B.bake("Wake_Up", 180, False, wake, events=[(60, "OnWakeUp", "sit"), (146, "OnWakeUp", "stand"), (180, "OnWakeUp", "done")],
@@ -554,7 +589,8 @@ def build_all(rig, which=None):
         def start(f):
             if f <= 12: return apply(rig, interp([(0, P(), "smooth"), (12, reach, "inout")], f))
             k = ease((f - 12) / 12.0, "inout"); g = grip_pose(0.0)
-            p = {kk: lerp(reach[kk], g[kk], k) for kk in g}; p["fk"] = 1.0 if k > 0.3 else 0.0
+            p = {kk: lerp(reach[kk], g[kk], k) for kk in g}; p["fk"] = ease(min(1.0, max(0.0, (k - 0.1) / 0.45)), "smooth")
+            p["lL"] = g["lL"]; p["lR"] = g["lR"]                                   # B6: IK -> FK blended
             return apply(rig, p)
         start.ground = False
         B.bake("Climb_Start", 24, False, start, events=[(12, "OnClimbGrab", "")], notes="reach up, jump onto the trunk (code lifts the body)")
@@ -565,7 +601,12 @@ def build_all(rig, which=None):
                 k = ease(f / 10.0); g = grip_pose(0.0)
                 drop = dict(g); drop["aR"] = (100, 0, 0, 10); drop["aL"] = (100, 0, 0, 10); drop["eR"] = 40; drop["eL"] = 40; drop["lL"] = (30, 10, 40, 10); drop["lR"] = (30, 10, 40, 10)
                 return apply(rig, {kk: lerp(g[kk], drop[kk], k) for kk in g})
-            return apply(rig, interp([(10, crouch, "out"), (16, crouch, "smooth"), (28, P(), "inout")], f))
+            c10 = dict(crouch); c10["aL"] = (100, 0, 0, 10); c10["aR"] = (100, 0, 0, 10); c10["eL"] = 40; c10["eR"] = 40
+            p = dict(interp([(10, c10, "smooth"), (15, crouch, "smooth"), (18, crouch, "smooth"), (28, P(), "inout")], f))
+            if f < 15:                                                           # B6: FK -> IK over 5 frames
+                g = grip_pose(0.0)
+                p["fk"] = 1.0 - ease((f - 10) / 5.0, "smooth"); p["lL"] = (30, 10, 40, 10); p["lR"] = (30, 10, 40, 10)
+            return apply(rig, p)
         end.ground = False
         B.bake("Climb_End", 28, False, end, events=[(10, "OnLand", "")], notes="let go, drop and land (code lowers the body to the ground)")
     if want("Harvest_Fruit"):
@@ -580,4 +621,6 @@ def build_all(rig, which=None):
         B.bake("Harvest_Fruit", 44, False, harvest, events=[(22, "OnHarvest", "fruit")], notes="one hand holds the trunk, the other reaches out, picks, brings it in")
     # ================================================================== upgrade: sword set, two-handed spear, bow in the left hand
     B.weapon_report = W.bake(rig, B, which)
+    # ================================================================== CHAR phase (2026-09-30)
+    B.char_report = C.build(rig, B, which)
     return B

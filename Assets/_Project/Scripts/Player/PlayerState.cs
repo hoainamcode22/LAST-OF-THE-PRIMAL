@@ -65,7 +65,7 @@ namespace PrimalFrontier.Player
             var bs = Building.BuildSystem.Instance;
             if ((bs && bs.Active) || act == Animation.PlayerActions.Build) return PlayerActivity.Build;
             if (act == Animation.PlayerActions.Eat) return PlayerActivity.Eat;
-            if (act == Animation.PlayerActions.Drink || act == Animation.PlayerActions.CollectWater) return PlayerActivity.Drink;
+            if (act == Animation.PlayerActions.Drink || act == Animation.PlayerActions.DrinkKneel || act == Animation.PlayerActions.CollectWater) return PlayerActivity.Drink;
             if (Animation.PlayerActions.IsGather(act)) return PlayerActivity.Gather;
             if (act != Animation.PlayerActions.None && !Animation.PlayerActions.IsUpperBody(act) && act != Animation.PlayerActions.Dodge) return PlayerActivity.Interact;
             if (_motor)

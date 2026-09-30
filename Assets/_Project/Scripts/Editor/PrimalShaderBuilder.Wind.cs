@@ -673,11 +673,11 @@ namespace PrimalFrontier.EditorTools
             if (!existing)
             {
                 var go = new GameObject("NightSky");
-                var systems = GameObject.Find("[Systems]");
-                if (systems) go.transform.SetParent(systems.transform, false);
+                var systems = PrimalFrontier.Core.SceneRoots.LegacyParent("[Systems]/NightSky", true);   // VFX since HIER 2026-09-30
+                if (systems) go.transform.SetParent(systems, false);
                 existing = go.AddComponent<PrimalFrontier.VFX.NightSky>();
                 Undo.RegisterCreatedObjectUndo(go, "Night sky");
-                L("added " + (systems ? "[Systems]/" : "") + "NightSky");
+                L("added " + (systems ? PrimalFrontier.Core.SceneRoots.PathOf(systems) + "/" : "") + "NightSky");
             }
             existing.material = m;
             EditorUtility.SetDirty(existing);

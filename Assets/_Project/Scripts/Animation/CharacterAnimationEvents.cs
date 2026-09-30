@@ -44,10 +44,16 @@ namespace PrimalFrontier.Animation
         public void OnGatherHit(string p) => Raise(nameof(OnGatherHit), p);
         public void OnInteract(string p) => Raise(nameof(OnInteract), p);
         public void OnCraftTick(string p) => Raise(nameof(OnCraftTick), p);
+        /// <summary>Drink clip (hand at the mouth); also Collect_Water (the placeholder and the builder default for the real clip)</summary>
         public void OnDrink(string p) => Raise(nameof(OnDrink), p);
         public void OnEat(string p) => Raise(nameof(OnEat), p);
         public void OnBuildHit(string p) => Raise(nameof(OnBuildHit), p);
+        /// <summary>Use_Item clip; also Bandage_Use (the placeholder and the builder default for the real clip)</summary>
         public void OnUseItem(string p) => Raise(nameof(OnUseItem), p);
+        // names a new action clip may carry (CHAR manifest); each is raised under its own name, none may log "no receiver"
+        public void OnBandage(string p) => Raise(nameof(OnBandage), p);
+        public void OnCollectWater(string p) => Raise(nameof(OnCollectWater), p);
+        public void OnScoop(string p) => Raise(nameof(OnScoop), p);
         public void OnWakeUp(string p) => Raise(nameof(OnWakeUp), p);
         public void OnHarvest(string p) => Raise(nameof(OnHarvest), p);
         /// <summary>Climb_Up / Climb_Down hand-foot contacts and the Climb_Start grab. Had no receivers: every climb logged errors.</summary>

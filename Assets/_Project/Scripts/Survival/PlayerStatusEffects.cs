@@ -56,6 +56,8 @@ namespace PrimalFrontier.Survival
         public bool BlocksRegen { get; private set; }
         /// <summary>net health per second of all effects (negative = losing health)</summary>
         public float HealthPerSecond { get; private set; }
+        /// <summary>x on the healing effects (Recovering): PlayerSurvival lowers it while hungry / thirsty (drains are not scaled)</summary>
+        public float HealMultiplier { get; set; } = 1f;
         /// <summary>number of effects shown on the HUD</summary>
         public int Count => _active.Count;
         /// <summary>increments on every change (cheap HUD dirty check)</summary>
@@ -246,7 +248,7 @@ namespace PrimalFrontier.Survival
                     if (v < 0f) drain -= v; else heal += v;
                 }
                 if (drain > 0f) _hp.ApplyRaw(drain * dt);
-                if (heal > 0f && !_hp.IsDead && _hp.Health < _hp.maxHealth) _hp.Heal(heal * dt);
+                if (heal > 0f && !_hp.IsDead && _hp.Health < _hp.maxHealth) _hp.Heal(heal * Mathf.Clamp(HealMultiplier, 0f, 4f) * dt);
                 if (_hp.IsDead) return;
             }
             for (int i = _active.Count - 1; i >= 0; i--)

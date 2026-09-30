@@ -9,8 +9,8 @@ namespace PrimalFrontier.World
 {
     /// <summary>
     /// The sea at the player's feet: detected from the terrain height around the player (below sea level = ocean).
-    /// With a water container in the active slot, Interact fills it with SaltWater (boil it at a campfire to make it
-    /// drinkable). Empty-handed, "Drink sea water" makes thirst worse, so the player learns to boil it or look inland.
+    /// With a water container in the active slot, Interact fills it with SaltWater: never drinkable (boiling does not
+    /// remove salt, phase 1). Empty-handed, "Drink sea water" makes thirst worse, so the player learns to look inland.
     /// Rules and numbers: WaterRules / SurvivalConfig. Prompts are cached (no per-frame strings).
     /// </summary>
     public class OceanShore : Interactable
@@ -25,7 +25,7 @@ namespace PrimalFrontier.World
         public override int Priority => -2;
         public bool PlayerAtShore => _near;
         public const string SaltMessage = "Salt water. It burns your throat and makes the thirst worse.";
-        const string DrinkPrompt = "Drink sea water", FillPrompt = "Fill with salt water", DrinkSub = "Salt water. It will make you thirstier.";
+        const string DrinkPrompt = "Drink sea water", FillPrompt = "Fill with salt water", DrinkSub = "Salt water. It will make you thirstier. Boiling does not remove salt.";
         readonly WaterPromptCache _fill = new WaterPromptCache();
 
         void Update()

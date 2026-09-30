@@ -46,7 +46,7 @@ namespace PrimalFrontier.Core
         [Header("Habitats (tutorial fallback when no creature exists)")]
         public Vector3 herbivoreHabitat; public float herbivoreHabitatRadius = 25f;
         public Vector3 campArea; public float campRadius = 30f;
-        [Tooltip("compass marker per tutorial step id")] public List<string> targetSteps = new List<string>();
+        [Tooltip("legacy (pre-mission tutorial markers); unused: missions place their own markers")] public List<string> targetSteps = new List<string>();
         public List<Vector3> targetPositions = new List<Vector3>();
 
         /// <summary>automated tests: skip the title / intro without editing the scene</summary>
@@ -60,6 +60,7 @@ namespace PrimalFrontier.Core
 
         TimeManager _time; WeatherManager _weather; AmbienceManager _amb; JournalSystem _journal; TutorialManager _tutorial;
         IntroSequence _intro; ZoneManager _zones; BuildSystem _build; UIManager _ui; HUDManager _hud; DeathScreenUI _death;
+        MissionSystem _missions; ProtagonistVoice _voice; DeathSystem _deathSys; Minimap _minimap;
         readonly List<WorldPickup> _scenePickups = new List<WorldPickup>();
         float _deadTime; float _autosave; ThirdPersonCamera _cam; float _titleOrbit;
 
@@ -77,6 +78,10 @@ namespace PrimalFrontier.Core
             _journal = Ensure<JournalSystem>("[Journal]", out _);
             _tutorial = Ensure<TutorialManager>("[Tutorial]", out _);
             _intro = Ensure<IntroSequence>("[Intro]", out _);
+            // story: missions, the survivor's lines and the death rules (one [Story] object unless the scene placed them elsewhere)
+            _missions = Ensure<MissionSystem>("[Story]", out _);
+            _voice = FindFirstObjectByType<ProtagonistVoice>(); if (!_voice) _voice = _missions.gameObject.AddComponent<ProtagonistVoice>();
+            _deathSys = FindFirstObjectByType<DeathSystem>(); if (!_deathSys) _deathSys = _missions.gameObject.AddComponent<DeathSystem>();
             _build = Ensure<BuildSystem>("[Build]", out _); if (!_build.ghostValid) _build.ghostValid = ghostValid; if (!_build.ghostInvalid) _build.ghostInvalid = ghostInvalid;
             Ensure<OceanShore>("[OceanShore]", out _);
             var th = Ensure<TreeHarvest>("[Trees]", out _);
@@ -89,10 +94,14 @@ namespace PrimalFrontier.Core
             _hud = uiRoot.GetOrAdd<HUDManager>();
             uiRoot.GetOrAdd<InventoryUI>(); uiRoot.GetOrAdd<JournalUI>(); uiRoot.GetOrAdd<PauseMenuUI>(); uiRoot.GetOrAdd<TitleScreenUI>();
             _death = uiRoot.GetOrAdd<DeathScreenUI>();
-            uiRoot.GetOrAdd<Minimap>(); uiRoot.GetOrAdd<MobileHUD>();
+            _minimap = uiRoot.GetOrAdd<Minimap>(); if (MobileHUD.Supported) uiRoot.GetOrAdd<MobileHUD>();   // touch controls: mobile builds only
+            uiRoot.GetOrAdd<ObjectiveUI>();                   // current objective line + chapter (MissionSystem)
             uiRoot.GetOrAdd<ContextHints>();                  // key hints + onboarding tips (also in scenes baked before it existed)
             uiRoot.GetOrAdd<PerceptionIndicator>();           // stealth eye / noise ring / threat markers (AI perception)
             SaveSystem.Track();
+            // creatures in the save file (alive / dead, health, carcass left): restored after ResetWorld respawned them
+            var spawner = FindFirstObjectByType<AI.DinosaurSpawner>();
+            if (spawner) { _creatureSave = new AI.CreatureSaveSection(spawner); SaveSystem.RegisterSection(_creatureSave); }
             foreach (var p in FindObjectsByType<WorldPickup>(FindObjectsInactive.Include, FindObjectsSortMode.None)) _scenePickups.Add(p);
         }
 
@@ -103,7 +112,8 @@ namespace PrimalFrontier.Core
             return c ? c : new GameObject(name).AddComponent<T>();
         }
 
-        void OnDestroy() { if (Instance == this) Instance = null; Time.timeScale = 1f; }
+        void OnDestroy() { if (Instance == this) Instance = null; Time.timeScale = 1f; if (_creatureSave != null) SaveSystem.UnregisterSection(_creatureSave); }
+        AI.CreatureSaveSection _creatureSave;
 
         void Start()
         {
@@ -157,30 +167,15 @@ namespace PrimalFrontier.Core
             SurvivalEnvironment.Hook(_time, _weather, _zones, Player);          // air temperature, rain, heat
             Bedroll.Hour = () => _time ? _time.hour : 12f;
             Bedroll.SleepRequested = (b, p) => { if (State == GameState.Playing) StartCoroutine(Sleep(b)); };
-            Shelter.Rested = s => { SetRespawn(true, s.transform.position + s.transform.forward * 1.8f); SaveGame(); };
+            Shelter.Rested = s => { SetRespawn(true, s.transform.position + s.transform.forward * 1.8f); _tutorial.NotifyRested(); SaveGame(); };
             _tutorial.NearCamp = p =>
             {
                 foreach (var c in Campfire.All) if (c && (c.transform.position - p).sqrMagnitude < 12f * 12f) return true;
                 return campRadius > 0f && (p - campArea).sqrMagnitude < campRadius * campRadius && campArea != Vector3.zero;
             };
             _tutorial.InHerbivoreHabitat = p => herbivoreHabitat != Vector3.zero && Vector2.Distance(new Vector2(p.x, p.z), new Vector2(herbivoreHabitat.x, herbivoreHabitat.z)) < herbivoreHabitatRadius;
-            _tutorial.TargetFor = id =>
-            {
-                if (id == "return") { foreach (var c in Campfire.All) if (c) return c.transform.position; }
-                if (id == TutorialManager.ShelterNightStep || id == TutorialManager.SleepStep)
-                {
-                    var sh = Player ? Shelter.Nearest(Player.transform.position, 400f, true) : null;
-                    if (sh) return sh.transform.position;
-                }
-                int i = targetSteps.IndexOf(id);
-                return i >= 0 && i < targetPositions.Count ? targetPositions[i] : (Vector3?)null;
-            };
-            _tutorial.PredatorWarningCue = () =>
-            {
-                Audio.SfxPlayer.Instance.Play2D(Audio.SfxId.RoarDistant, 0.9f);
-                if (_cam) _cam.AddShake(0.02f, 1.2f);
-                _hud.ShowSubtitle("What was that?", 3f, true);
-            };
+            // the objective marker now comes from the focused mission (MissionSystem.MarkerTarget); the predator roar is the
+            // "Survive the First Night" mission's start cue
         }
 
         // ------------------------------------------------------------------ states
@@ -228,6 +223,7 @@ namespace PrimalFrontier.Core
             ThirdPersonCamera.LockCursor(true);
             _tutorial.Bind(Player);
             if (!_tutorial.Running && !_tutorial.Completed) _tutorial.Begin(0);
+            _missions.Begin();
             _weather.allowRandom = true;
         }
 
@@ -248,7 +244,7 @@ namespace PrimalFrontier.Core
             var drv = Player.GetComponent<PlayerAnimationDriver>(); drv.Respawn(); drv.StopAction();
             if (_cam) { _cam.enabled = true; _cam.InputEnabled = true; _cam.Yaw = Player.transform.eulerAngles.y; _cam.SnapBehindTarget(); }
             if (!IntroDone) IntroDone = true;
-            _weather.allowRandom = _tutorial.Completed || _tutorial.Index > 10;
+            _weather.allowRandom = _missions.Chapter > 1 || _missions.IsDone("make_fire");
             _hud.ShowBanner("DAY " + _time.day, "", 2.5f);
         }
 
@@ -281,9 +277,11 @@ namespace PrimalFrontier.Core
             var dinos = FindFirstObjectByType<AI.DinosaurSpawner>(); if (dinos && State != GameState.Boot) dinos.SpawnAll();
             Stimuli.Clear();                                   // no noise / smell carries over into the new or loaded game
             if (Player) { var sig = Player.GetComponent<PlayerSignature>(); if (sig) sig.ResetState(); }
-            _journal.SetUnlocked(new string[0]);
+            _journal.ResetAll();                               // pages and creature notes
             if (_zones) _zones.SetVisited(new string[0]);
             _tutorial.ResetIdle();
+            _missions.ResetAll(); _voice.ResetAll(); _deathSys.ResetAll();
+            if (_minimap) _minimap.ResetDiscovery();
             OnboardingTips.Clear();                            // a load puts the saved ones back (SaveSystem.Apply)
             if (Player)
             {
@@ -314,6 +312,7 @@ namespace PrimalFrontier.Core
             if (State == GameState.Dead && Time.time - _deadTime > 3f && _ui.Current != UIScreen.Death)
             {
                 _death.SetCause(DeathCause());
+                _death.SetDetails(LostText(), RespawnAtCamp(out _) ? "You wake where you last rested." : "You wake on the beach.");
                 _ui.Open(UIScreen.Death);
             }
             if (State == GameState.Playing)
@@ -336,28 +335,54 @@ namespace PrimalFrontier.Core
         string DeathCause()
         {
             var sv = Player.GetComponent<PlayerSurvival>();
-            if (sv.IsDehydrated) return "Thirst took you. Fresh water is life on this island.";
-            if (sv.IsStarving) return "You starved. Berries, fish and cooked meat keep you going.";
-            if (sv.IsFreezing) return "The cold took you. Fire and shelter keep you warm at night.";
+            if (sv.IsDehydrated) return "Thirst took you.";
+            if (sv.IsStarving) return "Hunger took you.";
+            if (sv.IsFreezing) return "The cold took you.";
             return "Your wounds were too much.";
+        }
+
+        string LostText()
+        {
+            int n = _deathSys ? _deathSys.LastItems : 0;
+            return n <= 0 ? "You carried nothing worth losing." : "What you dropped lies where you fell (" + n + (n == 1 ? " item)." : " items).");
         }
 
         void OnDied()
         {
             State = GameState.Dead; _deadTime = Time.time;
             _build.Cancel();
+            _deathSys.OnPlayerDied(Player);                    // a share of the pack stays at the death spot as a bundle
             GameEvents.Raise(GameEventType.PlayerDied, "player");
         }
 
+        /// <summary>the last rested shelter / bed still stands (a respawn point with nothing there any more falls back to the beach)</summary>
+        bool RespawnAtCamp(out Vector3 at)
+        {
+            at = RespawnPoint;
+            if (!HasRespawn) return false;
+            if (Shelter.Nearest(RespawnPoint, 6f) != null) return true;
+            foreach (var b in FindObjectsByType<Bedroll>(FindObjectsSortMode.None)) if (b && (b.transform.position - RespawnPoint).sqrMagnitude < 6f * 6f) return true;
+            return false;
+        }
+
+        /// <summary>
+        /// wake at the last rested shelter / bed (else the beach); the journal, recipes, world and structures stay; the pack keeps
+        /// what the death rules left in it; saved at once so the death counts
+        /// </summary>
         public void Respawn()
         {
-            var p = HasRespawn ? RespawnPoint : (spawnPoint ? spawnPoint.position : Player.transform.position);
+            if (State != GameState.Dead) return;
+            var p = RespawnAtCamp(out var camp) ? camp : (spawnPoint ? spawnPoint.position : Player.transform.position);
             Player.GetComponent<PlayerMotor>().Warp(p + Vector3.up * 0.1f, Player.transform.rotation);
             Player.GetComponent<PlayerHealth>().Revive(SurvivalConfig.Instance.respawnHealth);
             Player.GetComponent<PlayerSurvival>().ApplyRespawn();
+            var drv = Player.GetComponent<PlayerAnimationDriver>(); if (drv) { drv.Respawn(); drv.StopAction(); }
+            var pi = Player.GetComponent<PlayerInteraction>(); if (pi) { pi.StopAction(); pi.Suspended = false; }
             _ui.Close(); State = GameState.Playing;
+            if (_cam) { _cam.enabled = true; _cam.InputEnabled = true; _cam.Yaw = Player.transform.eulerAngles.y; _cam.SnapBehindTarget(); }
             _hud.Fade(1f, 0f); _hud.Fade(0f, 1.5f);
             GameEvents.Raise(GameEventType.PlayerRespawned, "player");
+            SaveGame();
         }
 
         IEnumerator Sleep(Bedroll b)

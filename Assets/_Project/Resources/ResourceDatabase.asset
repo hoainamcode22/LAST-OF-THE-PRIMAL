@@ -30,6 +30,12 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 6377bf069c9b6a54a9be1ac8c6842bf8, type: 2}
   - {fileID: 11400000, guid: 82cb691a4c7c5e54fb319d28ac90b1f0, type: 2}
   - {fileID: 11400000, guid: 88715ea9c82f101489732eeb464556cc, type: 2}
+  - {fileID: 11400000, guid: cb2907798ee2a3d4c9a2e7103adfc9f3, type: 2}
+  - {fileID: 11400000, guid: 4962b2302d05fb543a9a1d6b435c8a0e, type: 2}
+  - {fileID: 11400000, guid: 31a79dc95eaed464180d6437220aa7df, type: 2}
+  - {fileID: 11400000, guid: d58dfb7feb9b4004fbd6085b5dd4874d, type: 2}
+  - {fileID: 11400000, guid: f173198913abc534d9f29e1a596ab84c, type: 2}
+  - {fileID: 11400000, guid: bc31156dd3a59454bb176e5314ce95dd, type: 2}
   hands: {fileID: 11400000, guid: e5209f72bc37654479b609b3800cdb8f, type: 2}
   tools:
   - {fileID: 11400000, guid: 23feed5dfeca8a048aa5dd5a58491b4b, type: 2}

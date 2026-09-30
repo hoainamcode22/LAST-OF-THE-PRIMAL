@@ -113,18 +113,25 @@ namespace PrimalFrontier.Tests
             var seen = new System.Collections.Generic.HashSet<int>();
             for (int i = 0; i < 300; i++) { int n = GatheringSystem.Roll(ref p, tool.min, tool.max); Assert.That(n, Is.InRange(3, 5)); seen.Add(n); }
             Assert.AreEqual(3, seen.Count, "3, 4 and 5 all happen");
-            // a large rock: hands one stone every third action, with the hint
+            // Phase 1 gating: a large rock or a boulder needs a pick (hands 0, "Need a pick"); a hand stone is too crude for it
             var large = GatheringSystem.Plan(RDb.Get("stone_large"), null);
-            Assert.IsTrue(large.allowed && large.slowByHand);
-            p = 0f; int got = 0; for (int i = 0; i < 3; i++) got += GatheringSystem.Roll(ref p, large.min, large.max);
-            Assert.AreEqual(1, got, "three hand actions on a large rock = 1 stone");
+            Assert.IsFalse(large.allowed, "hands cannot break a large rock");
+            Assert.IsTrue(large.slowByHand, "the missing pick is reported");
+            Assert.IsFalse(GatheringSystem.Plan(RDb.Get("stone_boulder"), null).allowed, "hands cannot break a boulder");
+            var hs = Db.Item("hand_stone");
+            if (hs) Assert.IsFalse(GatheringSystem.Plan(RDb.Get("stone_large"), hs).allowed, "a hand stone does not break a large rock");
+            Assert.IsFalse(GatheringSystem.Plan(RDb.Get("stone_large"), pick).byHand, "the pick breaks it");
+            Assert.AreEqual("Need a pick", GatheringSystem.NeedText(ToolKind.Mine));
         }
 
         [Test] public void Axe_Is_For_Wood_Hands_Only_Twig_A_Tree()
         {
             var axe = Db.Item("stone_axe"); var tree = RDb.Get("wood_tree"); var branch = RDb.Get("wood_branch");
             var h = GatheringSystem.Plan(tree, null);
-            Assert.IsTrue(h.byHand && h.slowByHand && h.max <= 0.3f, "bare hands on a tree: tiny yield");
+            Assert.IsTrue(h.byHand && !h.allowed, "bare hands on a tree: nothing (Phase 1: trees need an axe)");
+            var hs = Db.Item("hand_stone");
+            if (hs) Assert.IsFalse(GatheringSystem.Plan(tree, hs).allowed, "a hand stone does not fell a tree");
+            Assert.IsFalse(GatheringSystem.Plan(RDb.Get("wood_small_log"), null).allowed, "logs need an axe");
             var a = GatheringSystem.Plan(tree, axe);
             Assert.IsFalse(a.byHand); Assert.AreEqual(2f, a.min, 1e-4f); Assert.AreEqual(3f, a.max, 1e-4f);
             Assert.AreEqual(1f, GatheringSystem.Plan(branch, null).max, 1e-4f, "a branch by hand: 1 per action");
@@ -232,6 +239,48 @@ namespace PrimalFrontier.Tests
             Assert.Greater(near.Count, 0, "grid query");
             Assert.IsTrue(near.All(n => Vector3.Distance(Flat(n.transform.position), new Vector3(30, 0, 30)) <= 10.01f));
             foreach (var n in nodes) Object.Destroy(n.gameObject);
+        }
+
+        // ------------------------------------------------------------------ PC phase leftovers
+        [Test] public void Dropped_Food_Keeps_Its_Age()
+        {
+            var meat = ScriptableObject.CreateInstance<ItemDefinition>(); meat.id = "test_meat"; meat.displayName = "Test Meat"; meat.maxStack = 10; meat.spoilHours = 24f; meat.hunger = 10f;
+            double made = GameClock.Now - 3600.0;
+            var st = new ItemStack(meat, 3) { madeAt = made };
+            var pk = WorldPickup.DropStack(st, new Vector3(1000f, 0f, 1000f));
+            Assert.IsNotNull(pk);
+            Assert.IsNotNull(pk.uniqueStack, "spoiling food keeps its stack on the ground (so the save keeps the age)");
+            Assert.AreEqual(made, pk.uniqueStack.madeAt, 1e-6, "same madeAt");
+            Assert.AreEqual(3, pk.uniqueStack.count);
+            // the inventory takes it back with that age (the path Collect uses)
+            var inv = Inv();
+            Assert.AreEqual(0, inv.Add(meat, pk.uniqueStack.count, false, pk.uniqueStack.madeAt));
+            var slot = inv.Slots.First(x => x != null && x.item == meat);
+            Assert.AreEqual(made, slot.madeAt, 1e-6, "age carried into the pack");
+            // plain resources without spoilage still drop as a count only
+            var pk2 = WorldPickup.DropStack(new ItemStack(Db.Item("stone"), 2), new Vector3(1000f, 0f, 1002f));
+            Assert.IsNull(pk2.uniqueStack, "stone has no age: plain pickup");
+            WorldPickup.ClearDropped(); Object.Destroy(inv.gameObject); Object.Destroy(meat);
+        }
+
+        [Test] public void Fish_Shoal_Cue_Plays_Near_The_Player_Only()
+        {
+            var n = Node("fish_shoal", 3); n.cueHeight = 0.6f;
+            var player = new GameObject("fake player").transform;
+            var prev = PlayerLocator.Player; PlayerLocator.Player = player;
+            try
+            {
+                int c0 = ResourceManager.FishCues;
+                player.position = n.transform.position + Vector3.right * 60f;
+                ResourceManager.Instance.Tick();
+                Assert.AreEqual(c0, ResourceManager.FishCues, "far away: no cue");
+                player.position = n.transform.position + Vector3.right * 10f;
+                ResourceManager.Instance.Tick();
+                Assert.AreEqual(c0 + 1, ResourceManager.FishCues, "near: one cue (pooled drops on the surface)");
+                ResourceManager.Instance.Tick();
+                Assert.AreEqual(c0 + 1, ResourceManager.FishCues, "not every tick: the next cue waits 1.4-3.2 s");
+            }
+            finally { PlayerLocator.Player = prev; Object.Destroy(player.gameObject); Object.Destroy(n.gameObject); }
         }
 
         static Vector3 Flat(Vector3 v) { v.y = 0; return v; }

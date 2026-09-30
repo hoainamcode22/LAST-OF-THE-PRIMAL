@@ -31,6 +31,7 @@ namespace PrimalFrontier.World
         public ToolEfficiency[] efficiency = new ToolEfficiency[0];
         [Tooltip("durability cost per gather action, x the resource's toolWear (the pool is the item's maxDurability)")] [Min(0)] public float wearPerAction = 1f;
         [Tooltip("tier for later tools (0 = stone age)")] public int level;
+        [Tooltip("works the nodes that need a tool (trees need an axe, large rocks and boulders a pick). False = a crude tool (hand stone): faster on what hands can gather, but it never fells a tree or breaks a boulder")] public bool heavyWork = true;
 
         public bool TryGet(ResourceCategory c, out ToolEfficiency e)
         {

@@ -1,0 +1,328 @@
+using System;
+using System.IO;
+using System.Linq;
+using System.Text;
+using UnityEditor;
+using UnityEditor.SceneManagement;
+using UnityEngine;
+using UnityEngine.EventSystems;
+using PrimalFrontier.AI;
+using PrimalFrontier.Audio;
+using PrimalFrontier.Building;
+using PrimalFrontier.Core;
+using PrimalFrontier.Player;
+using PrimalFrontier.Story;
+using PrimalFrontier.UI;
+using PrimalFrontier.VFX;
+using PrimalFrontier.World;
+
+namespace PrimalFrontier.EditorTools
+{
+    /// <summary>
+    /// Puts everything the game used to create by code into Island_VerticalSlice, as normal scene objects:
+    /// [Systems] (time, weather, ambience, journal, tutorial, VFX / sound / blood pools, input, event system),
+    /// the Player (prefab instance), the camera rig, every dinosaur (prefab instances under [Gameplay]/[Dinosaurs]),
+    /// and the whole UI ([UI] with its canvases). After this the Hierarchy is the game: edit by hand, Ctrl+S, done.
+    /// Safe to run again: it only adds what is missing and never removes or resets what you changed.
+    /// batch: -executeMethod PrimalFrontier.EditorTools.PrimalSceneBaker.BakeFromCommandLine
+    /// </summary>
+    public static class PrimalSceneBaker
+    {
+        public const string ScenePath = "Assets/_Project/Scenes/Island_VerticalSlice.unity";
+        static readonly StringBuilder Log = new StringBuilder();
+        static void L(string s) { Log.AppendLine(s); Debug.Log("[PrimalSceneBaker] " + s); }
+
+        [MenuItem("Primal Frontier/Scene/Bake Everything Into Scene", priority = 0)]
+        public static void BakeMenu()
+        {
+            if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
+            try { Bake(); EditorUtility.DisplayDialog("Primal Frontier", "Done. The Player, dinosaurs, UI and systems are now in the Hierarchy of Island_VerticalSlice.\n\nSee Documentation/HUONG_DAN_BAO_TRI.md", "OK"); }
+            catch (Exception e) { Debug.LogException(e); EditorUtility.DisplayDialog("Primal Frontier", "Bake failed: " + e.Message, "OK"); }
+        }
+
+        [MenuItem("Primal Frontier/Scene/Open Island Scene", priority = 1)]
+        public static void OpenIsland()
+        {
+            if (EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
+        }
+
+        public static void BakeFromCommandLine()
+        {
+            int code = 0;
+            try { Bake(); } catch (Exception e) { Debug.LogError("[PrimalSceneBaker] " + e); code = 1; }
+            EditorApplication.Exit(code);
+        }
+
+        /// <summary>true when the island scene still misses what the baker adds (used by the startup prompt)</summary>
+        public static bool NeedsBake()
+        {
+            return UnityEngine.Object.FindFirstObjectByType<GameManager>() != null
+                && (GameObject.FindGameObjectWithTag("Player") == null || UnityEngine.Object.FindFirstObjectByType<UIManager>() == null);
+        }
+
+        [PrimalBridgeCommand]
+        public static void Bake()
+        {
+            Log.Clear();
+            L($"# Scene bake ({DateTime.Now:yyyy-MM-dd HH:mm})\n");
+            ReimportUiSprites();
+            var scene = EditorSceneManager.GetActiveScene();
+            if (scene.path != ScenePath) scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
+            var gm = UnityEngine.Object.FindFirstObjectByType<GameManager>();
+            if (gm == null) throw new Exception("no GameManager in " + ScenePath + " (run Primal Frontier > Advanced > Regenerate Gameplay first)");
+
+            L("## Systems");
+            var systems = Root("[Systems]");
+            Sys<TimeManager>(systems, "Time", t =>
+            {
+                t.Defaults(); t.secondsPerHour = gm.secondsPerHour; t.hour = gm.startHour;
+                t.sun = RenderSettings.sun ? RenderSettings.sun : UnityEngine.Object.FindObjectsByType<Light>(FindObjectsSortMode.None).FirstOrDefault(l => l.type == LightType.Directional);
+            });
+            Sys<WeatherManager>(systems, "Weather", w => w.rainMaterial = gm.rainMaterial);
+            Sys<AmbienceManager>(systems, "Ambience", a =>
+            {
+                a.ocean = gm.ambOcean; a.forest = gm.ambForest; a.night = gm.ambNight; a.wind = gm.ambWind; a.rain = gm.ambRain; a.storm = gm.ambStorm;
+                a.terrain = UnityEngine.Object.FindFirstObjectByType<Terrain>();
+            });
+            var journal = Sys<JournalSystem>(systems, "Journal", null);
+            if (journal.entries.Count == 0) { journal.ResetToDefaults(); EditorUtility.SetDirty(journal); }
+            var tutorial = Sys<TutorialManager>(systems, "Tutorial", null);
+            tutorial.SyncTexts(); EditorUtility.SetDirty(tutorial);
+            Sys<IntroSequence>(systems, "Intro", null);
+            Sys<BuildSystem>(systems, "Build", b => { b.ghostValid = gm.ghostValid; b.ghostInvalid = gm.ghostInvalid; });
+            Sys<OceanShore>(systems, "OceanShore", null);
+            Sys<TreeHarvest>(systems, "Trees", t => { var db = gm.database; if (db) { t.wood = db.Item("wood"); t.fiber = db.Item("fiber"); } });
+            Sys<PlayerInputReader>(systems, "Input", null);
+            Sys<VfxPool>(systems, "VfxPool", v => v.library = Resources.Load<VfxLibrary>("VfxLibrary"));
+            Sys<SfxPlayer>(systems, "SfxPlayer", s => s.library = Resources.Load<SfxLibrary>("SfxLibrary"));
+            Sys<BloodDecals>(systems, "BloodDecals", b => b.library = Resources.Load<BloodLibrary>("BloodLibrary"));
+            if (!UnityEngine.Object.FindFirstObjectByType<EventSystem>(FindObjectsInactive.Include))
+            {
+                UIManager.CreateEventSystem(systems);
+                L("- EventSystem: added");
+            }
+            else L("- EventSystem: kept");
+
+            L("\n## Player and camera");
+            var player = BakePlayer(gm);
+            BakeCamera(player);
+
+            L("\n## Dinosaurs");
+            BakeDinosaurs();
+
+            L("\n## UI");
+            BakeUI();
+
+            Order();
+            EditorSceneManager.MarkSceneDirty(scene);
+            if (!EditorSceneManager.SaveScene(scene)) throw new Exception("could not save " + ScenePath);
+            L("\nScene saved: " + ScenePath);
+            WriteReport(scene);
+        }
+
+        // ------------------------------------------------------------------ helpers
+        static Transform Root(string name)
+        {
+            var go = GameObject.Find(name);
+            if (go && go.transform.parent == null) return go.transform;
+            return new GameObject(name).transform;
+        }
+
+        /// <summary>the scene's component of this type (anywhere, kept as is) or a new child of parent with it</summary>
+        static T Sys<T>(Transform parent, string name, Action<T> init) where T : Component
+        {
+            var c = UnityEngine.Object.FindFirstObjectByType<T>(FindObjectsInactive.Include);
+            if (c) { L($"- {name}: kept ({Path(c.transform)})"); return c; }
+            var go = new GameObject(name); go.transform.SetParent(parent, false);
+            c = go.AddComponent<T>(); init?.Invoke(c); EditorUtility.SetDirty(c);
+            L($"- {name}: added");
+            return c;
+        }
+
+        static string Path(Transform t) { var s = t.name; while (t.parent) { t = t.parent; s = t.name + "/" + s; } return s; }
+
+        static void ReimportUiSprites()
+        {
+            int n = 0;
+            foreach (var guid in AssetDatabase.FindAssets("t:Texture2D", new[] { PrimalAssetPostprocessor.UiRoot.TrimEnd('/') }))
+            {
+                string p = AssetDatabase.GUIDToAssetPath(guid);
+                var ti = AssetImporter.GetAtPath(p) as TextureImporter;
+                if (ti != null && ti.textureType == TextureImporterType.Sprite) continue;
+                AssetDatabase.ImportAsset(p, ImportAssetOptions.ForceUpdate); n++;
+            }
+            UIStyle.ClearCache();
+            L($"UI textures re-imported as sprites: {n}\n");
+        }
+
+        // ------------------------------------------------------------------ player
+        static GameObject BakePlayer(GameManager gm)
+        {
+            var player = GameObject.FindGameObjectWithTag("Player");
+            if (player) { L($"- Player: kept ({Path(player.transform)})"); return player; }
+            if (!gm.playerPrefab) { L("- Player: MISSING (GameManager has no player prefab)"); return null; }
+            player = (GameObject)PrefabUtility.InstantiatePrefab(gm.playerPrefab, EditorSceneManager.GetActiveScene());
+            player.name = "Player";
+            if (gm.spawnPoint) player.transform.SetPositionAndRotation(gm.spawnPoint.position, gm.spawnPoint.rotation);
+            L($"- Player: added at {player.transform.position} (prefab {AssetDatabase.GetAssetPath(gm.playerPrefab)})");
+            return player;
+        }
+
+        static void BakeCamera(GameObject player)
+        {
+            var cam = Camera.main ? Camera.main : UnityEngine.Object.FindFirstObjectByType<Camera>();
+            if (!cam)
+            {
+                var go = new GameObject("Main Camera", typeof(Camera), typeof(AudioListener)) { tag = "MainCamera" };
+                cam = go.GetComponent<Camera>(); L("- Main Camera: added");
+            }
+            bool had = cam.GetComponent<ThirdPersonCamera>();
+            var rig = cam.gameObject.GetOrAdd<ThirdPersonCamera>();
+            if (!had && player)
+            {
+                // editor view: behind the player's shoulder (the rig takes over when playing)
+                var p = player.transform;
+                cam.transform.position = p.position - p.forward * rig.distance + Vector3.up * (rig.pivotOffset.y + 0.4f) + p.right * rig.shoulder;
+                cam.transform.rotation = Quaternion.LookRotation(p.position + Vector3.up * rig.pivotOffset.y - cam.transform.position);
+            }
+            L($"- Main Camera: third-person rig {(had ? "kept" : "added")}");
+        }
+
+        // ------------------------------------------------------------------ dinosaurs
+        static void BakeDinosaurs()
+        {
+            var sp = UnityEngine.Object.FindFirstObjectByType<DinosaurSpawner>(FindObjectsInactive.Include);
+            if (!sp) { L("- no DinosaurSpawner in the scene (run Primal Frontier > Dinosaurs > Build Definitions + Spawner)"); return; }
+            int placed = sp.GetComponentsInChildren<DinosaurController>(true).Length + sp.GetComponentsInChildren<AmbientCreature>(true).Length;
+            if (placed > 0) { L($"- {placed} creatures already placed under {Path(sp.transform)}: kept"); return; }
+            var terrain = UnityEngine.Object.FindFirstObjectByType<Terrain>();
+            float Ground(Vector3 p) => terrain ? terrain.SampleHeight(p) + terrain.transform.position.y : p.y;
+            var rnd = new System.Random(20260927);
+            int total = 0;
+            foreach (var e in sp.entries)
+            {
+                if (e.def == null || e.def.prefab == null) continue;
+                var group = sp.transform.Find(e.def.displayName);
+                if (!group) { group = new GameObject(e.def.displayName).transform; group.SetParent(sp.transform, false); }
+                group.position = e.center;
+                bool flyer = e.def.temperament == Temperament.AmbientFlyer, swimmer = e.def.temperament == Temperament.AmbientSwimmer;
+                int n = Mathf.Max(1, e.count);
+                for (int i = 0; i < n; i++)
+                {
+                    float ang = i * 137f + (float)rnd.NextDouble() * 40f;
+                    float dist = i == 0 ? 0f : 4f + (float)rnd.NextDouble() * Mathf.Max(1f, e.radius * 0.4f - 4f);
+                    if (flyer) dist = i * 8f;
+                    Vector3 p = e.center + Quaternion.Euler(0, ang, 0) * Vector3.forward * dist;
+                    p.y = flyer ? Ground(e.center) + e.altitude : swimmer ? -1.2f : Ground(p);
+                    var go = (GameObject)PrefabUtility.InstantiatePrefab(e.def.prefab, group);
+                    go.transform.SetPositionAndRotation(p, Quaternion.Euler(0, (float)rnd.NextDouble() * 360f, 0));
+                    go.name = e.def.displayName + "_" + i;
+                    DinosaurSpawner.Configure(go, e.def, Vector3.zero, e.radius, e.altitude, false);
+                    // (0,0,0) home / centre = where it stands: drag it in the scene and it lives there
+                    total++;
+                }
+                L($"- {e.def.displayName}: {n} ({e.def.temperament})");
+            }
+            EditorUtility.SetDirty(sp);
+            L($"- {total} creatures placed under {Path(sp.transform)}; the random entries stay as a fallback");
+        }
+
+        // ------------------------------------------------------------------ UI
+        static void BakeUI()
+        {
+            var ui = UnityEngine.Object.FindFirstObjectByType<UIManager>(FindObjectsInactive.Include);
+            var root = ui ? ui.gameObject : new GameObject("[UI]");
+            root.GetOrAdd<UIManager>(); root.GetOrAdd<HUDManager>(); root.GetOrAdd<InventoryUI>(); root.GetOrAdd<JournalUI>();
+            root.GetOrAdd<PauseMenuUI>(); root.GetOrAdd<TitleScreenUI>(); root.GetOrAdd<DeathScreenUI>();
+            root.GetOrAdd<Minimap>(); if (MobileHUD.Supported) root.GetOrAdd<MobileHUD>(); root.GetOrAdd<ContextHints>();   // touch controls: mobile builds only
+            int before = root.GetComponentsInChildren<Transform>(true).Length;
+            foreach (var b in root.GetComponents<MonoBehaviour>().OfType<IBakeableUI>()) b.BakeLayout();
+            if (!UnityEngine.Object.FindFirstObjectByType<DamageOverlay>(FindObjectsInactive.Include))
+            {
+                var d = new GameObject("[DamageOverlay]", typeof(RectTransform)); d.layer = 5; d.transform.SetParent(root.transform, false); d.AddComponent<DamageOverlay>();
+            }
+            int after = root.GetComponentsInChildren<Transform>(true).Length;
+            foreach (var c in root.GetComponentsInChildren<Component>(true)) if (c) EditorUtility.SetDirty(c);
+            L($"- [UI]: {(ui ? "kept" : "added")}, {after} objects ({after - before} new). Canvases: " +
+              string.Join(", ", root.GetComponentsInChildren<Canvas>(true).Where(c => c.transform.parent == root.transform).Select(c => c.name + (c.gameObject.activeSelf ? "" : " (hidden until opened)"))));
+        }
+
+        static void Order()
+        {
+            string[] order = { "[Systems]", "[Gameplay]", "Player", "Main Camera", "[UI]", "World", "Markers", "Water", "ENV_Island_Terrain", "Sun", "Global Volume" };
+            int k = 0;
+            foreach (var n in order)
+            {
+                var go = GameObject.Find(n);
+                if (go && go.transform.parent == null) go.transform.SetSiblingIndex(k++);
+            }
+        }
+
+        static void WriteReport(UnityEngine.SceneManagement.Scene scene)
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine(Log.ToString());
+            sb.AppendLine("## Hierarchy (2 levels)\n```");
+            foreach (var r in scene.GetRootGameObjects())
+            {
+                sb.AppendLine($"{r.name}  ({r.GetComponentsInChildren<Transform>(true).Length - 1} objects inside)");
+                foreach (Transform c in r.transform) sb.AppendLine($"    {c.name}{(c.gameObject.activeSelf ? "" : "  (off)")}");
+            }
+            sb.AppendLine("```");
+            Directory.CreateDirectory("Documentation");
+            File.WriteAllText("Documentation/Scene_Hierarchy.md", sb.ToString());
+        }
+
+        /// <summary>generators rebuild things from scratch: ask before overwriting hand edits (always yes in batch mode)</summary>
+        public static bool ConfirmRegenerate(string what)
+        {
+            if (Application.isBatchMode) return true;
+            return EditorUtility.DisplayDialog("Regenerate " + what + "?",
+                what + " will be rebuilt by the generator.\n\nThis OVERWRITES the changes you made by hand (objects moved, values edited in the Inspector) in what it rebuilds.\n\nFor normal work you do not need this: edit the scene and save.",
+                "Regenerate", "Cancel");
+        }
+    }
+
+    /// <summary>
+    /// When Unity opens this project on an empty "Untitled" scene or the template SampleScene, open the island instead
+    /// (once per editor session),
+    /// and offer to bake it if the Player / UI are not in the scene yet.
+    /// </summary>
+    [InitializeOnLoad]
+    static class PrimalStartup
+    {
+        const string Done = "pf_startup_done";
+        static PrimalStartup()
+        {
+            if (Application.isBatchMode || SessionState.GetBool(Done, false)) return;
+            EditorApplication.delayCall += Run;
+        }
+
+        static void OnPlayMode(PlayModeStateChange c)
+        {
+            if (c != PlayModeStateChange.EnteredEditMode) return;
+            EditorApplication.playModeStateChanged -= OnPlayMode;
+            EditorApplication.delayCall += Run;
+        }
+
+        static void Run()
+        {
+            if (SessionState.GetBool(Done, false)) return;
+            if (EditorApplication.isPlayingOrWillChangePlaymode)
+            {
+                // wait until Play mode is left
+                EditorApplication.playModeStateChanged -= OnPlayMode; EditorApplication.playModeStateChanged += OnPlayMode;
+                return;
+            }
+            SessionState.SetBool(Done, true);
+            if (!File.Exists(PrimalSceneBaker.ScenePath)) return;
+            var s = EditorSceneManager.GetActiveScene();
+            // an empty Untitled scene, or the template's SampleScene (Assets/Scenes), is never the game
+            bool notGame = string.IsNullOrEmpty(s.path) || s.path == "Assets/Scenes/SampleScene.unity";
+            if (notGame && !s.isDirty && EditorSceneManager.sceneCount == 1) EditorSceneManager.OpenScene(PrimalSceneBaker.ScenePath, OpenSceneMode.Single);
+            if (EditorSceneManager.GetActiveScene().path == PrimalSceneBaker.ScenePath && PrimalSceneBaker.NeedsBake()
+                && EditorUtility.DisplayDialog("Primal Frontier", "The Player, dinosaurs, UI and systems are still created by code when you press Play.\n\nPut them into the scene now so you can see and edit everything in the Hierarchy?\n(Primal Frontier > Scene > Bake Everything Into Scene does the same later.)", "Bake now", "Later"))
+                PrimalSceneBaker.BakeMenu();
+        }
+    }
+}

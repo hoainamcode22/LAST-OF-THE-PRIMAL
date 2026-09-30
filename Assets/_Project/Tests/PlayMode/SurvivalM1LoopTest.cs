@@ -18,7 +18,7 @@ namespace PrimalFrontier.Tests
     /// <summary>
     /// Milestone 1 as ONE play-through on the island, through the same calls the input uses (Interact, crafting queue,
     /// placement spawn, consumables): gather -> craft axe + cup -> campfire lit with wood -> cook meat until ready -> eat ->
-    /// sea water -> boil -> drink clean -> rain collector in the rain -> tent -> sleep through the night -> save / load.
+    /// pond water -> boil -> drink clean -> rain collector in the rain -> tent -> sleep through the night -> save / load.
     /// Material top-ups are given where gathering would only cost minutes (each is commented); time is sped up while
     /// waiting on timers (cooking, boiling, rain).
     /// </summary>
@@ -113,7 +113,7 @@ namespace PrimalFrontier.Tests
             Assert.AreEqual(0, inv.Slots.Count(s => s != null && !s.IsEmpty), "the survivor starts with an empty pack");
             Assert.AreEqual(1f, sv.MoveSpeedMultiplier, 1e-4f, "no need penalty at the start");
 
-            // 2. gather for real: one stone node and one fibre / wood node by hand
+            // 2. gather for real: one stone node and one fiber / wood node by hand
             foreach (var want in new[] { "stone", "fiber" })
             {
                 var node = Interactable.Active.OfType<ResourceNode>().Where(n => n.yieldItem && n.yieldItem.id == want && n.requiredTool == ToolKind.None && n.CanInteract(pi))
@@ -163,22 +163,23 @@ namespace PrimalFrontier.Tests
             Assert.Greater(sv.Hunger, 60f, "eating cooked meat fills hunger");
             Log($"meat cooked, taken and eaten: hunger 40 -> {sv.Hunger:F0}");
 
-            // 6. water: fill the cup at the sea (salt), boil it at the fire (clean), drink
+            // 6. water: fill the cup at the nearest pond / stream (unboiled), boil it at the fire (clean), drink.
+            //    Sea water is never drinkable: boiling it is refused (SurvivalM1Tests.Boiling_Salt_Water_Is_Refused_And_Stays_Salt).
             int cupSlot = Hold(inv, "leaf_cup"); var cup = inv.Get(cupSlot);
-            var ocean = Object.FindFirstObjectByType<OceanShore>(); Assert.IsNotNull(ocean);
-            var terrain = Terrain.activeTerrain; float ty = terrain.transform.position.y; Vector3 spawn = p.transform.position, shore = spawn; float best = float.MaxValue;
-            for (float x = -160f; x <= 160f; x += 1.5f)
-                for (float z = -160f; z <= 160f; z += 1.5f)
-                {
-                    var q = spawn + new Vector3(x, 0, z); float h = terrain.SampleHeight(q) + ty;
-                    if (h > -0.02f || h < -0.3f) continue; float d2 = x * x + z * z;
-                    if (d2 < best) { best = d2; shore = new Vector3(q.x, h, q.z); }
-                }
             Vector3 camp = fireGo.transform.position;
-            motor.Warp(shore + Vector3.up * 0.3f, p.transform.rotation); yield return new WaitForSeconds(0.8f);
-            Assert.IsTrue(ocean.PlayerAtShore, "at the shore");
-            yield return Act(pi, () => ocean.Interact(pi), () => cup.water > 0);
-            Assert.AreEqual(WaterType.SaltWater, WaterRules.TypeOf(cup), "sea water fills as salt water");
+            WaterSource pond = null; Vector3 pondPt = camp; float best = float.MaxValue;
+            foreach (var w in WaterSource.All)
+            {
+                if (!w || !w.fresh || w.clean) continue;
+                float d = w.Closest(camp, out var pt);
+                if (d < best) { best = d; pond = w; pondPt = pt; }
+            }
+            if (pond == null) { pond = WaterSource.All.FirstOrDefault(w => w && w.fresh && !w.clean); if (pond) pondPt = pond.transform.position; }
+            Assert.IsNotNull(pond, "a pond / stream with unboiled water on the island");
+            Assert.AreEqual(WaterType.DirtyWater, pond.SourceType);
+            yield return WalkTo(motor, pondPt, 1.5f);
+            yield return Act(pi, () => pond.Interact(pi), () => cup.water > 0);
+            Assert.AreEqual(WaterType.DirtyWater, WaterRules.TypeOf(cup), "pond water fills as unboiled water");
             yield return WalkTo(motor, camp, 1.4f);
             cupSlot = Hold(inv, s => s == cup);
             yield return Act(pi, () => fire.Interact(pi), () => fire.Boiling);
@@ -190,7 +191,7 @@ namespace PrimalFrontier.Tests
             sv.SetStats(sv.Hunger, 30f, sv.Stamina, sv.BodyTemperature, 0f);
             yield return Act(pi, () => pi.UseActiveConsumable(), () => cup.water == 0);
             Assert.Greater(sv.Thirst, 30f + cfg.Water(WaterType.CleanWater).thirst - 1f, "clean water quenches thirst");
-            Log($"sea water -> boiled -> clean, drunk: thirst 30 -> {sv.Thirst:F0}");
+            Log($"pond water -> boiled -> clean, drunk: thirst 30 -> {sv.Thirst:F0}");
 
             // 7. rain collector: craft (top-up: hide from a carcass, milestone 2), place, let it rain, fill the cup
             Give(inv, "wood", 4); Give(inv, "fiber", 6); Give(inv, "hide", 1);

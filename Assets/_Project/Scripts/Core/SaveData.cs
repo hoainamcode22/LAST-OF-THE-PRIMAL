@@ -12,6 +12,8 @@ namespace PrimalFrontier.Core
     /// the index is mapped through the pre-M1 step order).
     /// v5 (phase 3): named sections (ISaveSection: status effects, creatures, fruit...), food age on slots / drops
     /// (seconds since the food was made; older saves: 0 = fresh).
+    /// Phase 1 (same version, additive): SlotData / DropData.hot = seconds the water stays Hot (older saves: 0 = Cold);
+    /// campfire charcoal lives in StructureData.state.
     /// </summary>
     [Serializable]
     public class SaveData
@@ -51,11 +53,11 @@ namespace PrimalFrontier.Core
 
     [Serializable] public class SectionData { public string key; public string json; }
 
-    [Serializable] public class SlotData { public int slot; public string item; public int count; public float durability; public int water; public bool dirty; public int waterType; public float age; }   // age v5: food seconds old
+    [Serializable] public class SlotData { public int slot; public string item; public int count; public float durability; public int water; public bool dirty; public int waterType; public float age; public float hot; }   // age v5: food seconds old; hot P1: hot water seconds left
     [Serializable] public class CraftJobData { public string recipe; public float progress; }
     [Serializable] public class NodeData { public string id; public int remaining; public double emptyUntil; }
     [Serializable] public class TreeData { public int index; public double regrowAt; }
-    [Serializable] public class DropData { public string item; public int count; public float durability; public int water; public bool dirty; public int waterType; public Vector3 pos; public float age; }
+    [Serializable] public class DropData { public string item; public int count; public float durability; public int water; public bool dirty; public int waterType; public Vector3 pos; public float age; public float hot; }
     [Serializable]
     public class StructureData
     {

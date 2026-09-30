@@ -1,0 +1,45 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6c1c87829c145634e97f96d6e284623d, type: 3}
+  m_Name: RES_salvage_sail
+  m_EditorClassIdentifier: PrimalFrontier.Runtime::PrimalFrontier.World.ResourceDefinition
+  id: salvage_sail
+  displayName: Torn sail
+  category: 5
+  size: 1
+  prompt: Salvage
+  item: {fileID: 11400000, guid: 55492b31c682e95499d0f71a0488dea3, type: 2}
+  yieldRange: {x: 1, y: 2}
+  bonusItem: {fileID: 11400000, guid: 0835f16a5f01580469ff4e7f8e5fba34, type: 2}
+  bonusChance: 0.3
+  bestTool: 0
+  requiredTool: 0
+  handsFactor: 1
+  toolFactor: 1
+  gatherSeconds: 1.3
+  handAction: 4
+  toolAction: 4
+  toolWear: 1
+  handHint: 
+  punchable: 0
+  damagePerUnit: 4
+  respawnHours: 120
+  depletedLook: 0
+  damagedScale: 0.85
+  depletedScale: 0.45
+  sink: 0
+  radius: 0.8
+  hitVfx: 27
+  hitVfx2: 0
+  handSfx: 13
+  toolSfx: 13
+  depleteSfx: 0

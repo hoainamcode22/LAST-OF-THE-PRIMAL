@@ -1,0 +1,73 @@
+# BUILD (primitive shelter building): PC phase report, 2026-09-30
+
+Scope: `PC_ROUND_OWNERSHIP.md` row BUILD (`Building/*`, `World/Shelter`, `World/Bedroll`, new `Editor/PrimalBuildingBuilder`,
+building art, building item / recipe assets, building tests). Zip `pf_up_B1` (19 files, only mine), hand made, waiting in
+`/mnt/user-data/outputs/pf_up_B1.zip`. The editor was closed and the PC link was down for the whole session, so EVERYTHING
+below is **DONE-NOT-TESTED**: the cloud mirror compiles (runtime / editor / tests rc 0 with everybody's files), the models
+were generated and rendered offline (bpy 4.2 in the cloud, Cycles preview reviewed), nothing has run in Unity yet.
+Commands to run tomorrow: `NEXT_SESSION.md` (BUILD rows) and section 6 here. No git, no deleting, no full suites.
+
+## 1. Result per item
+
+| # | Item | Status | What / evidence |
+|---|---|---|---|
+| 1a | `StructureDefinition` ScriptableObject | DONE-NOT-TESTED | `Building/StructureDefinition.cs`: id, display name, prefab, item, recipe (cost + knowledge) or own cost, sockets (kind, local position, local yaw), `snapsTo` mask, support rule (Ground / GroundOrFoundation / WallsBelow + `minWallsBelow`), footprint box, slope, ground tolerance, build hits, dust size, sounds. `ApplyStandard(category)` fills the standard geometry (grid 3 m cells, walls 2.4 m, platform 0.35 m). Registry `All` (Resources/Structures + `Register` for tests), `Find`, `ForItem`, `Reload` |
+| 1b | Pieces | DONE-NOT-TESTED | Foundation (log platform on stones: 4 edge sockets for walls facing out, 4 side sockets for level neighbours), Wall (pole-and-withy, leaf-woven; snaps to foundation edges and wall ends, wall-top sockets on both sides centre a roof over the cell), Doorway wall + Door (`DoorPiece` on the hinge: E opens / closes, 105 deg swing eased over 0.45 s, rustle + snap sounds, collider on the leaf), Roof (thatch gable over one cell, woven gable ends; only on wall tops, needs 2 walls under it), Leaf Shelter (lean-to of poles and fronds, its own `Shelter`: cheap first roof, known at start) |
+| 1c | Build mode in the one `BuildSystem` | DONE-NOT-TESTED | `Building/BuildSystem.cs` (same public API as before: `Instance`, `Active`, `Valid`, `InvalidReason`, `Item`, `Begin`, `Cancel`, `Placed`, `Spawn`; new `Placing`, `MenuOpen`, `Structure`, `Snapped`, `BeginStructure`, `OpenMenu / CloseMenu / Select`, `Available`, `MissingCost`, static `FindSnap`). Two ways in: a placeable item on the hotbar (old flow, campfire / tent / storage / bedroll / rain collector / a crafted piece bundle: one item used) or **B** for the piece menu (materials taken from the pack when the piece is built, then the same piece re-arms while it can be paid for). Ghost green / red (existing ghost materials), R / wheel rotate (free: 45 / 15 deg; snapped: the socket's yaw + 90 deg steps for roofs, 180 for walls), socket snapping by the aim ray (nearest free socket within `snapRadius`; taken sockets skipped), checks in order: socket needed / aim at the ground / slope / water / ground under the corners (uneven, too high, nothing to stand on) / walls below (roof) / too far (6 m, +3 m snapped) / too close / you are in the way / something in the way (OverlapBox of the footprint, terrain ignored) / missing materials ("Missing: 2 Wood, 4 Plant Fiber"). Left click = the Build action (2-3 hits with U's wood chips + Build sound) then the piece appears with `VfxId.BuildDust` (size per piece) + `SfxId.Build` + `BranchSnap` (wood) + `LeafRustle` (leaves), `GameEventType.StructurePlaced` (id = the piece item id), enclosure refresh. Esc / right click cancels, B while placing reopens the menu. Keyboard / mouse first (touch not wired) |
+| 1d | Build menu UI | DONE-NOT-TESTED | `Building/BuildMenuUI.cs` (own canvas `[Build]` under `[Build]/[BuildMenu]`, order 33): one card per known piece (icon, name, number key, cost lines "Wood 4 / 6" green / red by the pack), click or 1..9 picks, B / Esc / right click closes; cursor free and gameplay blocked while open (`UIManager.BlockPause` already blocks the pause menu through `BuildSystem.Active`). While placing, a bottom strip shows the piece, its cost and "snapped" |
+| 1e | Enclosure logic | DONE-NOT-TESTED | `Building/BuildingEnclosure.cs`: a roof with walls or doorways on 2+ of its cell's 4 edges (wall origin within 0.5 m of the edge point) switches on the roof's `Enclosure` child: a `Shelter` at floor level with a box cover of the cell (+0.35 m), `coverHeight` 3.8, warmth 4 C (2 walls) / 5.5 (3) / 7 (closed hut; tent = 6), facing the doorway (else the first open side) so `RestPoint` is on the door side; prompt "Rest in shelter" with "Sheltered by N walls" / "A closed hut". Lazy: pieces mark it dirty (place, load, destroy), `RefreshIfDirty` runs from `BuildSystem.Update` and from every `Shelter.Covers / WarmthAt / Nearest` query (`Shelter.Validate` hook), so nothing else changed. `Campfire.Sheltered` reads `Shelter.Covers(p + 0.5 up)` (verified in `Campfire.CheckWeather`), `SurvivalEnvironment.ShelteredAt` (WORLD) reads `Shelter.Covers`, `WeatherManager.RainingAt` too: a hut protects a fire inside and the player from rain / sun / cold without any change in their files. Bedroll inside: `Shelter.HasBed` counts any `Bedroll` under an enclosure's cover (`Bedroll.All` added), so the tutorial's "sleep at a shelter" tip and `Shelter.Nearest(p, r, withBedOnly)` see it; sleeping in it goes through the existing `Bedroll -> GameManager.Sleep` (respawn at the bed, save); "Rest in shelter" goes through the existing `Shelter.Rested` (save + respawn point) |
+| 1f | Save / load | DONE-NOT-TESTED | Every piece is a `PlacedStructure` whose item has `placePrefab` = the piece prefab, so the existing structure save keeps id, position and yaw and `BuildSystem.Spawn` restores it; door state through `StructurePiece : ISaveableStructure` (`{"door":true}`); enclosures re-evaluate after the load (dirty flag) |
+| 1g | Recipes | DONE-NOT-TESTED | `foundation` (8 wood, 4 stone, 4 fiber, 8 s), `wall` (6 wood, 6 fiber), `doorway` (7 wood, 8 fiber), `roof` (5 wood, 12 fiber), all learned when wood or fibre is first picked up; `leaf_shelter` (5 wood, 8 fiber) known at start. Category Structures (BUILDING tab), output = the piece item (a crafted bundle can also be placed from the hotbar). **Total after the builder: 27 + 5 = 32 recipes** (cap 40, `SurvivalLoopTests` range 15-40). The old `shelter` recipe (Basic Shelter, PROP_Shelter) stays: not mine to retire |
+| 2 | Art | DONE-NOT-TESTED in Unity (reviewed offline) | `Tools/BlenderPipeline/build_pieces.py` (bpy 4.2, background, never opens an existing .blend): original procedural models authored in Unity coordinates (`U()` = the inverse of `BlenderSpace.ToUnityPosition`), 2 LODs each, exported as `Art/Models/Building/BLD_{Foundation, Wall, Doorway, Roof, LeanTo}.fbx` (children `<Name>_LOD0/1`, the doorway also the empty `Door` hinge with `Door_LOD0/1`). Tris LOD0 / LOD1: foundation 1052 / 296, wall 1102 / 128, doorway 1062 / 176 + door 492 / 72, roof 956 / 80, lean-to 1378 / 156. Three shared materials for all pieces: `M_BuildWood` (bark, copied from M_Bark's textures by the builder), `M_BuildAtlas` (original 2048 atlas `T_Building_{D,N,M}`: woven withies with tucked leaves, thatch strip with a ragged fringe, frond, hide, log end grain, bound bundle; alpha-clipped, two-sided), `M_BuildStone` (from M_Rock). Preview (Cycles, cloud): `Documentation/Screenshots/PCPhase/Build/build_pieces_preview.jpg` (each piece + an assembled hut: foundation, 3 walls, doorway with the door ajar, roof; everything meets on the 3 m grid). Sources: `/mnt/user-data/outputs/B_art/` (script, atlas generator `tex_building.py`, `BLD_Pieces_20260930.blend`, preview). Stand-in meshes from code (`Building/PieceMeshes.cs`, Mesh API) are used by the builder only while an FBX is missing (child `Model_Pending`, swapped on the next run) and by the tests |
+| 2b | `PrimalBuildingBuilder` | DONE-NOT-TESTED | `Editor/PrimalBuildingBuilder.cs`, bridge `Build` (args `rebuild`, `icons`, `reset`), `Inspect`, `Icons`. Idempotent, hand edits win, logs to `Documentation/PCPhase/Build/building_build.md`; the scene is not touched. Makes: texture import settings, the 3 materials (`Art/Building/Materials`), prefabs `Prefabs/Building/BLD_*` (model, LODGroups where the importer made none, colliders, `StructurePiece`, door, the roof's disabled Enclosure `Shelter`, the lean-to's `Shelter`), items (`Data/Items/ITEM_{leaf_shelter, foundation, wall, doorway, roof}`, Structure, placePrefab, icons rendered from the prefab into `Art/Icons/ICON_BLD_*.png` with an own camera far above the scene, the shelter icon as fallback), `Resources/Structures/STR_*` definitions, recipes `Data/Recipes/RCP_*`, database entries (cap 40), report of the recipe list. `PrimalSurvivalBuilder` never deletes assets (it only removes the `cooked_meat` list entry), so re-running it is safe for mine |
+| 3 | Tests | DONE-NOT-TESTED | `Tests/PlayMode/BuildingTests.cs` (7): sockets (walls on foundation edges facing out, wall tops centre a roof, side sockets level), aim snapping to the nearest free edge (taken edge skipped, far aim none, roof only to wall tops), enclosure (roof + 2 walls covers the cell and warms it, third wall warmer, bedroll inside = bed, a lit campfire inside becomes `Sheltered`, walls gone = no cover), wall count with doorways + door edge + rest point on the door side, door toggle + state round trip, island: real assets save / load restore 4 pieces by item id + the open door + the enclosure, the build menu lists known pieces, `MissingCost` before / after adding the materials, select starts the ghost; content check (recipes 25-40, icons, prefabs with colliders / LODGroups / components). The plain tests use run-time definitions + stand-in meshes (no builder needed); the island tests `Assert.Ignore` until the builder has run. All `[Timeout]`, `UseTestSaves`, no WaitForEndOfFrame |
+
+## 2. Files (mirror paths, all in `pf_up_B1`)
+New: `Scripts/Building/{StructureDefinition, StructurePiece, DoorPiece, BuildingEnclosure, BuildMenuUI, PieceMeshes}.cs`,
+`Scripts/Editor/PrimalBuildingBuilder.cs`, `Tests/PlayMode/BuildingTests.cs`, `Art/Models/Building/BLD_*.fbx` (5),
+`Art/Building/Textures/T_Building_{D,N,M}.png`.
+Changed: `Scripts/Building/BuildSystem.cs` (rewritten around the same API), `Scripts/World/Shelter.cs` (box cover, `coverBelow`,
+`restDistance` / `RestPoint`, `bedInsideCounts`, `note`, `Validate` hook, `IsEnclosure`), `Scripts/World/Bedroll.cs` (`All`,
+`Sheltered`, prompt line). `Scripts/Building/{PlacedStructure, ISaveableStructure}.cs` unchanged. `World/StorageBox` unchanged.
+Not in the zip (project root, not Assets): `Tools/BlenderPipeline/build_pieces.py` (mirror `tools/BlenderPipeline/`, copy in
+`/mnt/user-data/outputs/B_art/`).
+
+## 3. Numbers
+Grid: cell 3 m, wall 2.4 m, foundation top 0.35 m, wall 0.22 m thick, roof ridge +1.15 m over the wall tops, eaves +0.2 m.
+Ghost: reach 6 m (+3 m snapped), snap radius 1.6 m (roof 2.4), free slope 24 deg (walls 30), ground under the corners
+within -0.7 / +0.45 m of the origin, footprint overlap shrunk by 0.05 m. Build hits: 2 (wall, doorway, lean-to), 3 (foundation,
+roof); dust 1.0 / 1.2 / 1.4 / 1.5. Enclosure: edge tolerance 0.5 m, cover box half 1.85 m, cover height 3.8 m, 0.6 m below,
+warmth 4 / 5.5 / 7 C. Door: 105 deg, 0.45 s. Costs: section 1g. Item weights: foundation 14, wall 8 (stack 2), doorway 9,
+roof 9, leaf shelter 8 kg.
+
+## 4. Requests
+| To | Request | Why |
+|---|---|---|
+| Lead / STORY | `GameManager` `Shelter.Rested`: use `s.RestPoint` instead of `s.transform.position + s.transform.forward * 1.8f` | an enclosure's rest point is 1 m toward the door (1.8 lands 0.3 m past the wall line, in the doorway) |
+| STORY | `JournalSystem` entry "shelter": trigger `StructurePlaced` id `shelter|leaf_shelter|roof` (it is exactly "shelter" now) | the journal note never appears for the new pieces |
+| U | `ContextHints`: "[B] Build" hint when nothing is held and the pack has wood; in Building mode the strip already lists the keys | discoverability of the piece menu |
+| SURV | nothing in `Items/*` needed; recipe count is 32 after my builder (report it in your count) | coordination of 25-40 |
+| Lead | decide whether the old `shelter` recipe (Basic Shelter) is retired from the database list like `cooked_meat` (31 recipes then); I did not touch it | two lean-tos (Basic Shelter, Leaf Shelter) |
+
+## 5. Known limits (no Unity run yet)
+- Icons come out of an editor camera render (URP, alpha 0 background). If a render is empty the item keeps the shelter icon
+  and the log says so; `PrimalBuildingBuilder.Icons` re-renders.
+- Unity's FBX importer should make the LODGroups from the `_LOD` names; if it leaves the nested door out, the builder adds
+  a LODGroup on `Door` (logged). Check `Inspect`: "LODGroups 2" for the doorway.
+- Bark: `M_BuildWood` copies the base / normal maps from `M_Bark` (`Art/Materials` or `Art/Environment/Materials`); if none
+  is found it is a plain brown (logged). ENV's WindSplit does not touch it.
+- A raised platform on a slope shows a gap under the downhill stones (up to 0.7 m allowed). Pieces cannot be dismantled.
+- Touch: the piece menu needs a keyboard (B) or a request to U for a MobileHUD button.
+- The old "No modular base building" rule is gone from `BuildSystem` (Lead decision, WAVE2_OWNERSHIP).
+
+## 6. Run list for tomorrow (also in NEXT_SESSION.md)
+1. `$HOME/deploy.sh pf_up_B1` (copy the zip to `E:\LAST OF THE PRIMAL\Tools\` first), wait for the compile, no `error CS`.
+2. `$HOME/run.sh B_01 PrimalBuildingBuilder.Build "" 15`, read the log (models FBX, 5 prefabs, 5 items with icons, 5 definitions,
+   5 recipes, "recipes (32 of 40)"). If the importer put the door outside the LODGroup the log says "LODGroup on Door".
+3. `$HOME/run.sh B_02 PrimalBuildingBuilder.Inspect "" 5`, then `PrimalEditorBridge.ConsoleCheck`: 0 errors.
+4. Targeted test: `$HOME/run.sh B_03 PrimalTestRunner.RunPlayMode "BuildingTests" 3` (7 tests; the island one saves / loads).
+5. Copy `Tools/BlenderPipeline/build_pieces.py` from `/mnt/user-data/outputs/B_art/` to `E:\LAST OF THE PRIMAL\Tools\BlenderPipeline\`
+   (source only; the FBX are already in the zip). Re-export on the PC if ever needed:
+   `"C:\Program Files\Blender Foundation\Blender 4.2\blender.exe" -b --python Tools\BlenderPipeline\build_pieces.py -- Assets\_Project\Art\Models\Building all`.
+6. By hand: B opens the menu, place a leaf shelter (known at start); pick up wood to learn the pieces; foundation, walls on its
+   edges, doorway, roof; E on the door; rain: the fire inside stays dry; rest / sleep inside.

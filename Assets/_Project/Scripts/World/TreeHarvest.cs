@@ -14,8 +14,11 @@ namespace PrimalFrontier.World
     /// Chopping the terrain's trees (they are TreeInstances, not GameObjects): this one interactable moves to the
     /// nearest standing tree. With an axe (or a hand stone, any Chop tool) each hit gives wood by the tool's efficiency
     /// (ResourceDefinition "wood_tree", GatheringSystem); after hitsPerTree hits the tree falls (hidden, TreeFelled event)
-    /// and regrows days later. Bare hands cannot chop: they strip a few dry twigs (tiny yield, a hint, no felling), by
-    /// Interact or by punching (IDamageable on a trigger proxy that follows the current tree).
+    /// and regrows days later. A felled tree leaves a stump (pooled, generated mesh with the tree's bark material) for the
+    /// first half of the regrow time; in the second half a sapling grows in its place (the tree instance scaled up over
+    /// time) until the tree is back. Stumps follow the saved felled list, so they survive save / load. Bare hands cannot
+    /// chop: they strip a few dry twigs (tiny yield, a hint, no felling), by Interact or by punching (IDamageable on a
+    /// trigger proxy that follows the current tree).
     /// The object itself is moved onto the current tree: PlayerInteraction pre-filters interactables by their
     /// transform distance, so a system object left near the world origin was only choppable near the origin.
     /// </summary>
@@ -31,6 +34,7 @@ namespace PrimalFrontier.World
         [Tooltip("the tree's data (tools, hand rate, feedback). Empty = ResourceDatabase 'wood_tree', else built-in values")]
         public ResourceDefinition definition;
         [Tooltip("dry twigs bare hands can strip from one tree before it regrows")] public int handTwigsPerTree = 2;
+        [Tooltip("a felled tree leaves a stump until the sapling starts growing (second half of the regrow time)")] public bool stumps = true;
 
         const float Cell = 8f;
         readonly Dictionary<Vector2Int, List<int>> _grid = new Dictionary<Vector2Int, List<int>>();
@@ -38,6 +42,14 @@ namespace PrimalFrontier.World
         readonly Dictionary<int, int> _hits = new Dictionary<int, int>();
         readonly Dictionary<int, double> _felled = new Dictionary<int, double>();     // index -> regrow time
         readonly Dictionary<int, int> _handTaken = new Dictionary<int, int>();
+        readonly Dictionary<int, GameObject> _stumps = new Dictionary<int, GameObject>();
+        readonly Dictionary<int, float> _sapling = new Dictionary<int, float>();      // felled index -> last applied growth (0 = stump phase)
+        readonly List<GameObject> _stumpPool = new List<GameObject>();
+        Transform _stumpRoot; static Mesh _stumpMesh; float _nextGrowth;
+        /// <summary>stumps standing right now (tests)</summary>
+        public int StumpCount => _stumps.Count;
+        /// <summary>growth 0..1 of a regrowing tree's sapling (0 while the stump stands, -1 when not felled)</summary>
+        public float SaplingGrowth(int i) => _felled.ContainsKey(i) ? (_sapling.TryGetValue(i, out var g) ? g : 0f) : -1f;
         float _toolProgress, _handProgress;
         ResourceDefinition _def;
         Transform _proxy;
@@ -60,9 +72,9 @@ namespace PrimalFrontier.World
         {
             var d = ScriptableObject.CreateInstance<ResourceDefinition>(); d.hideFlags = HideFlags.DontSave;
             d.id = "wood_tree"; d.displayName = "Tree"; d.category = ResourceCategory.Wood; d.size = ResourceSize.Huge; d.prompt = "Chop Tree";
-            d.item = wood; d.bestTool = d.requiredTool = ToolKind.Chop; d.handsFactor = 0.25f; d.toolFactor = 1f;
+            d.item = wood; d.bestTool = d.requiredTool = ToolKind.Chop; d.handsFactor = 0f; d.toolFactor = 1f;
             d.handAction = PlayerActions.GatherBranch; d.toolAction = PlayerActions.GatherWood; d.respawnHours = regrowHours;
-            d.handHint = "Bare hands only strip dry twigs. An axe fells the tree."; d.depletedLook = DepletedLook.Mined;
+            d.handHint = NeedAxe; d.depletedLook = DepletedLook.Mined;
             d.FeedbackDefaults(); d.hitVfx2 = VfxId.Leaves;
             return d;
         }
@@ -105,11 +117,18 @@ namespace PrimalFrontier.World
         void Update()
         {
             if (_trees == null) return;
-            // regrow
-            if (_felled.Count > 0)
+            // regrow (twice a second: due trees come back, half-grown ones show a growing sapling instead of the stump)
+            if (_felled.Count > 0 && Time.time >= _nextGrowth)
             {
+                _nextGrowth = Time.time + 0.5f;
                 List<int> back = null;
-                foreach (var kv in _felled) if (GameClock.Now >= kv.Value) (back ??= new List<int>()).Add(kv.Key);
+                double dur = GameClock.Hours(regrowHours);
+                foreach (var kv in _felled)
+                {
+                    if (GameClock.Now >= kv.Value) { (back ??= new List<int>()).Add(kv.Key); continue; }
+                    float done = dur > 0 ? (float)(1.0 - (kv.Value - GameClock.Now) / dur) : 0f;
+                    if (done >= 0.5f) Grow(kv.Key, (done - 0.5f) * 2f);
+                }
                 if (back != null) foreach (var i in back) Regrow(i);
             }
             _current = -1;
@@ -145,7 +164,10 @@ namespace PrimalFrontier.World
             plan = GatheringSystem.Plan(Def, p ? p.ActiveItem : null);
             return !plan.byHand;
         }
-        int HandLeft(int tree) => handTwigsPerTree - (_handTaken.TryGetValue(tree, out var n) ? n : 0);
+        int HandLeft(int tree) => HandsWork ? handTwigsPerTree - (_handTaken.TryGetValue(tree, out var n) ? n : 0) : 0;
+        /// <summary>false when the tree data gives bare hands nothing (Phase 1 tool gating: trees need an axe)</summary>
+        bool HandsWork => Def.handsFactor > 0f && handTwigsPerTree > 0;
+        const string NeedAxe = "Need an axe to chop a tree.";
 
         public override string GetPrompt(PlayerInteraction p, out string sub)
         {
@@ -153,6 +175,7 @@ namespace PrimalFrontier.World
             if (_current < 0) return null;
             if (!Chops(p, out _))
             {
+                if (!HandsWork) { sub = GatheringSystem.NeedText(ToolKind.Chop); return Def.prompt; }     // greyed: "Chop Tree / Need an axe"
                 sub = HandLeft(_current) > 0 ? Def.handHint : "No dry twigs left here. An axe fells the tree.";
                 return "Gather Wood";
             }
@@ -224,7 +247,7 @@ namespace PrimalFrontier.World
             int tree = _current;
             if (tree < 0 || !hit.unarmed || _felled.ContainsKey(tree)) return;
             var pi = hit.attacker ? hit.attacker.GetComponentInParent<PlayerInteraction>() : null;
-            if (HandLeft(tree) <= 0) { PlayerFeedback.GatherHint("No dry twigs left here. An axe fells the tree."); PlayerFeedback.GatherHit(Def, hit.point, -hit.direction, true, 0); return; }
+            if (HandLeft(tree) <= 0) { PlayerFeedback.GatherHint(HandsWork ? "No dry twigs left here. An axe fells the tree." : NeedAxe); PlayerFeedback.GatherHit(Def, hit.point, -hit.direction, true, 0); return; }
             var d = Def;
             int n = Mathf.Min(HandLeft(tree), GatheringSystem.Pay(ref _handProgress, hit.damage / d.damagePerUnit * d.handsFactor));
             if (pi && n > 0 && pi.Inventory.SpaceFor(wood) <= 0) { PlayerInteraction.Notify("Inventory full."); n = 0; }
@@ -244,6 +267,8 @@ namespace PrimalFrontier.World
             _felled[i] = GameClock.Now + GameClock.Hours(regrowHours); _hits.Remove(i);
             var t = _trees[i]; t.heightScale = 0f; t.widthScale = 0f;
             terrain.terrainData.SetTreeInstance(i, t);
+            _sapling.Remove(i);
+            if (stumps) ShowStump(i);
             if (fx)
             {
                 VfxPool.Instance.Play(VfxId.Leaves, _pos[i] + Vector3.up * 2.5f, Vector3.up, null, 2f);
@@ -257,8 +282,104 @@ namespace PrimalFrontier.World
 
         void Regrow(int i)
         {
-            _felled.Remove(i); _handTaken.Remove(i);
+            _felled.Remove(i); _handTaken.Remove(i); _sapling.Remove(i);
+            HideStump(i);
             terrain.terrainData.SetTreeInstance(i, _trees[i]);
+        }
+
+        /// <summary>second half of the regrow time: the stump is gone, a sapling (the tree instance at 12..100 % size) grows</summary>
+        void Grow(int i, float k)
+        {
+            k = Mathf.Clamp01(k);
+            if (_sapling.TryGetValue(i, out var last) && Mathf.Abs(last - k) < 0.02f && last > 0f) return;
+            _sapling[i] = Mathf.Max(0.001f, k);
+            HideStump(i);
+            var t = _trees[i]; float g = Mathf.Lerp(0.12f, 1f, k);
+            t.heightScale = _trees[i].heightScale * g; t.widthScale = _trees[i].widthScale * Mathf.Lerp(0.35f, 1f, k);
+            terrain.terrainData.SetTreeInstance(i, t);
+        }
+
+        // ------------------------------------------------------------------ stumps
+        void ShowStump(int i)
+        {
+            if (_stumps.ContainsKey(i) || !terrain) return;
+            if (!_stumpRoot) { var root = GameObject.Find("[TreeStumps]"); _stumpRoot = (root ? root : new GameObject("[TreeStumps]")).transform; }
+            GameObject go;
+            if (_stumpPool.Count > 0) { go = _stumpPool[_stumpPool.Count - 1]; _stumpPool.RemoveAt(_stumpPool.Count - 1); }
+            else
+            {
+                go = new GameObject("Stump");
+                go.transform.SetParent(_stumpRoot, false);
+                go.AddComponent<MeshFilter>().sharedMesh = StumpMesh();
+                var mr = go.AddComponent<MeshRenderer>(); mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.On;
+                var col = go.AddComponent<CapsuleCollider>(); col.center = new Vector3(0f, 0.5f, 0f); col.radius = 0.9f; col.height = 1.2f;
+            }
+            var t = _trees[i];
+            float w = 0.26f * Mathf.Max(0.4f, t.widthScale), h = 0.45f + 0.18f * Mathf.Max(0.4f, t.heightScale);
+            go.transform.SetPositionAndRotation(_pos[i] - Vector3.up * 0.03f, Quaternion.Euler(0f, (i * 53) % 360, 0f));
+            go.transform.localScale = new Vector3(w, h, w);
+            go.GetComponent<MeshRenderer>().sharedMaterial = BarkOf(t.prototypeIndex);
+            go.SetActive(true);
+            _stumps[i] = go;
+        }
+
+        void HideStump(int i)
+        {
+            if (!_stumps.TryGetValue(i, out var go)) return;
+            _stumps.Remove(i);
+            if (go) { go.SetActive(false); _stumpPool.Add(go); }
+        }
+
+        readonly Dictionary<int, Material> _bark = new Dictionary<int, Material>();
+        /// <summary>the trunk material of a tree prototype (a "Bark" / "Trunk" material, else its first)</summary>
+        Material BarkOf(int proto)
+        {
+            if (_bark.TryGetValue(proto, out var m) && m) return m;
+            var protos = terrain.terrainData.treePrototypes;
+            var prefab = proto >= 0 && proto < protos.Length ? protos[proto].prefab : null;
+            m = null;
+            if (prefab)
+                foreach (var r in prefab.GetComponentsInChildren<Renderer>(true))
+                {
+                    foreach (var mat in r.sharedMaterials) if (mat && (mat.name.Contains("Bark") || mat.name.Contains("Trunk"))) { m = mat; break; }
+                    if (m) break;
+                    if (!m && r.sharedMaterial) m = r.sharedMaterial;
+                }
+            _bark[proto] = m;
+            return m;
+        }
+
+        /// <summary>a unit stump: tapered trunk (radius 1 at the ground, 0.85 at the top), jagged broken top, 12 sides, roots flare</summary>
+        static Mesh StumpMesh()
+        {
+            if (_stumpMesh) return _stumpMesh;
+            const int seg = 12;
+            var v = new List<Vector3>(); var n = new List<Vector3>(); var uv = new List<Vector2>(); var tri = new List<int>();
+            var rng = new System.Random(7);
+            float[] top = new float[seg + 1]; for (int i = 0; i <= seg; i++) top[i] = i == seg ? top[0] : 0.72f + (float)rng.NextDouble() * 0.28f;
+            float[] ring = { 1.25f, 1.0f, 0.9f, 0.86f }; float[] ringY = { 0f, 0.12f, 0.5f, 1f };
+            for (int r = 0; r < ring.Length; r++)
+                for (int i = 0; i <= seg; i++)
+                {
+                    float a = i / (float)seg * Mathf.PI * 2f; var dir = new Vector3(Mathf.Cos(a), 0f, Mathf.Sin(a));
+                    float bump = 1f + 0.06f * Mathf.Sin(a * 3f + r);
+                    float y = r == ring.Length - 1 ? top[i] : ringY[r];
+                    v.Add(dir * ring[r] * bump + Vector3.up * y); n.Add((dir + Vector3.up * 0.15f).normalized); uv.Add(new Vector2(i / (float)seg * 2f, y * 0.6f));
+                }
+            for (int r = 0; r < ring.Length - 1; r++)
+                for (int i = 0; i < seg; i++)
+                {
+                    int a = r * (seg + 1) + i, b = a + 1, c = a + seg + 1, d = c + 1;
+                    tri.Add(a); tri.Add(c); tri.Add(b); tri.Add(b); tri.Add(c); tri.Add(d);
+                }
+            // broken top: a fan to a low centre (the heartwood), lighter uv band
+            int centre = v.Count; v.Add(Vector3.up * 0.8f); n.Add(Vector3.up); uv.Add(new Vector2(0.5f, 0.95f));
+            int topStart = (ring.Length - 1) * (seg + 1);
+            for (int i = 0; i < seg; i++) { tri.Add(centre); tri.Add(topStart + i + 1); tri.Add(topStart + i); }
+            var m = new Mesh { name = "MESH_TreeStump" };
+            m.SetVertices(v); m.SetNormals(n); m.SetUVs(0, uv); m.SetTriangles(tri, 0); m.RecalculateBounds();
+            _stumpMesh = m;
+            return m;
         }
 
         /// <summary>restore the original forest (exit play mode / new game) - TerrainData is an asset!</summary>
@@ -266,7 +387,7 @@ namespace PrimalFrontier.World
         {
             if (_trees == null || !terrain) return;
             foreach (var i in new List<int>(_felled.Keys)) Regrow(i);
-            _hits.Clear(); _handTaken.Clear(); _toolProgress = _handProgress = 0f;
+            _hits.Clear(); _handTaken.Clear(); _sapling.Clear(); _toolProgress = _handProgress = 0f;
         }
         void OnDestroy() { RestoreAll(); }
 

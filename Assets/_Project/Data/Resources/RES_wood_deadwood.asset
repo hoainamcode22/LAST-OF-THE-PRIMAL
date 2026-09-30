@@ -22,14 +22,14 @@ MonoBehaviour:
   bonusItem: {fileID: 0}
   bonusChance: 0
   bestTool: 1
-  requiredTool: 0
-  handsFactor: 1
+  requiredTool: 1
+  handsFactor: 0
   toolFactor: 1
   gatherSeconds: 1.3
   handAction: 17
   toolAction: 2
   toolWear: 1
-  handHint: 
+  handHint: Need an axe to split it.
   punchable: 1
   damagePerUnit: 6
   respawnHours: 48

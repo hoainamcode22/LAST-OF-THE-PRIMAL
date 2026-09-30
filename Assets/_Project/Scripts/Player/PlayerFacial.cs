@@ -47,7 +47,7 @@ namespace PrimalFrontier.Player
             if (animator)
             {
                 var st = animator.GetCurrentAnimatorStateInfo(0);
-                if (st.IsName("Unconscious") || st.IsName("Sleep") || st.IsTag("Dead")) eyesClosed = true;
+                if (st.IsName("Unconscious") || st.IsName("Unconscious_Collapse") || st.IsName("Sleep") || st.IsTag("Dead")) eyesClosed = true;
                 else if (st.IsName("Wake_Up")) { float k = Mathf.Clamp01(st.normalizedTime * 180f / 45f); tBlink = 1f - k; tPain = 0.5f * (1f - Mathf.Abs(st.normalizedTime - 0.45f) * 2.2f); }
                 else if (st.IsName("Attack_Spear_Heavy") || st.IsName("Throw_Spear")) { tShout = 0.8f; tAngry = 0.4f; }
                 else if (st.IsTag("Attack")) { tEffort = 0.8f; tAngry = 0.5f; }

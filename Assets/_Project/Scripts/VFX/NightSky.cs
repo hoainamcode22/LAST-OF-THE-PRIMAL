@@ -58,7 +58,7 @@ namespace PrimalFrontier.VFX
             float turns = Mathf.Repeat((tm.day * 24f + tm.hour) / Mathf.Max(1f, hoursPerTurn), 1f);
             Shader.SetGlobalFloat(RotId, turns * Mathf.PI * 2f);
             // at night TimeManager turns the sun light into the moon light (lit from the moon's side)
-            bool lightIsMoon = tm.hour < tm.sunriseHour || tm.hour > tm.sunsetHour;
+            bool lightIsMoon = tm.SunElevation < -2.5f;       // TimeManager turns the light into the moon below -2.5 degrees
             Vector4 md = Vector4.zero;
             if (moon && lightIsMoon && tm.sun)
             {

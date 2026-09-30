@@ -109,3 +109,21 @@ MonoBehaviour:
   - id: 32
     prefab: {fileID: 3988854853394285899, guid: 330cec034a3860e4f9c9ffbe253842b6, type: 3}
     prewarm: 3
+  - id: 33
+    prefab: {fileID: 1370946401150270478, guid: d3f34c8c3e1d2a8458a834db03fafaac, type: 3}
+    prewarm: 6
+  - id: 34
+    prefab: {fileID: 2591863396973804210, guid: c48df8e9152b4ba4eac609600ae2b83e, type: 3}
+    prewarm: 6
+  - id: 35
+    prefab: {fileID: 7045839653917083238, guid: 188e36c95749bf549930ed3791d94175, type: 3}
+    prewarm: 3
+  - id: 36
+    prefab: {fileID: 991434502221117665, guid: f5aec3e6e9428a946a121f833c8c6246, type: 3}
+    prewarm: 4
+  - id: 37
+    prefab: {fileID: 885859678322665413, guid: 548bdc5795e9c3445be8fcfca3e64922, type: 3}
+    prewarm: 3
+  - id: 38
+    prefab: {fileID: 6160391766343190962, guid: 214fcd23e704fb342baa6c02b779398a, type: 3}
+    prewarm: 4

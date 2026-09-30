@@ -86,6 +86,7 @@ MonoBehaviour:
   toolWear: 1
   radius: 0.3394061
   hitWobble: 0.07
+  cueHeight: 0
   emptyScale: 0.7
 --- !u!205 &5724033714209693684
 LODGroup:

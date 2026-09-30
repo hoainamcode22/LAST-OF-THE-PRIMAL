@@ -5,7 +5,7 @@ namespace PrimalFrontier.Items
     [System.Flags] public enum ToolKind { None = 0, Chop = 1, Mine = 2, Cut = 4, Hammer = 8, Light = 16 }
     public enum WeaponKind { None, Spear, Bow, Knife, Sword }     // appended only: stored as ints in the item assets (Sword = 4)
     public enum CraftStation { None, Campfire }
-    public enum RecipeCategory { Tools, Weapons, Survival, Food, Structures, Water, Resources }   // appended only (stored as ints); Structures shows as BUILDING
+    public enum RecipeCategory { Tools, Weapons, Survival, Food, Structures, Water, Resources, Fire, Storage }   // appended only (stored as ints); Structures shows as BUILDING; Fire / Storage: phase 1
     /// <summary>what is inside a water container (saved as int: append only). Rules and numbers: Survival/WaterRules + SurvivalConfig</summary>
     public enum WaterType { None, SaltWater, DirtyWater, CleanWater }
 }

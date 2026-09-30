@@ -1,0 +1,56 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5f3f67f885fbfda40a2cc2d19904f423, type: 3}
+  m_Name: STR_wall
+  m_EditorClassIdentifier: PrimalFrontier.Runtime::PrimalFrontier.Building.StructureDefinition
+  id: wall
+  displayName: Woven Wall
+  description: Poles set upright with withies woven between them and leaves tucked
+    in the weave. Stands on a foundation edge or on the ground; a roof rests on top.
+  category: 2
+  prefab: {fileID: 7254082758563479554, guid: 93328c4a6ceb47240abd8c6f9dff9e2b, type: 3}
+  item: {fileID: 11400000, guid: 718845b1539944e4eb6e3197e92adbcd, type: 2}
+  recipe: {fileID: 11400000, guid: 217fdd523629d3e4d8cc214ff232bdd7, type: 2}
+  cost: []
+  sockets:
+  - kind: 4
+    localPosition: {x: 0, y: 2.4, z: -1.5}
+    localYaw: 0
+  - kind: 4
+    localPosition: {x: 0, y: 2.4, z: 1.5}
+    localYaw: 0
+  - kind: 8
+    localPosition: {x: 3, y: 0, z: 0}
+    localYaw: 0
+  - kind: 8
+    localPosition: {x: -3, y: 0, z: 0}
+    localYaw: 0
+  - kind: 8
+    localPosition: {x: 1.5, y: 0, z: -1.5}
+    localYaw: 90
+  - kind: 8
+    localPosition: {x: -1.5, y: 0, z: -1.5}
+    localYaw: -90
+  snapsTo: 9
+  support: 1
+  minWallsBelow: 2
+  allowFree: 1
+  snapRadius: 1.6
+  snapYawStep: 180
+  footprintCenter: {x: 0, y: 1.25, z: 0}
+  footprintSize: {x: 2.55, y: 2.3000002, z: 0.22}
+  maxSlope: 30
+  groundTolerance: 0.8
+  buildHits: 2
+  dustScale: 1
+  leafy: 1
+  wooden: 1

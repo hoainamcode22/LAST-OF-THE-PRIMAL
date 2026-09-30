@@ -1,0 +1,19 @@
+TERRAIN READY (ENV terrain v2.1) - 2026-09-29 17:33 UTC
+
+Applied in the open editor on Island_VerticalSlice and saved:
+  deploy zips   Tools/pf_up_E1.zip (builder, shaders, v2 terrain data, textures), Tools/pf_up_E2.zip (builder fixes, v2.1 terrain data)
+  commands run  PrimalEnvironmentBuilder.TerrainPass  (backup Art/Terrain/_Backup/TD_Island_before_env_v2.asset,
+                                                       v2.1 heights, 9 layers, trees moved out of water, details thinned,
+                                                       ENV objects re-snapped)
+                PrimalEnvironmentBuilder.Markers      (Markers/Zones/<id> with EnvLocation, Markers/Migration/Route_00..13)
+                PrimalEnvironmentBuilder.Water        (river, lower river, mouth, brook, spring, waterfall pool, lagoon + WaterSource; waterfall visuals)
+                PrimalWaterBuilder.Build              (shore map, flow maps, water materials)
+
+Heights are final. ENV will not change them again except tiny local fixes, listed in _env_report.md.
+Locations, route, water bodies, storytelling ids: Documentation/PCPhase/LOCATIONS.md
+
+Please re-run your placement now (they were placed on the old terrain):
+  RES   PrimalResourceBuilder.Build            ([Resources], World/Resources, Markers/ResourceAreas; 192 nodes were off, 23 in water)
+  AI    wildlife / dinosaurs, Markers/Habitats (7 dinosaurs off, 3 in water; HAB_ApexPredator 6.5 m off)
+  STORY story props / mission positions (use Markers/Zones/<id>)
+  WORLD [Atmosphere] emitters / hazard zones (volcano zone = Markers/Zones/volcano), ZoneManager zones

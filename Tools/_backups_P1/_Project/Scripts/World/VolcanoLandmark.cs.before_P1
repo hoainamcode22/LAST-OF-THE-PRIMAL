@@ -1,0 +1,234 @@
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.Rendering;
+using PrimalFrontier.Audio;
+using PrimalFrontier.Core;
+
+namespace PrimalFrontier.World
+{
+    /// <summary>
+    /// The smoking mountain across the sea (scenery, not reachable). Drives its effects: the smoke plume drifts with the
+    /// weather wind, the crater glow and embers show at dusk and night, and every few minutes the mountain rumbles
+    /// (a low distant boom, a faint camera tremor and a darker puff of smoke). All particle systems are children
+    /// placed by the builder; move / retune them in the scene.
+    /// Built here at run time (no prefab change needed): ash fall, small grey flakes drifting down around the camera
+    /// (one pooled, prewarmed system, at most 400 flakes) with a strength from the flat distance of the player to the
+    /// mountain, more downwind and after a rumble, less in the rain, none indoors; and the heat shimmer, a few faint
+    /// PF/Heat Shimmer billboards over the crater and the lava flow (only when <see cref="hazeMaterial"/> is set, by
+    /// bridge PrimalVolcanoBuilder.Atmosphere). Switch either off with <see cref="ashFall"/> / <see cref="heatHaze"/>.
+    /// </summary>
+    public class VolcanoLandmark : MonoBehaviour
+    {
+        public ParticleSystem smoke, embers, glow;
+        [Tooltip("small halos along the lava flow (night)")] public ParticleSystem[] flowGlows = new ParticleSystem[0];
+        public Renderer lava;
+        [Tooltip("real seconds between rumbles")] public Vector2 rumbleEvery = new Vector2(240f, 540f);
+        [Range(0, 1)] public float rumbleVolume = 0.4f;
+        public Color lavaEmission = new Color(4f, 1.1f, 0.15f);
+        public float embersNight = 10f, embersDay = 1.5f;
+        [Header("Ash fall (around the player, stronger near the mountain)")]
+        public bool ashFall = true;
+        [Tooltip("alpha-blended flake material (M_VFX_Chip); empty = the smoke plume's material")] public Material ashMaterial;
+        [Tooltip("flat distance (m) from the player to the mountain with the most ash")] public float ashFullDistance = 420f;
+        [Tooltip("flat distance (m) where the ash starts")] public float ashStartDistance = 900f;
+        [Range(0, 400)] public int ashMaxParticles = 320;
+        [Tooltip("flakes per second at full strength")] public float ashRate = 40f;
+        [Header("Heat shimmer (over the crater and the lava)")]
+        public bool heatHaze = true;
+        [Tooltip("PF/Heat Shimmer material (M_VFX_HeatShimmer); empty = no shimmer")] public Material hazeMaterial;
+        [Tooltip("crater column width / height (m)")] public Vector2 hazeSize = new Vector2(120f, 170f);
+
+        float _nextRumble; MaterialPropertyBlock _mpb; ParticleSystem.Particle[] _glowP;
+        ParticleSystem _ash, _haze; float _ashK, _ashTarget, _nextAshCheck = -1f, _ashBoostUntil = -1f;
+        static readonly int WindId = Shader.PropertyToID("_PF_Wind"), EmissionId = Shader.PropertyToID("_EmissionColor");
+
+        void Start()
+        {
+            _nextRumble = Time.time + Random.Range(90f, 200f);
+            _mpb = new MaterialPropertyBlock();
+            if (ashFall) BuildAsh();
+            if (heatHaze && hazeMaterial) BuildHaze();
+        }
+
+        void Update()
+        {
+            var tm = TimeManager.Instance;
+            float day = tm ? tm.Daylight01 : 1f;                 // 0 night .. 1 full day
+            float night = 1f - Mathf.Clamp01(day * 1.4f);
+            // smoke drifts with the wind (stronger up high)
+            if (smoke)
+            {
+                Vector4 w = Shader.GetGlobalVector(WindId);
+                float s = (w.z > 0f ? w.z : 0.4f) * 7f;
+                var v = smoke.velocityOverLifetime;
+                v.x = new ParticleSystem.MinMaxCurve(w.x * s * 0.6f, w.x * s * 1.3f);
+                v.z = new ParticleSystem.MinMaxCurve(w.y * s * 0.6f, w.y * s * 1.3f);
+            }
+            if (embers) { var em = embers.emission; em.rateOverTime = Mathf.Lerp(embersDay, embersNight, night); }
+            // long-lived halo particles over the crater and along the flow: faint by day, strong at night
+            Halo(glow, Mathf.Lerp(0.05f, 0.38f, night));
+            foreach (var g in flowGlows) Halo(g, Mathf.Lerp(0.0f, 0.2f, night));
+            if (lava)
+            {
+                lava.GetPropertyBlock(_mpb);
+                float pulse = 0.85f + 0.15f * Mathf.Sin(Time.time * 0.7f) * Mathf.Sin(Time.time * 1.9f);
+                _mpb.SetColor(EmissionId, lavaEmission * pulse * Mathf.Lerp(0.6f, 1.3f, night));
+                lava.SetPropertyBlock(_mpb);
+            }
+            UpdateAsh(day);
+            if (Time.time >= _nextRumble) Rumble();
+        }
+
+        // ------------------------------------------------------------------ ash fall
+        void BuildAsh()
+        {
+            var mat = ashMaterial;
+            if (!mat && smoke) { var sr = smoke.GetComponent<ParticleSystemRenderer>(); if (sr) mat = sr.sharedMaterial; }
+            if (!mat) return;
+            var go = new GameObject("Ash_Fall");
+            go.transform.SetParent(transform, false);
+            var cam = Camera.main;
+            go.transform.SetPositionAndRotation(cam ? cam.transform.position : transform.position, Quaternion.identity);
+            _ash = go.AddComponent<ParticleSystem>();
+            _ash.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+            var m = _ash.main;
+            m.loop = true; m.duration = 10f; m.playOnAwake = false;
+            m.simulationSpace = ParticleSystemSimulationSpace.World; m.scalingMode = ParticleSystemScalingMode.Local;
+            m.cullingMode = ParticleSystemCullingMode.AlwaysSimulate;
+            m.maxParticles = Mathf.Clamp(ashMaxParticles, 0, 400);
+            m.startLifetime = new ParticleSystem.MinMaxCurve(8f, 12f); m.startSpeed = 0f;
+            m.startSize = new ParticleSystem.MinMaxCurve(0.035f, 0.09f);
+            m.startRotation = new ParticleSystem.MinMaxCurve(0f, Mathf.PI * 2f);
+            m.startColor = AshColor(1f);
+            var sh = _ash.shape;
+            sh.shapeType = ParticleSystemShapeType.Box; sh.scale = new Vector3(70f, 1f, 70f); sh.position = new Vector3(0f, 14f, 0f);
+            var vel = _ash.velocityOverLifetime;                           // all three axes in the same curve mode
+            vel.enabled = true; vel.space = ParticleSystemSimulationSpace.World;
+            vel.x = new ParticleSystem.MinMaxCurve(-0.3f, 0.3f); vel.y = new ParticleSystem.MinMaxCurve(-2f, -1.1f); vel.z = new ParticleSystem.MinMaxCurve(-0.3f, 0.3f);
+            var noise = _ash.noise;
+            noise.enabled = true; noise.strength = 0.35f; noise.frequency = 0.25f; noise.scrollSpeed = 0.2f; noise.quality = ParticleSystemNoiseQuality.Low;
+            var rot = _ash.rotationOverLifetime; rot.enabled = true; rot.z = new ParticleSystem.MinMaxCurve(-2f, 2f);
+            var col = _ash.colorOverLifetime; col.enabled = true;
+            var g = new Gradient();
+            g.SetKeys(new[] { new GradientColorKey(Color.white, 0f), new GradientColorKey(Color.white, 1f) },
+                      new[] { new GradientAlphaKey(0f, 0f), new GradientAlphaKey(1f, 0.1f), new GradientAlphaKey(1f, 0.8f), new GradientAlphaKey(0f, 1f) });
+            col.color = g;
+            var r = go.GetComponent<ParticleSystemRenderer>();
+            r.sharedMaterial = mat; r.renderMode = ParticleSystemRenderMode.Billboard;
+            r.shadowCastingMode = ShadowCastingMode.Off; r.receiveShadows = false;
+            r.maxParticleSize = 0.02f;                                     // a flake next to the lens never fills the screen
+            // prewarmed at the current strength, so a game loaded near the mountain starts with ash in the air
+            _ashK = _ashTarget = cam ? AshTarget(cam.transform.position) : 0f;
+            var em = _ash.emission; em.rateOverTime = _ashK * ashRate;
+            m.prewarm = _ashK > 0.01f;
+            _ash.Play();
+        }
+
+        static ParticleSystem.MinMaxGradient AshColor(float light) =>
+            new ParticleSystem.MinMaxGradient(new Color(0.33f * light, 0.32f * light, 0.31f * light, 0.85f), new Color(0.55f * light, 0.53f * light, 0.5f * light, 0.75f));
+
+        void UpdateAsh(float day)
+        {
+            if (!_ash) return;
+            var cam = Camera.main; if (!cam) return;
+            Vector3 c = cam.transform.position;
+            _ash.transform.position = c;
+            if (Time.time >= _nextAshCheck)
+            {
+                _nextAshCheck = Time.time + 0.5f;
+                _ashTarget = AshTarget(c);
+                Vector4 w = Shader.GetGlobalVector(WindId);
+                float s = (w.z > 0f ? w.z : 0.35f) * 1.6f;
+                var v = _ash.velocityOverLifetime;
+                v.x = new ParticleSystem.MinMaxCurve(w.x * s - 0.3f, w.x * s + 0.3f);
+                v.z = new ParticleSystem.MinMaxCurve(w.y * s - 0.3f, w.y * s + 0.3f);
+                var m = _ash.main; m.startColor = AshColor(Mathf.Lerp(0.3f, 1f, day));   // grey flakes, dim at night
+            }
+            _ashK = Mathf.MoveTowards(_ashK, _ashTarget, Time.deltaTime * 0.15f);
+            var em = _ash.emission; em.rateOverTime = _ashK * ashRate;
+        }
+
+        /// <summary>0..1: flat distance to the mountain, wind (more downwind), rain (washes it out), indoors (none), rumble</summary>
+        float AshTarget(Vector3 camPos)
+        {
+            Vector3 p = PlayerLocator.Player ? PlayerLocator.Player.position : camPos;
+            Vector3 d = p - transform.position; d.y = 0f;
+            float dist = d.magnitude;
+            float k = 1f - Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(ashFullDistance, ashStartDistance, dist));
+            if (k <= 0f) return 0f;
+            Vector4 w = Shader.GetGlobalVector(WindId);
+            var wd = new Vector2(w.x, w.y);
+            if (wd.sqrMagnitude > 0.01f && dist > 1f) k *= Mathf.Lerp(0.45f, 1f, Vector2.Dot(wd.normalized, new Vector2(d.x, d.z) / dist) * 0.5f + 0.5f);
+            var wm = WeatherManager.Instance; if (wm) k *= 1f - 0.75f * wm.Intensity;
+            if (Time.time < _ashBoostUntil) k = Mathf.Min(1f, k * 1.8f + 0.1f);
+            var zm = ZoneManager.Instance; if (zm && zm.IsIndoor(camPos)) k = 0f;
+            return Mathf.Clamp01(k);
+        }
+
+        // ------------------------------------------------------------------ heat shimmer
+        void BuildHaze()
+        {
+            var go = new GameObject("Heat_Shimmer");
+            go.transform.SetParent(transform, false);
+            _haze = go.AddComponent<ParticleSystem>();
+            _haze.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+            var m = _haze.main;
+            m.loop = true; m.duration = 10f; m.playOnAwake = false; m.maxParticles = 12;
+            m.simulationSpace = ParticleSystemSimulationSpace.World; m.scalingMode = ParticleSystemScalingMode.Local;
+            m.cullingMode = ParticleSystemCullingMode.AlwaysSimulate;
+            m.startLifetime = 1e6f; m.startSpeed = 0f; m.startSize3D = true;
+            var em = _haze.emission; em.rateOverTime = 0f;
+            var sh = _haze.shape; sh.enabled = false;
+            var r = go.GetComponent<ParticleSystemRenderer>();
+            r.sharedMaterial = hazeMaterial; r.renderMode = ParticleSystemRenderMode.VerticalBillboard;
+            r.shadowCastingMode = ShadowCastingMode.Off; r.receiveShadows = false; r.sortingFudge = 12f;
+            r.SetActiveVertexStreams(new List<ParticleSystemVertexStream> { ParticleSystemVertexStream.Position, ParticleSystemVertexStream.Color, ParticleSystemVertexStream.UV, ParticleSystemVertexStream.StableRandomX });
+            _haze.Play();
+            Vector3 top = smoke ? smoke.transform.position : transform.position + Vector3.up * 200f;
+            EmitHaze(top + Vector3.up * (hazeSize.y * 0.4f), hazeSize, 0.9f);
+            EmitHaze(top + new Vector3(hazeSize.x * 0.25f, hazeSize.y * 0.3f, -hazeSize.x * 0.15f), hazeSize * 0.7f, 0.6f);
+            int n = 2;
+            for (int i = 0; flowGlows != null && i < flowGlows.Length && n < m.maxParticles; i += 2)
+                if (flowGlows[i]) { EmitHaze(flowGlows[i].transform.position + Vector3.up * 18f, new Vector2(45f, 55f), 0.5f); n++; }
+        }
+
+        void EmitHaze(Vector3 pos, Vector2 size, float alpha)
+        {
+            var p = new ParticleSystem.EmitParams
+            {
+                position = pos, applyShapeToPosition = false, velocity = Vector3.zero, startLifetime = 1e6f,
+                startSize3D = new Vector3(size.x, size.y, 1f), startColor = new Color(1f, 1f, 1f, alpha)
+            };
+            _haze.Emit(p, 1);
+        }
+
+        void Halo(ParticleSystem ps, float alpha)
+        {
+            if (!ps) return;
+            if (_glowP == null) _glowP = new ParticleSystem.Particle[1];
+            if (ps.GetParticles(_glowP) > 0)
+            {
+                var c = (Color)_glowP[0].startColor; c.a = alpha;
+                _glowP[0].startColor = c; ps.SetParticles(_glowP, 1);
+            }
+        }
+
+        public void Rumble()
+        {
+            _nextRumble = Time.time + Random.Range(rumbleEvery.x, rumbleEvery.y);
+            var a = SfxPlayer.Instance.Play(SfxId.Thunder, Camera.main ? Camera.main.transform.position : transform.position, rumbleVolume, 0f);
+            if (a) a.pitch = 0.5f;
+            var cam = Camera.main ? Camera.main.GetComponent<Player.ThirdPersonCamera>() : null;
+            if (cam) cam.AddShake(0.012f, 1.6f);
+            if (smoke)
+            {
+                var p = new ParticleSystem.EmitParams { startColor = new Color(0.12f, 0.11f, 0.11f, 0.7f), startSize = 150f, startLifetime = 50f };
+                smoke.Emit(p, 3);
+            }
+            if (embers) embers.Emit(25);
+            _ashBoostUntil = Time.time + 60f;                              // a rumble puts more ash in the air for a minute
+            _nextAshCheck = -1f;
+            GameEvents.Raise(GameEventType.VolcanoRumble, "volcano", 1, transform.position);
+        }
+    }
+}

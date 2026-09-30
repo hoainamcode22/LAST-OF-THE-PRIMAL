@@ -33,6 +33,12 @@ namespace PrimalFrontier.AI
 
         void Awake()
         {
+            // a scene the wildlife builder never ran on: lay the PC-phase herds / territories out now (same plan, runtime clones)
+            if (WildlifePlan.RuntimeFallback && WildlifePlan.HasPlanGroups(transform) && !GetComponentInChildren<HerdGroup>(true))
+            {
+                var summary = WildlifePlan.Apply(transform, new WildlifePlan.Context());
+                Debug.Log("[Wildlife] runtime layout (run PrimalWildlifeBuilder to bake it into the scene):\n" + summary);
+            }
             // keep an untouched copy of every placed creature so a new game can restore it (the original may be killed)
             var placed = new List<GameObject>();
             foreach (var c in GetComponentsInChildren<DinosaurController>(false)) placed.Add(c.gameObject);
@@ -88,6 +94,7 @@ namespace PrimalFrontier.AI
         {
             Clear();
             DinosaurController.ResetSightings();
+            if (TrackSigns.Exists) TrackSigns.Instance.ClearAll();          // new game / load: fresh tracks (the old landmarks come back)
             if (UsesPlacedCreatures)
             {
                 foreach (var s in _slots)

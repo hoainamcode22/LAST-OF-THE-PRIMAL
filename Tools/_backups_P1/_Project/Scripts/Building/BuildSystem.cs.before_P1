@@ -1,0 +1,460 @@
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.InputSystem;
+using PrimalFrontier.Animation;
+using PrimalFrontier.Audio;
+using PrimalFrontier.Core;
+using PrimalFrontier.Items;
+using PrimalFrontier.Player;
+using PrimalFrontier.VFX;
+using PrimalFrontier.World;
+
+namespace PrimalFrontier.Building
+{
+    /// <summary>
+    /// Building mode (directive 14-15, 27-29). Two ways in, one ghost flow:
+    /// - a placeable item on the hotbar (campfire, storage, bedroll, tent, rain collector, or a crafted piece bundle): left
+    ///   click starts the ghost, building uses up one item;
+    /// - B opens the small piece menu (BuildMenuUI: foundation, wall, doorway, roof, leaf shelter, with have / need); picking
+    ///   a piece starts its ghost and building takes the recipe's materials straight from the pack, then re-arms the same
+    ///   piece while it can still be paid for.
+    /// The ghost (green / red) follows the aim, R or the wheel rotates, sockets snap (foundation edges and sides, wall ends,
+    /// wall tops for roofs), then ground / slope / water / support / distance / overlap / materials are checked. Left click
+    /// runs the Build action (hits with wood chips), BuildDust + wood and leaf sounds when the piece appears, right click
+    /// or Esc cancels. Placed pieces are PlacedStructures (saved by item id, position, yaw, door state).
+    /// </summary>
+    public class BuildSystem : MonoBehaviour
+    {
+        public static BuildSystem Instance { get; private set; }
+        public float maxDistance = 6f;
+        public float maxSlope = 24f;
+        public Material ghostValid, ghostInvalid;
+        [Tooltip("extra reach for snapped pieces (a roof over your head)")] public float snapReach = 3f;
+
+        /// <summary>placing a ghost or choosing a piece in the menu (Esc cancels instead of pausing)</summary>
+        public bool Active => _ghost != null || MenuOpen;
+        public bool Placing => _ghost != null;
+        public bool MenuOpen { get; private set; }
+        public bool Valid { get; private set; }
+        public string InvalidReason { get; private set; }
+        public ItemDefinition Item => _item;
+        public StructureDefinition Structure => _def;
+        public bool Snapped { get; private set; }
+        public StructurePiece SnapHost { get; private set; }
+        public SocketKind SnapKind { get; private set; }
+        public Vector3 GhostPosition => _pos;
+        public Quaternion GhostRotation => _rot;
+        public InventorySystem Inventory => _inv;
+        public CraftingSystem Crafting => _craft;
+        public Transform PlayerTransform => _pi ? _pi.transform : null;
+
+        ItemDefinition _item; StructureDefinition _def; bool _payCost;
+        GameObject _ghost; Renderer[] _ghostR; float _yaw, _snapTurn; Vector3 _pos; Quaternion _rot = Quaternion.identity;
+        PlayerInteraction _pi; PlayerInputReader _in; InventorySystem _inv; PlayerCombat _combat; CraftingSystem _craft;
+        BuildMenuUI _menu;
+        readonly List<Collider> _overlap = new List<Collider>();
+        static readonly Collider[] Hits = new Collider[24];
+        public event System.Action<GameObject> Placed;
+        /// <summary>tests: the menu key (B) is read from the keyboard unless this returns true</summary>
+        public static System.Func<bool> MenuKeyPressed;
+
+        void Awake() { Instance = this; }
+        void OnDestroy() { if (Instance == this) Instance = null; }
+
+        public void Bind(GameObject player)
+        {
+            _pi = player.GetComponent<PlayerInteraction>(); _inv = player.GetComponent<InventorySystem>(); _combat = player.GetComponent<PlayerCombat>();
+            _craft = player.GetComponent<CraftingSystem>();
+            if (_combat) _combat.PrimaryBlocked = () => Active;
+        }
+
+        // ------------------------------------------------------------------ starting a ghost
+        /// <summary>a placeable item from the hotbar (uses one item up). A piece bundle uses its structure data for snapping.</summary>
+        public void Begin(ItemDefinition item)
+        {
+            if (item == null || !item.IsPlaceable || _pi == null) return;
+            var def = StructureDefinition.ForItem(item);
+            Start(def, item, false, item.placePrefab, false);
+        }
+
+        /// <summary>a piece from the build menu: paid with the recipe's materials when it is built</summary>
+        public void BeginStructure(StructureDefinition def)
+        {
+            if (def == null || _pi == null) return;
+            var prefab = def.item && def.item.placePrefab ? def.item.placePrefab : def.prefab;
+            if (!prefab) { PlayerInteraction.Notify(def.Name + " has no model yet."); return; }
+            Start(def, null, true, prefab, false);
+        }
+
+        void Start(StructureDefinition def, ItemDefinition item, bool payCost, GameObject prefab, bool quiet)
+        {
+            if (MenuOpen) CloseMenu();
+            Cancel();
+            _def = def; _item = item; _payCost = payCost;
+            _yaw = _pi.transform.eulerAngles.y; _snapTurn = 0f;
+            _ghost = Instantiate(prefab);
+            _ghost.name = "Ghost_" + (def ? def.id : item.id);
+            foreach (var mb in _ghost.GetComponentsInChildren<MonoBehaviour>(true)) mb.enabled = false;
+            foreach (var c in _ghost.GetComponentsInChildren<Collider>(true)) c.enabled = false;
+            foreach (var l in _ghost.GetComponentsInChildren<Light>(true)) l.enabled = false;
+            foreach (var ps in _ghost.GetComponentsInChildren<ParticleSystem>(true)) ps.gameObject.SetActive(false);
+            foreach (var a in _ghost.GetComponentsInChildren<AudioSource>(true)) a.enabled = false;
+            foreach (var lg in _ghost.GetComponentsInChildren<LODGroup>(true)) lg.ForceLOD(0);
+            _ghostR = _ghost.GetComponentsInChildren<Renderer>();
+            foreach (var r in _ghostR) r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            _pi.Suspended = true;
+            string what = def ? def.Name : item.displayName;
+            if (!quiet) PlayerInteraction.Notify("Place " + what + ": left click to build, R to rotate, right click to cancel" + (def && def.snapsTo != SocketKind.None ? ", aim at a piece to snap." : "."));
+            Evaluate();
+        }
+
+        public void Cancel()
+        {
+            if (_ghost) Destroy(_ghost);
+            _ghost = null; _item = null; _def = null; _payCost = false; Snapped = false; SnapHost = null;
+            if (_pi) _pi.Suspended = false;
+        }
+
+        // ------------------------------------------------------------------ menu
+        public bool CanOpenMenu()
+        {
+            if (_pi == null || _inv == null) return false;
+            var ui = UI.UIManager.Instance; if (ui && ui.Current != UI.UIScreen.None) return false;
+            var gm = GameManager.Instance; if (gm && gm.State != GameState.Playing) return false;
+            var hp = _pi.GetComponent<PlayerHealth>(); if (hp && hp.IsDead) return false;
+            return true;
+        }
+
+        public void OpenMenu()
+        {
+            if (MenuOpen || !CanOpenMenu()) return;
+            if (Placing) Cancel();
+            MenuOpen = true; Valid = true; InvalidReason = null;
+            if (_menu == null) _menu = BuildMenuUI.Ensure(this);
+            _menu.Show();
+            var input = PlayerInputReader.Instance; if (input) input.GameplayBlocked = true;
+            ThirdPersonCamera.LockCursor(false);
+            if (_pi) _pi.Suspended = true;
+        }
+
+        public void CloseMenu()
+        {
+            if (!MenuOpen) return;
+            MenuOpen = false;
+            if (_menu) _menu.Hide();
+            var ui = UI.UIManager.Instance;
+            var input = PlayerInputReader.Instance; if (input) input.GameplayBlocked = ui && ui.Current != UI.UIScreen.None;
+            ThirdPersonCamera.LockCursor(true);
+            if (_pi && !Placing) _pi.Suspended = false;
+        }
+
+        public void ToggleMenu() { if (MenuOpen) CloseMenu(); else OpenMenu(); }
+
+        /// <summary>the menu picked a piece</summary>
+        public void Select(StructureDefinition def)
+        {
+            CloseMenu();
+            if (def) BeginStructure(def);
+        }
+
+        /// <summary>pieces the player knows (recipe known or no recipe), in menu order</summary>
+        public List<StructureDefinition> Available()
+        {
+            var list = new List<StructureDefinition>();
+            foreach (var d in StructureDefinition.All)
+            {
+                if (!d || (!d.prefab && !(d.item && d.item.placePrefab))) continue;
+                if (d.recipe && _craft && !_craft.IsKnown(d.recipe)) continue;
+                list.Add(d);
+            }
+            return list;
+        }
+
+        // ------------------------------------------------------------------ cost
+        public bool CanAfford(StructureDefinition def) => MissingCost(def) == null;
+
+        /// <summary>"Missing: 2 Wood, 4 Plant Fiber" or null when the pack holds everything</summary>
+        public string MissingCost(StructureDefinition def)
+        {
+            if (def == null || _inv == null) return null;
+            System.Text.StringBuilder sb = null;
+            foreach (var ing in def.Cost)
+            {
+                if (!ing.item) continue;
+                int have = _inv.Count(ing.item);
+                if (have >= ing.count) continue;
+                sb ??= new System.Text.StringBuilder("Missing: ");
+                if (sb.Length > 9) sb.Append(", ");
+                sb.Append(ing.count - have).Append(' ').Append(ing.item.displayName);
+            }
+            return sb?.ToString();
+        }
+
+        bool TakeCost(StructureDefinition def)
+        {
+            if (MissingCost(def) != null) return false;
+            foreach (var ing in def.Cost) if (ing.item && !_inv.Remove(ing.item, ing.count)) return false;
+            return true;
+        }
+
+        // ------------------------------------------------------------------ frame
+        void Update()
+        {
+            if (_in == null) _in = PlayerInputReader.Instance;
+            if (_in == null || _inv == null || _pi == null) return;
+            BuildingEnclosure.RefreshIfDirty();
+            bool menuKey = MenuKeyPressed != null ? MenuKeyPressed() : (!PlayerInputReader.Simulate && Keyboard.current != null && Keyboard.current.bKey.wasPressedThisFrame);
+            if (MenuOpen)
+            {
+                if (_in.CancelPressed || menuKey) CloseMenu();
+                return;
+            }
+            if (menuKey) { OpenMenu(); return; }
+            if (!Placing) return;
+            if (_def == null || !_payCost)
+            {
+                if (_item && (!_inv.Has(_item) || _inv.ActiveItem != _item)) { Cancel(); return; }
+            }
+            if (_in.CancelPressed) { Cancel(); return; }
+            float step = Snapped && _def ? _def.snapYawStep : 45f;
+            if (_in.RotatePressed) { if (Snapped) { if (step > 0f) _snapTurn += step; } else _yaw += 45f; }
+            if (Mathf.Abs(_in.HotbarScroll) > 0.01f) { if (Snapped) { if (step > 0f) _snapTurn += Mathf.Sign(_in.HotbarScroll) * step; } else _yaw += Mathf.Sign(_in.HotbarScroll) * 15f; }
+            Evaluate();
+            if (_in.AttackPressed)
+            {
+                if (Valid) Build(); else PlayerInteraction.Notify(InvalidReason ?? "Can't build here.");
+            }
+        }
+
+        // ------------------------------------------------------------------ placement checks
+        static int Mask => ~LayerMask.GetMask("Player", "Ignore Raycast");
+
+        public void Evaluate()
+        {
+            if (!_ghost) return;
+            var cam = Camera.main; var player = _pi.transform;
+            int mask = Mask;
+            Ray ray = cam ? cam.ViewportPointToRay(new Vector3(0.5f, 0.5f)) : new Ray(player.position + Vector3.up * 1.6f, player.forward);
+            Vector3 p; Vector3 n = Vector3.up; bool hit = false; Vector3 aim;
+            if (Physics.Raycast(ray, out var h, maxDistance + 8f, mask, QueryTriggerInteraction.Ignore) && !IsGhost(h.collider) && Vector3.Distance(h.point, player.position) <= maxDistance + snapReach)
+            { p = h.point; n = h.normal; hit = true; aim = h.point; }
+            else
+            {
+                p = player.position + player.forward * 2.5f; aim = p;
+                if (Physics.Raycast(p + Vector3.up * 3f, Vector3.down, out var d, 8f, mask, QueryTriggerInteraction.Ignore) && !IsGhost(d.collider)) { p = d.point; n = d.normal; hit = true; }
+            }
+            // snapping
+            Snapped = false; SnapHost = null; SnapKind = SocketKind.None; float snapYaw = 0f;
+            if (_def && _def.snapsTo != SocketKind.None && FindSnap(_def, ray, aim, player.position, maxDistance + snapReach + 3f, _ghost, out var sp, out snapYaw, out var host, out var kind))
+            {
+                p = sp; Snapped = true; SnapHost = host; SnapKind = kind; n = Vector3.up;
+                // a wall continuing a wall stands on whatever is under that spot (ground, or a platform edge at the same height)
+                if (kind == SocketKind.WallEnd && Physics.Raycast(p + Vector3.up * 1f, Vector3.down, out var g, 3.5f, mask, QueryTriggerInteraction.Ignore) && !IsGhost(g.collider) && g.point.y < p.y - 0.05f)
+                    p.y = g.point.y;
+            }
+            _rot = Quaternion.Euler(0, Snapped ? snapYaw + _snapTurn : _yaw, 0);
+            _pos = p;
+            _ghost.transform.SetPositionAndRotation(p, _rot);
+            InvalidReason = null;
+            float radius = _def ? Mathf.Max(_def.footprintSize.x, _def.footprintSize.z) * 0.5f : _item ? _item.placeRadius : 1f;
+            float slopeMax = _def ? _def.maxSlope : maxSlope;
+            var support = _def ? _def.support : SupportRule.Ground;
+            if (!Snapped && _def && !_def.allowFree)
+                InvalidReason = support == SupportRule.WallsBelow ? "Needs walls under it: aim at a wall top." : "Aim at a piece to snap to.";
+            else if (!Snapped && !hit) InvalidReason = "Aim at the ground.";
+            else if (!Snapped || SnapKind == SocketKind.FoundationSide || SnapKind == SocketKind.WallEnd)
+            {
+                // standing on the ground (snapped foundations / ground walls keep the neighbour's height: the ground must be close under them)
+                if (!Snapped && Vector3.Angle(n, Vector3.up) > slopeMax) InvalidReason = "Too steep.";
+                else if (p.y < 0.25f || WaterSource.IsNearFresh(p, 1.2f)) InvalidReason = "Not in the water.";
+                else if (_def && !GroundUnder(p, _rot, _def, out var why)) InvalidReason = why;
+            }
+            else if (support == SupportRule.WallsBelow)
+            {
+                int walls = BuildingEnclosure.CountWalls(p, _rot, out _, out _);
+                if (walls < _def.minWallsBelow) InvalidReason = $"Needs {_def.minWallsBelow} walls under it ({walls} there).";
+            }
+            if (InvalidReason == null)
+            {
+                float dist = Vector3.Distance(p, player.position);
+                if (dist > maxDistance + (Snapped ? snapReach : 0f)) InvalidReason = "Too far.";
+                else if (!Snapped && dist < radius * 0.6f + 0.5f) InvalidReason = "Too close to you.";
+                else if (Snapped && _def && InsideFootprint(player.position + Vector3.up * 0.9f, 0.4f)) InvalidReason = "You are in the way.";
+            }
+            if (InvalidReason == null && Overlaps(mask)) InvalidReason = "Something is in the way.";
+            if (InvalidReason == null)
+            {
+                if (_payCost) InvalidReason = MissingCost(_def);
+                else if (_item && !_inv.Has(_item)) InvalidReason = "You have none left.";
+            }
+            Valid = InvalidReason == null;
+            var mat = Valid ? ghostValid : ghostInvalid;
+            if (mat) foreach (var r in _ghostR) { if (!r) continue; var arr = r.sharedMaterials; for (int i = 0; i < arr.Length; i++) arr[i] = mat; r.sharedMaterials = arr; }
+        }
+
+        bool IsGhost(Collider c) => _ghost && c && c.transform.IsChildOf(_ghost.transform);
+
+        /// <summary>
+        /// The free socket of a placed piece that the aim ray passes closest to (within def.snapRadius, pieces within reach
+        /// of playerPos, ignore = the ghost). pos / yaw = where the new piece's origin goes and how it turns.
+        /// </summary>
+        public static bool FindSnap(StructureDefinition def, Ray ray, Vector3 aim, Vector3 playerPos, float reach, GameObject ignore,
+                                    out Vector3 pos, out float yaw, out StructurePiece host, out SocketKind kind)
+        {
+            pos = Vector3.zero; yaw = 0f; host = null; kind = SocketKind.None;
+            if (!def || def.snapsTo == SocketKind.None) return false;
+            float best = def.snapRadius; bool found = false; reach *= reach;
+            var all = StructurePiece.All;
+            for (int i = 0; i < all.Count; i++)
+            {
+                var piece = all[i];
+                if (!piece || !piece.definition || (ignore && piece.transform.IsChildOf(ignore.transform))) continue;
+                if ((piece.transform.position - playerPos).sqrMagnitude > reach) continue;
+                for (int s = 0; s < piece.SocketCount; s++)
+                {
+                    var sock = piece.Socket(s);
+                    if ((def.snapsTo & sock.kind) == 0) continue;
+                    var wp = piece.SocketPosition(s);
+                    if (Occupied(sock.kind, wp)) continue;
+                    Vector3 v = wp - ray.origin; float t = Vector3.Dot(v, ray.direction);
+                    float d = t < 0.3f ? float.MaxValue : (v - ray.direction * t).magnitude;
+                    d = Mathf.Min(d, Vector3.Distance(wp, aim));
+                    if (d < best) { best = d; found = true; pos = wp; yaw = piece.SocketYaw(s); host = piece; kind = sock.kind; }
+                }
+            }
+            return found;
+        }
+
+        /// <summary>a piece already sits where this socket would put one</summary>
+        static bool Occupied(SocketKind kind, Vector3 wp)
+        {
+            var all = StructurePiece.All;
+            for (int i = 0; i < all.Count; i++)
+            {
+                var s = all[i]; if (!s) continue;
+                if ((s.transform.position - wp).sqrMagnitude > 0.3f * 0.3f) continue;
+                switch (kind)
+                {
+                    case SocketKind.FoundationEdge: case SocketKind.WallEnd: if (s.IsWall) return true; break;
+                    case SocketKind.FoundationSide: if (s.Category == StructureCategory.Foundation) return true; break;
+                    case SocketKind.WallTop: if (s.Category == StructureCategory.Roof) return true; break;
+                }
+            }
+            return false;
+        }
+
+        /// <summary>ground close under the piece's footprint corners (free foundations, snapped foundations and ground walls)</summary>
+        bool GroundUnder(Vector3 p, Quaternion rot, StructureDefinition def, out string why)
+        {
+            why = null;
+            float hx = Mathf.Max(0.2f, def.footprintSize.x * 0.5f - 0.15f), hz = Mathf.Max(0.2f, def.footprintSize.z * 0.5f - 0.15f);
+            Vector3[] corners = def.footprintSize.z < 0.6f
+                ? new[] { new Vector3(hx, 0, 0), new Vector3(-hx, 0, 0) }
+                : new[] { new Vector3(hx, 0, hz), new Vector3(-hx, 0, hz), new Vector3(hx, 0, -hz), new Vector3(-hx, 0, -hz) };
+            int mask = Mask;
+            foreach (var c in corners)
+            {
+                var w = p + rot * c;
+                if (!Physics.Raycast(w + Vector3.up * 1.5f, Vector3.down, out var h, 1.5f + def.groundTolerance + 0.5f, mask, QueryTriggerInteraction.Ignore) || IsGhost(h.collider))
+                { why = "Nothing to stand on."; return false; }
+                float dy = h.point.y - p.y;
+                if (dy > 0.45f) { why = "Ground too high on one side."; return false; }
+                if (dy < -def.groundTolerance) { why = "Ground too uneven."; return false; }
+            }
+            return true;
+        }
+
+        bool InsideFootprint(Vector3 world, float grow)
+        {
+            if (!_def) return false;
+            var l = Quaternion.Inverse(_rot) * (world - _pos) - _def.footprintCenter;
+            var h = _def.footprintSize * 0.5f;
+            return Mathf.Abs(l.x) <= h.x + grow && Mathf.Abs(l.z) <= h.z + grow && Mathf.Abs(l.y) <= h.y + grow;
+        }
+
+        bool Overlaps(int mask)
+        {
+            Vector3 center, half;
+            if (_def) { center = _pos + _rot * _def.footprintCenter; half = _def.footprintSize * 0.5f - Vector3.one * 0.05f; }
+            else { center = _pos + Vector3.up * 0.9f; half = new Vector3(_item ? _item.placeRadius : 1f, 0.8f, _item ? _item.placeRadius : 1f); }
+            half = Vector3.Max(half, Vector3.one * 0.02f);
+            int n = Physics.OverlapBoxNonAlloc(center, half, Hits, _rot, mask, QueryTriggerInteraction.Ignore);
+            for (int i = 0; i < n; i++)
+            {
+                var c = Hits[i];
+                if (!c || c is TerrainCollider || IsGhost(c)) continue;
+                return true;
+            }
+            return false;
+        }
+
+        // ------------------------------------------------------------------ building
+        void Build()
+        {
+            var def = _def; var item = _item; bool pay = _payCost; Vector3 pos = _pos; Quaternion rot = _rot;
+            Cancel();
+            int hits = 0, need = def ? Mathf.Max(1, def.buildHits) : 2;
+            bool started = _pi.DoLoop(PlayerActions.Build, "OnBuildHit", () => ++hits < need, pos + Vector3.up * 0.6f, 1.3f, null, () =>
+            {
+                if (hits < need) return;                                        // interrupted: nothing used
+                if (pay) { if (!TakeCost(def)) { PlayerInteraction.Notify(MissingCost(def) ?? "Missing materials."); return; } }
+                else if (!_inv.Remove(item, 1)) return;
+                var go = def ? Spawn(def, pos, rot, null) : Spawn(item, pos, rot, null);
+                Effects(def, pos, rot);
+                GameEvents.Raise(GameEventType.StructurePlaced, def ? def.ItemId : item.id, 1, pos);
+                Placed?.Invoke(go);
+                BuildingEnclosure.RefreshIfDirty();
+                if (def && pay && CanAfford(def) && !MenuOpen) Start(def, null, true, def.item && def.item.placePrefab ? def.item.placePrefab : def.prefab, true);   // next one of the same kind
+                else if (def && pay) PlayerInteraction.Notify(MissingCost(def) ?? "");
+            });
+            if (!started)   // busy (mid-action): keep the ghost instead of losing it
+            {
+                if (def && pay) Start(def, null, true, def.item && def.item.placePrefab ? def.item.placePrefab : def.prefab, true);
+                else if (item) Start(def, item, false, item.placePrefab, true);
+            }
+        }
+
+        static void Effects(StructureDefinition def, Vector3 pos, Quaternion rot)
+        {
+            try
+            {
+                float size = def ? def.dustScale : 0.8f;
+                var at = pos + Vector3.up * 0.25f + (def && def.category == StructureCategory.Roof ? rot * new Vector3(0, 0.3f, 0) : Vector3.zero);
+                var fx = VfxPool.Instance; if (fx) fx.Play(VfxId.BuildDust, at, Vector3.up, null, size);
+                var sfx = SfxPlayer.Instance;
+                if (sfx)
+                {
+                    sfx.Play(SfxId.Build, at, 0.9f);
+                    if (def == null || def.wooden) sfx.Play(SfxId.BranchSnap, at, 0.6f);
+                    if (def == null || def.leafy) sfx.Play(SfxId.LeafRustle, at + Vector3.up * 0.8f, 0.8f);
+                }
+            }
+            catch (System.Exception e) { Debug.LogWarning("[BuildSystem] effects: " + e.Message); }
+        }
+
+        /// <summary>also used by the save system (items with a placePrefab: every placeable, pieces included)</summary>
+        public static GameObject Spawn(ItemDefinition item, Vector3 pos, Quaternion rot, string uid)
+        {
+            var go = Instantiate(item.placePrefab, pos, rot);
+            go.name = item.placePrefab.name;
+            var ps = go.GetOrAdd<PlacedStructure>();
+            ps.itemId = item.id; ps.uid = string.IsNullOrEmpty(uid) ? System.Guid.NewGuid().ToString("N").Substring(0, 12) : uid;
+            var sp = go.GetComponent<StructurePiece>(); if (sp && !sp.definition) sp.definition = StructureDefinition.ForItem(item);
+            foreach (var it in go.GetComponentsInChildren<Interactable>(true)) it.SaveId = "build_" + ps.uid + (it.transform == go.transform ? "" : "_" + it.GetType().Name);
+            return go;
+        }
+
+        /// <summary>a piece from its definition (its item's placePrefab when it has one, else the definition's prefab)</summary>
+        public static GameObject Spawn(StructureDefinition def, Vector3 pos, Quaternion rot, string uid)
+        {
+            if (def.item && def.item.placePrefab) return Spawn(def.item, pos, rot, uid);
+            var go = Instantiate(def.prefab, pos, rot);
+            go.name = def.prefab.name;
+            var ps = go.GetOrAdd<PlacedStructure>();
+            ps.itemId = def.ItemId; ps.uid = string.IsNullOrEmpty(uid) ? System.Guid.NewGuid().ToString("N").Substring(0, 12) : uid;
+            var sp = go.GetOrAdd<StructurePiece>(); if (!sp.definition) sp.definition = def;
+            foreach (var it in go.GetComponentsInChildren<Interactable>(true)) it.SaveId = "build_" + ps.uid + (it.transform == go.transform ? "" : "_" + it.GetType().Name);
+            return go;
+        }
+    }
+}

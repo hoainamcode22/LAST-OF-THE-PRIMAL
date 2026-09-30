@@ -5,10 +5,14 @@ import pf_ops
 UNITY = r"E:\LAST OF THE PRIMAL"
 TEX = r"E:\Model game khủng long\textures"
 
-def export(arm, meshes, dest_dir, fbx_name, actions, tex_prefixes, meta, meta_name, use_mesh_modifiers=True, axis_forward='-Z', face_unity_forward=False):
-    model_dir = os.path.join(dest_dir, "Model"); tex_dir = os.path.join(dest_dir, "Textures"); anim_dir = os.path.join(dest_dir, "Animations")
-    for d in (model_dir, tex_dir, anim_dir, os.path.join(dest_dir, "Materials"), os.path.join(dest_dir, "Prefab")):
-        os.makedirs(d, exist_ok=True)
+def export(arm, meshes, dest_dir, fbx_name, actions, tex_prefixes, meta, meta_name, use_mesh_modifiers=True, axis_forward='-Z', face_unity_forward=False, flat=False):
+    """flat=True (CHAR staging): the FBX and the meta json go straight into dest_dir, no Unity sub-folders, no textures"""
+    if flat:
+        model_dir = tex_dir = anim_dir = dest_dir; os.makedirs(dest_dir, exist_ok=True)
+    else:
+        model_dir = os.path.join(dest_dir, "Model"); tex_dir = os.path.join(dest_dir, "Textures"); anim_dir = os.path.join(dest_dir, "Animations")
+        for d in (model_dir, tex_dir, anim_dir, os.path.join(dest_dir, "Materials"), os.path.join(dest_dir, "Prefab")):
+            os.makedirs(d, exist_ok=True)
     arm.animation_data_create()
     arm.animation_data.action = None
     arm.data.pose_position = 'POSE'
@@ -39,7 +43,7 @@ def export(arm, meshes, dest_dir, fbx_name, actions, tex_prefixes, meta, meta_na
     txt = open(path, 'rb').read()
     takes = sorted(set(m.decode(errors='ignore') for m in re.findall(rb"Take\x00*S.\x00\x00\x00([A-Za-z0-9_\|\.]+)", txt)))
     copied = []
-    for f in os.listdir(TEX):
+    for f in (os.listdir(TEX) if not flat else []):
         if any(f.startswith(p) for p in tex_prefixes) and f.endswith(".png") and "_AO" not in f:
             shutil.copy2(os.path.join(TEX, f), os.path.join(tex_dir, f)); copied.append(f)
     json.dump(meta, open(os.path.join(anim_dir, meta_name), "w"), indent=1)

@@ -13,6 +13,9 @@ namespace PrimalFrontier.Survival
     /// Phase 3: water the feet stand in (sea below OceanShore.seaLevel, pond / stream surfaces of WaterSource), sun on the
     /// player (daylight x clear sky, 0 in the shade: one raycast towards the sun, PlayerSurvival asks twice a second) and
     /// roof cover (shelter, tent, cave zone).
+    /// PC phase (WORLD): the zone climate (ZoneManager.AdjustAir: day / night offsets, stable cave air) and the volcano /
+    /// lava heat (HazardZone rings: warm, hot, dangerous) go into the air temperature; hazard heat is air, not warmth, so it
+    /// neither dries clothes like a fire nor counts as resting by a fire.
     /// </summary>
     public static class SurvivalEnvironment
     {
@@ -67,9 +70,20 @@ namespace PrimalFrontier.Survival
         {
             var c = SurvivalConfig.Instance;
             float air = _time ? _time.AirTemperature() + c.nightAirOffset * NightNow() : FallbackAir;
-            if (_zones) air += _zones.TemperatureOffset(p);
-            return air - Mathf.Max(0f, p.y - c.altitudeCoolingStart) * c.altitudeCooling;
+            if (_zones) air = _zones.AdjustAir(p, air);
+            air -= Mathf.Max(0f, p.y - c.altitudeCoolingStart) * c.altitudeCooling;
+            if (HazardZone.All.Count > 0) air += HazardZone.TotalHeatAt(p);
+            return air;
         }
+
+        /// <summary>volcano / lava ring at p (0 safe, 1 warm, 2 hot, 3 dangerous)</summary>
+        public static int HazardLevelAt(Vector3 p) => HazardZone.All.Count > 0 ? (int)HazardZone.MaxLevelAt(p) : 0;
+
+        /// <summary>extra air heat of the volcano / lava at p, deg C</summary>
+        public static float HazardHeatAt(Vector3 p) => HazardZone.All.Count > 0 ? HazardZone.TotalHeatAt(p) : 0f;
+
+        /// <summary>0..1 humidity of the zone at p (wetland, waterfall spray)</summary>
+        public static float HumidityAt(Vector3 p) => _zones ? _zones.HumidityAt(p) : 0f;
 
         public static bool RainAt(Vector3 p) => _weather && _weather.RainingAt(p);
 

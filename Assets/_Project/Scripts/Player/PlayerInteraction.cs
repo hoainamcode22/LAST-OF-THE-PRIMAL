@@ -66,9 +66,13 @@ namespace PrimalFrontier.Player
         /// <summary>while suspended, a system that owns the player (climbing) can still show its own prompt</summary>
         public Func<(string prompt, string sub)> ExternalPrompt;
 
+        /// <summary>procedural body program layered on a one-shot (placeholder clips until CHAR's physical drink / fill clips exist)</summary>
+        enum Program { None, KneelDrink, KneelFill, ContainerDrink }
+
         class RunningAction
         {
             public int anim; public string evt; public bool loop;
+            public Program program; public int procedural = -1; public bool progRaised, progScooped, progApproach;   // -1 = not known yet (placeholder clip?)
             public Action onEvent; public Func<bool> onHit; public Action onEnd;
             public float started, lastHit, period; public bool fired; public Vector3 focus; public bool hasFocus;
             public Interactable source;
@@ -205,7 +209,14 @@ namespace PrimalFrontier.Player
         public bool DoOneShot(int anim, string evt, Action onEvent, Vector3? focus = null, float fallback = 1.2f, Interactable source = null, Action onEnd = null)
         {
             if (InAction || (Driver && (Driver.IsBusy || Driver.IsDead))) return false;
-            _act = new RunningAction { anim = anim, evt = evt, onEvent = onEvent, loop = false, started = Time.time, period = fallback, source = source, onEnd = onEnd };
+            // physical drinking (directive 8): at a water source the body kneels at the edge facing the water and the hands scoop
+            // (Drink_Kneel), filling a container dips it in (Collect_Water); from a container the right hand brings it to the face
+            var program = Program.None;
+            bool atWater = focus.HasValue && (source is WaterSource || source is OceanShore);
+            if (atWater && anim == PlayerActions.Drink) { anim = PlayerActions.DrinkKneel; program = Program.KneelDrink; }
+            else if (atWater && anim == PlayerActions.CollectWater) program = Program.KneelFill;
+            else if (anim == PlayerActions.Drink && source == null) program = Program.ContainerDrink;
+            _act = new RunningAction { anim = anim, evt = evt, onEvent = onEvent, loop = false, started = Time.time, period = fallback, source = source, onEnd = onEnd, program = program };
             SetFocus(focus);
             if (Driver) Driver.PlayAction(anim);
             return true;
@@ -254,12 +265,121 @@ namespace PrimalFrontier.Player
                 }
             }
             float t = Time.time - _act.started;
+            if (_act.program != Program.None) RunProgram(t);
+            if (_act == null) return;
             if (!_act.loop)
             {
                 if (!_act.fired && t > _act.period) FireOneShot();             // clip had no event / animator culled
                 if (_act != null && t > _act.period + 2.5f) { FireOneShot(); StopAction(); }   // safety: never stuck
             }
             else if (Time.time - _act.lastHit > _act.period * 1.6f) LoopHit();   // fallback cadence
+        }
+
+        // ------------------------------------------------------------------ physical drink / fill programs
+        [Header("Physical drinking (placeholder programs)")]
+        [Tooltip("how far the upper body bends toward the water while scooping (look body weight added, 0-0.8)")] [Range(0f, 0.8f)] public float drinkBend = 0.6f;
+        [Tooltip("how far the body sinks into a kneel while scooping (m; feet stay planted)")] [Range(0f, 0.3f)] public float drinkSink = 0.22f;
+        [Tooltip("kneel this far (flat) from the water's edge; a farther edge is approached by a short step of at most kneelMaxStep")] public float kneelEdgeDistance = 0.6f, kneelMaxStep = 0.45f;
+
+        void StepToEdge(Vector3 water)
+        {
+            if (!Motor) return;
+            Vector3 flat = water - transform.position; flat.y = 0f;
+            float gap = flat.magnitude - kneelEdgeDistance;
+            if (gap < 0.08f) return;
+            float step = Mathf.Min(gap, kneelMaxStep); Vector3 dir = flat.normalized, to = transform.position + dir * step;
+            // ground there, close to the feet's height (no stepping off a bank or into a hole)
+            int mask = ~(1 << gameObject.layer) & ~(1 << 2);
+            if (!Physics.Raycast(to + Vector3.up * 0.8f, Vector3.down, out var hit, 1.6f, mask, QueryTriggerInteraction.Ignore)) return;
+            if (Mathf.Abs(hit.point.y - transform.position.y) > 0.3f) return;
+            const float time = 0.5f;                                                 // Burst eases out: mean speed 0.53 of the start
+            Motor.Burst(dir * (step / (0.533f * time)), time);
+        }
+        PlayerIK _ikCache; float _armLen;
+
+        /// <summary>the water point, or the nearest point toward it both hands can reach (0.95 of the arm from each shoulder)</summary>
+        Vector3 Reachable(Animator a, Vector3 p)
+        {
+            Transform ul = a.GetBoneTransform(HumanBodyBones.LeftUpperArm), ur = a.GetBoneTransform(HumanBodyBones.RightUpperArm);
+            if (!ul || !ur) return p;
+            if (_armLen <= 0f)
+            {
+                Transform ll = a.GetBoneTransform(HumanBodyBones.LeftLowerArm), lh = a.GetBoneTransform(HumanBodyBones.LeftHand);
+                _armLen = ll && lh ? Vector3.Distance(ul.position, ll.position) + Vector3.Distance(ll.position, lh.position) : 0.55f;
+            }
+            Vector3 s = (ul.position + ur.position) * 0.5f, d = p - s;
+            float reach = _armLen * 0.95f;
+            return d.magnitude > reach ? s + d.normalized * reach : p;
+        }
+
+        /// <summary>the state plays the Crouch placeholder (no physical drink clip yet): the program moves the hands and raises the event</summary>
+        bool IsPlaceholder()
+        {
+            var a = Driver ? Driver.animator : null; if (!a) return false;
+            foreach (var ci in a.GetCurrentAnimatorClipInfo(0)) if (ci.clip && ci.clip.name == "Crouch" && ci.weight > 0.3f) return true;
+            if (a.IsInTransition(0)) foreach (var ci in a.GetNextAnimatorClipInfo(0)) if (ci.clip && ci.clip.name == "Crouch") return true;
+            return false;
+        }
+
+        void RunProgram(float t)
+        {
+            var a = Driver ? Driver.animator : null;
+            if (!_ikCache && a) _ikCache = a.GetComponent<PlayerIK>();
+            if (!_ikCache || !a || !a.isHuman) return;
+            Transform head = a.GetBoneTransform(HumanBodyBones.Head), chest = a.GetBoneTransform(HumanBodyBones.UpperChest) ?? a.GetBoneTransform(HumanBodyBones.Chest);
+            if (!head || !chest) return;
+            Vector3 fwd = transform.forward, right = transform.right;
+            Vector3 mouth = head.position + fwd * 0.1f - Vector3.up * 0.05f;
+            if (_act.program == Program.ContainerDrink)
+            {
+                // the Drink clip lifts the hand; the IK takes the container the last bit to the lips around the swallow (bell over 0.4-0.8)
+                var st = a.GetCurrentAnimatorStateInfo(0);
+                if (!st.IsName("Drink")) return;
+                float n = st.normalizedTime, w = Mathf.Clamp01(1f - Mathf.Abs(n - 0.62f) / 0.22f) * 0.65f;
+                _ikCache.SetActionHands(Vector3.zero, 0f, mouth - fwd * 0.07f - Vector3.up * 0.06f + right * 0.03f, w);
+                return;
+            }
+            if (_act.procedural < 0 && t > 0.15f) _act.procedural = IsPlaceholder() ? 1 : t > 0.6f ? 0 : -1;
+            if (_act.procedural == 0) return;                                        // a real clip: its own hands and events
+            float S(float x) => Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(x));
+            Vector3 w0 = _act.focus;
+            // the upper body bends toward the water while the hands go down (the look's body weight bends the spine, the legs
+            // keep the crouch), then straightens as the hands come up to the mouth
+            float bend = S((t - 0.25f) / 0.4f) * (1f - S((t - 0.95f) / 0.4f));
+            float lookW = S((t - 0.2f) / 0.3f) * (1f - S((t - 1.6f) / 0.35f));
+            Vector3 lookAt = Vector3.Lerp(w0, head.position + fwd * 2f - Vector3.up * 0.3f, S((t - 0.95f) / 0.4f));
+            _ikCache.SetActionLook(lookAt, lookW, 0.2f + bend * drinkBend, bend * drinkSink);
+            // shuffle up to the edge first when the water is out of the arms' reach (a short eased step, only onto ground
+            // about as high as the feet)
+            if (!_act.progApproach) { _act.progApproach = true; StepToEdge(w0); }
+            // where the hands can get to: the water point, pulled in to the arm's reach from each shoulder
+            Vector3 water = Reachable(a, w0);
+            if (_act.program == Program.KneelDrink)
+            {
+                // 0.35-0.75 reach down, 0.75-0.95 scoop, 0.95-1.35 up to the mouth, 1.35 drink, 1.6-1.9 hands down
+                float w = S((t - 0.35f) / 0.4f) * (1f - S((t - 1.6f) / 0.3f));
+                Vector3 c = Vector3.Lerp(water, mouth - fwd * 0.03f, S((t - 0.95f) / 0.4f));
+                _ikCache.SetActionHands(c - right * 0.07f, w, c + right * 0.07f, w);
+                if (!_act.progScooped && t >= 0.8f) { _act.progScooped = true; Scoop(w0); }
+                if (!_act.progRaised && t >= 1.35f) { _act.progRaised = true; if (_events) _events.OnDrink("kneel"); }
+            }
+            else
+            {
+                // filling: the container hand dips in (0.35-0.8), holds while it fills (fills at 1.15), lifts it to the chest (1.3-1.7)
+                float w = S((t - 0.35f) / 0.45f) * (1f - S((t - 1.7f) / 0.25f));
+                Vector3 hold = chest.position + fwd * 0.32f - Vector3.up * 0.1f;
+                Vector3 c = Vector3.Lerp(water - Vector3.up * 0.05f, hold, S((t - 1.3f) / 0.4f));
+                _ikCache.SetActionHands(c - right * 0.12f + Vector3.up * 0.04f, w * 0.6f, c, w);
+                if (!_act.progScooped && t >= 0.85f) { _act.progScooped = true; Scoop(w0); }
+                if (!_act.progRaised && t >= 1.15f) { _act.progRaised = true; if (_events) _events.OnDrink("fill"); }
+            }
+        }
+
+        /// <summary>hands (or the container) break the surface: a small splash and the scoop sound at the water</summary>
+        static void Scoop(Vector3 at)
+        {
+            VFX.VfxPool.Instance.Play(VFX.VfxId.WaterSplash, at, Vector3.up, null, 0.45f);
+            Audio.SfxPlayer.Instance.Play(Audio.SfxId.WaterScoop, at, 0.8f);
         }
 
         void FireOneShot()
@@ -305,7 +425,7 @@ namespace PrimalFrontier.Player
 
         // ------------------------------------------------------------------ item use (food, water container, drop)
         // Routing only: the rules live in PlayerSurvival.ConsumeItem (food) and WaterRules (water).
-        const string SaltDrinkWarning = "Salt water makes you thirstier. Boil it first.";
+        const string SaltDrinkWarning = "Salt water makes you thirstier, and boiling does not remove the salt. Find fresh water.";
 
         /// <summary>eat / drink the active item; true if something happened</summary>
         public bool UseActiveConsumable()

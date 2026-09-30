@@ -60,6 +60,10 @@ namespace PrimalFrontier.Survival
         public float SunExposure { get; private set; }
         /// <summary>under a roof (shelter, tent, cave) at the last check</summary>
         public bool Sheltered { get; private set; }
+        /// <summary>air humidity 0..1 at the last check</summary>
+        public float Humidity { get; private set; }
+        /// <summary>x on all healing from hunger and thirst (1 when both are full; SurvivalConfig.healAtEmptyHunger / Thirst at 0)</summary>
+        public float HealMultiplier { get; private set; } = 1f;
         public bool IsCold => BodyTemperature < coldBody;
         public bool IsFreezing => BodyTemperature < freezingBody;
         public bool IsStarving => Hunger <= 0.01f;
@@ -93,6 +97,11 @@ namespace PrimalFrontier.Survival
 
         PlayerHealth _hp; InventorySystem _inv; SurvivalConfig _cfg; PlayerStatusEffects _fx;
         float _envTick, _spoilTick;
+        float _drinkWarmth, _drinkWarmLeft;
+        /// <summary>seconds of warmth left from a hot drink (phase 1; 0 = none)</summary>
+        public float DrinkWarmthSeconds => _drinkWarmLeft;
+        /// <summary>deg C the body feels warmer now from a hot drink (0 = none)</summary>
+        public float DrinkWarmth => _drinkWarmLeft > 0f ? _drinkWarmth : 0f;
         float _lastStaminaUse = -10f; int _warnMask;
         int _hTier = int.MinValue, _tTier = int.MinValue;
         float _regenMul = 1f, _maxMul = 1f, _speedMul = 1f, _needDrain;
@@ -258,6 +267,18 @@ namespace PrimalFrontier.Survival
             fx.Apply(def, 1f, amount / def.healthPerSecond, false);
         }
 
+        /// <summary>
+        /// a hot drink in the cold (WaterRules): body temperature up by <paramref name="bodyDegrees"/> at once (never above
+        /// normal) and the body feels <paramref name="warmth"/> deg C warmer for <paramref name="seconds"/> (the cold effect eases)
+        /// </summary>
+        public void WarmFromDrink(float bodyDegrees, float warmth, float seconds)
+        {
+            if (!_hp || _hp.IsDead) return;
+            if (bodyDegrees > 0f && BodyTemperature < normalBody) BodyTemperature = Mathf.Min(normalBody, BodyTemperature + bodyDegrees);
+            if (warmth > 0f && seconds > 0f) { _drinkWarmth = Mathf.Max(_drinkWarmLeft > 0f ? _drinkWarmth : 0f, warmth); _drinkWarmLeft = Mathf.Max(_drinkWarmLeft, seconds); }
+            if (_fx) _fx.SetFlag(StatusEffectIds.Cold, IsCold);
+        }
+
         /// <summary>food poisoning (the "sickness" status): health drains a little, thirst faster, stamina lower, for the given time</summary>
         public void MakeSick(float seconds, string reason = "Your stomach turns. Raw meat was a risk.")
         {
@@ -277,6 +298,7 @@ namespace PrimalFrontier.Survival
         {
             Hunger = Mathf.Clamp(hunger, 0, 100); Thirst = Mathf.Clamp(thirst, 0, 100);
             BodyTemperature = Mathf.Clamp(body, 30f, 40f); Wetness = Mathf.Clamp01(wet); _warnMask = 0;
+            _drinkWarmth = 0f; _drinkWarmLeft = 0f;
             RefreshTiers(false);
             Stamina = Mathf.Clamp(stamina, 0, MaxStaminaNow);
         }
@@ -330,6 +352,8 @@ namespace PrimalFrontier.Survival
         public static Func<Vector3, float> SunAt = p => 0f;
         /// <summary>under a roof (shelter, tent, cave)</summary>
         public static Func<Vector3, bool> ShelteredAt = p => false;
+        /// <summary>air humidity 0..1 at this spot (WORLD's zones: wetland / waterfall 0.95, deep forest 0.8; 0 elsewhere): slower drying</summary>
+        public static Func<Vector3, float> HumidityAt = p => SurvivalEnvironment.HumidityAt(p);
         /// <summary>seconds between the water / sun / roof checks</summary>
         public const float EnvironmentCheckSeconds = 0.5f;
 
@@ -359,26 +383,33 @@ namespace PrimalFrontier.Survival
                 WaterDepth = Mathf.Max(0f, WaterDepthAt(p));
                 Sheltered = ShelteredAt(p);
                 SunExposure = Sheltered ? 0f : Mathf.Clamp01(SunAt(p));
+                Humidity = Mathf.Clamp01(HumidityAt(p));
             }
 
             // wetness + temperature
             bool rain = RainingAt(p);
             float heat = HeatAt(p);
             float wetIn = (rain ? c.rainWetPerSecond : 0f) + (WaterDepth > 0.05f ? c.waterWetPerSecond * Mathf.Clamp(WaterDepth / 0.8f, 0.25f, 1.5f) : 0f);
-            float dry = c.dryPerSecond + heat * c.heatDryPerDegree + (Sheltered ? c.shelterDryPerSecond : 0f) + SunExposure * c.sunDryPerSecond;
+            float dry = (c.dryPerSecond + heat * c.heatDryPerDegree + (Sheltered ? c.shelterDryPerSecond : 0f) + SunExposure * c.sunDryPerSecond) * (1f - Mathf.Clamp01(c.humidityDryingPenalty) * Humidity);
             Wetness = Mathf.Clamp01(Wetness + (wetIn > 0f ? wetIn : -dry) * dt);
             EnvironmentTemperature = AirTemperature(p) + heat - Wetness * 5f + (_sprinting ? 2f : 0f) + SunExposure * c.sunWarmth - (WaterDepth > 0.05f ? c.waterChill : 0f);
             // body drifts towards a target: comfortable air keeps 37, cold air pulls it down, heat pulls it back up
-            float target = EnvironmentTemperature >= 18f ? normalBody : Mathf.Lerp(33.5f, normalBody, (EnvironmentTemperature - 4f) / 14f);
+            // a hot drink (phase 1) makes the body feel warmer for a while: the cold pulls less
+            float felt = EnvironmentTemperature;
+            if (_drinkWarmLeft > 0f) { felt += _drinkWarmth; _drinkWarmLeft = Mathf.Max(0f, _drinkWarmLeft - dt); }
+            float target = felt >= 18f ? normalBody : Mathf.Lerp(33.5f, normalBody, (felt - 4f) / 14f);
             BodyTemperature = Mathf.MoveTowards(BodyTemperature, target, bodyResponse * dt * (target > BodyTemperature ? 3f : 1f));
 
-            // damage / heal (status effects drain / heal on their own: PlayerStatusEffects)
+            // damage / heal (status effects drain / heal on their own: PlayerStatusEffects). Hunger and thirst slow every kind of
+            // healing (directive 16: "hunger -> slower recovery"): x1 when full, down to healAtEmptyHunger / Thirst when empty
+            HealMultiplier = Mathf.Lerp(c.healAtEmptyHunger, 1f, Hunger / 100f) * Mathf.Lerp(c.healAtEmptyThirst, 1f, Thirst / 100f);
+            if (fx) fx.HealMultiplier = HealMultiplier;
             float dmg = _needDrain;
             if (IsFreezing) dmg += freezeDamage;
             bool resting = Sheltered || heat > 2f;
             if (dmg > 0f) _hp.ApplyRaw(dmg * dt);
             else if (Hunger > regenNeedAbove && Thirst > regenNeedAbove && !IsCold && !(fx && fx.BlocksRegen) && !_hp.IsBleeding)
-                _hp.Heal(regenHealth * (resting ? c.restRegenMultiplier : 1f) * dt);
+                _hp.Heal(regenHealth * HealMultiplier * (resting ? c.restRegenMultiplier : 1f) * dt);
             // limb injuries heal faster while resting under a roof / by the fire
             if (resting && fx && fx.Count > 0 && c.restInjuryHealMultiplier > 1f)
             {
@@ -399,7 +430,7 @@ namespace PrimalFrontier.Survival
         }
 
         // ---------------------------------------------------------------- spoilage
-        ItemDefinition[] _spoilItem; FoodStage[] _spoilStage;
+        ItemDefinition[] _spoilItem; FoodStage[] _spoilStage; ItemStack[] _hotStack; bool[] _hotWas;
 
         /// <summary>
         /// the pack is looked at every SurvivalConfig.spoilCheckSeconds (stages come from the time, nothing ticks per item):
@@ -409,11 +440,15 @@ namespace PrimalFrontier.Survival
         {
             if (!_inv || _inv.Slots == null) return;
             var slots = _inv.Slots;
-            if (_spoilItem == null || _spoilItem.Length != slots.Length) { _spoilItem = new ItemDefinition[slots.Length]; _spoilStage = new FoodStage[slots.Length]; }
+            if (_spoilItem == null || _spoilItem.Length != slots.Length) { _spoilItem = new ItemDefinition[slots.Length]; _spoilStage = new FoodStage[slots.Length]; _hotStack = new ItemStack[slots.Length]; _hotWas = new bool[slots.Length]; }
             bool changed = false;
             for (int i = 0; i < slots.Length; i++)
             {
                 var st = slots[i];
+                // hot water cooling to Cold (phase 1): slot colour / label refresh once
+                bool hot = WaterRules.IsHot(st);
+                if (ReferenceEquals(st, _hotStack[i]) && _hotWas[i] && !hot) changed = true;
+                _hotStack[i] = st; _hotWas[i] = hot;
                 var item = st != null && !st.IsEmpty && Spoilage.Spoils(st.item) ? st.item : null;
                 var stage = item ? Spoilage.Stage(st) : FoodStage.Fresh;
                 if (item && item == _spoilItem[i] && stage != _spoilStage[i])

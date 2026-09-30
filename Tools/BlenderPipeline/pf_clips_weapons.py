@@ -271,8 +271,8 @@ def bake(rig, B, which=None):
         keys, infos = solve_keys(rig, raw)
         report[name] = [(f, {sd: (i.get("pos_err"), i.get("blade_err")) for sd, i in info.items()}) for f, info in infos]
         keyframes = {k[0] for k in raw}
-        cache = {}
-        def fn(f, keys=keys, raw=raw, keyframes=keyframes, cache=cache):
+        cache = {}; last = {}
+        def fn(f, keys=keys, raw=raw, keyframes=keyframes, cache=cache, last=last):
             p = CH.interp(keys, f)
             if f not in keyframes:
                 if f not in cache:
@@ -280,11 +280,22 @@ def bake(rig, B, which=None):
                     if tg:
                         rig.reset(); CH.apply(rig, p); bpy.context.view_layer.update()
                         for sd, t in tg.items():
-                            p, _ = WI.solve(rig, p, sd, reg=0.15, iters=220, starts=1, **t)
+                            # B5 (2026-09-30): continuity. Start between the joint blend and the previous frame's arm, and
+                            # keep the joint blend when the refined arm would flip (wrist twist / arm roll / elbow jump)
+                            start = dict(p)
+                            if sd in last:
+                                for k in ("a", "e", "w"): start[k + sd] = lerp(p[k + sd], last[sd][k], 0.5)
+                            q, _ = WI.solve(rig, start, sd, reg=0.3, iters=240, starts=1, **t)
+                            jump = max(abs(q["w" + sd][2] - p["w" + sd][2]), abs(q["a" + sd][2] - p["a" + sd][2]), abs(q["e" + sd] - p["e" + sd]) * 0.5)
+                            w = max(0.0, min(1.0, (45.0 - jump) / 25.0))       # fades out, never switches
+                            kf_ = sorted(keyframes); seg = [(a, b) for a, b in zip(kf_, kf_[1:]) if a < f < b]
+                            if seg: w *= math.sin(math.pi * (f - seg[0][0]) / (seg[0][1] - seg[0][0]))   # and near the keys
+                            for k in ("a", "e", "w"): p[k + sd] = lerp(p[k + sd], q[k + sd], w)
                             rig.reset(); CH.apply(rig, p); bpy.context.view_layer.update()
                     cache[f] = p
                 p = cache[f]
                 rig.reset()
+            for sd in ("L", "R"): last[sd] = {k: p[k + sd] for k in ("a", "e", "w")}
             return CH.apply(rig, p)
         B.bake(name, d["frames"], d["loop"], fn, events=d.get("events", []), notes=d.get("notes", ""))
         report[name + "__max_grip_step_cm"] = _max_step(rig, name, d["frames"])

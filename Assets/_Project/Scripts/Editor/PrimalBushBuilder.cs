@@ -102,7 +102,7 @@ namespace PrimalFrontier.EditorTools
             for (int i = 1; i <= MaxModels; i++) { string fp = $"{ModelDir}/ENV_Bush_{i:00}.fbx"; if (File.Exists(fp)) RemapToProjectMaterials(fp, L); }
             if (thickets) return Thickets(scene, world, terrain, rebuild, details);
             // holder: World/Vegetation/InteractiveBushes (World/InteractiveBushes when there is no Vegetation group)
-            var veg = world.transform.Find("Vegetation");
+            var veg = PrimalFrontier.Core.SceneRoots.Legacy("World/Vegetation");       // World/Environment/Forest/Vegetation (HIER)
             Transform holder = veg ? veg.Find(HolderName) : null;
             if (!holder) holder = world.transform.Find(HolderName);
             if (holder && holder.childCount > 0 && !rebuild)
@@ -496,7 +496,7 @@ namespace PrimalFrontier.EditorTools
         /// <summary>the thicket pass (arg "thickets"): see the class summary</summary>
         static string Thickets(UnityEngine.SceneManagement.Scene scene, GameObject world, Terrain terrain, bool rebuild, bool details)
         {
-            var veg = world.transform.Find("Vegetation");
+            var veg = PrimalFrontier.Core.SceneRoots.Legacy("World/Vegetation");       // World/Environment/Forest/Vegetation (HIER)
             var parent = veg ? veg : world.transform;
             Transform singles = veg ? veg.Find(HolderName) : null; if (!singles) singles = world.transform.Find(HolderName);
             Transform holder = parent.Find(ThicketHolderName); if (!holder) holder = world.transform.Find(ThicketHolderName);
@@ -544,7 +544,7 @@ namespace PrimalFrontier.EditorTools
         static List<Vector3> MarkerPositions(string prefix)
         {
             var list = new List<Vector3>();
-            var root = GameObject.Find("Markers");
+            var root = PrimalFrontier.Core.SceneRoots.LegacyObject("Markers");
             IEnumerable<Transform> all = root ? root.GetComponentsInChildren<Transform>(true)
                                               : UnityEngine.Object.FindObjectsByType<Transform>(FindObjectsInactive.Include, FindObjectsSortMode.None);
             foreach (var t in all) if (t.name.StartsWith(prefix, StringComparison.Ordinal)) list.Add(t.position);

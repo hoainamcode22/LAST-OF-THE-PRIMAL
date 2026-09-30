@@ -219,7 +219,7 @@ namespace PrimalFrontier.Core
             {
                 var s = inv.Slots[i]; if (s.IsEmptyOrNull()) continue;
                 l.Add(new SlotData { slot = i, item = s.item.id, count = s.count, durability = s.durability, water = s.water, dirty = s.dirty, waterType = (int)WaterRules.TypeOf(s),
-                                     age = Spoilage.Spoils(s.item) ? s.AgeSeconds : 0f });
+                                     age = Spoilage.Spoils(s.item) ? s.AgeSeconds : 0f, hot = WaterRules.HotSecondsLeft(s) });
             }
             return l;
         }
@@ -238,6 +238,7 @@ namespace PrimalFrontier.Core
                     if (it.HasDurability && st.durability <= 0f) st.durability = it.maxDurability;
                     st.madeAt = GameClock.Now - Mathf.Max(0f, Num(s.age, 0f));
                     inv.Slots[s.slot] = RestoreWater(st, s.water, s.waterType, s.dirty);
+                    WaterRules.RestoreHot(inv.Slots[s.slot], Num(s.hot, 0f));
                 }
             inv.ForceNotify();
         }
@@ -301,7 +302,7 @@ namespace PrimalFrontier.Core
                 if (!pk || !pk.item) continue;
                 var st = pk.uniqueStack;
                 d.dropped.Add(new DropData { item = pk.item.id, count = st != null ? st.count : pk.count, durability = st != null ? st.durability : pk.item.maxDurability, water = st != null ? st.water : 0, dirty = st != null && st.dirty, waterType = st != null ? (int)WaterRules.TypeOf(st) : 0, pos = pk.transform.position,
-                                             age = st != null && Spoilage.Spoils(st.item) ? st.AgeSeconds : 0f });
+                                             age = st != null && Spoilage.Spoils(st.item) ? st.AgeSeconds : 0f, hot = st != null ? WaterRules.HotSecondsLeft(st) : 0f });
             }
             CaptureSections(d);
             return d;
@@ -335,7 +336,7 @@ namespace PrimalFrontier.Core
             var tm = TimeManager.Instance; if (tm) tm.Set(Mathf.Max(1, d.day), d.hour);
             GameClock.Now = d.clock;
             var wm = WeatherManager.Instance;
-            if (wm && Enum.TryParse<WeatherState>(d.weather, out var ws)) wm.SetWeather(ws == WeatherState.Storm ? WeatherState.Rain : ws, 2f, true);
+            if (wm && Enum.TryParse<WeatherState>(d.weather, out var ws)) wm.SetWeather(ws, 2f, true);       // a saved storm stays a storm (WORLD's weather section refines it)
             gm.PlaySeconds = d.playSeconds;
             var p = gm.Player;
             if (p) Step("player", () =>
@@ -391,6 +392,7 @@ namespace PrimalFrontier.Core
                 var item = db.Item(dr.item); if (item == null || dr.count <= 0) continue;
                 var st = RestoreWater(new ItemStack(item, dr.count) { durability = Num(dr.durability, item.maxDurability) }, dr.water, dr.waterType, dr.dirty);
                 st.madeAt = GameClock.Now - Mathf.Max(0f, Num(dr.age, 0f));
+                WaterRules.RestoreHot(st, Num(dr.hot, 0f));
                 WorldPickup.DropStack(st, dr.pos + Vector3.up * 0.3f);
             }
         }

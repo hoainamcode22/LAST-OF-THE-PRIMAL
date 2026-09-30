@@ -839,9 +839,9 @@ namespace PrimalFrontier.EditorTools
             if (!waterRoot) { var w = scene.GetRootGameObjects().FirstOrDefault(g => g.name == "Water"); waterRoot = w ? w.transform : new GameObject("Water").transform; }
 
             var fresh = new List<(Renderer r, MeshFilter mf)>();
-            foreach (var ws in Object.FindObjectsByType<WaterSource>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            foreach (var ws in Object.FindObjectsByType<WaterSource>(FindObjectsInactive.Exclude, FindObjectsSortMode.None))
             {
-                if (!ws.fresh) continue;
+                if (!ws.fresh || !ws.isActiveAndEnabled) continue;                  // switched-off bodies (the old stream) are skipped
                 var mf = ws.surface ? ws.surface : ws.GetComponentInChildren<MeshFilter>();
                 var r = mf ? mf.GetComponent<Renderer>() : null;
                 if (r && !fresh.Any(f => f.r == r)) fresh.Add((r, mf));

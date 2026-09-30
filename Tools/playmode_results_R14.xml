@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="16" result="Passed" total="16" passed="16" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-09-29 12:38:29Z" end-time="2026-09-29 12:39:29Z" duration="60,4516726">
+  <test-suite type="TestSuite" id="1184" name="LAST OF THE PRIMAL" fullname="LAST OF THE PRIMAL" runstate="Runnable" testcasecount="151" result="Passed" start-time="2026-09-29 12:38:29Z" end-time="2026-09-29 12:39:29Z" duration="60.451673" total="16" passed="16" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="PlayMode" />
+    </properties>
+    <test-suite type="Assembly" id="1178" name="PrimalFrontier.Tests.PlayMode.dll" fullname="E:/LAST OF THE PRIMAL/Library/ScriptAssemblies/PrimalFrontier.Tests.PlayMode.dll" runstate="Runnable" testcasecount="151" result="Passed" start-time="2026-09-29 12:38:29Z" end-time="2026-09-29 12:39:29Z" duration="60.275469" total="16" passed="16" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="1708" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+        <property name="EditorOnly" value="False" />
+      </properties>
+      <test-suite type="TestSuite" id="1179" name="PrimalFrontier" fullname="PrimalFrontier" runstate="Runnable" testcasecount="151" result="Passed" start-time="2026-09-29 12:38:29Z" end-time="2026-09-29 12:39:29Z" duration="60.235713" total="16" passed="16" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1180" name="Tests" fullname="PrimalFrontier.Tests" runstate="Runnable" testcasecount="151" result="Passed" start-time="2026-09-29 12:38:29Z" end-time="2026-09-29 12:39:29Z" duration="60.163595" total="16" passed="16" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestFixture" id="1099" name="ResourceIslandTests" fullname="PrimalFrontier.Tests.ResourceIslandTests" classname="PrimalFrontier.Tests.ResourceIslandTests" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-09-29 12:38:29Z" end-time="2026-09-29 12:39:29Z" duration="59.454984" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1101" name="Every_Node_Near_The_Spawn_Prompts_And_Gives_Items" fullname="PrimalFrontier.Tests.ResourceIslandTests.Every_Node_Near_The_Spawn_Prompts_And_Gives_Items" methodname="Every_Node_Near_The_Spawn_Prompts_And_Gives_Items" classname="PrimalFrontier.Tests.ResourceIslandTests" runstate="Runnable" seed="350203919" result="Passed" start-time="2026-09-29 12:38:29Z" end-time="2026-09-29 12:38:51Z" duration="21.494713" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="Timeout" value="300000" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[[Resources] 26 nodes near the spawn, targeted by the scan 26, highlighted 26: stone_small 'Gather Stone' +1 in 1; wood_driftwood 'Gather Wood' +1 in 1; food_fallen_fruit 'Harvest' +1 in 1; stone_small 'Gather Stone' +1 in 1; wood_driftwood 'Gather Wood' +1 in 1; stone_medium 'Gather Stone' +1 in 1; wood_driftwood 'Gather Wood' +1 in 1; food_berry_bush 'Harvest' +2 in 1; stone_small 'Gather Stone' +1 in 1; fiber_grass 'Gather Fiber' +1 in 1; fiber_grass 'Gather Fiber' +2 in 1; food_fallen_fruit 'Harvest' +1 in 1; fiber_grass 'Gather Fiber' +1 in 1; food_berry_bush 'Harvest' +2 in 1; stone_small 'Gather Stone' +1 in 1; wood_branch 'Gather Wood' +1 in 1; stone_medium 'Gather Stone' +1 in 1; wood_branch 'Gather Wood' +1 in 1; food_berry_bush 'Harvest' +2 in 1; wood_branch 'Gather Wood' +1 in 1; wood_driftwood 'Gather Wood' +1 in 1; wood_branch 'Gather Wood' +1 in 1; fiber_plant 'Gather Fiber' +1 in 1; fiber_grass 'Gather Fiber' +1 in 1; food_berry_bush 'Harvest' +1 in 1; fiber_plant 'Gather Fiber' +2 in 1;  misses: 
+]]></output>
+            </test-case>
+            <test-case id="1103" name="Punch_Fruit_Notes_And_Respawn" fullname="PrimalFrontier.Tests.ResourceIslandTests.Punch_Fruit_Notes_And_Respawn" methodname="Punch_Fruit_Notes_And_Respawn" classname="PrimalFrontier.Tests.ResourceIslandTests" runstate="Runnable" seed="1489093538" result="Passed" start-time="2026-09-29 12:38:51Z" end-time="2026-09-29 12:39:05Z" duration="14.174477" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="Timeout" value="180000" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[[Resources] punch on small stones: +1 (hitbox reported the node True); notes: +3  Stone; fruit +3, then empty; respawn fiber_grass after 12 h
+]]></output>
+            </test-case>
+            <test-case id="1104" name="Save_Load_Keeps_Resource_State_And_The_Layer_Is_Cheap" fullname="PrimalFrontier.Tests.ResourceIslandTests.Save_Load_Keeps_Resource_State_And_The_Layer_Is_Cheap" methodname="Save_Load_Keeps_Resource_State_And_The_Layer_Is_Cheap" classname="PrimalFrontier.Tests.ResourceIslandTests" runstate="Runnable" seed="494892021" result="Passed" start-time="2026-09-29 12:39:05Z" end-time="2026-09-29 12:39:14Z" duration="9.053030" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="Timeout" value="180000" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[[Resources] 1429 nodes, ResourceManager average 0,0055 ms per frame
+]]></output>
+            </test-case>
+            <test-case id="1100" name="Start_Area_Is_Stocked_And_Leads_To_Water" fullname="PrimalFrontier.Tests.ResourceIslandTests.Start_Area_Is_Stocked_And_Leads_To_Water" methodname="Start_Area_Is_Stocked_And_Leads_To_Water" classname="PrimalFrontier.Tests.ResourceIslandTests" runstate="Runnable" seed="2087256644" result="Passed" start-time="2026-09-29 12:39:14Z" end-time="2026-09-29 12:39:21Z" duration="6.565581" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="Timeout" value="120000" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[[Resources] Stone 6 nodes / 26 units; Wood 8 nodes / 22 units; Fiber 6 nodes / 17 units; Food 6 nodes / 21 units; nearest fresh water 137 m from the spawn; chain reaches it True
+]]></output>
+            </test-case>
+            <test-case id="1102" name="Tools_Beat_Hands_On_Stone_Wood_And_Trees" fullname="PrimalFrontier.Tests.ResourceIslandTests.Tools_Beat_Hands_On_Stone_Wood_And_Trees" methodname="Tools_Beat_Hands_On_Stone_Wood_And_Trees" classname="PrimalFrontier.Tests.ResourceIslandTests" runstate="Runnable" seed="1437985945" result="Passed" start-time="2026-09-29 12:39:21Z" end-time="2026-09-29 12:39:29Z" duration="7.952890" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="Timeout" value="180000" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[[Resources] large rock: hands 1 per 3, pick 5; branch by hand 1, fibre by hand 1; tree: hands 2 twigs in 12 actions ('Bare hands only strip dry twigs. An axe fells the tree.'), axe 3+3+2+2+2+2 in 6 hits then felled
+]]></output>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1105" name="ResourceTests" fullname="PrimalFrontier.Tests.ResourceTests" classname="PrimalFrontier.Tests.ResourceTests" runstate="Runnable" testcasecount="11" result="Passed" start-time="2026-09-29 12:39:29Z" end-time="2026-09-29 12:39:29Z" duration="0.638847" total="11" passed="11" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1111" name="Axe_Is_For_Wood_Hands_Only_Twig_A_Tree" fullname="PrimalFrontier.Tests.ResourceTests.Axe_Is_For_Wood_Hands_Only_Twig_A_Tree" methodname="Axe_Is_For_Wood_Hands_Only_Twig_A_Tree" classname="PrimalFrontier.Tests.ResourceTests" runstate="Runnable" seed="768532662" result="Passed" start-time="2026-09-29 12:39:29Z" end-time="2026-09-29 12:39:29Z" duration="0.016956" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1113" name="Bare_Hand_Strike_Gives_A_Small_Result_Tools_Do_Not" fullname="PrimalFrontier.Tests.ResourceTests.Bare_Hand_Strike_Gives_A_Small_Result_Tools_Do_Not" methodname="Bare_Hand_Strike_Gives_A_Small_Result_Tools_Do_Not" classname="PrimalFrontier.Tests.ResourceTests" runstate="Runnable" seed="1855922365" result="Passed" start-time="2026-09-29 12:39:29Z" end-time="2026-09-29 12:39:29Z" duration="0.149260" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1112" name="Every_Definition_Is_Sane" fullname="PrimalFrontier.Tests.ResourceTests.Every_Definition_Is_Sane" methodname="Every_Definition_Is_Sane" classname="PrimalFrontier.Tests.ResourceTests" runstate="Runnable" seed="16650835" result="Passed" start-time="2026-09-29 12:39:29Z" end-time="2026-09-29 12:39:29Z" duration="0.011097" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1109" name="Fruit_Grows_Back_Only_After_Its_Time" fullname="PrimalFrontier.Tests.ResourceTests.Fruit_Grows_Back_Only_After_Its_Time" methodname="Fruit_Grows_Back_Only_After_Its_Time" classname="PrimalFrontier.Tests.ResourceTests" runstate="Runnable" seed="2052933200" result="Passed" start-time="2026-09-29 12:39:29Z" end-time="2026-09-29 12:39:29Z" duration="0.007229" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1108" name="Fruit_That_Does_Not_Fit_Stays_On_The_Branch" fullname="PrimalFrontier.Tests.ResourceTests.Fruit_That_Does_Not_Fit_Stays_On_The_Branch" methodname="Fruit_That_Does_Not_Fit_Stays_On_The_Branch" classname="PrimalFrontier.Tests.ResourceTests" runstate="Runnable" seed="898010666" result="Passed" start-time="2026-09-29 12:39:29Z" end-time="2026-09-29 12:39:29Z" duration="0.004264" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1107" name="Fruit_With_A_Full_Pack_Stays_On_The_Tree" fullname="PrimalFrontier.Tests.ResourceTests.Fruit_With_A_Full_Pack_Stays_On_The_Tree" methodname="Fruit_With_A_Full_Pack_Stays_On_The_Tree" classname="PrimalFrontier.Tests.ResourceTests" runstate="Runnable" seed="1323027237" result="Passed" start-time="2026-09-29 12:39:29Z" end-time="2026-09-29 12:39:29Z" duration="0.007968" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1106" name="Fruit_With_Room_Goes_Into_The_Pack_And_The_Bunch_Empties" fullname="PrimalFrontier.Tests.ResourceTests.Fruit_With_Room_Goes_Into_The_Pack_And_The_Bunch_Empties" methodname="Fruit_With_Room_Goes_Into_The_Pack_And_The_Bunch_Empties" classname="PrimalFrontier.Tests.ResourceTests" runstate="Runnable" seed="954743070" result="Passed" start-time="2026-09-29 12:39:29Z" end-time="2026-09-29 12:39:29Z" duration="0.008950" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1110" name="Hands_Give_One_Stone_A_Pick_Three_To_Five" fullname="PrimalFrontier.Tests.ResourceTests.Hands_Give_One_Stone_A_Pick_Three_To_Five" methodname="Hands_Give_One_Stone_A_Pick_Three_To_Five" classname="PrimalFrontier.Tests.ResourceTests" runstate="Runnable" seed="541879294" result="Passed" start-time="2026-09-29 12:39:29Z" end-time="2026-09-29 12:39:29Z" duration="0.010202" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1115" name="Hidden_Node_Never_Pops_In_Next_To_The_Player" fullname="PrimalFrontier.Tests.ResourceTests.Hidden_Node_Never_Pops_In_Next_To_The_Player" methodname="Hidden_Node_Never_Pops_In_Next_To_The_Player" classname="PrimalFrontier.Tests.ResourceTests" runstate="Runnable" seed="1280634611" result="Passed" start-time="2026-09-29 12:39:29Z" end-time="2026-09-29 12:39:29Z" duration="0.014104" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1116" name="No_Per_Node_Update" fullname="PrimalFrontier.Tests.ResourceTests.No_Per_Node_Update" methodname="No_Per_Node_Update" classname="PrimalFrontier.Tests.ResourceTests" runstate="Runnable" seed="889106569" result="Passed" start-time="2026-09-29 12:39:29Z" end-time="2026-09-29 12:39:29Z" duration="0.284497" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1114" name="Node_Looks_Full_Damaged_Depleted_Regrowing" fullname="PrimalFrontier.Tests.ResourceTests.Node_Looks_Full_Damaged_Depleted_Regrowing" methodname="Node_Looks_Full_Damaged_Depleted_Regrowing" classname="PrimalFrontier.Tests.ResourceTests" runstate="Runnable" seed="1536866386" result="Passed" start-time="2026-09-29 12:39:29Z" end-time="2026-09-29 12:39:29Z" duration="0.041980" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[Saving results to: Documentation/Tests/playmode_results.xml
+]]></output>
+            </test-case>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

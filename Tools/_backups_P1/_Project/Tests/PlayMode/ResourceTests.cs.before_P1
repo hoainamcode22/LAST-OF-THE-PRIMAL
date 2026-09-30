@@ -1,0 +1,281 @@
+using System.Collections;
+using System.Linq;
+using System.Reflection;
+using NUnit.Framework;
+using UnityEngine;
+using UnityEngine.TestTools;
+using PrimalFrontier.Combat;
+using PrimalFrontier.Core;
+using PrimalFrontier.Items;
+using PrimalFrontier.World;
+
+namespace PrimalFrontier.Tests
+{
+    /// <summary>Resource system without the island: fruit harvest (P0 regression), gathering rules, strikes, looks, respawn, cost.</summary>
+    public class ResourceTests
+    {
+        static ItemDatabase Db => ItemDatabase.Instance;
+        static ResourceDatabase RDb => ResourceDatabase.Instance;
+        double _clock;
+
+        [UnitySetUp] public IEnumerator Setup() { yield return TestScenes.ClearIfGameplayLeft(); _clock = GameClock.Now; }
+        [TearDown] public void Teardown() { GameClock.Now = _clock; }
+
+        static InventorySystem Inv(int slots = 8, float maxWeight = 0f)
+        {
+            var go = new GameObject("inv"); go.SetActive(false);
+            var inv = go.AddComponent<InventorySystem>(); inv.slotCount = slots; inv.hotbarSize = 0; inv.maxWeight = maxWeight; inv.raiseGameEvents = false;
+            go.SetActive(true); inv.EnsureSlots(); return inv;
+        }
+
+        static FruitCluster Fruit(int amount = 3)
+        {
+            var go = new GameObject("fruit"); go.SetActive(false);
+            for (int i = 0; i < amount; i++) { var c = GameObject.CreatePrimitive(PrimitiveType.Sphere); Object.Destroy(c.GetComponent<Collider>()); c.transform.SetParent(go.transform, false); c.transform.localPosition = Vector3.right * i * 0.2f; }
+            var f = go.AddComponent<FruitCluster>(); f.item = Db.Item("fruit"); f.amount = amount; f.regrowHours = 30f;
+            go.SetActive(true); return f;
+        }
+
+        static ResourceNode Node(string defId, int charges)
+        {
+            var def = RDb.Get(defId); Assert.IsNotNull(def, "definition " + defId + " in Resources/ResourceDatabase");
+            var go = new GameObject("node_" + defId); go.SetActive(false);
+            var vis = GameObject.CreatePrimitive(PrimitiveType.Cube); vis.transform.SetParent(go.transform, false); vis.transform.localPosition = Vector3.up * 0.25f; vis.transform.localScale = Vector3.one * 0.5f;
+            var n = go.AddComponent<ResourceNode>(); n.definition = def; n.charges = charges; n.radius = 0.4f;
+            go.SetActive(true); return n;
+        }
+
+        // ------------------------------------------------------------------ P0: fruit
+        [Test] public void Fruit_With_Room_Goes_Into_The_Pack_And_The_Bunch_Empties()
+        {
+            var inv = Inv(); var f = Fruit(3); var fruit = Db.Item("fruit");
+            Assert.IsTrue(f.Ripe);
+            Assert.IsTrue(f.Harvest(inv), "harvested");
+            Assert.AreEqual(3, inv.Count(fruit), "all three fruit in the pack (the old code read Add's 'did not fit' as 'added')");
+            Assert.IsFalse(f.Ripe, "the bunch is empty now");
+            Assert.AreEqual(0, f.Left);
+            Assert.Greater(f.EmptyUntil, GameClock.Now, "regrow timer set");
+            Assert.IsFalse(f.Harvest(inv), "nothing left to pick: no infinite fruit");
+            Assert.AreEqual(3, inv.Count(fruit), "still three");
+            Object.Destroy(inv.gameObject); Object.Destroy(f.gameObject);
+        }
+
+        [Test] public void Fruit_With_A_Full_Pack_Stays_On_The_Tree()
+        {
+            var inv = Inv(1); var stone = Db.Item("stone"); inv.Add(stone, stone.maxStack);
+            var f = Fruit(3);
+            Assert.IsFalse(f.Harvest(inv), "full pack: nothing picked");
+            Assert.AreEqual(0, inv.Count(Db.Item("fruit")));
+            Assert.IsTrue(f.Ripe, "the fruit is still hanging");
+            Assert.AreEqual(3, f.Left);
+            Object.Destroy(inv.gameObject); Object.Destroy(f.gameObject);
+        }
+
+        [Test] public void Fruit_That_Does_Not_Fit_Stays_On_The_Branch()
+        {
+            var fruit = Db.Item("fruit");
+            var inv = Inv(4, fruit.weight * 2f + 1e-3f);                         // weight room for two
+            var f = Fruit(3);
+            Assert.IsTrue(f.Harvest(inv));
+            Assert.AreEqual(2, inv.Count(fruit), "two fit");
+            Assert.AreEqual(1, f.Left, "one stays");
+            Assert.IsTrue(f.Ripe, "still pickable");
+            Object.Destroy(inv.gameObject); Object.Destroy(f.gameObject);
+        }
+
+        [Test] public void Fruit_Grows_Back_Only_After_Its_Time()
+        {
+            var inv = Inv(); var f = Fruit(3);
+            Assert.IsTrue(f.Harvest(inv));
+            ResourceManager.Instance.Tick();
+            Assert.IsFalse(f.Ripe, "not instant");
+            GameClock.Now = f.EmptyUntil - GameClock.Hours(f.regrowHours) * 0.25;
+            ResourceManager.Instance.Tick();
+            Assert.IsFalse(f.Ripe, "growing");
+            Assert.That(f.Grow01, Is.InRange(0.4f, 0.6f), "second half: green fruit swelling");
+            GameClock.Now = f.EmptyUntil + 1;
+            ResourceManager.Instance.Tick();
+            Assert.IsTrue(f.Ripe, "ripe again");
+            Assert.AreEqual(3, f.Left);
+            Object.Destroy(inv.gameObject); Object.Destroy(f.gameObject);
+        }
+
+        // ------------------------------------------------------------------ gathering rules
+        [Test] public void Hands_Give_One_Stone_A_Pick_Three_To_Five()
+        {
+            var med = RDb.Get("stone_medium"); var pick = Db.Item("stone_pick");
+            var hands = GatheringSystem.Plan(med, null);
+            Assert.IsTrue(hands.allowed && hands.byHand);
+            float p = 0f;
+            for (int i = 0; i < 20; i++) Assert.AreEqual(1, GatheringSystem.Roll(ref p, hands.min, hands.max), "bare hands: 1 stone per action");
+            var tool = GatheringSystem.Plan(med, pick);
+            Assert.IsFalse(tool.byHand, "the pick is the tool here");
+            var seen = new System.Collections.Generic.HashSet<int>();
+            for (int i = 0; i < 300; i++) { int n = GatheringSystem.Roll(ref p, tool.min, tool.max); Assert.That(n, Is.InRange(3, 5)); seen.Add(n); }
+            Assert.AreEqual(3, seen.Count, "3, 4 and 5 all happen");
+            // a large rock: hands one stone every third action, with the hint
+            var large = GatheringSystem.Plan(RDb.Get("stone_large"), null);
+            Assert.IsTrue(large.allowed && large.slowByHand);
+            p = 0f; int got = 0; for (int i = 0; i < 3; i++) got += GatheringSystem.Roll(ref p, large.min, large.max);
+            Assert.AreEqual(1, got, "three hand actions on a large rock = 1 stone");
+        }
+
+        [Test] public void Axe_Is_For_Wood_Hands_Only_Twig_A_Tree()
+        {
+            var axe = Db.Item("stone_axe"); var tree = RDb.Get("wood_tree"); var branch = RDb.Get("wood_branch");
+            var h = GatheringSystem.Plan(tree, null);
+            Assert.IsTrue(h.byHand && h.slowByHand && h.max <= 0.3f, "bare hands on a tree: tiny yield");
+            var a = GatheringSystem.Plan(tree, axe);
+            Assert.IsFalse(a.byHand); Assert.AreEqual(2f, a.min, 1e-4f); Assert.AreEqual(3f, a.max, 1e-4f);
+            Assert.AreEqual(1f, GatheringSystem.Plan(branch, null).max, 1e-4f, "a branch by hand: 1 per action");
+            Assert.IsTrue(GatheringSystem.Plan(RDb.Get("stone_small"), axe).byHand, "an axe does not mine: stone by hand");
+            var knife = Db.Item("flint_knife");
+            if (knife) { var k = GatheringSystem.Plan(RDb.Get("fiber_plant"), knife); Assert.IsFalse(k.byHand); Assert.GreaterOrEqual(k.min, 2f, "a knife cuts more fibre"); }
+            var fibre = GatheringSystem.Plan(RDb.Get("fiber_plant"), null); Assert.AreEqual(1f, fibre.min, 1e-4f); Assert.AreEqual(2f, fibre.max, 1e-4f);
+        }
+
+        [Test] public void Every_Definition_Is_Sane()
+        {
+            Assert.IsTrue(RDb && RDb.name != "ResourceDatabase (default)", "Resources/ResourceDatabase asset");
+            Assert.IsNotNull(RDb.hands, "bare hands tool");
+            foreach (var d in RDb.resources)
+            {
+                Assert.IsNotNull(d.item, d.id + " item");
+                Assert.That(d.yieldRange.x, Is.GreaterThanOrEqualTo(1), d.id);
+                Assert.That(d.yieldRange.y, Is.GreaterThanOrEqualTo(d.yieldRange.x), d.id);
+                Assert.GreaterOrEqual(d.respawnHours, 0.5f, d.id + " never respawns instantly");
+                Assert.IsFalse(string.IsNullOrEmpty(d.prompt), d.id + " prompt");
+            }
+            foreach (var id in new[] { "stone_small", "stone_medium", "stone_large", "wood_branch", "wood_small_log", "wood_driftwood", "wood_deadwood", "wood_tree", "fiber_plant", "fiber_grass", "fiber_fern", "fiber_bush", "food_berry_bush", "food_fallen_fruit" })
+                Assert.IsNotNull(RDb.Get(id), id);
+            Assert.AreEqual(new Vector2Int(2, 4), RDb.Get("stone_small").yieldRange);
+            Assert.AreEqual(new Vector2Int(4, 8), RDb.Get("stone_medium").yieldRange);
+            Assert.AreEqual(new Vector2Int(8, 15), RDb.Get("stone_large").yieldRange);
+            Assert.Greater(RDb.Get("wood_tree").respawnHours, RDb.Get("fiber_plant").respawnHours, "trees slow, fibre moderate");
+        }
+
+        // ------------------------------------------------------------------ strikes, looks, respawn
+        [Test] public void Bare_Hand_Strike_Gives_A_Small_Result_Tools_Do_Not()
+        {
+            var n = Node("stone_small", 4); int drops = WorldPickup.Dropped.Count;
+            n.TakeHit(new HitInfo { damage = 4f, unarmed = true, point = n.transform.position, direction = Vector3.forward });
+            Assert.AreEqual(3, n.Remaining, "a jab frees one stone");
+            Assert.AreEqual(drops + 1, WorldPickup.Dropped.Count, "no player: it drops on the ground");
+            n.TakeHit(new HitInfo { damage = 20f, unarmed = false, point = n.transform.position });
+            Assert.AreEqual(3, n.Remaining, "weapons / tools gather with the interact key, not by hitting");
+            n.TakeHit(new HitInfo { damage = 9f, unarmed = true, point = n.transform.position, direction = Vector3.forward });
+            Assert.AreEqual(1, n.Remaining, "a heavy punch frees two");
+            Assert.IsTrue(n.IsAlive);
+            WorldPickup.ClearDropped(); Object.Destroy(n.gameObject);
+        }
+
+        [Test] public void Node_Looks_Full_Damaged_Depleted_Regrowing()
+        {
+            var n = Node("stone_medium", 4);                               // Rubble: stays visible when empty
+            var s0 = n.transform.localScale.x; var y0 = n.transform.localPosition.y;
+            Assert.AreEqual(ResourceNode.NodeState.Full, n.State);
+            n.TakeHit(new HitInfo { damage = 10f, unarmed = true, point = n.transform.position, direction = Vector3.forward });
+            Assert.AreEqual(ResourceNode.NodeState.Damaged, n.State);
+            Assert.Less(n.transform.localScale.x, s0, "damaged: smaller");
+            for (int i = 0; i < 6 && !n.IsEmpty; i++) n.TakeHit(new HitInfo { damage = 10f, unarmed = true, point = n.transform.position, direction = Vector3.forward });
+            Assert.IsTrue(n.IsEmpty);
+            Assert.AreEqual(ResourceNode.NodeState.Depleted, n.State);
+            Assert.IsTrue(n.GetComponentInChildren<Renderer>().enabled, "rubble stays in sight (nothing vanishes without a reason)");
+            Assert.Less(n.transform.localPosition.y, y0, "rubble settles into the ground");
+            double dur = GameClock.Hours(n.Def.respawnHours);
+            GameClock.Now = n.EmptyUntil - dur * 0.25;
+            ResourceManager.Instance.Tick();
+            Assert.AreEqual(ResourceNode.NodeState.Regrowing, n.State);
+            Assert.That(n.Regrow01, Is.InRange(0.4f, 0.6f));
+            GameClock.Now = n.EmptyUntil + 1;
+            ResourceManager.Instance.Tick();
+            Assert.AreEqual(ResourceNode.NodeState.Full, n.State, "back");
+            Assert.AreEqual(s0, n.transform.localScale.x, 1e-4f, "full size again");
+            WorldPickup.ClearDropped(); Object.Destroy(n.gameObject);
+        }
+
+        [Test] public void Hidden_Node_Never_Pops_In_Next_To_The_Player()
+        {
+            var n = Node("stone_small", 2);
+            var player = new GameObject("fake player").transform; player.position = n.transform.position + Vector3.right * 4f;
+            var prev = PlayerLocator.Player; PlayerLocator.Player = player;
+            try
+            {
+                for (int i = 0; i < 4 && !n.IsEmpty; i++) n.TakeHit(new HitInfo { damage = 8f, unarmed = true, point = n.transform.position, direction = Vector3.forward });
+                Assert.IsTrue(n.IsEmpty);
+                Assert.IsFalse(n.GetComponentInChildren<Renderer>().enabled, "small stones are gone, with a puff");
+                ResourceManager.Instance.Tick(); Assert.IsTrue(n.IsEmpty, "never instant");
+                GameClock.Now = n.EmptyUntil + 1;
+                ResourceManager.Instance.Tick(); Assert.IsTrue(n.IsEmpty, "due, but the player stands right there");
+                player.position = n.transform.position + Vector3.right * 40f;
+                ResourceManager.Instance.Tick();
+                Assert.IsFalse(n.IsEmpty, "back once the player is away");
+                Assert.IsTrue(n.GetComponentInChildren<Renderer>().enabled);
+            }
+            finally { PlayerLocator.Player = prev; Object.Destroy(player.gameObject); WorldPickup.ClearDropped(); Object.Destroy(n.gameObject); }
+        }
+
+        [Test] public void No_Per_Node_Update()
+        {
+            const BindingFlags F = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly;
+            foreach (var t in new[] { typeof(ResourceNode), typeof(FruitCluster) })
+                foreach (var m in new[] { "Update", "LateUpdate", "FixedUpdate" })
+                    Assert.IsNull(t.GetMethod(m, F), $"{t.Name}.{m}: nodes are ticked by ResourceManager");
+            // 400 nodes, one manager: the tick stays tiny
+            var nodes = Enumerable.Range(0, 400).Select(i => { var n = Node("fiber_plant", 3); n.transform.position = new Vector3(i % 20, 0, i / 20) * 3f; return n; }).ToList();
+            var sw = System.Diagnostics.Stopwatch.StartNew();
+            for (int i = 0; i < 50; i++) ResourceManager.Instance.Tick();
+            sw.Stop();
+            Assert.Less(sw.Elapsed.TotalMilliseconds / 50.0, 0.5, "respawn tick over 400 full nodes");
+            var near = new System.Collections.Generic.List<ResourceNode>();
+            ResourceManager.NodesNear(new Vector3(30, 0, 30), 10f, near);
+            Assert.Greater(near.Count, 0, "grid query");
+            Assert.IsTrue(near.All(n => Vector3.Distance(Flat(n.transform.position), new Vector3(30, 0, 30)) <= 10.01f));
+            foreach (var n in nodes) Object.Destroy(n.gameObject);
+        }
+
+        // ------------------------------------------------------------------ PC phase leftovers
+        [Test] public void Dropped_Food_Keeps_Its_Age()
+        {
+            var meat = ScriptableObject.CreateInstance<ItemDefinition>(); meat.id = "test_meat"; meat.displayName = "Test Meat"; meat.maxStack = 10; meat.spoilHours = 24f; meat.hunger = 10f;
+            double made = GameClock.Now - 3600.0;
+            var st = new ItemStack(meat, 3) { madeAt = made };
+            var pk = WorldPickup.DropStack(st, new Vector3(1000f, 0f, 1000f));
+            Assert.IsNotNull(pk);
+            Assert.IsNotNull(pk.uniqueStack, "spoiling food keeps its stack on the ground (so the save keeps the age)");
+            Assert.AreEqual(made, pk.uniqueStack.madeAt, 1e-6, "same madeAt");
+            Assert.AreEqual(3, pk.uniqueStack.count);
+            // the inventory takes it back with that age (the path Collect uses)
+            var inv = Inv();
+            Assert.AreEqual(0, inv.Add(meat, pk.uniqueStack.count, false, pk.uniqueStack.madeAt));
+            var slot = inv.Slots.First(x => x != null && x.item == meat);
+            Assert.AreEqual(made, slot.madeAt, 1e-6, "age carried into the pack");
+            // plain resources without spoilage still drop as a count only
+            var pk2 = WorldPickup.DropStack(new ItemStack(Db.Item("stone"), 2), new Vector3(1000f, 0f, 1002f));
+            Assert.IsNull(pk2.uniqueStack, "stone has no age: plain pickup");
+            WorldPickup.ClearDropped(); Object.Destroy(inv.gameObject); Object.Destroy(meat);
+        }
+
+        [Test] public void Fish_Shoal_Cue_Plays_Near_The_Player_Only()
+        {
+            var n = Node("fish_shoal", 3); n.cueHeight = 0.6f;
+            var player = new GameObject("fake player").transform;
+            var prev = PlayerLocator.Player; PlayerLocator.Player = player;
+            try
+            {
+                int c0 = ResourceManager.FishCues;
+                player.position = n.transform.position + Vector3.right * 60f;
+                ResourceManager.Instance.Tick();
+                Assert.AreEqual(c0, ResourceManager.FishCues, "far away: no cue");
+                player.position = n.transform.position + Vector3.right * 10f;
+                ResourceManager.Instance.Tick();
+                Assert.AreEqual(c0 + 1, ResourceManager.FishCues, "near: one cue (pooled drops on the surface)");
+                ResourceManager.Instance.Tick();
+                Assert.AreEqual(c0 + 1, ResourceManager.FishCues, "not every tick: the next cue waits 1.4-3.2 s");
+            }
+            finally { PlayerLocator.Player = prev; Object.Destroy(player.gameObject); Object.Destroy(n.gameObject); }
+        }
+
+        static Vector3 Flat(Vector3 v) { v.y = 0; return v; }
+    }
+}

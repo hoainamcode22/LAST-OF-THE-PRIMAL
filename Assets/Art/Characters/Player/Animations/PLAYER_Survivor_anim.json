@@ -4,827 +4,9 @@
  "fps": 30,
  "clips": [
   {
-   "name": "Idle",
-   "frames": 180,
-   "loop": true,
-   "speed": 0.0,
-   "notes": "breathing, weight shift leg to leg, soft knees, head and hand life",
-   "events": []
-  },
-  {
-   "name": "Idle_Variation",
-   "frames": 150,
-   "loop": true,
-   "speed": 0.0,
-   "notes": "looks left/right, rubs arm, shifts weight",
-   "events": []
-  },
-  {
-   "name": "Walk",
-   "frames": 30,
-   "loop": true,
-   "speed": 1.35,
-   "notes": "in place; stance travel 0.756 m; turn 0 deg/s",
-   "events": [
-    {
-     "frame": 0,
-     "function": "OnFootstep",
-     "param": "L"
-    },
-    {
-     "frame": 15,
-     "function": "OnFootstep",
-     "param": "R"
-    }
-   ]
-  },
-  {
-   "name": "Walk_Backward",
-   "frames": 30,
-   "loop": true,
-   "speed": 1.05,
-   "notes": "in place; stance travel 0.609 m; turn 0 deg/s",
-   "events": [
-    {
-     "frame": 0,
-     "function": "OnFootstep",
-     "param": "L"
-    },
-    {
-     "frame": 15,
-     "function": "OnFootstep",
-     "param": "R"
-    }
-   ]
-  },
-  {
-   "name": "Walk_Left",
-   "frames": 24,
-   "loop": true,
-   "speed": 1.1,
-   "notes": "in place; stance travel 0.493 m; turn 0 deg/s",
-   "events": [
-    {
-     "frame": 0,
-     "function": "OnFootstep",
-     "param": "L"
-    },
-    {
-     "frame": 12,
-     "function": "OnFootstep",
-     "param": "R"
-    }
-   ]
-  },
-  {
-   "name": "Walk_Right",
-   "frames": 24,
-   "loop": true,
-   "speed": 1.1,
-   "notes": "in place; stance travel 0.493 m; turn 0 deg/s",
-   "events": [
-    {
-     "frame": 0,
-     "function": "OnFootstep",
-     "param": "L"
-    },
-    {
-     "frame": 12,
-     "function": "OnFootstep",
-     "param": "R"
-    }
-   ]
-  },
-  {
-   "name": "Run",
-   "frames": 20,
-   "loop": true,
-   "speed": 3.8,
-   "notes": "in place; stance travel 0.811 m; turn 0 deg/s",
-   "events": [
-    {
-     "frame": 0,
-     "function": "OnFootstep",
-     "param": "L"
-    },
-    {
-     "frame": 10,
-     "function": "OnFootstep",
-     "param": "R"
-    }
-   ]
-  },
-  {
-   "name": "Sprint",
-   "frames": 14,
-   "loop": true,
-   "speed": 6.2,
-   "notes": "in place; stance travel 0.694 m; turn 0 deg/s",
-   "events": [
-    {
-     "frame": 0,
-     "function": "OnFootstep",
-     "param": "L"
-    },
-    {
-     "frame": 7,
-     "function": "OnFootstep",
-     "param": "R"
-    }
-   ]
-  },
-  {
-   "name": "Run_Backward",
-   "frames": 24,
-   "loop": true,
-   "speed": 2.4,
-   "notes": "in place; stance travel 0.806 m; turn 0 deg/s",
-   "events": [
-    {
-     "frame": 0,
-     "function": "OnFootstep",
-     "param": "L"
-    },
-    {
-     "frame": 12,
-     "function": "OnFootstep",
-     "param": "R"
-    }
-   ]
-  },
-  {
-   "name": "Strafe_Run_L",
-   "frames": 18,
-   "loop": true,
-   "speed": 3.0,
-   "notes": "in place; stance travel 0.648 m; turn 0 deg/s",
-   "events": [
-    {
-     "frame": 0,
-     "function": "OnFootstep",
-     "param": "L"
-    },
-    {
-     "frame": 9,
-     "function": "OnFootstep",
-     "param": "R"
-    }
-   ]
-  },
-  {
-   "name": "Strafe_Run_R",
-   "frames": 18,
-   "loop": true,
-   "speed": 3.0,
-   "notes": "in place; stance travel 0.648 m; turn 0 deg/s",
-   "events": [
-    {
-     "frame": 0,
-     "function": "OnFootstep",
-     "param": "L"
-    },
-    {
-     "frame": 9,
-     "function": "OnFootstep",
-     "param": "R"
-    }
-   ]
-  },
-  {
-   "name": "Crouch_Walk",
-   "frames": 40,
-   "loop": true,
-   "speed": 0.95,
-   "notes": "in place; stance travel 0.861 m; turn 0 deg/s",
-   "events": [
-    {
-     "frame": 0,
-     "function": "OnFootstep",
-     "param": "L"
-    },
-    {
-     "frame": 20,
-     "function": "OnFootstep",
-     "param": "R"
-    }
-   ]
-  },
-  {
-   "name": "Turn_Left",
-   "frames": 30,
-   "loop": true,
-   "speed": 0.0,
-   "notes": "in place; stance travel 0.000 m; turn 90.0 deg/s",
-   "events": [
-    {
-     "frame": 0,
-     "function": "OnFootstep",
-     "param": "L"
-    },
-    {
-     "frame": 15,
-     "function": "OnFootstep",
-     "param": "R"
-    }
-   ]
-  },
-  {
-   "name": "Turn_Right",
-   "frames": 30,
-   "loop": true,
-   "speed": 0.0,
-   "notes": "in place; stance travel 0.000 m; turn -90.0 deg/s",
-   "events": [
-    {
-     "frame": 0,
-     "function": "OnFootstep",
-     "param": "L"
-    },
-    {
-     "frame": 15,
-     "function": "OnFootstep",
-     "param": "R"
-    }
-   ]
-  },
-  {
-   "name": "Crouch",
-   "frames": 60,
-   "loop": true,
-   "speed": 0.0,
-   "notes": "",
-   "events": []
-  },
-  {
-   "name": "Jump",
-   "frames": 24,
-   "loop": false,
-   "speed": 0.0,
-   "notes": "anticipation -> takeoff -> tuck; physics moves the body",
-   "events": [
-    {
-     "frame": 11,
-     "function": "OnJumpTakeoff",
-     "param": ""
-    }
-   ]
-  },
-  {
-   "name": "Fall",
-   "frames": 30,
-   "loop": true,
-   "speed": 0.0,
-   "notes": "",
-   "events": []
-  },
-  {
-   "name": "Land",
-   "frames": 20,
-   "loop": false,
-   "speed": 0.0,
-   "notes": "",
-   "events": [
-    {
-     "frame": 3,
-     "function": "OnLand",
-     "param": ""
-    }
-   ]
-  },
-  {
-   "name": "Pickup",
-   "frames": 40,
-   "loop": false,
-   "speed": 0.0,
-   "notes": "",
-   "events": [
-    {
-     "frame": 16,
-     "function": "OnPickup",
-     "param": ""
-    }
-   ]
-  },
-  {
-   "name": "Gather_Wood",
-   "frames": 36,
-   "loop": true,
-   "speed": 0.0,
-   "notes": "",
-   "events": [
-    {
-     "frame": 21,
-     "function": "OnGatherHit",
-     "param": "Gather_Wood"
-    }
-   ]
-  },
-  {
-   "name": "Gather_Stone",
-   "frames": 34,
-   "loop": true,
-   "speed": 0.0,
-   "notes": "",
-   "events": [
-    {
-     "frame": 20,
-     "function": "OnGatherHit",
-     "param": "Gather_Stone"
-    }
-   ]
-  },
-  {
-   "name": "Interact",
-   "frames": 30,
-   "loop": false,
-   "speed": 0.0,
-   "notes": "",
-   "events": [
-    {
-     "frame": 14,
-     "function": "OnInteract",
-     "param": ""
-    }
-   ]
-  },
-  {
-   "name": "Craft",
-   "frames": 60,
-   "loop": true,
-   "speed": 0.0,
-   "notes": "",
-   "events": [
-    {
-     "frame": 15,
-     "function": "OnCraftTick",
-     "param": ""
-    },
-    {
-     "frame": 45,
-     "function": "OnCraftTick",
-     "param": ""
-    }
-   ]
-  },
-  {
-   "name": "Drink",
-   "frames": 70,
-   "loop": false,
-   "speed": 0.0,
-   "notes": "",
-   "events": [
-    {
-     "frame": 44,
-     "function": "OnDrink",
-     "param": ""
-    }
-   ]
-  },
-  {
-   "name": "Eat",
-   "frames": 48,
-   "loop": false,
-   "speed": 0.0,
-   "notes": "",
-   "events": [
-    {
-     "frame": 18,
-     "function": "OnEat",
-     "param": ""
-    },
-    {
-     "frame": 30,
-     "function": "OnEat",
-     "param": ""
-    }
-   ]
-  },
-  {
-   "name": "Hurt",
-   "frames": 24,
-   "loop": false,
-   "speed": 0.0,
-   "notes": "",
-   "events": [
-    {
-     "frame": 0,
-     "function": "OnHurt",
-     "param": "light"
-    }
-   ]
-  },
-  {
-   "name": "Hurt_Heavy",
-   "frames": 40,
-   "loop": false,
-   "speed": 0.0,
-   "notes": "",
-   "events": [
-    {
-     "frame": 0,
-     "function": "OnHurt",
-     "param": "heavy"
-    }
-   ]
-  },
-  {
-   "name": "Death",
-   "frames": 60,
-   "loop": false,
-   "speed": 0.0,
-   "notes": "ends lying on the back",
-   "events": [
-    {
-     "frame": 50,
-     "function": "OnBodyFall",
-     "param": ""
-    }
-   ]
-  },
-  {
-   "name": "Get_Up",
-   "frames": 60,
-   "loop": false,
-   "speed": 0.0,
-   "notes": "lying -> sit -> kneel -> stand (GET_UP)",
-   "events": []
-  },
-  {
-   "name": "Sleep",
-   "frames": 120,
-   "loop": true,
-   "speed": 0.0,
-   "notes": "lying on the side, breathing",
-   "events": []
-  },
-  {
-   "name": "Build",
-   "frames": 40,
-   "loop": true,
-   "speed": 0.0,
-   "notes": "",
-   "events": [
-    {
-     "frame": 24,
-     "function": "OnBuildHit",
-     "param": ""
-    }
-   ]
-  },
-  {
-   "name": "Carry_Item",
-   "frames": 60,
-   "loop": true,
-   "speed": 0.0,
-   "notes": "upper-body carry pose (use on an upper-body Animator layer while walking)",
-   "events": []
-  },
-  {
-   "name": "Gather_Plant",
-   "frames": 48,
-   "loop": true,
-   "speed": 0.0,
-   "notes": "",
-   "events": [
-    {
-     "frame": 26,
-     "function": "OnGatherHit",
-     "param": "Gather_Plant"
-    }
-   ]
-  },
-  {
-   "name": "Use_Item",
-   "frames": 40,
-   "loop": false,
-   "speed": 0.0,
-   "notes": "",
-   "events": [
-    {
-     "frame": 28,
-     "function": "OnUseItem",
-     "param": ""
-    }
-   ]
-  },
-  {
-   "name": "Wake_Up",
-   "frames": 180,
-   "loop": false,
-   "speed": 0.0,
-   "notes": "opening: lying on the back -> prop on elbow -> sit, hand to head -> kneel -> stand -> look around",
-   "events": [
-    {
-     "frame": 60,
-     "function": "OnWakeUp",
-     "param": "sit"
-    },
-    {
-     "frame": 146,
-     "function": "OnWakeUp",
-     "param": "stand"
-    },
-    {
-     "frame": 180,
-     "function": "OnWakeUp",
-     "param": "done"
-    }
-   ]
-  },
-  {
-   "name": "Knife_Attack",
-   "frames": 26,
-   "loop": false,
-   "speed": 0.0,
-   "notes": "anticipation (cock back), fast slash across, follow-through, recovery",
-   "events": [
-    {
-     "frame": 10,
-     "function": "OnAttackHit",
-     "param": "knife_slash"
-    }
-   ]
-  },
-  {
-   "name": "Dodge",
-   "frames": 22,
-   "loop": false,
-   "speed": 0.0,
-   "notes": "short hop back: crouch, push, air, land; the motor moves the body (burst)",
-   "events": [
-    {
-     "frame": 4,
-     "function": "OnDodge",
-     "param": "start"
-    },
-    {
-     "frame": 13,
-     "function": "OnFootstep",
-     "param": "L"
-    }
-   ]
-  },
-  {
-   "name": "Climb_Idle",
-   "frames": 60,
-   "loop": true,
-   "speed": 0.0,
-   "notes": "hanging on the trunk, breathing",
-   "events": []
-  },
-  {
-   "name": "Climb_Up",
-   "frames": 36,
-   "loop": true,
-   "speed": 0.6,
-   "notes": "in place; the body moves up at speed m/s",
-   "events": [
-    {
-     "frame": 9,
-     "function": "OnClimbStep",
-     "param": "R"
-    },
-    {
-     "frame": 27,
-     "function": "OnClimbStep",
-     "param": "L"
-    }
-   ]
-  },
-  {
-   "name": "Climb_Down",
-   "frames": 36,
-   "loop": true,
-   "speed": -0.5,
-   "notes": "in place; the body moves down at speed m/s",
-   "events": [
-    {
-     "frame": 9,
-     "function": "OnClimbStep",
-     "param": "L"
-    },
-    {
-     "frame": 27,
-     "function": "OnClimbStep",
-     "param": "R"
-    }
-   ]
-  },
-  {
-   "name": "Climb_Start",
-   "frames": 24,
-   "loop": false,
-   "speed": 0.0,
-   "notes": "reach up, jump onto the trunk (code lifts the body)",
-   "events": [
-    {
-     "frame": 12,
-     "function": "OnClimbGrab",
-     "param": ""
-    }
-   ]
-  },
-  {
-   "name": "Climb_End",
-   "frames": 28,
-   "loop": false,
-   "speed": 0.0,
-   "notes": "let go, drop and land (code lowers the body to the ground)",
-   "events": [
-    {
-     "frame": 10,
-     "function": "OnLand",
-     "param": ""
-    }
-   ]
-  },
-  {
-   "name": "Harvest_Fruit",
-   "frames": 44,
-   "loop": false,
-   "speed": 0.0,
-   "notes": "one hand holds the trunk, the other reaches out, picks, brings it in",
-   "events": [
-    {
-     "frame": 22,
-     "function": "OnHarvest",
-     "param": "fruit"
-    }
-   ]
-  },
-  {
-   "name": "Sword_Idle",
-   "frames": 60,
-   "loop": true,
-   "speed": 0.0,
-   "notes": "sword held low-forward, edge towards the enemy, breathing",
-   "events": []
-  },
-  {
-   "name": "Sword_Attack_1",
-   "frames": 30,
-   "loop": false,
-   "speed": 0.0,
-   "notes": "diagonal cut from over the right shoulder down to the left hip, weight onto the front foot, follow-through",
-   "events": [
-    {
-     "frame": 8,
-     "function": "OnAttackStart",
-     "param": "sword_1"
-    },
-    {
-     "frame": 10,
-     "function": "OnAttackActive",
-     "param": "sword_1"
-    },
-    {
-     "frame": 13,
-     "function": "OnAttackHit",
-     "param": "sword_1"
-    },
-    {
-     "frame": 16,
-     "function": "OnAttackEnd",
-     "param": "sword_1"
-    }
-   ]
-  },
-  {
-   "name": "Sword_Attack_2",
-   "frames": 28,
-   "loop": false,
-   "speed": 0.0,
-   "notes": "horizontal back-hand cut from the left side across to the right",
-   "events": [
-    {
-     "frame": 7,
-     "function": "OnAttackStart",
-     "param": "sword_2"
-    },
-    {
-     "frame": 9,
-     "function": "OnAttackActive",
-     "param": "sword_2"
-    },
-    {
-     "frame": 11,
-     "function": "OnAttackHit",
-     "param": "sword_2"
-    },
-    {
-     "frame": 14,
-     "function": "OnAttackEnd",
-     "param": "sword_2"
-    }
-   ]
-  },
-  {
-   "name": "Sword_Attack_3",
-   "frames": 34,
-   "loop": false,
-   "speed": 0.0,
-   "notes": "overhead finisher with a step: sword raised behind the head, straight down cut",
-   "events": [
-    {
-     "frame": 11,
-     "function": "OnAttackStart",
-     "param": "sword_3"
-    },
-    {
-     "frame": 13,
-     "function": "OnAttackActive",
-     "param": "sword_3"
-    },
-    {
-     "frame": 15,
-     "function": "OnAttackHit",
-     "param": "sword_3"
-    },
-    {
-     "frame": 18,
-     "function": "OnAttackEnd",
-     "param": "sword_3"
-    },
-    {
-     "frame": 14,
-     "function": "OnFootstep",
-     "param": "L"
-    }
-   ]
-  },
-  {
-   "name": "Sword_Heavy",
-   "frames": 46,
-   "loop": false,
-   "speed": 0.0,
-   "notes": "charged two-handed overhead blow: long wind-up, lunge step, heavy follow-through",
-   "events": [
-    {
-     "frame": 16,
-     "function": "OnAttackStart",
-     "param": "sword_heavy"
-    },
-    {
-     "frame": 23,
-     "function": "OnAttackActive",
-     "param": "sword_heavy"
-    },
-    {
-     "frame": 26,
-     "function": "OnAttackHit",
-     "param": "sword_heavy"
-    },
-    {
-     "frame": 30,
-     "function": "OnAttackEnd",
-     "param": "sword_heavy"
-    },
-    {
-     "frame": 24,
-     "function": "OnFootstep",
-     "param": "L"
-    }
-   ]
-  },
-  {
-   "name": "Sword_Block",
-   "frames": 40,
-   "loop": true,
-   "speed": 0.0,
-   "notes": "blade held across the body in front of the face, off hand guarding",
-   "events": []
-  },
-  {
-   "name": "Sword_Equip",
-   "frames": 22,
-   "loop": false,
-   "speed": 0.0,
-   "notes": "reach over the right shoulder, draw the sword from the back, bring it to the ready pose",
-   "events": [
-    {
-     "frame": 9,
-     "function": "OnEquip",
-     "param": "draw"
-    }
-   ]
-  },
-  {
-   "name": "Sword_Unequip",
-   "frames": 22,
-   "loop": false,
-   "speed": 0.0,
-   "notes": "sword back over the right shoulder onto the back, hand returns",
-   "events": [
-    {
-     "frame": 13,
-     "function": "OnEquip",
-     "param": "sheathe"
-    }
-   ]
-  },
-  {
    "name": "Attack_Spear",
    "frames": 30,
+   "fps": 30,
    "loop": false,
    "speed": 0.0,
    "notes": "two-handed thrust: pull back, drive forward from the hips, recover",
@@ -849,40 +31,14 @@
      "function": "OnAttackEnd",
      "param": "spear_thrust"
     }
-   ]
-  },
-  {
-   "name": "Spear_Attack_2",
-   "frames": 34,
-   "loop": false,
-   "speed": 0.0,
-   "notes": "combo follow-up: spear raised to the shoulder, downward stab, recovery",
-   "events": [
-    {
-     "frame": 10,
-     "function": "OnAttackStart",
-     "param": "spear_downstab"
-    },
-    {
-     "frame": 13,
-     "function": "OnAttackActive",
-     "param": "spear_downstab"
-    },
-    {
-     "frame": 14,
-     "function": "OnAttackHit",
-     "param": "spear_downstab"
-    },
-    {
-     "frame": 19,
-     "function": "OnAttackEnd",
-     "param": "spear_downstab"
-    }
-   ]
+   ],
+   "root_speed": 0.0,
+   "root_distance": 0.0
   },
   {
    "name": "Attack_Spear_Heavy",
    "frames": 46,
+   "fps": 30,
    "loop": false,
    "speed": 0.0,
    "notes": "wind-up, lunge step, full-body two-handed thrust",
@@ -912,33 +68,257 @@
      "function": "OnAttackEnd",
      "param": "spear_heavy"
     }
-   ]
+   ],
+   "root_speed": 0.0,
+   "root_distance": 0.0
   },
   {
-   "name": "Throw_Spear",
-   "frames": 46,
+   "name": "Bandage_Use",
+   "frames": 58,
+   "fps": 30,
    "loop": false,
    "speed": 0.0,
-   "notes": "overhand throw: spear drawn back over the shoulder, off arm points, whip release",
+   "notes": "left forearm held across the front, head looks at it, the right hand wraps the bandage round twice, pulls the knot tight (OnUseItem), arms lower",
    "events": [
     {
-     "frame": 24,
-     "function": "OnThrowRelease",
-     "param": "spear"
+     "frame": 45,
+     "function": "OnUseItem",
+     "param": "bandage"
     }
-   ]
+   ],
+   "root_speed": 0.0,
+   "root_distance": 0.0
+  },
+  {
+   "name": "BareHand_Block",
+   "frames": 40,
+   "fps": 30,
+   "loop": true,
+   "speed": 0.0,
+   "notes": "high forearm guard (loopable hold): forearms vertical in front of the face, elbows in front of the ribs, wrists straight, chin down, knees soft, one arm solution held, breathing",
+   "events": [],
+   "root_speed": 0.0,
+   "root_distance": 0.0
+  },
+  {
+   "name": "BareHand_Combo_End",
+   "frames": 24,
+   "fps": 30,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "finisher settles: fists drop, a breath out, feet step back to a relaxed stance (ends on Idle frame 0)",
+   "events": [],
+   "root_speed": 0.0,
+   "root_distance": 0.0
+  },
+  {
+   "name": "BareHand_Heavy",
+   "frames": 30,
+   "fps": 30,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "overhand heavy (haymaker over the top): weight back and the rear fist drawn up beside the ear (anticipation), lead hand paws forward, rear heel pivots, hips then chest turn and bend over to the lead side, head slips off the line, fist arcs over the shoulder and down onto the target palm-down, follow-through across, slower recovery to the guard",
+   "events": [
+    {
+     "frame": 6,
+     "function": "OnAttackStart",
+     "param": "heavy"
+    },
+    {
+     "frame": 11,
+     "function": "OnAttackActive",
+     "param": "heavy"
+    },
+    {
+     "frame": 12,
+     "function": "OnAttackHit",
+     "param": "heavy"
+    },
+    {
+     "frame": 15,
+     "function": "OnAttackEnd",
+     "param": "heavy"
+    }
+   ],
+   "root_speed": 0.0,
+   "root_distance": 0.0,
+   "contact": 12
+  },
+  {
+   "name": "BareHand_Heavy_Straight",
+   "frames": 28,
+   "fps": 30,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "kept (P1): the earlier heavy rear straight (BareHand_Heavy before 2026-09-30 P1), unchanged: heavy rear straight: weight back and shoulders coiled (anticipation), legs / hips drive, chest follows, elbow extends last, rear heel pivots out, weight onto the lead leg, follow-through, slower recovery to the guard",
+   "events": [
+    {
+     "frame": 5,
+     "function": "OnAttackStart",
+     "param": "heavy"
+    },
+    {
+     "frame": 9,
+     "function": "OnAttackActive",
+     "param": "heavy"
+    },
+    {
+     "frame": 10,
+     "function": "OnAttackHit",
+     "param": "heavy"
+    },
+    {
+     "frame": 13,
+     "function": "OnAttackEnd",
+     "param": "heavy"
+    }
+   ],
+   "root_speed": 0.0,
+   "root_distance": 0.0,
+   "contact": 10
+  },
+  {
+   "name": "BareHand_HitReaction",
+   "frames": 18,
+   "fps": 30,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "flinch in the guard (head snaps back, fists come in to cover), recovers to the guard; additive layer (frame 0 = reference)",
+   "events": [
+    {
+     "frame": 0,
+     "function": "OnHurt",
+     "param": "bare"
+    }
+   ],
+   "root_speed": 0.0,
+   "root_distance": 0.0
+  },
+  {
+   "name": "BareHand_Idle",
+   "frames": 60,
+   "fps": 30,
+   "loop": true,
+   "speed": 0.0,
+   "notes": "relaxed fighting guard: lead fist forward at cheek height, rear fist at the chin, elbows in front of the ribs, chin down, breathing",
+   "events": [],
+   "root_speed": 0.0,
+   "root_distance": 0.0
+  },
+  {
+   "name": "BareHand_Punch_1",
+   "frames": 14,
+   "fps": 30,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "lead jab: tiny dip, shoulder turns in, fist out palm-down on a straight line (arm ~95 % extended, never locked), rear fist at the chin, back along the same line",
+   "events": [
+    {
+     "frame": 1,
+     "function": "OnAttackStart",
+     "param": "jab"
+    },
+    {
+     "frame": 4,
+     "function": "OnAttackActive",
+     "param": "jab"
+    },
+    {
+     "frame": 5,
+     "function": "OnAttackHit",
+     "param": "jab"
+    },
+    {
+     "frame": 7,
+     "function": "OnAttackEnd",
+     "param": "jab"
+    }
+   ],
+   "root_speed": 0.0,
+   "root_distance": 0.0,
+   "contact": 5
+  },
+  {
+   "name": "BareHand_Punch_2",
+   "frames": 16,
+   "fps": 30,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "rear cross: rear heel lifts and pivots on the ball, hips turn, chest 1-2 frames later, fist palm-down straight out, lead fist back to the chin",
+   "events": [
+    {
+     "frame": 2,
+     "function": "OnAttackStart",
+     "param": "cross"
+    },
+    {
+     "frame": 5,
+     "function": "OnAttackActive",
+     "param": "cross"
+    },
+    {
+     "frame": 6,
+     "function": "OnAttackHit",
+     "param": "cross"
+    },
+    {
+     "frame": 8,
+     "function": "OnAttackEnd",
+     "param": "cross"
+    }
+   ],
+   "root_speed": 0.0,
+   "root_distance": 0.0,
+   "contact": 6
+  },
+  {
+   "name": "BareHand_Punch_3",
+   "frames": 20,
+   "fps": 30,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "lead hook finisher: load on the lead leg, hips and chest whip round, elbow up at shoulder height, fist on a flat arc, lead foot pivots; ends in the follow-through (BareHand_Combo_End settles it)",
+   "events": [
+    {
+     "frame": 3,
+     "function": "OnAttackStart",
+     "param": "hook"
+    },
+    {
+     "frame": 6,
+     "function": "OnAttackActive",
+     "param": "hook"
+    },
+    {
+     "frame": 7,
+     "function": "OnAttackHit",
+     "param": "hook"
+    },
+    {
+     "frame": 9,
+     "function": "OnAttackEnd",
+     "param": "hook"
+    }
+   ],
+   "root_speed": 0.0,
+   "root_distance": 0.0,
+   "contact": 7
   },
   {
    "name": "Bow_Aim",
    "frames": 60,
+   "fps": 30,
    "loop": true,
    "speed": 0.0,
    "notes": "bow held low in the left hand, arrow nocked, ready to raise",
-   "events": []
+   "events": [],
+   "root_speed": 0.0,
+   "root_distance": 0.0
   },
   {
    "name": "Bow_Draw",
    "frames": 26,
+   "fps": 30,
    "loop": false,
    "speed": 0.0,
    "notes": "raise the bow, push the bow arm out, draw the string to the cheek",
@@ -948,11 +328,14 @@
      "function": "OnBowDrawStart",
      "param": ""
     }
-   ]
+   ],
+   "root_speed": 0.0,
+   "root_distance": 0.0
   },
   {
    "name": "Bow_Release",
    "frames": 28,
+   "fps": 30,
    "loop": false,
    "speed": 0.0,
    "notes": "string released: draw hand flies back past the ear, bow arm holds, settle",
@@ -962,7 +345,1643 @@
      "function": "OnBowRelease",
      "param": ""
     }
-   ]
+   ],
+   "root_speed": 0.0,
+   "root_distance": 0.0
+  },
+  {
+   "name": "Build",
+   "frames": 40,
+   "fps": 30,
+   "loop": true,
+   "speed": 0.0,
+   "notes": "",
+   "events": [
+    {
+     "frame": 24,
+     "function": "OnBuildHit",
+     "param": ""
+    }
+   ],
+   "root_speed": 0.0,
+   "root_distance": 0.0
+  },
+  {
+   "name": "Carry_Item",
+   "frames": 60,
+   "fps": 30,
+   "loop": true,
+   "speed": 0.0,
+   "notes": "upper-body carry pose (use on an upper-body Animator layer while walking)",
+   "events": [],
+   "root_speed": 0.0,
+   "root_distance": 0.0
+  },
+  {
+   "name": "Climb_Down",
+   "frames": 36,
+   "fps": 30,
+   "loop": true,
+   "speed": -0.5,
+   "notes": "in place; the body moves down at speed m/s",
+   "events": [
+    {
+     "frame": 9,
+     "function": "OnClimbStep",
+     "param": "L"
+    },
+    {
+     "frame": 27,
+     "function": "OnClimbStep",
+     "param": "R"
+    }
+   ],
+   "root_speed": -0.5,
+   "root_distance": -0.6
+  },
+  {
+   "name": "Climb_End",
+   "frames": 28,
+   "fps": 30,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "let go, drop and land (code lowers the body to the ground)",
+   "events": [
+    {
+     "frame": 10,
+     "function": "OnLand",
+     "param": ""
+    }
+   ],
+   "root_speed": 0.0,
+   "root_distance": 0.0
+  },
+  {
+   "name": "Climb_Idle",
+   "frames": 60,
+   "fps": 30,
+   "loop": true,
+   "speed": 0.0,
+   "notes": "hanging on the trunk, breathing",
+   "events": [],
+   "root_speed": 0.0,
+   "root_distance": 0.0
+  },
+  {
+   "name": "Climb_Rock_Down",
+   "frames": 36,
+   "fps": 30,
+   "loop": true,
+   "speed": -0.55,
+   "notes": "rock face, climbing down (in place; the body moves down at 0.55 m/s): the cycle of Climb_Rock_Up reversed, feet feel down first",
+   "events": [
+    {
+     "frame": 0,
+     "function": "OnClimbStep",
+     "param": "R"
+    },
+    {
+     "frame": 18,
+     "function": "OnClimbStep",
+     "param": "L"
+    }
+   ],
+   "root_speed": -0.55,
+   "root_distance": -0.66
+  },
+  {
+   "name": "Climb_Rock_Idle",
+   "frames": 60,
+   "fps": 30,
+   "loop": true,
+   "speed": 0.0,
+   "notes": "hanging on the rock face: both hands on holds, toes on holds, breathing",
+   "events": [],
+   "root_speed": 0.0,
+   "root_distance": 0.0
+  },
+  {
+   "name": "Climb_Rock_Up",
+   "frames": 36,
+   "fps": 30,
+   "loop": true,
+   "speed": 0.6,
+   "notes": "rock face, climbing up (in place; the body moves up at 0.6 m/s): right hand + left foot reach while the left hand + right foot hold, then the other pair; hips sway towards the holding side",
+   "events": [
+    {
+     "frame": 0,
+     "function": "OnClimbStep",
+     "param": "L"
+    },
+    {
+     "frame": 18,
+     "function": "OnClimbStep",
+     "param": "R"
+    }
+   ],
+   "root_speed": 0.6,
+   "root_distance": 0.72
+  },
+  {
+   "name": "Climb_Start",
+   "frames": 24,
+   "fps": 30,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "reach up, jump onto the trunk (code lifts the body)",
+   "events": [
+    {
+     "frame": 12,
+     "function": "OnClimbGrab",
+     "param": ""
+    }
+   ],
+   "root_speed": 0.0,
+   "root_distance": 0.0
+  },
+  {
+   "name": "Climb_Up",
+   "frames": 36,
+   "fps": 30,
+   "loop": true,
+   "speed": 0.6,
+   "notes": "in place; the body moves up at speed m/s",
+   "events": [
+    {
+     "frame": 9,
+     "function": "OnClimbStep",
+     "param": "R"
+    },
+    {
+     "frame": 27,
+     "function": "OnClimbStep",
+     "param": "L"
+    }
+   ],
+   "root_speed": 0.6,
+   "root_distance": 0.72
+  },
+  {
+   "name": "Collect_Water",
+   "frames": 64,
+   "fps": 30,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "kneel at the water, the container hand dips in and holds while it fills (OnDrink fill), lift it to the chest, stand up",
+   "events": [
+    {
+     "frame": 22,
+     "function": "OnScoop",
+     "param": "fill"
+    },
+    {
+     "frame": 34,
+     "function": "OnDrink",
+     "param": "fill"
+    }
+   ],
+   "root_speed": 0.0,
+   "root_distance": 0.0
+  },
+  {
+   "name": "Craft",
+   "frames": 60,
+   "fps": 30,
+   "loop": true,
+   "speed": 0.0,
+   "notes": "",
+   "events": [
+    {
+     "frame": 15,
+     "function": "OnCraftTick",
+     "param": ""
+    },
+    {
+     "frame": 45,
+     "function": "OnCraftTick",
+     "param": ""
+    }
+   ],
+   "root_speed": 0.0,
+   "root_distance": 0.0
+  },
+  {
+   "name": "Crouch",
+   "frames": 60,
+   "fps": 30,
+   "loop": true,
+   "speed": 0.0,
+   "notes": "",
+   "events": [],
+   "root_speed": 0.0,
+   "root_distance": 0.0
+  },
+  {
+   "name": "Crouch_Walk",
+   "frames": 40,
+   "fps": 30,
+   "loop": true,
+   "speed": 0.95,
+   "notes": "in place; stance travel 0.861 m; turn 0 deg/s",
+   "events": [
+    {
+     "frame": 0,
+     "function": "OnFootstep",
+     "param": "L"
+    },
+    {
+     "frame": 20,
+     "function": "OnFootstep",
+     "param": "R"
+    }
+   ],
+   "root_speed": 0.95,
+   "root_distance": 1.267
+  },
+  {
+   "name": "Death",
+   "frames": 60,
+   "fps": 30,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "ends lying on the back",
+   "events": [
+    {
+     "frame": 50,
+     "function": "OnBodyFall",
+     "param": ""
+    }
+   ],
+   "root_speed": 0.0,
+   "root_distance": 0.0
+  },
+  {
+   "name": "Dodge",
+   "frames": 22,
+   "fps": 30,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "short hop back: crouch, push, air, land; the motor moves the body (burst)",
+   "events": [
+    {
+     "frame": 4,
+     "function": "OnDodge",
+     "param": "start"
+    },
+    {
+     "frame": 13,
+     "function": "OnFootstep",
+     "param": "L"
+    }
+   ],
+   "root_speed": 0.0,
+   "root_distance": 0.0
+  },
+  {
+   "name": "Drink",
+   "frames": 70,
+   "fps": 30,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "",
+   "events": [
+    {
+     "frame": 44,
+     "function": "OnDrink",
+     "param": ""
+    }
+   ],
+   "root_speed": 0.0,
+   "root_distance": 0.0
+  },
+  {
+   "name": "Drink_Container",
+   "frames": 44,
+   "fps": 30,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "standing: the container comes up to the lips, head tilts back, drink, lower",
+   "events": [
+    {
+     "frame": 20,
+     "function": "OnDrink",
+     "param": ""
+    }
+   ],
+   "root_speed": 0.0,
+   "root_distance": 0.0
+  },
+  {
+   "name": "Drink_Kneel",
+   "frames": 72,
+   "fps": 30,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "kneel at the water on the right knee, lean in, both hands cup and scoop, bring the water to the mouth, drink, shake the drips off, stand up",
+   "events": [
+    {
+     "frame": 27,
+     "function": "OnScoop",
+     "param": "kneel"
+    },
+    {
+     "frame": 40,
+     "function": "OnDrink",
+     "param": "kneel"
+    }
+   ],
+   "root_speed": 0.0,
+   "root_distance": 0.0
+  },
+  {
+   "name": "Eat",
+   "frames": 48,
+   "fps": 30,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "food to the mouth, bite, chew (head nods, jaw from PlayerFacial), second bite, lower",
+   "events": [
+    {
+     "frame": 16,
+     "function": "OnEat",
+     "param": ""
+    },
+    {
+     "frame": 34,
+     "function": "OnEat",
+     "param": ""
+    }
+   ],
+   "root_speed": 0.0,
+   "root_distance": 0.0
+  },
+  {
+   "name": "Fall",
+   "frames": 30,
+   "fps": 30,
+   "loop": true,
+   "speed": 0.0,
+   "notes": "",
+   "events": [],
+   "root_speed": 0.0,
+   "root_distance": 0.0
+  },
+  {
+   "name": "Gather_Branch",
+   "frames": 40,
+   "fps": 30,
+   "loop": true,
+   "speed": 0.0,
+   "notes": "small branch: both hands grip it on the ground, snap it over the grip with a sharp twist (OnGatherHit), set the pieces aside, back to the ready squat",
+   "events": [
+    {
+     "frame": 16,
+     "function": "OnGatherHit",
+     "param": "Gather_Branch"
+    }
+   ],
+   "root_speed": 0.0,
+   "root_distance": 0.0
+  },
+  {
+   "name": "Gather_Enter",
+   "frames": 12,
+   "fps": 30,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "stand -> gather ready squat in 12 frames (0.4 s): the left foot steps forward, the right heel comes up, hips lower with the trunk leaning in; ends on Gather_Plant frame 0",
+   "events": [],
+   "root_speed": 0.0,
+   "root_distance": 0.0
+  },
+  {
+   "name": "Gather_Exit",
+   "frames": 14,
+   "fps": 30,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "gather ready squat -> stand in 14 frames (0.47 s): push up through the legs, feet step back under the hips; ends on Idle frame 0",
+   "events": [],
+   "root_speed": 0.0,
+   "root_distance": 0.0
+  },
+  {
+   "name": "Gather_Plant",
+   "frames": 48,
+   "fps": 30,
+   "loop": true,
+   "speed": 0.0,
+   "notes": "v2 (B4): reach, grip without a hold, pull eased in-out, low toss to the side, back to the ready squat",
+   "events": [
+    {
+     "frame": 24,
+     "function": "OnGatherHit",
+     "param": "Gather_Plant"
+    }
+   ],
+   "root_speed": 0.0,
+   "root_distance": 0.0
+  },
+  {
+   "name": "Gather_Stone",
+   "frames": 34,
+   "fps": 30,
+   "loop": true,
+   "speed": 0.0,
+   "notes": "",
+   "events": [
+    {
+     "frame": 20,
+     "function": "OnGatherHit",
+     "param": "Gather_Stone"
+    }
+   ],
+   "root_speed": 0.0,
+   "root_distance": 0.0
+  },
+  {
+   "name": "Gather_Stone_Hand",
+   "frames": 40,
+   "fps": 30,
+   "loop": true,
+   "speed": 0.0,
+   "notes": "bare-hand stone: reach down, grip, wrench the stone free (OnGatherHit), bring it to the hip pouch, release, back to the ready squat",
+   "events": [
+    {
+     "frame": 17,
+     "function": "OnGatherHit",
+     "param": "Gather_Stone_Hand"
+    }
+   ],
+   "root_speed": 0.0,
+   "root_distance": 0.0
+  },
+  {
+   "name": "Gather_Wood",
+   "frames": 36,
+   "fps": 30,
+   "loop": true,
+   "speed": 0.0,
+   "notes": "",
+   "events": [
+    {
+     "frame": 21,
+     "function": "OnGatherHit",
+     "param": "Gather_Wood"
+    }
+   ],
+   "root_speed": 0.0,
+   "root_distance": 0.0
+  },
+  {
+   "name": "Get_Up",
+   "frames": 60,
+   "fps": 30,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "lying -> sit -> kneel -> stand (GET_UP)",
+   "events": [],
+   "root_speed": 0.0,
+   "root_distance": 0.0
+  },
+  {
+   "name": "Harvest_Fruit",
+   "frames": 44,
+   "fps": 30,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "one hand holds the trunk, the other reaches out, picks, brings it in",
+   "events": [
+    {
+     "frame": 22,
+     "function": "OnHarvest",
+     "param": "fruit"
+    }
+   ],
+   "root_speed": 0.0,
+   "root_distance": 0.0
+  },
+  {
+   "name": "Hurt",
+   "frames": 24,
+   "fps": 30,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "",
+   "events": [
+    {
+     "frame": 0,
+     "function": "OnHurt",
+     "param": "light"
+    }
+   ],
+   "root_speed": 0.0,
+   "root_distance": 0.0
+  },
+  {
+   "name": "Hurt_Heavy",
+   "frames": 40,
+   "fps": 30,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "",
+   "events": [
+    {
+     "frame": 0,
+     "function": "OnHurt",
+     "param": "heavy"
+    }
+   ],
+   "root_speed": 0.0,
+   "root_distance": 0.0
+  },
+  {
+   "name": "Idle",
+   "frames": 180,
+   "fps": 30,
+   "loop": true,
+   "speed": 0.0,
+   "notes": "v2: 2 breaths per loop (20 / min), weight ~60/40 shifting leg to leg, pelvis tilted to the unloaded side, asymmetric feet, head drift < 3 deg",
+   "events": [],
+   "root_speed": 0.0,
+   "root_distance": 0.0
+  },
+  {
+   "name": "Idle_Variation",
+   "frames": 150,
+   "fps": 30,
+   "loop": true,
+   "speed": 0.0,
+   "notes": "looks left/right, rubs arm, shifts weight",
+   "events": [],
+   "root_speed": 0.0,
+   "root_distance": 0.0
+  },
+  {
+   "name": "Interact",
+   "frames": 30,
+   "fps": 30,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "",
+   "events": [
+    {
+     "frame": 14,
+     "function": "OnInteract",
+     "param": ""
+    }
+   ],
+   "root_speed": 0.0,
+   "root_distance": 0.0
+  },
+  {
+   "name": "Jump",
+   "frames": 24,
+   "fps": 30,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "anticipation -> takeoff -> tuck; physics moves the body",
+   "events": [
+    {
+     "frame": 11,
+     "function": "OnJumpTakeoff",
+     "param": ""
+    }
+   ],
+   "root_speed": 0.0,
+   "root_distance": 0.0
+  },
+  {
+   "name": "Kick",
+   "frames": 26,
+   "fps": 30,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "rear-leg front push kick: weight onto the lead leg, rear heel peels off the ball, knee chambers to hip height, hips drive forward with the trunk leaning back, sole-first extension (toes back, knee not locked), push, re-chamber, the foot lands back on its guard spot; the support foot pivots out on its ball; the rear hand swings back for balance",
+   "events": [
+    {
+     "frame": 5,
+     "function": "OnAttackStart",
+     "param": "kick"
+    },
+    {
+     "frame": 10,
+     "function": "OnAttackActive",
+     "param": "kick"
+    },
+    {
+     "frame": 12,
+     "function": "OnAttackHit",
+     "param": "kick"
+    },
+    {
+     "frame": 15,
+     "function": "OnAttackEnd",
+     "param": "kick"
+    },
+    {
+     "frame": 22,
+     "function": "OnFootstep",
+     "param": "R"
+    }
+   ],
+   "root_speed": 0.0,
+   "root_distance": 0.0,
+   "contact": 12
+  },
+  {
+   "name": "Knife_Attack",
+   "frames": 26,
+   "fps": 30,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "anticipation (cock back), fast slash across, follow-through, recovery",
+   "events": [
+    {
+     "frame": 10,
+     "function": "OnAttackHit",
+     "param": "knife_slash"
+    }
+   ],
+   "root_speed": 0.0,
+   "root_distance": 0.0
+  },
+  {
+   "name": "Land",
+   "frames": 20,
+   "fps": 30,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "",
+   "events": [
+    {
+     "frame": 3,
+     "function": "OnLand",
+     "param": ""
+    }
+   ],
+   "root_speed": 0.0,
+   "root_distance": 0.0
+  },
+  {
+   "name": "Ledge_Mantle",
+   "frames": 54,
+   "fps": 30,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "ledge pull-over: reach up, grab the lip, pull (feet walk the face), press up on straight arms, right knee over the lip, stand up. Timing matches PlayerClimb (reach 0.35 s, pull ~0.8 s, over 0.6 s)",
+   "events": [
+    {
+     "frame": 10,
+     "function": "OnClimbGrab",
+     "param": "lip"
+    },
+    {
+     "frame": 30,
+     "function": "OnClimbStep",
+     "param": "L"
+    },
+    {
+     "frame": 38,
+     "function": "OnClimbStep",
+     "param": "R"
+    }
+   ],
+   "root_speed": 0.0,
+   "root_distance": 0.0
+  },
+  {
+   "name": "Pickup",
+   "frames": 40,
+   "fps": 30,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "",
+   "events": [
+    {
+     "frame": 16,
+     "function": "OnPickup",
+     "param": ""
+    }
+   ],
+   "root_speed": 0.0,
+   "root_distance": 0.0
+  },
+  {
+   "name": "Run",
+   "frames": 22,
+   "fps": 30,
+   "loop": true,
+   "speed": 3.8,
+   "notes": "v2 in place; stance travel 0.947 m; turn 0.0 deg/s; pelvis base -0.103 m",
+   "events": [
+    {
+     "frame": 0,
+     "function": "OnFootstep",
+     "param": "L"
+    },
+    {
+     "frame": 11,
+     "function": "OnFootstep",
+     "param": "R"
+    }
+   ],
+   "root_speed": 3.8,
+   "root_distance": 2.787,
+   "turn_deg_s": 0.0,
+   "mid_stance": {
+    "L": 3.74,
+    "R": 14.344000000000001
+   }
+  },
+  {
+   "name": "Run_Backward",
+   "frames": 24,
+   "fps": 30,
+   "loop": true,
+   "speed": 2.4,
+   "notes": "v2 in place; stance travel 0.806 m; turn 0.0 deg/s; pelvis base -0.082 m",
+   "events": [
+    {
+     "frame": 0,
+     "function": "OnFootstep",
+     "param": "L"
+    },
+    {
+     "frame": 12,
+     "function": "OnFootstep",
+     "param": "R"
+    }
+   ],
+   "root_speed": 2.4,
+   "root_distance": 1.92,
+   "turn_deg_s": 0.0,
+   "mid_stance": {
+    "L": 5.04,
+    "R": 16.68
+   }
+  },
+  {
+   "name": "Run_Pivot_180",
+   "frames": 20,
+   "fps": 30,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "180 deg reversal at run speed, turning left (mirror: right): plant, turn over the right foot on its ball, head leads, lean into the turn, out on run frame 0. Authored in the capsule frame: capsule yaw 0 -> 180 over frames 0-18 (inout), speed dips to 55 % (end speed 3.8 m/s, see root_speed)",
+   "events": [
+    {
+     "frame": 7,
+     "function": "OnFootstep",
+     "param": "R"
+    },
+    {
+     "frame": 19,
+     "function": "OnFootstep",
+     "param": "L"
+    }
+   ],
+   "root_speed": [
+    3.8,
+    3.694,
+    3.506,
+    3.277,
+    3.029,
+    2.783,
+    2.556,
+    2.362,
+    2.214,
+    2.121,
+    2.09,
+    2.121,
+    2.214,
+    2.362,
+    2.556,
+    2.783,
+    3.029,
+    3.277,
+    3.506,
+    3.694,
+    3.8
+   ],
+   "root_distance": 0.59,
+   "root_yaw": [
+    0.0,
+    0.28,
+    2.08,
+    6.39,
+    13.75,
+    24.29,
+    37.78,
+    53.72,
+    71.4,
+    90.0,
+    108.6,
+    126.28,
+    142.22,
+    155.71,
+    166.25,
+    173.61,
+    177.92,
+    179.72,
+    180.0,
+    180.0,
+    180.0
+   ],
+   "starts_in": "Run@0",
+   "ends_in": "Run@0"
+  },
+  {
+   "name": "Run_Start",
+   "frames": 14,
+   "fps": 30,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "idle -> run: forward lean, the right leg drives off, left foot lands on run frame 0; mirror for the right foot (end speed 3.8 m/s, see root_speed)",
+   "events": [
+    {
+     "frame": 12,
+     "function": "OnFootstep",
+     "param": "L"
+    }
+   ],
+   "root_speed": [
+    0.0,
+    0.049,
+    0.187,
+    0.399,
+    0.674,
+    0.996,
+    1.352,
+    1.729,
+    2.113,
+    2.49,
+    2.847,
+    3.17,
+    3.446,
+    3.66,
+    3.8
+   ],
+   "root_distance": 0.833,
+   "ends_in": "Run@0"
+  },
+  {
+   "name": "Run_Stop",
+   "frames": 26,
+   "fps": 30,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "run frame 0 -> idle frame 0: brake step with the right foot, counter-lean back, left foot alongside, arms swing past and settle; mirror for the right foot (end speed 0.0 m/s, see root_speed)",
+   "events": [
+    {
+     "frame": 8,
+     "function": "OnFootstep",
+     "param": "R"
+    },
+    {
+     "frame": 19,
+     "function": "OnFootstep",
+     "param": "L"
+    }
+   ],
+   "root_speed": [
+    3.8,
+    3.757,
+    3.637,
+    3.449,
+    3.206,
+    2.919,
+    2.598,
+    2.254,
+    1.9,
+    1.546,
+    1.202,
+    0.881,
+    0.594,
+    0.351,
+    0.163,
+    0.043,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "root_distance": 1.013,
+   "starts_in": "Run@0",
+   "ends_in": "Idle@0"
+  },
+  {
+   "name": "Sleep",
+   "frames": 120,
+   "fps": 30,
+   "loop": true,
+   "speed": 0.0,
+   "notes": "lying on the side, breathing",
+   "events": [],
+   "root_speed": 0.0,
+   "root_distance": 0.0
+  },
+  {
+   "name": "Spear_Attack_2",
+   "frames": 34,
+   "fps": 30,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "combo follow-up: spear raised to the shoulder, downward stab, recovery",
+   "events": [
+    {
+     "frame": 10,
+     "function": "OnAttackStart",
+     "param": "spear_downstab"
+    },
+    {
+     "frame": 13,
+     "function": "OnAttackActive",
+     "param": "spear_downstab"
+    },
+    {
+     "frame": 14,
+     "function": "OnAttackHit",
+     "param": "spear_downstab"
+    },
+    {
+     "frame": 19,
+     "function": "OnAttackEnd",
+     "param": "spear_downstab"
+    }
+   ],
+   "root_speed": 0.0,
+   "root_distance": 0.0
+  },
+  {
+   "name": "Sprint",
+   "frames": 18,
+   "fps": 30,
+   "loop": true,
+   "speed": 6.2,
+   "notes": "v2 in place; stance travel 0.967 m; turn 0.0 deg/s; pelvis base -0.086 m",
+   "events": [
+    {
+     "frame": 0,
+     "function": "OnFootstep",
+     "param": "L"
+    },
+    {
+     "frame": 9,
+     "function": "OnFootstep",
+     "param": "R"
+    }
+   ],
+   "root_speed": 6.2,
+   "root_distance": 3.72,
+   "turn_deg_s": 0.0,
+   "mid_stance": {
+    "L": 2.34,
+    "R": 10.98
+   }
+  },
+  {
+   "name": "Strafe_Run_L",
+   "frames": 18,
+   "fps": 30,
+   "loop": true,
+   "speed": 3.0,
+   "notes": "in place; stance travel 0.648 m; turn 0 deg/s",
+   "events": [
+    {
+     "frame": 0,
+     "function": "OnFootstep",
+     "param": "L"
+    },
+    {
+     "frame": 9,
+     "function": "OnFootstep",
+     "param": "R"
+    }
+   ],
+   "root_speed": 3.0,
+   "root_distance": 1.8
+  },
+  {
+   "name": "Strafe_Run_R",
+   "frames": 18,
+   "fps": 30,
+   "loop": true,
+   "speed": 3.0,
+   "notes": "in place; stance travel 0.648 m; turn 0 deg/s",
+   "events": [
+    {
+     "frame": 0,
+     "function": "OnFootstep",
+     "param": "L"
+    },
+    {
+     "frame": 9,
+     "function": "OnFootstep",
+     "param": "R"
+    }
+   ],
+   "root_speed": 3.0,
+   "root_distance": 1.8
+  },
+  {
+   "name": "Sword_Attack_1",
+   "frames": 30,
+   "fps": 30,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "diagonal cut from over the right shoulder down to the left hip, weight onto the front foot, follow-through",
+   "events": [
+    {
+     "frame": 8,
+     "function": "OnAttackStart",
+     "param": "sword_1"
+    },
+    {
+     "frame": 10,
+     "function": "OnAttackActive",
+     "param": "sword_1"
+    },
+    {
+     "frame": 13,
+     "function": "OnAttackHit",
+     "param": "sword_1"
+    },
+    {
+     "frame": 16,
+     "function": "OnAttackEnd",
+     "param": "sword_1"
+    }
+   ],
+   "root_speed": 0.0,
+   "root_distance": 0.0
+  },
+  {
+   "name": "Sword_Attack_2",
+   "frames": 28,
+   "fps": 30,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "horizontal back-hand cut from the left side across to the right",
+   "events": [
+    {
+     "frame": 7,
+     "function": "OnAttackStart",
+     "param": "sword_2"
+    },
+    {
+     "frame": 9,
+     "function": "OnAttackActive",
+     "param": "sword_2"
+    },
+    {
+     "frame": 11,
+     "function": "OnAttackHit",
+     "param": "sword_2"
+    },
+    {
+     "frame": 14,
+     "function": "OnAttackEnd",
+     "param": "sword_2"
+    }
+   ],
+   "root_speed": 0.0,
+   "root_distance": 0.0
+  },
+  {
+   "name": "Sword_Attack_3",
+   "frames": 34,
+   "fps": 30,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "overhead finisher with a step: sword raised behind the head, straight down cut",
+   "events": [
+    {
+     "frame": 11,
+     "function": "OnAttackStart",
+     "param": "sword_3"
+    },
+    {
+     "frame": 13,
+     "function": "OnAttackActive",
+     "param": "sword_3"
+    },
+    {
+     "frame": 15,
+     "function": "OnAttackHit",
+     "param": "sword_3"
+    },
+    {
+     "frame": 18,
+     "function": "OnAttackEnd",
+     "param": "sword_3"
+    },
+    {
+     "frame": 14,
+     "function": "OnFootstep",
+     "param": "L"
+    }
+   ],
+   "root_speed": 0.0,
+   "root_distance": 0.0
+  },
+  {
+   "name": "Sword_Block",
+   "frames": 40,
+   "fps": 30,
+   "loop": true,
+   "speed": 0.0,
+   "notes": "blade held across the body in front of the face, off hand guarding",
+   "events": [],
+   "root_speed": 0.0,
+   "root_distance": 0.0
+  },
+  {
+   "name": "Sword_Equip",
+   "frames": 22,
+   "fps": 30,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "reach over the right shoulder, draw the sword from the back, bring it to the ready pose",
+   "events": [
+    {
+     "frame": 9,
+     "function": "OnEquip",
+     "param": "draw"
+    }
+   ],
+   "root_speed": 0.0,
+   "root_distance": 0.0
+  },
+  {
+   "name": "Sword_Heavy",
+   "frames": 46,
+   "fps": 30,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "charged two-handed overhead blow: long wind-up, lunge step, heavy follow-through",
+   "events": [
+    {
+     "frame": 16,
+     "function": "OnAttackStart",
+     "param": "sword_heavy"
+    },
+    {
+     "frame": 23,
+     "function": "OnAttackActive",
+     "param": "sword_heavy"
+    },
+    {
+     "frame": 26,
+     "function": "OnAttackHit",
+     "param": "sword_heavy"
+    },
+    {
+     "frame": 30,
+     "function": "OnAttackEnd",
+     "param": "sword_heavy"
+    },
+    {
+     "frame": 24,
+     "function": "OnFootstep",
+     "param": "L"
+    }
+   ],
+   "root_speed": 0.0,
+   "root_distance": 0.0
+  },
+  {
+   "name": "Sword_Idle",
+   "frames": 60,
+   "fps": 30,
+   "loop": true,
+   "speed": 0.0,
+   "notes": "sword held low-forward, edge towards the enemy, breathing",
+   "events": [],
+   "root_speed": 0.0,
+   "root_distance": 0.0
+  },
+  {
+   "name": "Sword_Unequip",
+   "frames": 22,
+   "fps": 30,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "sword back over the right shoulder onto the back, hand returns",
+   "events": [
+    {
+     "frame": 13,
+     "function": "OnEquip",
+     "param": "sheathe"
+    }
+   ],
+   "root_speed": 0.0,
+   "root_distance": 0.0
+  },
+  {
+   "name": "Throw_Spear",
+   "frames": 46,
+   "fps": 30,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "overhand throw: spear drawn back over the shoulder, off arm points, whip release",
+   "events": [
+    {
+     "frame": 24,
+     "function": "OnThrowRelease",
+     "param": "spear"
+    }
+   ],
+   "root_speed": 0.0,
+   "root_distance": 0.0
+  },
+  {
+   "name": "Turn_180",
+   "frames": 34,
+   "fps": 30,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "standing 180 deg turn to the left (mirror: right) in 34 frames: head, chest, pelvis, then the feet (3 steps, ball pivots). Authored in the capsule frame: capsule yaw 0 -> 180 over frames 2-28 (inout) (end speed 0.0 m/s, see root_speed)",
+   "events": [
+    {
+     "frame": 12,
+     "function": "OnFootstep",
+     "param": "L"
+    },
+    {
+     "frame": 24,
+     "function": "OnFootstep",
+     "param": "R"
+    },
+    {
+     "frame": 31,
+     "function": "OnFootstep",
+     "param": "L"
+    }
+   ],
+   "root_speed": 0.0,
+   "root_distance": 0.0,
+   "root_yaw": [
+    0.0,
+    0.0,
+    0.0,
+    0.1,
+    0.73,
+    2.31,
+    5.13,
+    9.39,
+    15.17,
+    22.47,
+    31.21,
+    41.26,
+    52.42,
+    64.45,
+    77.07,
+    90.0,
+    102.93,
+    115.55,
+    127.58,
+    138.74,
+    148.79,
+    157.53,
+    164.83,
+    170.61,
+    174.87,
+    177.69,
+    179.27,
+    179.9,
+    180.0,
+    180.0,
+    180.0,
+    180.0,
+    180.0,
+    180.0,
+    180.0
+   ],
+   "starts_in": "Idle@0",
+   "ends_in": "Idle@0"
+  },
+  {
+   "name": "Turn_Left",
+   "frames": 30,
+   "fps": 30,
+   "loop": true,
+   "speed": 0.0,
+   "notes": "v2 in place; stance travel 0.000 m; turn 90.0 deg/s; pelvis base -0.018 m",
+   "events": [
+    {
+     "frame": 0,
+     "function": "OnFootstep",
+     "param": "L"
+    },
+    {
+     "frame": 15,
+     "function": "OnFootstep",
+     "param": "R"
+    }
+   ],
+   "root_speed": 0.0,
+   "root_distance": 0.0,
+   "turn_deg_s": 90.0,
+   "mid_stance": {
+    "L": 9.3,
+    "R": 23.94
+   }
+  },
+  {
+   "name": "Turn_Right",
+   "frames": 30,
+   "fps": 30,
+   "loop": true,
+   "speed": 0.0,
+   "notes": "v2 in place; stance travel 0.000 m; turn -90.0 deg/s; pelvis base -0.018 m",
+   "events": [
+    {
+     "frame": 0,
+     "function": "OnFootstep",
+     "param": "L"
+    },
+    {
+     "frame": 15,
+     "function": "OnFootstep",
+     "param": "R"
+    }
+   ],
+   "root_speed": 0.0,
+   "root_distance": 0.0,
+   "turn_deg_s": -90.0,
+   "mid_stance": {
+    "L": 9.3,
+    "R": 23.94
+   }
+  },
+  {
+   "name": "Unarmed_Block",
+   "frames": 40,
+   "fps": 30,
+   "loop": true,
+   "speed": 0.0,
+   "notes": "high forearm guard (loopable hold): forearms vertical in front of the face, elbows in front of the ribs, wrists straight, chin down, knees soft, one arm solution held, breathing",
+   "events": [],
+   "root_speed": 0.0,
+   "root_distance": 0.0
+  },
+  {
+   "name": "Unconscious",
+   "frames": 150,
+   "fps": 30,
+   "loop": true,
+   "speed": 0.0,
+   "notes": "unconscious on the back (loop): still, slow shallow breathing (12 / min, belly then chest), head rolled to the side, hands loose; frame 0 = Wake_Up frame 0 (the opening hands over to Wake_Up)",
+   "events": [],
+   "root_speed": 0.0,
+   "root_distance": 0.0
+  },
+  {
+   "name": "Unconscious_Collapse",
+   "frames": 56,
+   "fps": 30,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "faint from standing (Idle frame 0): head drops, arms go limp, knees buckle, sits down behind the heels, tips over backwards onto the back (legs slide out), head lands last with a small rebound; ends on Unconscious frame 0 (= Wake_Up frame 0)",
+   "events": [
+    {
+     "frame": 21,
+     "function": "OnBodyFall",
+     "param": "sit"
+    },
+    {
+     "frame": 34,
+     "function": "OnBodyFall",
+     "param": ""
+    }
+   ],
+   "root_speed": 0.0,
+   "root_distance": 0.0
+  },
+  {
+   "name": "Use_Item",
+   "frames": 40,
+   "fps": 30,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "",
+   "events": [
+    {
+     "frame": 28,
+     "function": "OnUseItem",
+     "param": ""
+    }
+   ],
+   "root_speed": 0.0,
+   "root_distance": 0.0
+  },
+  {
+   "name": "Wake_Up",
+   "frames": 180,
+   "fps": 30,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "opening: lying on the back -> prop on elbow -> sit, hand to head -> kneel -> stand -> look around",
+   "events": [
+    {
+     "frame": 60,
+     "function": "OnWakeUp",
+     "param": "sit"
+    },
+    {
+     "frame": 146,
+     "function": "OnWakeUp",
+     "param": "stand"
+    },
+    {
+     "frame": 180,
+     "function": "OnWakeUp",
+     "param": "done"
+    }
+   ],
+   "root_speed": 0.0,
+   "root_distance": 0.0
+  },
+  {
+   "name": "Walk",
+   "frames": 32,
+   "fps": 30,
+   "loop": true,
+   "speed": 1.35,
+   "notes": "v2 in place; stance travel 0.864 m; turn 0.0 deg/s; pelvis base -0.057 m",
+   "events": [
+    {
+     "frame": 0,
+     "function": "OnFootstep",
+     "param": "L"
+    },
+    {
+     "frame": 16,
+     "function": "OnFootstep",
+     "param": "R"
+    }
+   ],
+   "root_speed": 1.35,
+   "root_distance": 1.44,
+   "turn_deg_s": 0.0,
+   "mid_stance": {
+    "L": 9.6,
+    "R": 25.28
+   }
+  },
+  {
+   "name": "Walk_Backward",
+   "frames": 30,
+   "fps": 30,
+   "loop": true,
+   "speed": 1.05,
+   "notes": "in place; stance travel 0.609 m; turn 0 deg/s",
+   "events": [
+    {
+     "frame": 0,
+     "function": "OnFootstep",
+     "param": "L"
+    },
+    {
+     "frame": 15,
+     "function": "OnFootstep",
+     "param": "R"
+    }
+   ],
+   "root_speed": 1.05,
+   "root_distance": 1.05
+  },
+  {
+   "name": "Walk_Left",
+   "frames": 24,
+   "fps": 30,
+   "loop": true,
+   "speed": 1.1,
+   "notes": "in place; stance travel 0.493 m; turn 0 deg/s",
+   "events": [
+    {
+     "frame": 0,
+     "function": "OnFootstep",
+     "param": "L"
+    },
+    {
+     "frame": 12,
+     "function": "OnFootstep",
+     "param": "R"
+    }
+   ],
+   "root_speed": 1.1,
+   "root_distance": 0.88
+  },
+  {
+   "name": "Walk_Right",
+   "frames": 24,
+   "fps": 30,
+   "loop": true,
+   "speed": 1.1,
+   "notes": "in place; stance travel 0.493 m; turn 0 deg/s",
+   "events": [
+    {
+     "frame": 0,
+     "function": "OnFootstep",
+     "param": "L"
+    },
+    {
+     "frame": 12,
+     "function": "OnFootstep",
+     "param": "R"
+    }
+   ],
+   "root_speed": 1.1,
+   "root_distance": 0.88
+  },
+  {
+   "name": "Walk_Start",
+   "frames": 18,
+   "fps": 30,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "idle -> walk: weight to the right foot, lean, one step with the left foot, ends on walk frame 0 (left heel strike); mirror for the right foot (end speed 1.35 m/s, see root_speed)",
+   "events": [
+    {
+     "frame": 16,
+     "function": "OnFootstep",
+     "param": "L"
+    }
+   ],
+   "root_speed": [
+    0.0,
+    0.01,
+    0.039,
+    0.085,
+    0.145,
+    0.218,
+    0.302,
+    0.393,
+    0.491,
+    0.593,
+    0.698,
+    0.802,
+    0.903,
+    1.001,
+    1.092,
+    1.175,
+    1.246,
+    1.306,
+    1.35
+   ],
+   "root_distance": 0.372,
+   "ends_in": "Walk@0"
+  },
+  {
+   "name": "Walk_Stop",
+   "frames": 22,
+   "fps": 30,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "walk frame 0 -> idle frame 0: brake on the left foot, right foot alongside, counter-lean, arms swing past and settle; mirror for the right foot (end speed 0.0 m/s, see root_speed)",
+   "events": [
+    {
+     "frame": 14,
+     "function": "OnFootstep",
+     "param": "R"
+    }
+   ],
+   "root_speed": [
+    1.35,
+    1.317,
+    1.257,
+    1.174,
+    1.074,
+    0.959,
+    0.835,
+    0.706,
+    0.576,
+    0.449,
+    0.33,
+    0.222,
+    0.132,
+    0.061,
+    0.016,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "root_distance": 0.326,
+   "starts_in": "Walk@0",
+   "ends_in": "Idle@0"
   }
  ]
 }

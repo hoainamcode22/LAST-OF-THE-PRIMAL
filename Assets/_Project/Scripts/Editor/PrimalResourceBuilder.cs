@@ -49,7 +49,7 @@ namespace PrimalFrontier.EditorTools
                     }
                 }
             // markers
-            var markers = GameObject.Find("Markers");
+            var markers = PrimalFrontier.Core.SceneRoots.LegacyObject("Markers");
             if (markers) foreach (var t in markers.GetComponentsInChildren<Transform>()) if (t != markers.transform && t.childCount == 0) sb.AppendLine($"marker {t.parent.name}/{t.name} {V(t.position)}");
             // spawn + nodes near it
             var spawnT = GameObject.Find("ZONE_PlayerSpawn"); Vector3 spawn = spawnT ? spawnT.transform.position : Vector3.zero;
@@ -85,7 +85,7 @@ namespace PrimalFrontier.EditorTools
                 sb.AppendLine($"trees within 60 m of spawn {treesNear}");
                 sb.AppendLine($"details {string.Join(",", td.detailPrototypes.Select(p => p.prototype ? p.prototype.name : p.prototypeTexture ? p.prototypeTexture.name : "-"))}");
             }
-            var ocean = GameObject.Find("Water");
+            var ocean = PrimalFrontier.Core.SceneRoots.LegacyObject("Water");
             if (ocean) foreach (Transform t in ocean.transform) sb.AppendLine($"water obj {t.name} y {t.position.y:F2}");
             // decoration that looks gatherable
             var sus = new Regex("Rock|Stone|Pebble|Log|Branch|Wood|Drift|Fern|Grass|Reed|Stick|Twig", RegexOptions.IgnoreCase);

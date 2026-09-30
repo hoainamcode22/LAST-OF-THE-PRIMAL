@@ -1,0 +1,217 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using NUnit.Framework;
+using UnityEngine;
+using UnityEngine.TestTools;
+using PrimalFrontier.Core;
+using PrimalFrontier.Items;
+using PrimalFrontier.Player;
+using PrimalFrontier.Survival;
+using PrimalFrontier.World;
+using Object = UnityEngine.Object;
+
+namespace PrimalFrontier.Tests
+{
+    /// <summary>
+    /// Survival, PC phase (agent SURV): dishes assembled at the crafting menu and cooked on the fire, hunger / thirst slowing
+    /// every kind of healing, humid air slowing drying, the HUD hazard line, the "Plant Fiber" spelling and the rare items'
+    /// uses in the built database (those two only once PrimalSurvivalBuilder ran; they Assert.Ignore otherwise).
+    /// </summary>
+    public class SurvivalPcPhaseTests
+    {
+        static ItemDatabase Db => ItemDatabase.Instance;
+        SurvivalConfig _cfg;
+        readonly List<Object> _made = new List<Object>();
+
+        [UnitySetUp] public IEnumerator ClearScene() { yield return TestScenes.ClearIfGameplayLeft(); }
+
+        [SetUp] public void SetUp()
+        {
+            _cfg = ScriptableObject.CreateInstance<SurvivalConfig>(); _cfg.name = "SurvivalConfig (pc phase test)";
+            if (Db != null) { _cfg.wood = Db.Item("wood"); _cfg.rawMeat = Db.Item("raw_meat"); _cfg.cookedMeat = Db.Item("cooked_meat"); _cfg.burntFood = Db.Item("burnt_meat"); }
+            _made.Add(_cfg);
+            SurvivalConfig.Override(_cfg);
+            PlayerHealth.InjuryRoll = () => 0.99f;
+        }
+
+        [TearDown] public void TearDown()
+        {
+            SurvivalConfig.Override(null);
+            foreach (var o in _made) if (o) Object.Destroy(o);
+            _made.Clear();
+            PlayerHealth.InjuryRoll = null;
+        }
+
+        [UnityTearDown] public IEnumerator Unload() { yield return TestScenes.ClearIfGameplayLeft(); }
+
+        T Keep<T>(T o) where T : Object { _made.Add(o); return o; }
+
+        ItemDefinition MakeItem(string id, Action<ItemDefinition> cfg = null)
+        {
+            var it = Keep(ScriptableObject.CreateInstance<ItemDefinition>());
+            it.id = id; it.name = id; it.displayName = id; it.maxStack = 10; it.weight = 0.1f;
+            cfg?.Invoke(it);
+            return it;
+        }
+
+        PlayerSurvival Survivor(out PlayerHealth hp, out PlayerStatusEffects fx, out InventorySystem inv)
+        {
+            var go = Keep(new GameObject("TestSurvivor"));
+            go.transform.position = new Vector3(5000f, 0f, 5000f);
+            inv = go.AddComponent<InventorySystem>(); inv.raiseGameEvents = false; inv.maxWeight = 0f; inv.EnsureSlots();
+            var sv = go.AddComponent<PlayerSurvival>();
+            hp = go.GetComponent<PlayerHealth>(); fx = go.GetComponent<PlayerStatusEffects>();
+            return sv;
+        }
+
+        static IEnumerator Until(Func<bool> done, float timeout)
+        {
+            float t0 = Time.realtimeSinceStartup;
+            while (!done() && Time.realtimeSinceStartup - t0 < timeout) yield return null;
+        }
+
+        // ------------------------------------------------------------------ dishes
+        [UnityTest, Timeout(60000)] public IEnumerator Dish_Is_Assembled_By_A_Recipe_And_Cooked_On_The_Fire()
+        {
+            // the same shape as the builder's meat_skewer: raw meat + berries + a stick -> raw skewer -> (fire) -> skewer
+            var meat = MakeItem("t_raw_meat", i => { i.category = ItemCategory.Food; i.hunger = 10f; i.sicknessChance = 0.35f; });
+            var berries = MakeItem("t_berries", i => { i.category = ItemCategory.Food; i.hunger = 7f; i.thirst = 3f; i.maxStack = 30; });
+            var wood = MakeItem("t_wood", i => i.fuelSeconds = 200f);
+            var skewer = MakeItem("t_skewer", i => { i.category = ItemCategory.Food; i.hunger = 48f; i.thirst = 10f; i.health = 8f; i.stamina = 10f; i.isHot = true; i.spoilHours = 48f; });
+            var raw = MakeItem("t_skewer_raw", i => { i.category = ItemCategory.Food; i.hunger = 14f; i.sicknessChance = 0.35f; i.cookSeconds = 0.3f; i.cookedResult = skewer; i.spoilHours = 20f; });
+            var rc = Keep(ScriptableObject.CreateInstance<RecipeDefinition>());
+            rc.id = "t_meat_skewer"; rc.output = raw; rc.outputCount = 1; rc.craftSeconds = 0.1f; rc.knownAtStart = true; rc.category = RecipeCategory.Food;
+            rc.ingredients = new[] { new Ingredient(meat, 1), new Ingredient(berries, 4), new Ingredient(wood, 1) };
+            var sv = Survivor(out var hp, out _, out var inv);
+            var cr = sv.gameObject.AddComponent<CraftingSystem>(); cr.inventory = inv; cr.Learn(rc, false);
+            inv.Add(meat, 1); inv.Add(berries, 6); inv.Add(wood, 3);
+            Assert.IsNull(cr.Check(rc), "the dish can be assembled: " + cr.Check(rc));
+            Assert.IsTrue(cr.Enqueue(rc)); cr.CompleteFirstNow();
+            Assert.AreEqual(1, inv.Count(raw), "raw skewer made"); Assert.AreEqual(0, inv.Count(meat)); Assert.AreEqual(2, inv.Count(berries)); Assert.AreEqual(2, inv.Count(wood));
+            // on the fire like any raw food; cooked it is one hot, filling item
+            var fireGo = Keep(new GameObject("TestFire", typeof(Campfire))); fireGo.transform.position = new Vector3(600, 0, 0);
+            var fire = fireGo.GetComponent<Campfire>();
+            Assert.IsTrue(fire.TryLight(inv), "lit with the leftover stick");
+            Assert.IsTrue(fire.TryCook(inv, raw), "the raw skewer goes on the fire");
+            yield return Until(() => fire.StateOf(0) == Campfire.CookState.Ready, 5f);
+            Assert.AreSame(skewer, fire.ItemOn(0), "cooked skewer");
+            Assert.IsTrue(fire.TryTake(inv));
+            sv.SetStats(30f, 50f, 20f, 37f, 0f); hp.SetHealth(50f);
+            Assert.IsTrue(sv.ConsumeItem(skewer, inv.Slots.First(s => s != null && s.item == skewer)));
+            Assert.AreEqual(78f, sv.Hunger, 0.01f, "+48 hunger"); Assert.AreEqual(60f, sv.Thirst, 0.01f, "+10 thirst"); Assert.AreEqual(30f, sv.Stamina, 0.01f, "+10 stamina");
+            Assert.AreEqual(50f, hp.Health, 0.01f, "health comes back slowly, not at once");
+            Assert.IsTrue(hp.Effects.Has(StatusEffectIds.Recovering));
+        }
+
+        [Test] public void Built_Dishes_Rare_Items_And_Spelling()
+        {
+            if (Db == null || Db.Item("meat_skewer") == null) Assert.Ignore("PrimalSurvivalBuilder has not run in this project yet (meat_skewer missing)");
+            var skewerRaw = Db.Item("meat_skewer_raw"); var skewer = Db.Item("meat_skewer"); var lfRaw = Db.Item("leaf_fish_raw"); var lf = Db.Item("leaf_fish"); var scraps = Db.Item("wreck_scraps");
+            Assert.IsNotNull(skewerRaw); Assert.AreSame(skewer, skewerRaw.cookedResult, "raw skewer cooks into the skewer");
+            Assert.IsNotNull(lfRaw); Assert.AreSame(lf, lfRaw.cookedResult, "leaf fish cooks");
+            Assert.Greater(skewer.hunger, Db.Item("cooked_meat").hunger, "a dish feeds more than a plain cooked piece");
+            Assert.Greater(lf.hunger, Db.Item("cooked_fish").hunger);
+            Assert.IsNotNull(scraps, "wreck_scraps item"); Assert.Greater(scraps.fuelSeconds, 0f, "scraps burn");
+            foreach (var id in new[] { "meat_skewer", "leaf_fish", "cloth_bandage", "scrap_rope" }) Assert.IsNotNull(Db.Recipe(id), "recipe " + id);
+            Assert.AreEqual("bandage", Db.Recipe("cloth_bandage").output.id); Assert.AreEqual("rope", Db.Recipe("scrap_rope").output.id);
+            int uses(string id) => Db.recipes.Count(r => r && r.ingredients.Any(i => i.item && i.item.id == id));
+            Assert.GreaterOrEqual(uses("bone"), 2, "bone has uses"); Assert.GreaterOrEqual(uses("hide"), 3, "hide has uses"); Assert.AreEqual(2, uses("wreck_scraps"), "scraps have two uses");
+            Assert.That(Db.recipes.Count(r => r), Is.InRange(25, 40), "recipe count in the directive's range");
+            foreach (var it in Db.items) if (it) { StringAssert.DoesNotContain("ibre", it.displayName ?? ""); StringAssert.DoesNotContain("ibre", it.description ?? ""); }
+            Assert.AreEqual("Plant Fiber", Db.Item("fiber").displayName);
+        }
+
+        // ------------------------------------------------------------------ stat interactions
+        [UnityTest, Timeout(60000)] public IEnumerator Hunger_And_Thirst_Slow_Healing()
+        {
+            var sv = Survivor(out var hp, out var fx, out _);
+            yield return null;
+            _cfg.healAtEmptyHunger = 0.25f; _cfg.healAtEmptyThirst = 0.5f;
+            // full: natural regeneration at the base rate
+            sv.SetStats(100f, 100f, 100f, 37f, 0f); hp.SetHealth(50f);
+            yield return null; yield return null;
+            Assert.AreEqual(1f, sv.HealMultiplier, 0.01f, "full needs: normal healing");
+            float h0 = hp.Health; yield return new WaitForSeconds(1f); float fullGain = hp.Health - h0;
+            Assert.Greater(fullGain, 0f, "heals when fed");
+            // hungry but above the regeneration threshold: slower
+            sv.SetStats(60f, 100f, 100f, 37f, 0f); yield return null; yield return null;
+            Assert.AreEqual(Mathf.Lerp(0.25f, 1f, 0.6f), sv.HealMultiplier, 0.01f);
+            h0 = hp.Health; yield return new WaitForSeconds(1f); float hungryGain = hp.Health - h0;
+            Assert.Less(hungryGain, fullGain * 0.85f, "hunger slows recovery");
+            Assert.Greater(hungryGain, 0f);
+            // the Recovering effect (food, bandage) is slowed the same way
+            sv.SetStats(10f, 10f, 100f, 37f, 0f); yield return null;
+            Assert.AreEqual(Mathf.Lerp(0.25f, 1f, 0.1f) * Mathf.Lerp(0.5f, 1f, 0.1f), sv.HealMultiplier, 0.01f);
+            Assert.AreEqual(sv.HealMultiplier, fx.HealMultiplier, 1e-4f, "status healing follows");
+            var def = StatusEffectDefinition.Get(StatusEffectIds.Recovering);
+            fx.Apply(def, 1f, 30f, false); h0 = hp.Health; yield return new WaitForSeconds(1f);
+            float starvedGain = hp.Health - h0;
+            Assert.Greater(starvedGain, 0f, "still heals a little");
+            Assert.Less(starvedGain, def.healthPerSecond * 0.6f, "much slower than the effect's own rate");
+            // thirst tiers already slow the stamina regeneration (directive 16)
+            sv.SetStats(80f, 25f, 100f, 37f, 0f);
+            Assert.Less(sv.NeedStaminaRegenMultiplier, 1f, "thirst worsens stamina regeneration");
+        }
+
+        [UnityTest, Timeout(60000)] public IEnumerator Humid_Air_Dries_Slower()
+        {
+            var depth = PlayerSurvival.WaterDepthAt; var sun = PlayerSurvival.SunAt; var roof = PlayerSurvival.ShelteredAt; var heat = PlayerSurvival.HeatAt; var rain = PlayerSurvival.RainingAt; var hum = PlayerSurvival.HumidityAt;
+            try
+            {
+                var sv = Survivor(out _, out _, out _);
+                PlayerSurvival.RainingAt = q => false; PlayerSurvival.HeatAt = q => 0f; PlayerSurvival.SunAt = q => 1f; PlayerSurvival.ShelteredAt = q => false; PlayerSurvival.WaterDepthAt = q => 0f;
+                _cfg.humidityDryingPenalty = 0.5f;
+                PlayerSurvival.HumidityAt = q => 0f;
+                sv.SetStats(80f, 80f, 100f, 37f, 0.8f); yield return new WaitForSeconds(0.6f);
+                float w0 = sv.Wetness; yield return new WaitForSeconds(1f); float dryDry = w0 - sv.Wetness;
+                PlayerSurvival.HumidityAt = q => 1f;
+                sv.SetStats(80f, 80f, 100f, 37f, 0.8f); yield return new WaitForSeconds(0.6f);
+                Assert.AreEqual(1f, sv.Humidity, 0.01f);
+                w0 = sv.Wetness; yield return new WaitForSeconds(1f); float humidDry = w0 - sv.Wetness;
+                Assert.Greater(dryDry, 0f);
+                Assert.AreEqual(dryDry * 0.5f, humidDry, dryDry * 0.2f, "full humidity halves the drying");
+            }
+            finally { PlayerSurvival.WaterDepthAt = depth; PlayerSurvival.SunAt = sun; PlayerSurvival.ShelteredAt = roof; PlayerSurvival.HeatAt = heat; PlayerSurvival.RainingAt = rain; PlayerSurvival.HumidityAt = hum; }
+        }
+
+        // ------------------------------------------------------------------ HUD hazard line
+        [UnityTest, Timeout(60000)] public IEnumerator Hazard_Warning_Shows_Levels_And_Clears()
+        {
+            var go = Keep(new GameObject("[UI test]"));
+            var hud = go.AddComponent<UI.HUDManager>();
+            yield return null;
+            var line = hud.transform.Find("[HUD]/Hazard"); Assert.IsNotNull(line, "hazard line built");
+            var group = line.GetComponent<CanvasGroup>(); var text = line.Find("Text").GetComponent<UnityEngine.UI.Text>();
+            Assert.AreEqual(0f, group.alpha, 0.01f, "hidden at start");
+            GameEvents.Raise(GameEventType.HazardWarning, "volcano", 1);
+            yield return null;
+            hud.SetHazard(1, "volcano");                             // the HUD listens once bound to a player; the direct call is the same path
+            StringAssert.Contains("warm", text.text);
+            yield return new WaitForSeconds(0.6f);
+            Assert.Greater(group.alpha, 0.5f, "shown while warm");
+            hud.SetHazard(3, "lava");
+            StringAssert.Contains("lava", text.text); Assert.AreEqual(UI.UIStyle.Bad, text.color);
+            hud.SetHazard(0);
+            Assert.AreEqual("", text.text);
+            yield return new WaitForSeconds(0.6f);
+            Assert.Less(group.alpha, 0.1f, "cleared by level 0");
+            Assert.IsNull(hud.transform.Find("[HUD]/Objective"), "the old objective box is not built any more");
+        }
+
+        [Test] public void Water_Prompts_Read_Naturally()
+        {
+            var go = Keep(new GameObject("TestWater"));
+            var ws = go.AddComponent<WaterSource>();
+            PlayerInteraction pi = null;                              // empty hands: the prompt is the drink line
+            ws.displayName = "Waterfall pool"; ws.clean = false;
+            Assert.AreEqual("Drink from the waterfall pool", ws.GetPrompt(pi, out var sub)); StringAssert.Contains("Unboiled", sub);
+            ws.displayName = "Spring water"; ws.clean = true;
+            Assert.AreEqual("Drink spring water", ws.GetPrompt(pi, out sub)); StringAssert.Contains("Safe", sub);
+            Assert.AreEqual(WaterType.CleanWater, ws.SourceType, "only the spring is clean");
+            ws.displayName = "Marsh water"; ws.clean = false;
+            Assert.AreEqual(WaterType.DirtyWater, ws.SourceType);
+        }
+    }
+}

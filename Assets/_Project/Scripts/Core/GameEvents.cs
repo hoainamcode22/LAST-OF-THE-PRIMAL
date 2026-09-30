@@ -36,6 +36,25 @@ namespace PrimalFrontier.Core
         ItemUsed, StatusApplied, StatusEnded, FoodSpoiled, ToolBroken, FireStateChanged, FireDoused,
         // resources (appended, RES): a terrain tree fell (id wood item, position the tree); a node was emptied (id resource definition, position the node)
         TreeFelled, ResourceDepleted,
+        // combat (appended, U): a missed arrow / thrown spear came to rest (id = projectile item id, or "arrow" / "spear" without one;
+        // amount = loudness, 1 arrow / 2 spear; position = where it lies). AI hears it as a distraction noise.
+        ProjectileLanded,
+        // world (appended, WORLD): the day moved into a new TimeManager.Phase (id = phase name "Dawn".."Night", amount = (int)phase);
+        // a heat / smoke hazard level changed where the player is (id = hazard id, e.g. "volcano", "lava"; amount = level
+        // 0 safe, 1 warm, 2 hot, 3 dangerous; position = player)
+        DayPhaseChanged, HazardWarning,
+        // story (appended, STORY): a mission started / was completed (id mission id, amount chapter); a chapter began (id chapter
+        // name, amount chapter number); the survivor watched a creature do something (id "behaviour:species", e.g. "herd:triceratops",
+        // "eating:velociraptor"; position = the creature); the belongings left where the player died were picked up (amount = stacks)
+        MissionStarted, MissionCompleted, ChapterStarted, CreatureObserved, BelongingsRecovered,
+        // wildlife (appended, AI): the player saw a herd (id species, amount members in view; once per herd per game day); a herd set
+        // off on its migration (id species, amount 1 outward / 2 back, position = start); the player watched the moving migration herd
+        // from within view distance (id species, once per migration); the player examined a track sign (id species, amount 1 herbivore
+        // sign / 2 predator sign, position = the sign)
+        HerdSighted, MigrationStarted, MigrationSeen, TracksFound,
+        // wildlife (appended, AI, Phase 1): a predator hunt on a herbivore (id predator species; amount 1 started, 2 kill, 3 failed;
+        // position = the prey). A predator's kill does not raise CreatureKilled (that stays the player's)
+        PredatorHunt,
     }
 
     /// <summary>One gameplay fact ("added 3 wood", "entered cave", "lit a fire"). Tutorial, journal, audio and UI listen.</summary>

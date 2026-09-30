@@ -270,35 +270,40 @@ namespace PrimalFrontier.Tests
         }
 
         // ------------------------------------------------------------------ fire fear, bare hands
-        [Test]
-        public void Fire_Fear_Radius_Follows_Night_Rain_And_Fuel()
+        [UnityTest, Timeout(60000)]
+        public IEnumerator Fire_Fear_Radius_Follows_Night_Rain_And_Fuel()
         {
+            // SURV's Campfire read API: FuelIntensity01 (fuel + lighting ramp), State, Sheltered, RainedOn (checked once a second)
             var fireGo = new GameObject("TestFire"); _made.Add(fireGo);
             var fire = fireGo.AddComponent<Campfire>();
             fire.Restore(true, 300f);
             Assert.IsTrue(fire.IsLit);
-            Assert.AreEqual(1f, FireSense.Intensity01(fire), 1e-4f);
+            Assert.AreEqual(1f, FireSense.Intensity01(fire), 1e-4f, "a well-fed fire is at full strength");
             var f = new FireFearProfile { predatorFear = 0.85f, fearRadiusDay = 7f, fearRadiusNight = 10f, rainMultiplier = 0.6f, fuelMultiplier = 0.6f };
             Assert.AreEqual(7f, FireSense.FearRadius(f, fire, 0f), 1e-4f, "day radius");
             Assert.AreEqual(10f, FireSense.FearRadius(f, fire, 1f), 1e-4f, "night radius");
-            fire.Restore(true, 60f);                                     // low fuel: intensity 0.2
-            Assert.AreEqual(7f * Mathf.Lerp(1f, 0.2f, 0.6f), FireSense.FearRadius(f, fire, 0f), 1e-3f, "a weak fire scares less");
-            var ignore = f; ignore.ignoreBelowIntensity = 0.4f;
+            fire.Restore(true, 60f);                                     // low fuel
+            float low = FireSense.Intensity01(fire);
+            Assert.AreEqual(0.53f, low, 0.01f, "Campfire.FuelIntensity01 at 60 s of fuel (SURV: 0.53)");
+            Assert.AreEqual(7f * Mathf.Lerp(1f, low, 0.6f), FireSense.FearRadius(f, fire, 0f), 1e-3f, "a weak fire scares less");
+            var ignore = f; ignore.ignoreBelowIntensity = 0.6f;
             Assert.AreEqual(0f, FireSense.FearRadius(ignore, fire, 0f), "the apex ignores a weak fire");
             var none = f; none.predatorFear = 0f;
             Assert.AreEqual(0f, FireSense.FearRadius(none, fire, 1f), "no fear, no radius");
             fire.Restore(true, 300f);
             var wmGo = new GameObject("TestWeather"); _made.Add(wmGo);
-            var wm = wmGo.AddComponent<WeatherManager>();
+            var wm = wmGo.AddComponent<WeatherManager>(); wm.allowRandom = false;
             wm.SetWeather(WeatherState.Rain, -1f, true);
-            Assert.IsTrue(FireSense.RainedOn(fire), "rain falls on the open fire");
-            Assert.AreEqual(7f * 0.6f, FireSense.FearRadius(f, fire, 0f), 1e-3f, "rain shrinks the radius");
+            yield return new WaitForSeconds(1.3f);                       // the fire checks rain / roof once a second
+            Assert.IsTrue(FireSense.RainedOn(fire), "rain falls on the open fire (Campfire.RainedOn)");
+            Assert.AreEqual(7f * 0.6f, FireSense.FearRadius(f, fire, 0f), 0.05f, "rain shrinks the radius");
             var shelterGo = new GameObject("TestShelter"); _made.Add(shelterGo);
             shelterGo.transform.position = fireGo.transform.position;
             shelterGo.AddComponent<Shelter>();
-            Assert.IsTrue(FireSense.Sheltered(fire), "a shelter covers the fire");
+            yield return new WaitForSeconds(1.3f);
+            Assert.IsTrue(FireSense.Sheltered(fire), "a shelter covers the fire (Campfire.Sheltered)");
             Assert.IsFalse(FireSense.RainedOn(fire), "no rain under the roof");
-            Assert.AreEqual(7f, FireSense.FearRadius(f, fire, 0f), 1e-3f, "a sheltered fire keeps its radius in the rain");
+            Assert.AreEqual(7f, FireSense.FearRadius(f, fire, 0f), 0.05f, "a sheltered fire keeps its radius in the rain");
             Assert.Less(_cfg.shelteredScentMul, 1f, "a sheltered fire smells less");
             fire.SetLit(false, false);
             Assert.AreEqual(0f, FireSense.FearRadius(f, fire, 1f), "an unlit fire does not scare");

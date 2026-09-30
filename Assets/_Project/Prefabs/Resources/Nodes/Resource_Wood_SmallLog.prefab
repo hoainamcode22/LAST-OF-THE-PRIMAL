@@ -85,6 +85,7 @@ MonoBehaviour:
   toolWear: 1
   radius: 0.3
   hitWobble: 0.07
+  cueHeight: 0
   emptyScale: 0.7
 --- !u!1001 &7392870320505444039
 PrefabInstance:

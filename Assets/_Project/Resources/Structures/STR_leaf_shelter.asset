@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5f3f67f885fbfda40a2cc2d19904f423, type: 3}
+  m_Name: STR_leaf_shelter
+  m_EditorClassIdentifier: PrimalFrontier.Runtime::PrimalFrontier.Building.StructureDefinition
+  id: leaf_shelter
+  displayName: Leaf Shelter
+  description: Poles leaned on a ridge pole and roofed with broad fronds, lashed
+    with fibre. Cheap, quick, keeps the rain off. Rest under it to save.
+  category: 0
+  prefab: {fileID: 8614918722229301000, guid: 8691097cfdc4c6c42bca635890b380a2, type: 3}
+  item: {fileID: 11400000, guid: 784dd64117ebcbe4e84cef55da6dae26, type: 2}
+  recipe: {fileID: 11400000, guid: 73837387c8d11cf42b2eb33e3b05a769, type: 2}
+  cost: []
+  sockets: []
+  snapsTo: 0
+  support: 0
+  minWallsBelow: 2
+  allowFree: 1
+  snapRadius: 1.6
+  snapYawStep: 0
+  footprintCenter: {x: 0, y: 0.9, z: -0.1}
+  footprintSize: {x: 2.8, y: 1.7, z: 2.3}
+  maxSlope: 24
+  groundTolerance: 0.6
+  buildHits: 2
+  dustScale: 1.2
+  leafy: 1
+  wooden: 1

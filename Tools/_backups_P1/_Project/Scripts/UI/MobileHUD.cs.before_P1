@@ -1,0 +1,330 @@
+using System;
+using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.UI;
+using PrimalFrontier.Core;
+using PrimalFrontier.Items;
+using PrimalFrontier.Player;
+using PrimalFrontier.World;
+
+namespace PrimalFrontier.UI
+{
+    /// <summary>
+    /// Touch controls (phones / tablets): floating move stick on the left, drag anywhere on the right to look,
+    /// buttons bottom-right (Attack / Punch, a separate Heavy button for melee and bare hands, Jump, Dodge, a contextual
+    /// button that only shows when there is something to use and says what: GATHER / DRINK / FILL / HARVEST / CLIMB /
+    /// PICK UP / USE, Aim only with a spear or bow; in build mode Build / Rotate / Cancel), tap a hotbar slot to hold it,
+    /// Crouch and Run by the stick, small Menu / Bag / Craft / Journal.
+    /// Melee and bare hands: tap ATTACK = next light strike of the combo, holding it repeats light strikes, HEAVY = heavy
+    /// attack at once. A bow keeps "hold ATTACK to draw, release to shoot".
+    /// buttons under the vitals. Everything sits inside the device safe area (notches, rounded corners) and scales with
+    /// the screen (16:9, 18:9, 19.5:9, tablets). It only writes PlayerInputReader.Virtual: gameplay never reads touch.
+    /// Shown automatically on touch devices; Settings > Touch controls forces it on / off. Layout lives in the scene
+    /// ([UI]/[Touch]) and can be moved by hand.
+    /// </summary>
+    public class MobileHUD : MonoBehaviour, IBakeableUI
+    {
+        public float lookSensitivity = 0.16f;          // degrees per reference pixel
+        public float stickRadius = 110f;
+
+        Canvas _canvas; RectTransform _safe, _stickBase, _knob, _moveZone;
+        GameObject _interactBtn, _aimBtn, _dodgeBtn, _rotateBtn, _cancelBtn, _heavyBtn; Text _interactLabel, _attackLabel; Image _runImg, _crouchImg, _aimImg;
+        [Tooltip("holding ATTACK with a melee weapon / bare hands repeats a light strike this often (s)")] public float attackRepeat = 0.32f;
+        bool _attackDown; float _attackNext; bool _holdMeansDraw;
+        PrimalFrontier.Combat.Weapons.WeaponController _wc;
+        RectTransform _hotbarTaps; readonly RectTransform[] _taps = new RectTransform[8]; RectTransform[] _hudSlots; Canvas _hudCanvas; RectTransform _mapTap, _hudMap;
+        Rect _lastSafe; Vector2Int _lastScreen;
+        int _movePointer = -99, _lookPointer = -99; Vector2 _moveOrigin, _lookLast;
+        bool _sprintToggle, _aimToggle; Vector2? _stickHome;
+        PlayerInteraction _pi; InventorySystem _inv; PlayerClimb _climb;
+        public bool Visible { get; private set; }
+
+        void Awake() { Build(); }
+        public void BakeLayout() { Build(); }
+
+        void Build()
+        {
+            UIFactory.BeginBuild();
+            try
+            {
+                _canvas = UIFactory.Canvas("[Touch]", 15, transform);
+                _safe = UIFactory.Stretch(_canvas.transform, "SafeArea");
+                // zones (invisible, catch touches)
+                _moveZone = UIFactory.Image(_safe, "MoveZone", null, new Color(1, 1, 1, 0.001f), new Vector2(0, 0), new Vector2(0.42f, 0.62f), new Vector2(0, 0), Vector2.zero, Vector2.zero, true).rectTransform;
+                var look = UIFactory.Image(_safe, "LookZone", null, new Color(1, 1, 1, 0.001f), new Vector2(0.42f, 0), new Vector2(1, 1), new Vector2(0, 0), Vector2.zero, Vector2.zero, true).rectTransform;
+                _stickBase = UIFactory.Image(_moveZone, "StickBase", UIStyle.Slot, new Color(1, 1, 1, 0.45f), new Vector2(0, 0), new Vector2(0, 0), new Vector2(0.5f, 0.5f), new Vector2(230, 230), new Vector2(220, 220)).rectTransform;
+                _knob = UIFactory.Image(_stickBase, "Knob", UIStyle.SlotActive, new Color(1, 1, 1, 0.8f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(96, 96)).rectTransform;
+                // action buttons, bottom right (thumb arc)
+                _attackLabel = Btn("Attack", "ATTACK", new Vector2(-70, 90), 170, hold: OnAttackHold, tap: () => { PlayerInputReader.Virtual.Attack = true; _attackNext = Time.unscaledTime + attackRepeat; }).GetComponentInChildren<Text>();
+                // separate heavy attack (melee / bare hands), up-left of ATTACK; hidden with a bow, food, camp items and in build mode
+                _heavyBtn = Btn("Heavy", "HEAVY", new Vector2(-195, 215), 96, tap: () => PlayerInputReader.Virtual.Heavy = true);
+                Btn("Jump", "JUMP", new Vector2(-270, 60), 118, tap: () => PlayerInputReader.Virtual.Jump = true);
+                _dodgeBtn = Btn("Dodge", "DODGE", new Vector2(-90, 290), 110, tap: () => PlayerInputReader.Virtual.Dodge = true);
+                // build mode: rotate the ghost, cancel (ATTACK becomes BUILD)
+                _rotateBtn = Btn("Rotate", "ROTATE", new Vector2(-280, 230), 118, tap: () => PlayerInputReader.Virtual.Rotate = true);
+                _cancelBtn = Btn("CancelBuild", "CANCEL", new Vector2(-90, 290), 110, tap: () => PlayerInputReader.Virtual.Pause = true);
+                // the minimap sits under the look zone: a tap target over it opens the big map
+                var mt = UIFactory.Image(_canvas.transform, "MapTap", null, new Color(1, 1, 1, 0.001f), Vector2.zero, Vector2.zero, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(200, 200), true);
+                _mapTap = mt.rectTransform;
+                if (Application.isPlaying) mt.gameObject.GetOrAdd<TouchButton>().Down = () => { var mm = GetComponent<Minimap>(); if (mm) mm.Toggle(); };
+                // tap a hotbar slot to hold that item (the HUD itself ignores touches); follows the HUD slots
+                _hotbarTaps = UIFactory.Rect(_canvas.transform, "HotbarTaps", Vector2.zero, Vector2.zero, Vector2.zero, Vector2.zero, Vector2.zero);
+                for (int i = 0; i < 8; i++)
+                {
+                    int slot = i;
+                    var t = UIFactory.Image(_hotbarTaps, "Tap" + i, null, new Color(1, 1, 1, 0.001f), Vector2.zero, Vector2.zero, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(76, 76), true);
+                    _taps[i] = t.rectTransform;
+                    if (Application.isPlaying) t.gameObject.GetOrAdd<TouchButton>().Down = () => PlayerInputReader.Virtual.Hotbar = slot;
+                }
+                _interactBtn = Btn("Use", "USE", new Vector2(-320, 235), 128, hold: v => PlayerInputReader.Virtual.InteractHeld = v, tap: () => PlayerInputReader.Virtual.Interact = true);
+                _interactLabel = _interactBtn.GetComponentInChildren<Text>();
+                // a layout baked before the HEAVY button had USE where HEAVY now sits: move it only if it was never moved by hand
+                var useRt = (RectTransform)_interactBtn.transform;
+                if (UIFactory.Fresh(_heavyBtn.transform) && !UIFactory.Fresh(useRt) && useRt.anchoredPosition == new Vector2(-280, 230)) useRt.anchoredPosition = new Vector2(-320, 235);
+                _aimBtn = Btn("Aim", "AIM", new Vector2(-250, 390), 100, tap: () => _aimToggle = !_aimToggle);
+                _aimImg = _aimBtn.GetComponent<Image>();
+                // by the stick
+                _runImg = Btn("Run", "RUN", new Vector2(420, 60), 96, tap: () => _sprintToggle = !_sprintToggle, left: true).GetComponent<Image>();
+                _crouchImg = Btn("Crouch", "CROUCH", new Vector2(420, 180), 96, tap: () => PlayerInputReader.Virtual.Crouch = true, left: true).GetComponent<Image>();
+                // menus: small row under the vitals (top left)
+                var bar = UIFactory.Rect(_safe, "MenuButtons", new Vector2(0, 1), new Vector2(0, 1), new Vector2(0, 1), new Vector2(24, -236), new Vector2(330, 70));
+                Small(bar, "Menu", "II", 0, () => PlayerInputReader.Virtual.Pause = true);
+                Small(bar, "Bag", "BAG", 1, () => PlayerInputReader.Virtual.Inventory = true);
+                Small(bar, "Craft", "CRAFT", 2, () => PlayerInputReader.Virtual.Craft = true);
+                Small(bar, "Journal", "BOOK", 3, () => PlayerInputReader.Virtual.Journal = true);
+                if (Application.isPlaying)
+                {
+                    Zone(_moveZone.gameObject, OnMoveDown, OnMoveDrag, OnMoveUp);
+                    Zone(look.gameObject, OnLookDown, OnLookDrag, OnLookUp);
+                }
+            }
+            finally { UIFactory.EndBuild(); }
+            if (Application.isPlaying) { _canvas.gameObject.SetActive(false); _rotateBtn.SetActive(false); _cancelBtn.SetActive(false); _heavyBtn.SetActive(false); }
+        }
+
+        GameObject Btn(string name, string label, Vector2 pos, float size, Action<bool> hold = null, Action tap = null, bool left = false)
+        {
+            var anchor = left ? new Vector2(0, 0) : new Vector2(1, 0);
+            var b = UIFactory.Button(_safe, name, label, null, anchor, anchor, new Vector2(0.5f, 0.5f), pos, new Vector2(size, size), size > 140 ? 30 : 20);
+            var t = b.GetComponentInChildren<Text>(); if (t && UIFactory.Fresh(b)) t.resizeTextForBestFit = true;
+            if (Application.isPlaying)
+            {
+                var h = b.gameObject.GetOrAdd<TouchButton>();
+                h.Down = () => { tap?.Invoke(); hold?.Invoke(true); };
+                h.Up = () => hold?.Invoke(false);
+            }
+            return b.gameObject;
+        }
+
+        void Small(RectTransform bar, string name, string label, int i, Action tap)
+        {
+            var b = UIFactory.Button(bar, name, label, null, new Vector2(0, 0.5f), new Vector2(0, 0.5f), new Vector2(0, 0.5f), new Vector2(i * 84, 0), new Vector2(76, 60), 16);
+            if (Application.isPlaying) b.gameObject.GetOrAdd<TouchButton>().Down = tap;
+        }
+
+        static void Zone(GameObject go, Action<PointerEventData> down, Action<PointerEventData> drag, Action<PointerEventData> up)
+        {
+            var z = go.GetOrAdd<TouchZone>(); z.Down = down; z.Drag = drag; z.Up = up;
+        }
+
+        // ------------------------------------------------------------------ stick / look
+        Vector2 Local(PointerEventData e, RectTransform rt)
+        {
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(rt, e.position, null, out var lp);
+            return lp;
+        }
+        void OnMoveDown(PointerEventData e)
+        {
+            if (_movePointer != -99) return;
+            _movePointer = e.pointerId;
+            // the stick appears under the thumb
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(_moveZone, e.position, null, out var lp);
+            if (_stickHome == null) _stickHome = _stickBase.anchoredPosition;
+            _stickBase.anchoredPosition = lp - _moveZone.rect.min;
+            _moveOrigin = e.position; _knob.anchoredPosition = Vector2.zero;
+        }
+        void OnMoveDrag(PointerEventData e)
+        {
+            if (e.pointerId != _movePointer) return;
+            float scale = _canvas.scaleFactor > 0 ? _canvas.scaleFactor : 1f;
+            Vector2 d = (e.position - _moveOrigin) / scale;
+            Vector2 c = Vector2.ClampMagnitude(d, stickRadius);
+            _knob.anchoredPosition = c;
+            PlayerInputReader.Virtual.Move = c / stickRadius;
+        }
+        void OnMoveUp(PointerEventData e)
+        {
+            if (e.pointerId != _movePointer) return;
+            _movePointer = -99; _knob.anchoredPosition = Vector2.zero; PlayerInputReader.Virtual.Move = Vector2.zero;
+            if (_stickHome.HasValue) _stickBase.anchoredPosition = _stickHome.Value;
+        }
+        void OnLookDown(PointerEventData e) { if (_lookPointer == -99) { _lookPointer = e.pointerId; _lookLast = e.position; } }
+        void OnLookDrag(PointerEventData e)
+        {
+            if (e.pointerId != _lookPointer) return;
+            float scale = _canvas.scaleFactor > 0 ? _canvas.scaleFactor : 1f;
+            Vector2 d = (e.position - _lookLast) / scale; _lookLast = e.position;
+            float sens = lookSensitivity * GameSettings.MouseSensitivity / 0.12f;
+            PlayerInputReader.Virtual.LookDelta += new Vector2(d.x, d.y) * sens * (GameSettings.InvertY ? new Vector2(1, -1) : Vector2.one);
+        }
+        void OnLookUp(PointerEventData e) { if (e.pointerId == _lookPointer) _lookPointer = -99; }
+
+        // ------------------------------------------------------------------ per frame
+        public static bool WantTouch()
+        {
+            int mode = GameSettings.TouchControls;          // 0 auto, 1 on, 2 off
+            if (mode == 1) return true;
+            if (mode == 2) return false;
+            return Application.isMobilePlatform || (UnityEngine.InputSystem.Touchscreen.current != null && UnityEngine.InputSystem.Mouse.current == null);
+        }
+
+        void Update()
+        {
+            var ui = UIManager.Instance;
+            bool show = WantTouch() && (ui == null || ui.Current == UIScreen.None) && HUDManager.Instance && HUDManager.Instance.HudAlpha > 0.5f;
+            if (show != Visible)
+            {
+                Visible = show; _canvas.gameObject.SetActive(show);
+                if (!show) { _movePointer = _lookPointer = -99; _attackDown = false; PlayerInputReader.Virtual.Move = Vector2.zero; PlayerInputReader.Virtual.AttackHeld = PlayerInputReader.Virtual.InteractHeld = false; }
+            }
+            PlayerInputReader.Virtual.Active = Visible;
+            if (!Visible) return;
+            FitSafeArea();
+            var player = PlayerLocator.Player;
+            if (player && !_pi) { _pi = player.GetComponent<PlayerInteraction>(); _inv = player.GetComponent<InventorySystem>(); }
+            if (player && !_climb) _climb = player.GetComponent<PlayerClimb>();
+            if (player && !_wc) _wc = player.GetComponent<PrimalFrontier.Combat.Weapons.WeaponController>();
+            // contextual Use button: only when there is something to use; its label says what
+            bool climbing = _climb && _climb.IsClimbing;
+            string prompt = _pi ? _pi.Prompt : null;
+            bool use = prompt != null && (_pi.PromptEnabled || climbing);
+            if (_interactBtn.activeSelf != use) _interactBtn.SetActive(use);
+            if (use && _interactLabel) _interactLabel.text = ContextLabel(prompt, _pi.Target, climbing);
+            // build mode
+            var bs = Building.BuildSystem.Instance; bool building = bs && bs.Active;
+            if (_rotateBtn.activeSelf != building) { _rotateBtn.SetActive(building); _cancelBtn.SetActive(building); _dodgeBtn.SetActive(!building); }
+            if (building && _interactBtn.activeSelf) _interactBtn.SetActive(false);
+            FollowHotbar();
+            var item = _inv ? _inv.ActiveItem : null;
+            // what ATTACK does with this item, and whether HEAVY applies
+            var data = _wc ? _wc.ResolveData(item) : null;
+            bool usable = item && (item.IsFood || item.IsWaterContainer || item.IsPlaceable || PlayerInteraction.HasUseHandler(item));
+            bool melee = data != null && !usable && !data.IsRanged;
+            _holdMeansDraw = !melee;                                             // bow draw, legacy spear: hold keeps its old meaning
+            bool heavy = melee && data.HasHeavy && !building;
+            if (_heavyBtn.activeSelf != heavy) _heavyBtn.SetActive(heavy);
+            if (_attackLabel) _attackLabel.text = AttackLabel(building, item, data, usable);
+            // holding ATTACK with a melee weapon / bare hands repeats light strikes (the combo continues); HEAVY does the heavy
+            if (_attackDown && melee && Time.unscaledTime >= _attackNext) { PlayerInputReader.Virtual.Attack = true; _attackNext = Time.unscaledTime + attackRepeat; }
+            bool aimable = item && (item.weapon == WeaponKind.Spear || item.weapon == WeaponKind.Bow);
+            if (_aimBtn.activeSelf != aimable) _aimBtn.SetActive(aimable);
+            if (!aimable) _aimToggle = false;
+            PlayerInputReader.Virtual.Aim = _aimToggle;
+            PlayerInputReader.Virtual.Sprint = _sprintToggle && PlayerInputReader.Virtual.Move.magnitude > 0.6f;
+            Tint(_runImg, _sprintToggle); Tint(_aimImg, _aimToggle);
+            var motor = player ? player.GetComponent<PlayerMotor>() : null;
+            Tint(_crouchImg, motor && motor.IsCrouching);
+        }
+
+        void OnAttackHold(bool down)
+        {
+            _attackDown = down;
+            PlayerInputReader.Virtual.AttackHeld = down && _holdMeansDraw;      // melee: no hold-for-heavy on touch (HEAVY button)
+        }
+
+        /// <summary>
+        /// label for the target itself when it says what it is: a resource node is GATHER (stone, wood, fiber, fish) or
+        /// HARVEST (food: berries, fruit, edible plants), whatever its prompt verb; everything else goes by the prompt
+        /// </summary>
+        public static string ContextLabel(string prompt, Interactable target, bool climbing)
+        {
+            if (!climbing && target is ResourceNode rn && rn.Def != null) return rn.Def.category == ResourceCategory.Food ? "HARVEST" : "GATHER";
+            return ContextLabel(prompt, target is Climbable, climbing);
+        }
+
+        /// <summary>label of the contextual touch button for an interaction prompt (GATHER / DRINK / FILL / HARVEST / CLIMB / PICK UP / USE)</summary>
+        public static string ContextLabel(string prompt, bool targetIsClimbable, bool climbing)
+        {
+            if (string.IsNullOrEmpty(prompt)) return "USE";
+            bool S(string w) => prompt.StartsWith(w, StringComparison.OrdinalIgnoreCase);
+            if (climbing) return S("Pick") || S("Harvest") ? "HARVEST" : "CLIMB";
+            if (targetIsClimbable || S("Climb")) return "CLIMB";
+            if (S("Drink")) return "DRINK";
+            if (S("Fill")) return "FILL";
+            if (S("Harvest") || S("Pick fruit") || S("Pick the") || S("Pick berries")) return "HARVEST";
+            if (S("Pick up")) return "PICK UP";
+            if (S("Gather") || S("Chop") || S("Mine") || S("Cut") || S("Collect") || S("Break") || S("Butcher") || S("Pick") || S("Catch") || S("Fish")) return "GATHER";
+            return "USE";
+        }
+
+        /// <summary>label of the main touch button: BUILD in build mode, PUNCH with bare hands, EAT / DRINK / PLACE for items it uses, else ATTACK</summary>
+        public static string AttackLabel(bool building, ItemDefinition item, PrimalFrontier.Combat.Weapons.WeaponData data, bool usable)
+        {
+            if (building) return "BUILD";
+            if (usable && item)
+            {
+                if (item.IsPlaceable) return "PLACE";
+                if (item.IsWaterContainer) return "DRINK";
+                if (item.IsFood) return "EAT";
+                return "USE";
+            }
+            if (data != null && data.unarmed) return "PUNCH";
+            return "ATTACK";
+        }
+
+        /// <summary>the tap targets sit exactly over the HUD hotbar slots, wherever the layout puts them</summary>
+        void FollowHotbar()
+        {
+            if (_hudSlots == null || _hudSlots.Length == 0 || !_hudSlots[0])
+            {
+                var hb = transform.Find("[HUD]/Hotbar");
+                if (!hb) { _hotbarTaps.gameObject.SetActive(false); return; }
+                _hudSlots = new RectTransform[8];
+                for (int i = 0; i < 8; i++) _hudSlots[i] = hb.Find("Slot" + i) as RectTransform;
+                _hudCanvas = hb.GetComponentInParent<Canvas>();
+            }
+            float k = _hudCanvas && _canvas.scaleFactor > 0 ? _hudCanvas.scaleFactor / _canvas.scaleFactor : 1f;
+            if (!_hudMap) _hudMap = transform.Find("[HUD]/Minimap") as RectTransform;
+            _mapTap.gameObject.SetActive(_hudMap && _hudMap.gameObject.activeInHierarchy);
+            if (_hudMap) { _mapTap.position = _hudMap.TransformPoint(_hudMap.rect.center); _mapTap.sizeDelta = _hudMap.rect.size * k; }
+            for (int i = 0; i < 8; i++)
+            {
+                var s = _hudSlots[i]; if (!s) { _taps[i].gameObject.SetActive(false); continue; }
+                _taps[i].position = s.TransformPoint(s.rect.center);
+                _taps[i].sizeDelta = s.rect.size * k + new Vector2(6, 16);
+            }
+        }
+
+        static void Tint(Image i, bool on) { if (i) i.color = on ? new Color(1f, 0.85f, 0.55f) : Color.white; }
+
+        void FitSafeArea()
+        {
+            var sa = Screen.safeArea; var sc = new Vector2Int(Screen.width, Screen.height);
+            if (sa == _lastSafe && sc == _lastScreen) return;
+            _lastSafe = sa; _lastScreen = sc;
+            if (sc.x <= 0 || sc.y <= 0) return;
+            _safe.anchorMin = new Vector2(sa.xMin / sc.x, sa.yMin / sc.y);
+            _safe.anchorMax = new Vector2(sa.xMax / sc.x, sa.yMax / sc.y);
+            _safe.offsetMin = _safe.offsetMax = Vector2.zero;
+        }
+    }
+
+    /// <summary>press / release callbacks for a touch button (holds work: attack heavy, hold-E)</summary>
+    public class TouchButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IPointerExitHandler
+    {
+        public Action Down, Up; bool _held;
+        public void OnPointerDown(PointerEventData e) { _held = true; Down?.Invoke(); }
+        public void OnPointerUp(PointerEventData e) { if (_held) { _held = false; Up?.Invoke(); } }
+        public void OnPointerExit(PointerEventData e) { if (_held) { _held = false; Up?.Invoke(); } }
+        void OnDisable() { if (_held) { _held = false; Up?.Invoke(); } }
+    }
+
+    /// <summary>drag area (stick / look) that reports pointer down / drag / up with the pointer id</summary>
+    public class TouchZone : MonoBehaviour, IPointerDownHandler, IDragHandler, IPointerUpHandler
+    {
+        public Action<PointerEventData> Down, Drag, Up;
+        public void OnPointerDown(PointerEventData e) => Down?.Invoke(e);
+        public void OnDrag(PointerEventData e) => Drag?.Invoke(e);
+        public void OnPointerUp(PointerEventData e) => Up?.Invoke(e);
+    }
+}

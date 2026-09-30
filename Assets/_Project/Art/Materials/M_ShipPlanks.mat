@@ -8,7 +8,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: M_ShipPlanks
-  m_Shader: {fileID: 4800000, guid: 933532a4fcc9baf4fa0491de14d08ed7, type: 3}
+  m_Shader: {fileID: 4800000, guid: c99f363e717c3764f89e9e14e68aba6a, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
@@ -20,8 +20,7 @@ Material:
   m_EnableInstancingVariants: 1
   m_DoubleSidedGI: 0
   m_CustomRenderQueue: -1
-  stringTagMap:
-    RenderType: Opaque
+  stringTagMap: {}
   disabledShaderPasses:
   - MOTIONVECTORS
   m_LockedProperties: 
@@ -60,6 +59,10 @@ Material:
         m_Texture: {fileID: 2800000, guid: ffdbe3086499577409b81a15a44f4ba4, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _MossMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _OcclusionMap:
         m_Texture: {fileID: 2800000, guid: ffdbe3086499577409b81a15a44f4ba4, type: 3}
         m_Scale: {x: 1, y: 1}
@@ -89,11 +92,13 @@ Material:
     - _AddPrecomputedVelocity: 0
     - _AlphaClip: 0
     - _AlphaToMask: 0
+    - _BaseWetness: 0
     - _Blend: 0
     - _BlendModePreserveSpecular: 1
     - _BumpScale: 1
     - _ClearCoatMask: 0
     - _ClearCoatSmoothness: 0
+    - _ColorVariation: 0.04
     - _Cull: 2
     - _Cutoff: 0.5
     - _DetailAlbedoMapScale: 1
@@ -105,8 +110,11 @@ Material:
     - _Glossiness: 0
     - _GlossyReflections: 0
     - _Metallic: 0
+    - _MossAmount: 0
+    - _MossTiling: 2.5
     - _OcclusionStrength: 0.8
     - _Parallax: 0.005
+    - _Porosity: 0.7
     - _QueueOffset: 0
     - _ReceiveShadows: 1
     - _Smoothness: 1
@@ -115,6 +123,8 @@ Material:
     - _SrcBlend: 1
     - _SrcBlendAlpha: 1
     - _Surface: 0
+    - _WetResponse: 1
+    - _WetSmoothness: 0.6
     - _WorkflowMode: 1
     - _XRMotionVectorsPass: 1
     - _ZWrite: 1
@@ -122,6 +132,7 @@ Material:
     - _BaseColor: {r: 0.95468706, g: 0.93092453, b: 0.8962438, a: 1}
     - _Color: {r: 0.95468706, g: 0.93092453, b: 0.8962438, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
+    - _MossColor: {r: 1, g: 1, b: 1, a: 1}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

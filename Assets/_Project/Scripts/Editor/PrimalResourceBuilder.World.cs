@@ -12,19 +12,27 @@ namespace PrimalFrontier.EditorTools
     /// <summary>
     /// The island resource pass (bridge: PrimalResourceBuilder.Build). Idempotent, deterministic (fixed seed), logs every
     /// step to Documentation/Resources/resource_build.txt and saves the scene. It never changes the terrain or the island
-    /// outline and never touches item data (unlike PrimalGameplayBuilder):
+    /// outline and never touches item data (unlike PrimalGameplayBuilder). Positions come from the scene at build time:
+    /// ENV's location markers (Markers/Zones/&lt;id&gt;, EnvLocation), the water surfaces (WaterSource meshes), the terrain
+    /// and its trees, the old ZONE_ markers as a fallback; nothing is hard-coded.
     ///  1. data: definitions, tools, database, node prefabs (BuildData);
     ///  2. converts what already looks like a resource: stone piles, driftwood, fibre plants, berry plants / bushes (+ a
     ///     visible crop on the bushes), the medium / large rocks (large rock / boulder), the small decorative rocks (now
     ///     Stone nodes) and the fallen logs (deadwood). Cliffs and the cave stay scenery;
-    ///  3. rebuilds the [Resources] root: a dense start area around the beach spawn (stone, wood, fibre, food within 40 m),
-    ///     a trail of small clusters from the beach past the camp to the pond (the way to fresh water), fallen fruit under
-    ///     each fruit tree, and one small cluster per ~34 m cell elsewhere, picked by biome (beach, meadow, forest edge,
-    ///     forest, rocky, water edge), with empty ground between clusters.
+    ///  3. re-snaps the nodes that are not rebuilt (World/Resources, the cave stones, Markers/ResourceAreas) to the current
+    ///     ground and moves the ones that ended up in water to the nearest dry spot;
+    ///  4. rebuilds the [Resources] root: a dense start area around the beach spawn, trails from the beach to the pond and
+    ///     to the river mouth, fallen fruit under each fruit tree, bank clusters + fish shoals along every fresh water body
+    ///     (river, waterfall pool, lagoon, pond), clusters inside the new biomes (meadow, canyon, ridge, wetland, waterfall)
+    ///     and one small cluster per ~34 m cell elsewhere, picked by biome, with empty ground between clusters; rare nodes
+    ///     (bones and a hide at the kill site / predator territory, shipwreck scraps along the shore);
+    ///  5. verifies: every node on the ground (none buried or floating), none in water unless it is a fish shoal.
     /// </summary>
     public static partial class PrimalResourceBuilder
     {
-        enum Biome { Beach, Meadow, ForestEdge, Forest, Rocky, WaterEdge }
+        enum Biome { Beach, Meadow, ForestEdge, Forest, Rocky, WaterEdge, RiverBank, WaterfallPool, Wetland, Canyon, Ridge }
+        /// <summary>ENV's location markers by id (Markers/Zones/&lt;id&gt;), read at build time</summary>
+        static readonly Dictionary<string, (Vector3 p, float r)> _loc = new Dictionary<string, (Vector3, float)>();
         const int Seed = 35012;
 
         static Terrain _t; static TerrainData _td; static Vector3 _tp;
@@ -48,9 +56,12 @@ namespace PrimalFrontier.EditorTools
             var db = BuildDataInto(_log);
             if (!Setup()) return _log.ToString();
             ConvertExisting(db);
+            ResnapExisting();
             PlaceNew(db);
+            P1AfterPlaceNew(db);
             WireSystems(db);
             Report();
+            Verify();
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene);
             L("scene saved " + scene.path);
@@ -72,14 +83,24 @@ namespace PrimalFrontier.EditorTools
                 var p = Vector3.Scale(ti.position, _td.size) + _tp; var k = Cell8(p);
                 if (!_treeGrid.TryGetValue(k, out var l)) _treeGrid[k] = l = new List<Vector3>(); l.Add(p);
             }
-            _water.Clear();
-            foreach (var ws in Object.FindObjectsByType<WaterSource>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            _water.Clear(); var bodies = new List<string>();
+            foreach (var ws in Object.FindObjectsByType<WaterSource>(FindObjectsInactive.Exclude, FindObjectsSortMode.None))
             {
+                if (!ws.enabled || !ws.gameObject.activeInHierarchy) continue;                     // the old stream is switched off: not water any more
                 var mf = ws.surface ? ws.surface : ws.GetComponentInChildren<MeshFilter>(); if (!mf || !mf.sharedMesh) continue;
-                RasterWater(mf);
+                int before = _water.Count; RasterWater(mf); bodies.Add($"{ws.name} {_water.Count - before}");
             }
+            _loc.Clear();
+            foreach (var e in Object.FindObjectsByType<EnvLocation>(FindObjectsInactive.Exclude, FindObjectsSortMode.None))
+                if (!string.IsNullOrEmpty(e.id)) _loc[e.id] = (e.transform.position, Mathf.Max(5f, e.radius));
+            // fallbacks for a scene without ENV's markers (old ZONE_ empties)
+            void Fallback(string id, string zone, float r) { if (!_loc.ContainsKey(id)) { var m = Marker(zone); if (m != Vector3.zero) _loc[id] = (m, r); } }
+            Fallback("beach", "ZONE_StartBeach", 40f); Fallback("shipwreck", "ZONE_Shipwreck", 18f); Fallback("meadow", "ZONE_Meadow", 70f); Fallback("cave", "ZONE_Cave", 12f);
             Physics.SyncTransforms();
-            L($"terrain {_td.size} at {_tp}, layers {string.Join(",", _layers)}, trees {_td.treeInstanceCount}, fresh water cells {_water.Count}");
+            L($"terrain {_td.size} at {_tp}, layers {string.Join(",", _layers)}, trees {_td.treeInstanceCount}");
+            L($"fresh water cells {_water.Count} from {bodies.Count} active bodies: {string.Join(", ", bodies)}");
+            L($"locations ({_loc.Count}): {string.Join(", ", _loc.OrderBy(k => k.Key).Select(k => $"{k.Key} {V(k.Value.p)} r{k.Value.r:F0}"))}");
+            foreach (var need in new[] { "beach", "river", "waterfall", "meadow", "canyon", "wetland", "ridge", "predator_territory" }) if (!_loc.ContainsKey(need)) L($"WARNING location '{need}' missing: its clusters are skipped");
             return true;
         }
 
@@ -154,17 +175,33 @@ namespace PrimalFrontier.EditorTools
         static Vector3 Normal(Vector3 p) { var u = p - _tp; return _td.GetInterpolatedNormal(u.x / _td.size.x, u.z / _td.size.z); }
 
         static Vector3 Marker(string name) { var g = GameObject.Find(name); return g ? g.transform.position : Vector3.zero; }
+        static bool Loc(string id, out Vector3 p, out float r) { if (_loc.TryGetValue(id, out var v)) { p = v.p; r = v.r; return true; } p = Vector3.zero; r = 0f; return false; }
+        static bool InLoc(string id, Vector3 p, float scale = 1f) => _loc.TryGetValue(id, out var v) && Flat(p - v.p).magnitude <= v.r * scale;
+        /// <summary>the storytelling prop with this discovery id (ENV's Story step), or the location fallback</summary>
+        static bool Prop(string discoveryId, string fallbackLoc, out Vector3 p)
+        {
+            foreach (var e in Object.FindObjectsByType<Examinable>(FindObjectsInactive.Exclude, FindObjectsSortMode.None))
+                if (e.discoveryId == discoveryId) { p = e.transform.position; return true; }
+            if (fallbackLoc != null && Loc(fallbackLoc, out p, out _)) return true;
+            p = Vector3.zero; return false;
+        }
 
+        /// <summary>biome of a spot: ENV's locations first (wetland, canyon, ridge, volcano, waterfall, river, meadow, beach), then water distance, splat layer and tree density</summary>
         static Biome BiomeAt(Vector3 p)
         {
-            float h = Ground(p);
-            if (WaterDistance(p, 7f) < 7f) return Biome.WaterEdge;
+            float h = Ground(p); float wd = WaterDistance(p, 9f);
+            if (InLoc("wetland", p, 1.1f)) return Biome.Wetland;
+            if (InLoc("waterfall", p, 1.2f)) return Biome.WaterfallPool;
+            if (InLoc("canyon", p, 1.1f) || InLoc("fossil_bed", p)) return Biome.Canyon;
+            if (InLoc("ridge", p) || InLoc("volcano", p, 0.9f)) return Biome.Ridge;
+            if (wd < 7f) return InLoc("river", p, 1.3f) ? Biome.RiverBank : Biome.WaterEdge;
             string layer = Splat(p);
+            if (layer.Contains("Mud")) return Biome.WaterEdge;
             var rocky = Marker("ZONE_Rocky");
-            if (layer.Contains("Rock") || Steep(p) > 24f || (rocky != Vector3.zero && Flat(p - rocky).magnitude < 45f)) return Biome.Rocky;
+            if (layer.Contains("Rock") || layer.Contains("Ash") || Steep(p) > 24f || (rocky != Vector3.zero && Flat(p - rocky).magnitude < 45f)) return Biome.Rocky;
             if (layer.Contains("Sand") && h < 6f) return Biome.Beach;
             int trees = TreesWithin(p, 12f);
-            if (trees >= 6 || layer.Contains("Forest")) return Biome.Forest;
+            if (trees >= 6 || layer.Contains("Forest") || layer.Contains("Moss") || InLoc("deep_forest", p, 0.8f)) return Biome.Forest;
             if (trees >= 1) return Biome.ForestEdge;
             return Biome.Meadow;
         }
@@ -182,6 +219,7 @@ namespace PrimalFrontier.EditorTools
             for (int dx = -1; dx <= 1; dx++) for (int dz = -1; dz <= 1; dz++)
                     if (_treeGrid.TryGetValue(new Vector2Int(k.x + dx, k.y + dz), out var l)) foreach (var t in l) { var d = t - p; d.y = 0; if (d.sqrMagnitude < 1.4f * 1.4f) return false; }
             var camp = Marker("ZONE_Camp"); if (camp != Vector3.zero && Flat(p - camp).magnitude < 7f) return false;   // keep the camp site clear for building
+            if (InLoc("old_camp", p, 0.6f) || InLoc("nest", p, 0.5f)) return false;                                        // ENV's story spots stay readable
             var c = new Vector3(p.x, h + r + 0.15f, p.z);
             int n = Physics.OverlapSphereNonAlloc(c, r + 0.1f, _ov, ~0, QueryTriggerInteraction.Collide);
             for (int i = 0; i < n; i++) if (_ov[i] && !(_ov[i] is TerrainCollider)) return false;
@@ -217,8 +255,8 @@ namespace PrimalFrontier.EditorTools
             if (!world) { L("ERROR World root missing"); return; }
             // World/Resources (+ the cave stones in [Gameplay])
             var res = new List<Transform>();
-            var rg = world.transform.Find("Resources"); if (rg) foreach (Transform t in rg) res.Add(t);
-            var cave = GameObject.Find("[Gameplay]/Cave"); if (cave) foreach (Transform t in cave.transform) res.Add(t);
+            var rg = PrimalFrontier.Core.SceneRoots.Legacy("World/Resources"); if (rg) foreach (Transform t in rg) res.Add(t);
+            var cave = PrimalFrontier.Core.SceneRoots.LegacyObject("[Gameplay]/Cave"); if (cave) foreach (Transform t in cave.transform) res.Add(t);
             foreach (var t in res)
             {
                 var n = t.GetComponent<ResourceNode>(); if (!n) continue;
@@ -226,8 +264,10 @@ namespace PrimalFrontier.EditorTools
                 var d = def != null ? db.Get(def) : null; if (!d) continue;
                 Assign(n, d, $"res_{def}_{Hash(t.name + t.position):x}", true); Count(def);
             }
-            // rocks: small (decorative until now) -> Stone, medium -> Large rock, large -> Boulder
-            var rocks = world.transform.Find("Rocks");
+            // rocks: small (decorative until now) -> Stone, medium -> Large rock, large -> Boulder. ENV owns and re-snaps the rocks; a rock
+            // standing in deep water (river bed, lagoon) keeps its node switched off: scenery, not a prompt under water
+            var rocks = PrimalFrontier.Core.SceneRoots.Legacy("World/Rocks");
+            int underwater = 0;
             if (rocks)
             {
                 var list = rocks.Cast<Transform>().OrderBy(t => t.position.x).ThenBy(t => t.position.z).ToList();
@@ -240,11 +280,15 @@ namespace PrimalFrontier.EditorTools
                     if (!n) n = t.gameObject.AddComponent<ResourceNode>();
                     Assign(n, d, def == "stone_medium" ? $"rock_small_{small}" : $"rock_{Hash(t.name + t.position):x}", true);
                     if (def == "stone_medium") small++;
+                    bool deep = _water.TryGetValue(Cell1(t.position), out var wy) && wy - Ground(t.position) > 0.4f;
+                    if (n.enabled == deep) { n.enabled = !deep; EditorUtility.SetDirty(n); if (PrefabUtility.IsPartOfPrefabInstance(n)) PrefabUtility.RecordPrefabInstancePropertyModifications(n); }
+                    if (deep) underwater++;
                     Count(def);
                 }
             }
+            if (underwater > 0) L($"rocks standing in deep water: {underwater} (node switched off, scenery)");
             // fallen logs -> deadwood
-            var veg = world.transform.Find("Vegetation");
+            var veg = PrimalFrontier.Core.SceneRoots.Legacy("World/Vegetation");
             if (veg)
             {
                 int i = 0;
@@ -291,11 +335,18 @@ namespace PrimalFrontier.EditorTools
         static readonly Dictionary<Biome, (string prefab, float w)[]> Recipes = new Dictionary<Biome, (string, float)[]>
         {
             [Biome.Beach] = new[] { ("Resource_Wood_Driftwood", 3f), ("Resource_Stone_Small", 3f), ("Resource_Wood_Branch", 1f), ("Resource_Food_FallenFruit", 1f), ("Resource_Fiber_LongGrass", 1.5f) },
-            [Biome.Meadow] = new[] { ("Resource_Fiber_LongGrass", 4f), ("Resource_Fiber_Plant", 2f), ("Resource_Stone_Small", 2f), ("Resource_Food_BerryBush", 1f), ("Resource_Wood_Branch", 1f), ("Resource_Food_EdiblePlant", 1f) },
+            [Biome.Meadow] = new[] { ("Resource_Fiber_LongGrass", 4f), ("Resource_Fiber_Plant", 2.5f), ("Resource_Food_BerryBush", 2f), ("Resource_Food_EdiblePlant", 1.2f), ("Resource_Stone_Small", 0.8f), ("Resource_Wood_Branch", 0.8f) },
             [Biome.ForestEdge] = new[] { ("Resource_Fiber_Plant", 3f), ("Resource_Wood_Branch", 3f), ("Resource_Stone_Small", 2f), ("Resource_Food_BerryBush", 2f), ("Resource_Fiber_Fern", 1f), ("Resource_Fiber_SmallBush", 1f), ("Resource_Food_EdiblePlant", 1.5f) },
             [Biome.Forest] = new[] { ("Resource_Fiber_Fern", 3f), ("Resource_Wood_Branch", 3f), ("Resource_Wood_SmallLog", 2f), ("Resource_Stone_Medium", 1f), ("Resource_Fiber_SmallBush", 2f), ("Resource_Food_FallenFruit", 0.7f) },
             [Biome.Rocky] = new[] { ("Resource_Stone_Small", 4f), ("Resource_Stone_Medium", 3f), ("Resource_Fiber_LongGrass", 1f) },
             [Biome.WaterEdge] = new[] { ("Resource_Fiber_LongGrass", 3f), ("Resource_Stone_Small", 2f), ("Resource_Fiber_Plant", 1f), ("Resource_Food_EdiblePlant", 2f) },
+            // the new terrain (directive 23-25): river banks stones + reeds + fibre + food; the pool stones, ferns and moss-side fibre; the
+            // wetland reeds, fibre and edible plants; the canyon much stone and little food; the ridge stone and deadwood
+            [Biome.RiverBank] = new[] { ("Resource_Stone_Small", 3f), ("Resource_Stone_Medium", 1.5f), ("Resource_Fiber_LongGrass", 3f), ("Resource_Fiber_Plant", 1.5f), ("Resource_Food_EdiblePlant", 1.5f), ("Resource_Wood_Driftwood", 1f) },
+            [Biome.WaterfallPool] = new[] { ("Resource_Stone_Small", 3f), ("Resource_Stone_Medium", 2f), ("Resource_Fiber_Fern", 2f), ("Resource_Fiber_Plant", 1f), ("Resource_Food_EdiblePlant", 1f) },
+            [Biome.Wetland] = new[] { ("Resource_Fiber_LongGrass", 4f), ("Resource_Fiber_Plant", 2f), ("Resource_Food_EdiblePlant", 3f), ("Resource_Stone_Small", 1f), ("Resource_Wood_Driftwood", 0.6f) },
+            [Biome.Canyon] = new[] { ("Resource_Stone_Small", 4f), ("Resource_Stone_Medium", 4f), ("Resource_Fiber_Fern", 0.5f), ("Resource_Food_EdiblePlant", 0.3f) },
+            [Biome.Ridge] = new[] { ("Resource_Stone_Small", 4f), ("Resource_Stone_Medium", 3f), ("Resource_Wood_SmallLog", 1.5f), ("Resource_Wood_Branch", 1f), ("Resource_Fiber_LongGrass", 0.5f) },
         };
 
         static string Variant(string prefab, System.Random rng)
@@ -354,7 +405,7 @@ namespace PrimalFrontier.EditorTools
             go.transform.SetPositionAndRotation(new Vector3(at.x, g + 0.05f, at.z), Quaternion.Euler(0f, (float)rng.NextDouble() * 360f, 0f));
             var node = go.GetComponent<ResourceNode>(); var def = node.definition;
             string id = $"rn_{def.id}_{_placed:0000}";
-            node.SaveId = id; node.charges = def.RollAmount(Hash(id));
+            node.SaveId = id; node.charges = def.RollAmount(Hash(id)); node.cueHeight = depth - 0.05f;       // the ripple cue plays on the surface
             PrefabUtility.RecordPrefabInstancePropertyModifications(node); PrefabUtility.RecordPrefabInstancePropertyModifications(go.transform);
             go.name = $"{prefab.name}_{_placed:0000}";
             _placed++; _placedBy["fish"] = _placedBy.TryGetValue("fish", out var n) ? n + 1 : 1;
@@ -366,6 +417,7 @@ namespace PrimalFrontier.EditorTools
             var old = GameObject.Find("[Resources]"); if (old) Object.DestroyImmediate(old);
             Physics.SyncTransforms();
             _root = new GameObject("[Resources]").transform;
+            var rp = PrimalFrontier.Core.SceneRoots.LegacyParent("[Resources]", true); if (rp) _root.SetParent(rp, false);   // World/Gameplay/Resources (HIER)
             _placed = 0; _placedBy.Clear();
             var rng = new System.Random(Seed);
             var spawnT = GameObject.Find("ZONE_PlayerSpawn"); Vector3 spawn = spawnT ? spawnT.transform.position : Vector3.zero;
@@ -407,30 +459,23 @@ namespace PrimalFrontier.EditorTools
             usedCenters.AddRange(centers);
             L($"start area: {centers.Count} groups around the spawn {spawn}, {(_placedBy.TryGetValue("start area", out var sa) ? sa : 0)} nodes");
 
-            // --- the trail to fresh water: beach -> camp -> fibre meadow -> pond edge, a small cluster every ~22 m
+            // --- trails to fresh water: beach -> camp -> fibre meadow -> pond edge, and beach -> the river mouth / lagoon; a small cluster every ~22 m
             var trail = new GameObject("TrailToWater").transform; trail.SetParent(_root);
             var pond = Marker("WATER_Pond"); if (pond == Vector3.zero) pond = Marker("ZONE_Pond");
             var pts = new List<Vector3> { spawn };
             foreach (var m in new[] { "ZONE_Camp", "RESAREA_Fiber" }) { var q = Marker(m); if (q != Vector3.zero) pts.Add(q); }
             if (pond != Vector3.zero) { var last = pts[pts.Count - 1]; pts.Add(pond + Flat(last - pond).normalized * 27f); }
-            float along = 0f, next = 40f; int side = 1, trailClusters = 0;
-            for (int s = 0; s + 1 < pts.Count; s++)
+            int trailClusters = Trail(pts, "Pond", trail, rng, usedCenters, 40f);
+            var trails = new List<string> { $"pond: {pts.Count} waypoints ({string.Join(" -> ", pts.Select(V))})" };
+            if (Loc("wetland", out var wet, out var wetR))
             {
-                var a = pts[s]; var b = pts[s + 1]; float len = Flat(b - a).magnitude; var dir = Flat(b - a).normalized; var perp = Vector3.Cross(Vector3.up, dir);
-                while (next <= along + len)
-                {
-                    var p = a + dir * (next - along) + perp * side * (4f + (float)rng.NextDouble() * 3f); side = -side; next += 22f;
-                    var biome = BiomeAt(p); int n = 2 + rng.Next(2); int got = 0;
-                    var grp = new GameObject($"Trail_{trailClusters:00}_{biome}").transform; grp.SetParent(trail);
-                    // always something useful on the way: one fibre / stone / food node, then the biome's mix
-                    string first = trailClusters % 3 == 0 ? "Resource_Stone_Small" : trailClusters % 3 == 1 ? "Resource_Fiber_Plant" : "Resource_Food_BerryBush";
-                    if (Place(first, p, 0.5f, 3f, rng, grp, "trail")) got++;
-                    for (int i = 1; i < n; i++) if (Place(Pick(Recipes[biome], rng), p, 0.8f, 4f, rng, grp, "trail")) got++;
-                    if (got == 0) Object.DestroyImmediate(grp.gameObject); else { usedCenters.Add(p); trailClusters++; }
-                }
-                along += len;
+                // the river mouth crosses the +x end of the start beach: the nearest fresh water for a survivor who follows the shore
+                var mouth = wet + Flat(spawn - wet).normalized * (wetR + 6f);
+                var pts2 = new List<Vector3> { spawn, Vector3.Lerp(spawn, mouth, 0.5f) + Vector3.Cross(Vector3.up, Flat(mouth - spawn).normalized) * -6f, mouth };
+                trailClusters += Trail(pts2, "Mouth", trail, rng, usedCenters, 30f);
+                trails.Add($"river mouth: {string.Join(" -> ", pts2.Select(V))}");
             }
-            L($"trail to fresh water: {pts.Count} waypoints ({string.Join(" -> ", pts.Select(V))}), {trailClusters} clusters, {(_placedBy.TryGetValue("trail", out var tn) ? tn : 0)} nodes");
+            L($"trails to fresh water: {string.Join("; ", trails)}; {trailClusters} clusters, {(_placedBy.TryGetValue("trail", out var tn) ? tn : 0)} nodes");
 
             // --- fallen fruit under each fruit tree (food without climbing)
             var fruitRoot = new GameObject("FruitTreeDrops").transform; fruitRoot.SetParent(_root);
@@ -451,18 +496,47 @@ namespace PrimalFrontier.EditorTools
                 if (land.sqrMagnitude < 0.01f) continue;
                 picks.Add((p, land.normalized));
             }
-            int banks = 0, fish = 0; var fishPrefab = NodePrefab("Resource_Fish_Shoal");
+            int banks = 0, fish = 0; var fishPrefab = NodePrefab("Resource_Fish_Shoal"); var bankBiomes = new Dictionary<Biome, int>();
             for (int i = 0; i < picks.Count; i++)
             {
                 var (p, land) = picks[i];
                 var bank = p + land * 3.5f;
-                var grp = new GameObject($"Bank_{banks:00}").transform; grp.SetParent(waterRoot);
-                int got = 0, n = 2 + rng.Next(2);
-                for (int k = 0; k < n; k++) if (Place(Pick(Recipes[Biome.WaterEdge], rng), bank, k == 0 ? 0f : 0.8f, 3.5f, rng, grp, "water edge")) got++;
-                if (got == 0) Object.DestroyImmediate(grp.gameObject); else { banks++; usedCenters.Add(bank); }
-                if (fishPrefab && (i % 2 == 0 || fish < 3)) { for (float d = 2f; d <= 5f; d += 1f) if (PlaceFish(fishPrefab, p - land * d, rng, waterRoot)) { fish++; break; } }
+                var biome = BiomeAt(bank);
+                if (biome != Biome.RiverBank && biome != Biome.Wetland && biome != Biome.WaterfallPool) biome = Biome.WaterEdge;
+                var grp = new GameObject($"Bank_{banks:00}_{biome}").transform; grp.SetParent(waterRoot);
+                int got = 0, n = biome == Biome.Wetland ? 3 + rng.Next(2) : 2 + rng.Next(2);
+                for (int k = 0; k < n; k++) if (Place(Pick(Recipes[biome], rng), bank, k == 0 ? 0f : 0.8f, 3.5f, rng, grp, "water edge")) got++;
+                if (got == 0) Object.DestroyImmediate(grp.gameObject); else { banks++; usedCenters.Add(bank); bankBiomes[biome] = bankBiomes.TryGetValue(biome, out var bb) ? bb + 1 : 1; }
+                // fish: every second bank, every bank in the wetland and at the pool, at least three on the island
+                bool wantFish = i % 2 == 0 || fish < 3 || biome == Biome.Wetland || biome == Biome.WaterfallPool;
+                if (fishPrefab && wantFish) { for (float d = 2f; d <= 6f; d += 1f) if (PlaceFish(fishPrefab, p - land * d, rng, waterRoot)) { fish++; break; } }
             }
-            L($"water edges: {picks.Count} shore spots, {banks} bank clusters ({(_placedBy.TryGetValue("water edge", out var we) ? we : 0)} nodes), {fish} fish shoals{(fishPrefab ? "" : " (no raw_fish item / model yet)")}");
+            L($"water edges: {picks.Count} shore spots, {banks} bank clusters ({string.Join(", ", bankBiomes.Select(k => k.Key + " " + k.Value))}; {(_placedBy.TryGetValue("water edge", out var we) ? we : 0)} nodes), {fish} fish shoals{(fishPrefab ? "" : " (no raw_fish item / model yet)")}");
+
+            // --- the new biomes (ENV terrain v2): clusters inside each location, denser than the island grid
+            var zones = new GameObject("Biomes").transform; zones.SetParent(_root);
+            foreach (var (id, count, minN, maxN) in new[] { ("meadow", 12, 2, 4), ("herbivore_valley", 4, 2, 3), ("canyon", 9, 3, 5), ("ridge", 7, 3, 4), ("wetland", 7, 3, 4), ("waterfall", 4, 2, 3), ("river", 6, 2, 4), ("volcano", 3, 2, 3) })
+            {
+                if (!Loc(id, out var c0, out var r0)) continue;
+                var zroot = new GameObject("Zone_" + id).transform; zroot.SetParent(zones);
+                int made = 0, nodes0 = _placed;
+                for (int attempt = 0; attempt < count * 14 && made < count; attempt++)
+                {
+                    float a = (float)rng.NextDouble() * Mathf.PI * 2f, d = (float)Mathf.Sqrt((float)rng.NextDouble()) * r0 * 0.92f;
+                    var p = c0 + new Vector3(Mathf.Cos(a) * d, 0f, Mathf.Sin(a) * d);
+                    if (Ground(p) < 0.8f || usedCenters.Any(u => Flat(u - p).magnitude < 14f) || !Free(p, 1.0f)) continue;
+                    var biome = BiomeAt(p);
+                    var grp = new GameObject($"{id}_{made:00}_{biome}").transform; grp.SetParent(zroot);
+                    int n = minN + rng.Next(maxN - minN + 1), got = 0;
+                    for (int i = 0; i < n; i++) if (Place(Pick(Recipes[biome], rng), p, i == 0 ? 0f : 1.2f, 4.5f, rng, grp, "biomes")) got++;
+                    if (got == 0) { Object.DestroyImmediate(grp.gameObject); continue; }
+                    made++; usedCenters.Add(p);
+                }
+                L($"biome {id}: {made} clusters, {_placed - nodes0} nodes (r {r0:F0} m at {V(c0)})");
+            }
+
+            // --- rare nodes: bones + one hide at the kill site and in the predator territory, shipwreck scraps along the shore
+            PlaceRare(rng, usedCenters);
 
             // --- the rest of the island: one small cluster per ~34 m cell, by biome, empty ground between
             var island = new GameObject("Island").transform; island.SetParent(_root);
@@ -484,6 +558,125 @@ namespace PrimalFrontier.EditorTools
                 }
             L($"island clusters: {clusters} ({string.Join(", ", biomeCount.Select(k => k.Key + " " + k.Value))}), {(_placedBy.TryGetValue("island", out var inn) ? inn : 0)} nodes");
             L($"new nodes total {_placed} under [Resources]");
+        }
+
+        /// <summary>small clusters every ~22 m along a polyline, alternating sides; the first node is always something useful (stone / fibre / food)</summary>
+        static int Trail(List<Vector3> pts, string name, Transform parent, System.Random rng, List<Vector3> usedCenters, float firstAt)
+        {
+            float along = 0f, next = firstAt; int side = 1, made = 0;
+            for (int s = 0; s + 1 < pts.Count; s++)
+            {
+                var a = pts[s]; var b = pts[s + 1]; float len = Flat(b - a).magnitude; if (len < 0.5f) continue;
+                var dir = Flat(b - a).normalized; var perp = Vector3.Cross(Vector3.up, dir);
+                while (next <= along + len)
+                {
+                    var p = a + dir * (next - along) + perp * side * (4f + (float)rng.NextDouble() * 3f); side = -side; next += 22f;
+                    if (Ground(p) < 0.8f) continue;
+                    var biome = BiomeAt(p); int n = 2 + rng.Next(2); int got = 0;
+                    var grp = new GameObject($"Trail{name}_{made:00}_{biome}").transform; grp.SetParent(parent);
+                    string first = made % 3 == 0 ? "Resource_Stone_Small" : made % 3 == 1 ? "Resource_Fiber_Plant" : "Resource_Food_BerryBush";
+                    if (Place(first, p, 0.5f, 3f, rng, grp, "trail")) got++;
+                    for (int i = 1; i < n; i++) if (Place(Pick(Recipes[biome], rng), p, 0.8f, 4f, rng, grp, "trail")) got++;
+                    if (got == 0) Object.DestroyImmediate(grp.gameObject); else { usedCenters.Add(p); made++; }
+                }
+                along += len;
+            }
+            return made;
+        }
+
+        /// <summary>rare nodes (directive 23-25). Item ids come from SURV: a missing item or model skips that kind with a log line.</summary>
+        static void PlaceRare(System.Random rng, List<Vector3> usedCenters)
+        {
+            var root = new GameObject("Rare").transform; root.SetParent(_root);
+            int n0 = _placed;
+            // bones: 4 piles within 5-16 m of the skeleton, 4 more in the predator territory, 1 along the theropod trail; one torn hide at the kill site
+            var bones = NodePrefab("Resource_Rare_Bones"); var hide = NodePrefab("Resource_Rare_Hide");
+            bool kill = Prop("env_giant_skeleton", "predator_territory", out var skel);
+            if (!bones) L("rare bones: skipped (no 'bone' item model and no PROP_PC_Bones prefab yet: run ENV's Story step, then this builder again)");
+            else if (!kill) L("rare bones: skipped (no kill site and no 'predator_territory' location)");
+            else
+            {
+                int b = 0;
+                for (int i = 0; i < 4; i++) if (Place("Resource_Rare_Bones", skel, 5f, 16f, rng, root, "rare bones")) b++;
+                if (Loc("predator_territory", out var pt, out var pr)) for (int i = 0; i < 4; i++) if (Place("Resource_Rare_Bones", pt, 8f, pr * 0.9f, rng, root, "rare bones")) b++;
+                if (Prop("env_theropod_trail", null, out var trail)) if (Place("Resource_Rare_Bones", trail, 3f, 8f, rng, root, "rare bones")) b++;
+                L($"rare bones: {b} piles around the kill site {V(skel)} and the predator territory");
+            }
+            if (!hide) L("rare hide: skipped (item 'hide' missing or without a world model)");
+            else if (kill) L(Place("Resource_Rare_Hide", skel, 3f, 9f, rng, root, "rare hide") ? "rare hide: 1 at the kill site" : "rare hide: no free spot at the kill site");
+            // shipwreck scraps: at the wreck remains along the shore (ENV's WreckRemains pieces), else spread along the dry sand of the beach; 2 at the wreck itself
+            var scraps = NodePrefab("Resource_Rare_WreckScraps");
+            if (!scraps) L("rare wreck scraps: skipped (SURV's 'wreck_scraps' item has no world model yet and PROP_PC_WreckPlanks is not built: run SURV's builder S5 / ENV's Story, then this builder again)");
+            else
+            {
+                int sc = 0; var spots = new List<Vector3>();
+                var remains = PrimalFrontier.Core.SceneRoots.LegacyObject("World/Environment/Storytelling/WreckRemains");
+                if (remains) foreach (Transform t in remains.transform) spots.Add(t.position);
+                if (spots.Count == 0 && Loc("beach", out var bc, out var br))
+                    for (int i = 0; i < 8; i++) { float a = (float)rng.NextDouble() * Mathf.PI * 2f; spots.Add(bc + new Vector3(Mathf.Cos(a), 0f, Mathf.Sin(a)) * br * (0.5f + 0.45f * (float)rng.NextDouble())); }
+                spots = spots.Where(q => Ground(q) > 0.6f && Ground(q) < 6f && Splat(q).Contains("Sand")).OrderBy(_ => rng.Next()).Take(6).ToList();
+                foreach (var q in spots) if (Place("Resource_Rare_WreckScraps", q, 1.5f, 3.5f, rng, root, "rare scraps")) sc++;
+                if (Loc("shipwreck", out var wreck, out var wr)) for (int i = 0; i < 2; i++) if (Place("Resource_Rare_WreckScraps", wreck, 7f, Mathf.Max(9f, wr * 0.6f), rng, root, "rare scraps")) sc++;
+                L($"rare wreck scraps: {sc} piles ({(remains ? "at ENV's wreck remains" : "along the beach sand")} + the wreck)");
+            }
+            L($"rare nodes: {_placed - n0}");
+        }
+
+        /// <summary>
+        /// nodes that are not rebuilt (World/Resources, the cave stones, Markers/ResourceAreas) sit on the ground of the current terrain;
+        /// one that ended up in water (or below the sea) moves to the nearest dry spot within 10 m, else it is switched off (logged)
+        /// </summary>
+        static void ResnapExisting()
+        {
+            int snapped = 0, moved = 0, off = 0, marks = 0; var log = new List<string>();
+            var world = GameObject.Find("World");
+            var list = new List<Transform>();
+            var rg = PrimalFrontier.Core.SceneRoots.Legacy("World/Resources"); if (rg) foreach (Transform t in rg) list.Add(t);
+            var cave = PrimalFrontier.Core.SceneRoots.LegacyObject("[Gameplay]/Cave"); if (cave) foreach (Transform t in cave.transform) list.Add(t);
+            foreach (var t in list)
+            {
+                var n = t.GetComponent<ResourceNode>(); if (!n) continue;
+                var p = t.position; float g = Ground(p);
+                bool wet = InWater(p) || g < 0.45f;
+                if (wet)
+                {
+                    bool found = false;
+                    for (float r = 2f; r <= 10f && !found; r += 2f)
+                        for (int k = 0; k < 12 && !found; k++)
+                        {
+                            float a = k / 12f * Mathf.PI * 2f; var q = p + new Vector3(Mathf.Cos(a) * r, 0f, Mathf.Sin(a) * r);
+                            if (!Free(q, Mathf.Max(0.3f, n.radius))) continue;
+                            q.y = Ground(q) - 0.02f; t.position = q; found = true; moved++; log.Add($"moved {t.name} {V(p)} -> {V(q)}");
+                        }
+                    if (!found) { t.gameObject.SetActive(false); off++; log.Add($"OFF {t.name} {V(p)} (in water, no dry spot within 10 m)"); }
+                }
+                else if (Mathf.Abs(p.y - g) > 0.03f) { t.position = new Vector3(p.x, g - 0.02f, p.z); snapped++; }
+                EditorUtility.SetDirty(t);
+                if (PrefabUtility.IsPartOfPrefabInstance(t)) PrefabUtility.RecordPrefabInstancePropertyModifications(t);
+            }
+            var areas = GameObject.Find("Markers/ResourceAreas");
+            if (areas) foreach (Transform m in areas.transform) { var p = m.position; float g = Ground(p); if (Mathf.Abs(p.y - g) > 0.03f) { m.position = new Vector3(p.x, g, p.z); marks++; EditorUtility.SetDirty(m); } }
+            Physics.SyncTransforms();
+            L($"re-snap of kept nodes: {list.Count} checked, {snapped} snapped to the ground, {moved} moved out of water, {off} switched off, {marks} RESAREA markers snapped");
+            foreach (var l in log.Take(30)) L("   " + l);
+        }
+
+        /// <summary>after the build: no node buried or floating (|y - ground| over 0.6 m), none in water unless it is a fish shoal</summary>
+        static void Verify()
+        {
+            var all = Object.FindObjectsByType<ResourceNode>(FindObjectsInactive.Exclude, FindObjectsSortMode.None).Where(n => n.enabled).ToArray();
+            int offGround = 0, inWater = 0, belowSea = 0; var bad = new List<string>();
+            foreach (var n in all)
+            {
+                if (!n.enabled) continue;
+                var p = n.transform.position; float g = Ground(p);
+                bool fish = n.definition && n.definition.category == ResourceCategory.Fish;
+                if (Mathf.Abs(p.y - g) > 0.6f) { offGround++; if (bad.Count < 40) bad.Add($"off ground {n.name} y {p.y:F2} ground {g:F2}"); }
+                if (!fish && InWater(p)) { inWater++; if (bad.Count < 40) bad.Add($"in water {n.name} {V(p)}"); }
+                if (!fish && g < 0.3f) { belowSea++; if (bad.Count < 40) bad.Add($"below sea {n.name} {V(p)}"); }
+            }
+            L($"VERIFY {all.Length} active nodes: off the ground {offGround}, in fresh water (not fish) {inWater}, below sea level {belowSea}");
+            foreach (var b in bad) L("   " + b);
         }
 
         static void WireSystems(ResourceDatabase db)
@@ -511,6 +704,12 @@ namespace PrimalFrontier.EditorTools
             {
                 var near = all.Where(n => n.definition && n.definition.category == cat && Flat(n.transform.position - spawn).magnitude < 40f).ToList();
                 L($"start area (40 m) {cat}: {near.Count} nodes, {near.Sum(n => n.charges)} units");
+            }
+            foreach (var id in new[] { "meadow", "canyon", "ridge", "wetland", "waterfall", "river", "predator_territory", "beach" })
+            {
+                if (!Loc(id, out var c, out var r)) continue;
+                var inside = all.Where(n => n.definition && Flat(n.transform.position - c).magnitude <= r).ToList();
+                L($"location {id} (r {r:F0}): {inside.Count} nodes: {string.Join(", ", inside.GroupBy(n => n.definition.category).OrderBy(g => g.Key).Select(g => g.Key + " " + g.Count()))}");
             }
         }
     }

@@ -29,6 +29,9 @@ namespace PrimalFrontier.EditorTools
             { SfxId.PlayerGrunt, (0.55f, 0.06f, 12f) }, { SfxId.WaterFill, (0.55f, 0.05f, 10f) }, { SfxId.WaterBoil, (0.45f, 0.02f, 10f) },
             { SfxId.BandageWrap, (0.5f, 0.06f, 8f) }, { SfxId.ToolBreak, (0.8f, 0.05f, 15f) }, { SfxId.FireHiss, (0.6f, 0.05f, 18f) },
             { SfxId.BranchSnap, (0.7f, 0.1f, 18f) }, { SfxId.StoneGatherHand, (0.6f, 0.1f, 12f) },
+            // PC phase (sfx_synth.py pcphase): quiet body sounds, footsteps as loud as the other surfaces
+            { SfxId.FootWood, (0.45f, 0.08f, 12f) }, { SfxId.FootGrass, (0.4f, 0.1f, 10f) }, { SfxId.Chew, (0.4f, 0.08f, 5f) },
+            { SfxId.WaterScoop, (0.55f, 0.08f, 10f) }, { SfxId.ClimbGrab, (0.55f, 0.1f, 10f) }, { SfxId.ClimbScrape, (0.45f, 0.1f, 10f) },
         };
 
         /// <summary>bridge: PrimalAudioBuilder.BuildLibrary (import settings for new WAVs + Resources/SfxLibrary)</summary>

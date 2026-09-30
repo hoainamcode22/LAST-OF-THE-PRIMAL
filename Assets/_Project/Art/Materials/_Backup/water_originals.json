@@ -20,8 +20,57 @@
                 "Assets/_Project/Art/Materials/M_FreshWater.mat"
             ],
             "enabled": true
+        },
+        {
+            "path": "Water/ENV_LowerRiver_Water",
+            "materials": [
+                "Assets/_Project/Art/Materials/M_FreshWater.mat"
+            ],
+            "enabled": true
+        },
+        {
+            "path": "Water/ENV_Wetland_Water",
+            "materials": [
+                "Assets/_Project/Art/Materials/M_FreshWater.mat"
+            ],
+            "enabled": true
+        },
+        {
+            "path": "Water/ENV_Spring_Water",
+            "materials": [
+                "Assets/_Project/Art/Materials/M_FreshWater.mat"
+            ],
+            "enabled": true
+        },
+        {
+            "path": "Water/ENV_SpringStream_Water",
+            "materials": [
+                "Assets/_Project/Art/Materials/M_FreshWater.mat"
+            ],
+            "enabled": true
+        },
+        {
+            "path": "Water/ENV_WaterfallPool_Water",
+            "materials": [
+                "Assets/_Project/Art/Materials/M_FreshWater.mat"
+            ],
+            "enabled": true
+        },
+        {
+            "path": "Water/ENV_RiverMouth_Water",
+            "materials": [
+                "Assets/_Project/Art/Materials/M_FreshWater.mat"
+            ],
+            "enabled": true
+        },
+        {
+            "path": "Water/ENV_River_Water",
+            "materials": [
+                "Assets/_Project/Art/Materials/M_FreshWater.mat"
+            ],
+            "enabled": true
         }
     ],
     "addedGlobals": true,
-    "builtAt": "2026-09-28T22:15:53"
+    "builtAt": "2026-09-30T16:38:12"
 }

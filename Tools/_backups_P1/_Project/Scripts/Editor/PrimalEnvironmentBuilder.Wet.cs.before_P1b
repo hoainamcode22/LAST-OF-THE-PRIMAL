@@ -1,0 +1,144 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using UnityEditor;
+using UnityEngine;
+
+namespace PrimalFrontier.EditorTools
+{
+    /// <summary>
+    /// Wet surfaces (directive 53): the SHARED rock / wood / wreck materials switch in place to PF/Wet Surface (textures,
+    /// colours and cull kept, nothing duplicated), the terrain gets PF/Terrain Lit Wet. Both read the global _PF_Wetness that
+    /// WORLD's WeatherManager drives (0..1 with drying lag): darker, smoother, flatter normals, a little gloss on ground that
+    /// faces up. ENV's own materials: M_Env_WetRockMossy (always wet: waterfall spray), M_Env_MossRock, M_Env_Basalt.
+    /// Record of every original shader / keywords / queue: Art/Environment/_Backup/wet_originals.json (first record wins).
+    /// arg "revert": everything back (materials, terrain template); ENV's own materials stay, unused.
+    /// Who reads _PF_Wetness: PF/Wet Surface, PF/Terrain Lit Wet (+ add pass), PF/Foliage Wind (_WetDarken), PlayerWetLook (U).
+    /// </summary>
+    public static partial class PrimalEnvironmentBuilder
+    {
+        const string WetShader = "PF/Wet Surface", TerrainWetShader = "PF/Terrain Lit Wet", TerrainWetAdd = "Hidden/PF/Terrain Lit Wet (Add Pass)";
+        const string WetRecordPath = EnvRoot + "/_Backup/wet_originals.json";
+
+        [Serializable] class WetMatRecord { public string path, shader; public string[] keywords; public int queue; }
+        [Serializable] class WetRecord { public List<WetMatRecord> materials = new List<WetMatRecord>(); public string terrainTemplate; public string builtAt; }
+
+        // shared materials that switch: (asset, porosity, soaked smoothness, colour variation)
+        static readonly (string mat, float porosity, float wetSmooth, float variation)[] WetMaterials =
+        {
+            ("Assets/_Project/Art/Materials/M_Rock.mat", 0.35f, 0.78f, 0.10f),
+            ("Assets/_Project/Art/Materials/M_Bark.mat", 0.65f, 0.55f, 0.08f),
+            ("Assets/_Project/Art/Materials/M_Driftwood.mat", 0.8f, 0.55f, 0.08f),
+            ("Assets/_Project/Art/Materials/M_ShipPlanks.mat", 0.7f, 0.6f, 0.04f),
+            ("Assets/_Project/Art/Materials/M_ShipBeam.mat", 0.7f, 0.6f, 0.04f),
+            ("Assets/_Project/Art/Materials/M_CratePlanks.mat", 0.7f, 0.6f, 0.05f),
+            ("Assets/_Project/Art/Materials/M_BarrelStaves.mat", 0.7f, 0.6f, 0.05f),
+        };
+
+        static WetRecord LoadWetRecord() => File.Exists(WetRecordPath) ? JsonUtility.FromJson<WetRecord>(File.ReadAllText(WetRecordPath)) ?? new WetRecord() : new WetRecord();
+        static void SaveWetRecord(WetRecord r) { Directory.CreateDirectory(Path.GetDirectoryName(WetRecordPath)); File.WriteAllText(WetRecordPath, JsonUtility.ToJson(r, true)); AssetDatabase.ImportAsset(WetRecordPath); }
+
+        static bool ShaderReady(string name, out Shader sh)
+        {
+            sh = Shader.Find(name);
+            if (!sh) { W($"{name}: not found (shader not imported yet?)"); return false; }
+            if (ShaderUtil.ShaderHasError(sh))
+            {
+                var msgs = ShaderUtil.GetShaderMessages(sh).Where(m => m.severity == UnityEditor.Rendering.ShaderCompilerMessageSeverity.Error).Take(4);
+                W($"{name}: compile errors: " + string.Join(" | ", msgs.Select(m => m.message + " (line " + m.line + ")")));
+                return false;
+            }
+            return true;
+        }
+
+        [PrimalBridgeCommand]
+        public static string Wet(string arg)
+        {
+            Begin("Wet " + arg);
+            if (!IslandOpen(out var scene, out bool wasDirty)) return End("Wet");
+            var rec = LoadWetRecord();
+            FindTerrain();
+            if (arg == "revert")
+            {
+                int n = 0;
+                foreach (var r in rec.materials)
+                {
+                    var m = AssetDatabase.LoadAssetAtPath<Material>(r.path); var sh = Shader.Find(r.shader);
+                    if (!m || !sh) continue;
+                    m.shader = sh; m.shaderKeywords = r.keywords ?? new string[0]; m.renderQueue = r.queue; EditorUtility.SetDirty(m); n++;
+                }
+                if (_terrain && !string.IsNullOrEmpty(rec.terrainTemplate))
+                {
+                    var tm = AssetDatabase.LoadAssetAtPath<Material>(rec.terrainTemplate); if (tm) { _terrain.materialTemplate = tm; EditorUtility.SetDirty(_terrain); L("terrain material back to " + rec.terrainTemplate); }
+                }
+                L($"reverted {n} materials to their recorded shaders");
+                AssetDatabase.SaveAssets(); SaveScene(scene, wasDirty);
+                return End("Wet");
+            }
+            if (!ShaderReady(WetShader, out var wet)) { L("nothing changed"); return End("Wet"); }
+            bool terrainOk = ShaderReady(TerrainWetShader, out var tWet) & ShaderReady(TerrainWetAdd, out _);
+
+            // ---- shared materials, switched in place
+            int switched = 0, tuned = 0;
+            foreach (var (path, porosity, wetSmooth, variation) in WetMaterials)
+            {
+                var m = AssetDatabase.LoadAssetAtPath<Material>(path);
+                if (!m) { L("skip (missing): " + path); continue; }
+                if (m.shader != wet)
+                {
+                    if (!rec.materials.Any(r => r.path == path)) rec.materials.Add(new WetMatRecord { path = path, shader = m.shader.name, keywords = m.shaderKeywords, queue = m.renderQueue });
+                    bool clip = m.IsKeywordEnabled("_ALPHATEST_ON");
+                    m.shader = wet; if (clip) m.EnableKeyword("_ALPHATEST_ON");
+                    switched++;
+                }
+                else tuned++;
+                m.SetFloat("_Porosity", porosity); m.SetFloat("_WetSmoothness", wetSmooth); m.SetFloat("_WetResponse", 1f);
+                m.SetFloat("_ColorVariation", variation);
+                if (m.GetFloat("_BaseWetness") > 0.001f && path.EndsWith("M_Rock.mat")) m.SetFloat("_BaseWetness", 0f);
+                m.enableInstancing = true;
+                EditorUtility.SetDirty(m);
+            }
+            L($"shared materials on {WetShader}: {switched} switched, {tuned} already there (textures, colours and cull kept)");
+
+            // ---- ENV materials (shared, PrimalEnvironmentBuilder.Assets)
+            var envm = EnvMaterials();
+            var rock = AssetDatabase.LoadAssetAtPath<Material>("Assets/_Project/Art/Materials/M_Rock.mat");
+            var mossyWet = envm["M_Env_WetRockMossy"];
+            // the waterfall's rock face and pool boulders are always wet
+            var face = Root(scene, "World").Find("Environment/Water/Waterfall/RockFace");
+            int faces = 0;
+            if (face)
+                foreach (var r in face.GetComponentsInChildren<MeshRenderer>(true))
+                {
+                    var mats = r.sharedMaterials;
+                    for (int i = 0; i < mats.Length; i++) if (mats[i] && (mats[i].name.StartsWith("M_Rock") || mats[i] == rock)) { mats[i] = mossyWet; faces++; }
+                    r.sharedMaterials = mats;
+                }
+            L($"ENV materials: M_Env_WetRockMossy (always wet + moss) on {faces} waterfall rock slots, M_Env_MossRock, M_Env_Basalt");
+
+            // ---- terrain
+            if (_terrain && terrainOk)
+            {
+                var cur = _terrain.materialTemplate;
+                if (cur && cur.shader != tWet && string.IsNullOrEmpty(rec.terrainTemplate)) rec.terrainTemplate = AssetDatabase.GetAssetPath(cur);
+                string p = $"{MatDir}/M_Env_TerrainWet.mat";
+                var tm = AssetDatabase.LoadAssetAtPath<Material>(p);
+                if (!tm) { tm = new Material(tWet) { name = "M_Env_TerrainWet" }; AssetDatabase.CreateAsset(tm, p); }
+                tm.shader = tWet; tm.enableInstancing = true;
+                if (cur && cur != tm) { foreach (var k in cur.shaderKeywords) tm.EnableKeyword(k); }
+                tm.EnableKeyword("_NORMALMAP"); tm.EnableKeyword("_MASKMAP");
+                EditorUtility.SetDirty(tm);
+                _terrain.materialTemplate = tm; EditorUtility.SetDirty(_terrain);
+                L($"terrain material: M_Env_TerrainWet ({TerrainWetShader}); previous {rec.terrainTemplate}");
+            }
+            else if (_terrain) W("terrain wet shader not ready: the terrain keeps its material");
+            rec.builtAt = DateTime.Now.ToString("s");
+            SaveWetRecord(rec);
+            AssetDatabase.SaveAssets();
+            SaveScene(scene, wasDirty);
+            L("check: set _PF_Wetness to 1 (rain) and look at rocks, wood, terrain; undo: PrimalEnvironmentBuilder.Wet revert");
+            return End("Wet");
+        }
+    }
+}

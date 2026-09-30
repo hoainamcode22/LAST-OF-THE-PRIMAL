@@ -1,0 +1,999 @@
+Survey started 2026-09-30 00:26:57
+terrain ENV_Island_Terrain: pos (-320, -10, -320) size (640, 80, 640) heightmap 1025 alphamap 1024 (6 layers, 2 textures) detail 512 (3 prototypes) trees 1322 (4 prototypes) material Universal Render Pipeline/Terrain/Lit drawInstanced True pixelError 4
+layers: TL_Sand (tile 4 m), TL_Grass (tile 6 m), TL_ForestFloor (tile 5 m), TL_Rock (tile 8 m), TL_Mud (tile 4 m), TL_SandWet (tile 4 m)
+tree prototypes: PFB_ENV_Tree_01, PFB_ENV_Tree_02, PFB_ENV_Tree_03, PFB_ENV_Tree_04
+detail prototypes: DET_ENV_Fern_01, DET_ENV_Grass_01, DET_ENV_Bush_01
+heights -9.04 .. 57.73 m, mean 5.14
+terrain vs v1 file: mean |dh| 0 m, max 0 m
+terrain vs v2 file: mean |dh| 0.69 m, max 27.78 m
+root [Systems] (16 transforms) Time:0, Weather:0, Ambience:0, Journal:0, Tutorial:0, Intro:0, Build:0, OceanShore:0, Trees:0, Input:0, VfxPool:0, SfxPlayer:0, BloodDecals:0, EventSystem:0
+root [Gameplay] (662 transforms) CaptainsLog:0, Pickup_wood:0, Pickup_stone:0, Pickup_wood:0, Pickup_stone:0, Cave:4, GiantFootprints:9, [Zones]:0, [Game]:0, [Dinosaurs]:9, FruitTrees:4
+root Player (63 transforms) Model:4
+root Main Camera (1 transforms) 
+root [UI] (713 transforms) [Touch]:3, [Death]:5, [Title]:3, [Pause]:3, [Journal]:2, [Inventory]:3, [HUD]:12, [HUD Top]:4, [DamageOverlay]:0
+root World (3739 transforms) Rocks:816, Cliffs:14, Shipwreck:9, Props:15, Resources:45, Vegetation:16, Landmarks:1
+root Markers (25 transforms) Zones:8, Habitats:6, ResourceAreas:5, Water:1
+root ENV_Island_Terrain (1 transforms) 
+root Sun (1 transforms) 
+root Global Volume (1 transforms) 
+root Water (48 transforms) ENV_Ocean:0, ENV_Pond_Water:0, ENV_Stream_Water:0, PF_Ocean:0, PF_OceanShore:42
+root [Resources] (1478 transforms) StartArea:19, TrailToWater:5, FruitTreeDrops:4, WaterEdge:19, Island:149
+root [Atmosphere] (15 transforms) Emitters:9, Hazards:0, Reverb:2
+backup not made yet: Assets/_Project/Art/Terrain/_Backup/TD_Island_before_env_v2.asset
+Survey finished, 0 warning(s)
+
+Capture before started 2026-09-30 00:27:11
+wrote Documentation/Screenshots/PCPhase/Env/before_overview.png eye (0, 190, 360)
+wrote Documentation/Screenshots/PCPhase/Env/before_beach.png eye (-16, 3.5, 206)
+wrote Documentation/Screenshots/PCPhase/Env/before_waterfall.png eye (78, 21.4, -126)
+wrote Documentation/Screenshots/PCPhase/Env/before_river_valley.png eye (58, 17.9, -18)
+wrote Documentation/Screenshots/PCPhase/Env/before_meadow_from_view.png eye (-40, 13.4, -92)
+wrote Documentation/Screenshots/PCPhase/Env/before_canyon.png eye (-133, 14.2, -92)
+wrote Documentation/Screenshots/PCPhase/Env/before_wetland.png eye (62, 10.9, 205)
+wrote Documentation/Screenshots/PCPhase/Env/before_forest_floor.png eye (168, 9.9, 26)
+wrote Documentation/Screenshots/PCPhase/Env/before_old_camp.png eye (114, 14.3, -58)
+wrote Documentation/Screenshots/PCPhase/Env/before_volcano_ash.png eye (-152, 45.3, -196)
+Capture finished, 0 warning(s)
+
+TerrainPass  started 2026-09-30 00:27:46
+backup: Assets/_Project/Art/Terrain/TD_Island.asset -> Assets/_Project/Art/Terrain/_Backup/TD_Island_before_env_v2.asset
+heights: mean change 0.69 m, max 27.79 m, 214456 texels moved more than 0.3 m (83637.84 m2)
+layer TL_Moss: textures ok, tile 3.5 m
+layer TL_DarkSoil: textures ok, tile 4.5 m
+layer TL_Ash: textures ok, tile 6 m
+splat: 1024x1024, 9 layers, 3 alphamap textures
+trees: 1322 kept in order (1322 from the v1 backup), 115 moved out of water / rock / open ground (4 more than 20 m), all snapped to the new heights
+details layer 0 (DET_ENV_Fern_01): 53431 -> 50554 instances
+details layer 1 (DET_ENV_Grass_01): 80474 -> 69013 instances
+details layer 2 (DET_ENV_Bush_01): 1836 -> 1747 instances
+re-snapped 1119 ENV objects (World/Rocks, World/Cliffs, World/Shipwreck, World/Props, World/Vegetation, World/Environment), 92 moved out of the new water
+markers re-snapped (Markers/Zones, Water, Migration): 2
+OTHER ROOTS (their owners re-run): [Resources] (RES): 192 off by more than 0.25 m (23 now in water), worst Resource_Stone_Small_0162 18.26 m | World/Resources (RES): 19 off by more than 0.25 m (5 now in water), worst PFB_RES_Stone_01 5.77 m | [Gameplay]/CaptainsLog: 1 off by more than 0.25 m (1 now in water), worst CaptainsLog 0 m | [Gameplay]/Pickup_wood: 0 off by more than 0.25 m (0 now in water) | [Gameplay]/Pickup_stone: 0 off by more than 0.25 m (0 now in water) | [Gameplay]/Pickup_wood: 0 off by more than 0.25 m (0 now in water) | [Gameplay]/Pickup_stone: 0 off by more than 0.25 m (0 now in water) | [Gameplay]/Cave: 0 off by more than 0.25 m (0 now in water) | [Gameplay]/GiantFootprints: 0 off by more than 0.25 m (0 now in water) | [Gameplay]/[Zones]: 0 off by more than 0.25 m (0 now in water) | [Gameplay]/[Game]: 0 off by more than 0.25 m (0 now in water) | [Gameplay]/[Dinosaurs]: 7 off by more than 0.25 m (3 now in water), worst Rift Tyrant 6.47 m | [Gameplay]/FruitTrees: 0 off by more than 0.25 m (0 now in water) | Markers/Habitats: 4 off by more than 0.25 m (0 now in water), worst HAB_ApexPredator 6.47 m | Markers/ResourceAreas: 2 off by more than 0.25 m (1 now in water), worst RESAREA_Stone 5.81 m
+scene saved: Assets/_Project/Scenes/Island_VerticalSlice.unity
+TerrainPass finished, 0 warning(s)
+
+Markers started 2026-09-30 00:28:10
+Markers/Zones: 18 locations (EnvLocation id / radius / note); Markers/Migration: Route_00..Route_13
+migration route: steepest ground 28.31 deg (Route_12-13)
+scene saved: Assets/_Project/Scenes/Island_VerticalSlice.unity
+Markers finished, 0 warning(s)
+
+TerrainPass force started 2026-09-30 00:32:22
+backup exists: Assets/_Project/Art/Terrain/_Backup/TD_Island_before_env_v2.asset
+heights: mean change 0 m, max 0.47 m, 544 texels moved more than 0.3 m (212.16 m2)
+splat: 1024x1024, 9 layers, 3 alphamap textures
+trees: 1322 kept in order (1322 from the v1 backup), 115 moved out of water / rock / open ground (4 more than 20 m), all snapped to the new heights
+details layer 0 (DET_ENV_Fern_01): 53431 -> 50556 instances
+details layer 1 (DET_ENV_Grass_01): 80474 -> 69016 instances
+details layer 2 (DET_ENV_Bush_01): 1836 -> 1747 instances
+re-snapped 20 ENV objects (World/Rocks, World/Cliffs, World/Shipwreck, World/Props, World/Vegetation, World/Environment), 0 moved out of the new water
+markers re-snapped (Markers/Zones, Water, Migration): 2
+OTHER ROOTS (their owners re-run): [Resources] (RES): 23 off by more than 0.25 m (23 now in water), worst Resource_Fiber_LongGrass_0070 0 m | World/Resources (RES): 5 off by more than 0.25 m (5 now in water), worst PFB_RES_Stone_01 0 m | [Gameplay]/CaptainsLog: 1 off by more than 0.25 m (1 now in water), worst CaptainsLog 0 m | [Gameplay]/Pickup_wood: 0 off by more than 0.25 m (0 now in water) | [Gameplay]/Pickup_stone: 0 off by more than 0.25 m (0 now in water) | [Gameplay]/Pickup_wood: 0 off by more than 0.25 m (0 now in water) | [Gameplay]/Pickup_stone: 0 off by more than 0.25 m (0 now in water) | [Gameplay]/Cave: 0 off by more than 0.25 m (0 now in water) | [Gameplay]/GiantFootprints: 0 off by more than 0.25 m (0 now in water) | [Gameplay]/[Zones]: 0 off by more than 0.25 m (0 now in water) | [Gameplay]/[Game]: 0 off by more than 0.25 m (0 now in water) | [Gameplay]/[Dinosaurs]: 3 off by more than 0.25 m (3 now in water), worst Spinosaurus 0 m | [Gameplay]/FruitTrees: 0 off by more than 0.25 m (0 now in water) | Markers/Habitats: 0 off by more than 0.25 m (0 now in water) | Markers/ResourceAreas: 1 off by more than 0.25 m (1 now in water), worst RESAREA_StreamStone 0 m
+scene saved: Assets/_Project/Scenes/Island_VerticalSlice.unity
+TerrainPass finished, 0 warning(s)
+
+Markers started 2026-09-30 00:32:38
+Markers/Zones: 18 locations (EnvLocation id / radius / note); Markers/Migration: Route_00..Route_13
+migration route: steepest ground 28.3 deg (Route_12-13)
+scene saved: Assets/_Project/Scenes/Island_VerticalSlice.unity
+Markers finished, 0 warning(s)
+
+Water started 2026-09-30 00:32:46
+ME_Env_Wetland: 1871 quads at 1 m, level 0.85 m
+water bodies: 7 (river 2016 v, lower river 665 v, mouth 196 v, brook 195 v, pool, spring, wetland 2055 v); WaterSource: fresh, dirty (spring clean)
+Water/ENV_Stream_Water: switched off (inactive, kept; its WaterSource is replaced by ENV_River_Water)
+waterfall: drop 14.5 m, sheet + back sheet + 3 rivulets, mist and spray at (93.9, 18.7, -167.2) (PF/Waterfall)
+World/Cliffs/PFB_ENV_Cliff_02: moved to the waterfall's east face (86.5, 17.7, -168.7)
+waterfall rock face: 12 cliff / rock pieces under World/Environment/Water/Waterfall/RockFace
+scene saved: Assets/_Project/Scenes/Island_VerticalSlice.unity
+next: PrimalWaterBuilder.Build (flow maps + PF/Water Flow materials for the new bodies)
+Water finished, 0 warning(s)
+
+Wet  started 2026-09-30 12:06:50
+shared materials on PF/Wet Surface: 7 switched, 0 already there (textures, colours and cull kept)
+ENV materials: M_Env_WetRockMossy (always wet + moss) on 12 waterfall rock slots, M_Env_MossRock, M_Env_Basalt
+terrain material: M_Env_TerrainWet (PF/Terrain Lit Wet); previous Assets/_Project/Art/Materials/M_Terrain.mat
+scene saved: Assets/_Project/Scenes/Island_VerticalSlice.unity
+check: set _PF_Wetness to 1 (rain) and look at rocks, wood, terrain; undo: PrimalEnvironmentBuilder.Wet revert
+Wet finished, 0 warning(s)
+
+Vegetation  started 2026-09-30 12:07:34
+prefabs: 23 (Prefabs/Environment/PC), detail prefabs: 3
+terrain trees: 1322 v1 kept in order (421 swapped to the new tree ferns, 117 to the new cycads: old tree ferns, old cycads, part of the broadleaf) + 0 other appended + ENV 82 tree ferns and 75 cycads (prototypes ENV_PC_TreeFern_A=4, ENV_PC_TreeFern_B=5, ENV_PC_TreeFern_C=6, ENV_PC_Cycad_A=7, ENV_PC_Cycad_B=8, ENV_PC_Cycad_C=9)
+details: grass / fern / bush 135741 -> 90596 (grass x0.35 with part of it as low ferns, bushes x0.5); new: horsetail 4375, reeds 5395, giant fern 8499
+placed: 30 fallen trunks, 38 root plates at old araucarias, 80 moss rocks (+18 round the waterfall pool), 55 riverside giant ferns, 64 horsetail clumps, 100 magnolia shrubs, 38 basalt groups, 31 hanging moss / vine curtains
+scene saved: Assets/_Project/Scenes/Island_VerticalSlice.unity
+Vegetation finished, 0 warning(s)
+
+Story  started 2026-09-30 12:08:31
+story prefabs: 13
+theropod trail: 22 prints along the predator path
+storytelling: kill site, predator path, 18 blood stains, nest, fossil bed, old camp (4), markings (2), 10 wreck pieces; 17 Examinables (ids in LOCATIONS.md)
+  env_giant_skeleton: huge bones @ (-118.0, 14.1, -50.0)
+  env_scattered_bones: scattered bones @ (-111.5, 14.8, -47.0)
+  env_broken_trees: snapped trees @ (-76.8, 12.8, -54.9)
+  env_claw_marks: deep scratches @ (-112.5, 23.8, -74.9)
+  env_blood_trail: dark stains @ (-80.8, 13.7, -50.8)
+  env_theropod_trail: giant tracks @ (-64.9, 11.8, -40.9)
+  env_nest_eggs: a nest @ (-152.0, 13.0, -28.0)
+  env_fossil_bed: bones in the rock @ (-128.9, 20.7, -120.0)
+  env_old_camp_firering: old fire ring @ (122.0, 12.2, -66.0)
+  env_old_camp_shelter: collapsed shelter @ (118.6, 12.4, -65.2)
+  env_old_camp_tally: scratched marks @ (125.6, 11.6, -67.2)
+  env_old_camp_tool: shaped stone @ (123.0, 12.2, -65.5)
+  env_markings_ridge: strange carvings @ (105.7, 43.3, -197.2)
+  env_markings_cave: strange carvings @ (-11.4, 18.1, -129.3)
+  env_wreck_remains: wreck pieces @ (-23.0, 1.3, 212.0)
+  env_view_knoll: the view @ (-40.0, 25.8, -92.0)
+  env_spring: clear water @ (104.0, 40.8, -193.0)
+scene saved: Assets/_Project/Scenes/Island_VerticalSlice.unity
+Story finished, 0 warning(s)
+
+Volcano  started 2026-09-30 12:08:48
+lava channel 56 pts (280 verts), vent pool, 11 cracks, vent smoke, 2 point lights (no shadows), shimmer on, Examinable env_lava_channel
+VolcanoLandmark: heatHaze True, hazeMaterial M_VFX_HeatShimmer (PF/Heat Shimmer), ashFall True
+scene saved: Assets/_Project/Scenes/Island_VerticalSlice.unity
+Volcano finished, 0 warning(s)
+
+Check  started 2026-09-30 13:33:36
+ENV groups: Forest (765), Rocks (392), WaterEdge (357), Volcano (173), Storytelling (114)
+  ENV_PC_TreeFern_A: 0 placed + 175 terrain trees
+  ENV_PC_TreeFern_B: 0 placed + 162 terrain trees
+  ENV_PC_TreeFern_C: 0 placed + 166 terrain trees
+  ENV_PC_Cycad_A: 0 placed + 56 terrain trees
+  ENV_PC_Cycad_B: 0 placed + 60 terrain trees
+  ENV_PC_Cycad_C: 0 placed + 76 terrain trees
+  ENV_PC_GiantFern_A: 28 placed
+  ENV_PC_GiantFern_B: 27 placed
+  ENV_PC_HorsetailClump: 64 placed
+  ENV_PC_Magnolia_A: 50 placed
+  ENV_PC_Magnolia_B: 50 placed
+  ENV_PC_VineCurtain_A: 16 placed
+  ENV_PC_VineCurtain_B: 15 placed
+  ENV_PC_Roots_A: 19 placed
+  ENV_PC_Roots_B: 19 placed
+  ENV_PC_FallenTrunk_A: 15 placed
+  ENV_PC_FallenTrunk_B: 15 placed
+  ENV_PC_MossRock_A: 33 placed
+  ENV_PC_MossRock_B: 33 placed
+  ENV_PC_MossRock_C: 32 placed
+  ENV_PC_Basalt_A: 13 placed
+  ENV_PC_Basalt_B: 13 placed
+  ENV_PC_BasaltBoulder: 12 placed
+ENV_PC models in the scene: 23 / 23
+  DET_PC_GiantFern (terrain detail): 8499
+  DET_PC_Horsetail (terrain detail): 4375
+  DET_PC_Reeds (terrain detail): 5395
+  PROP_PC_Bones: 3
+  PROP_PC_BrokenTree_A: 2
+  PROP_PC_BrokenTree_B: 1
+  PROP_PC_ClawSnag: 1
+  PROP_PC_FireRing: 1
+  PROP_PC_FossilSlab: 1
+  PROP_PC_LeanTo: 1
+  PROP_PC_Nest: 1
+  PROP_PC_Petroglyph: 2
+  PROP_PC_Skeleton: 1
+  PROP_PC_StoneTool: 1
+  PROP_PC_TallyStone: 1
+  PROP_PC_WreckPlanks: 7
+references: 1806 ENV objects checked; missing prefab 0, mesh 0, material 0, broken shader 0, missing script 0, LOD renderer 0, mesh collider mesh 0; terrain prototypes without asset 0
+resource nodes (active): 1429; covered by an ENV collider 7, ENV terrain tree within 0.9 m 7, more than 0.6 m under the terrain 133
+  covered by ENV_PC_Roots_A: World/Rocks/PFB_ENV_Rock_Medium_02 (-209.4, 5.9, 21.2)
+  covered by ENV_PC_Roots_B: World/Rocks/PFB_ENV_Rock_Medium_01 (158.7, 6.2, -70.8)
+  ENV terrain tree on top: World/Rocks/PFB_ENV_Rock_Medium_01 (-148, 14.7, -44.8)
+  ENV terrain tree on top: World/Rocks/PFB_ENV_Rock_Medium_02 (84.4, 10.4, 89.9)
+  ENV terrain tree on top: World/Rocks/PFB_ENV_Rock_Medium_01 (-171.7, 5.9, 125.4)
+  ENV terrain tree on top: World/Rocks/PFB_ENV_Rock_Medium_03 (161.7, 13, -124.8)
+  ENV terrain tree on top: World/Rocks/PFB_ENV_Rock_Medium_01 (81.6, 11.3, -20.2)
+  covered by ENV_PC_Roots_B: World/Rocks/PFB_ENV_Rock_Medium_02 (177.5, 6.9, 8.4)
+  covered by ENV_PC_Roots_B: World/Rocks/PFB_ENV_Rock_Medium_01 (-213.7, 6.3, -11.7)
+  ENV terrain tree on top: World/Rocks/PFB_ENV_Rock_Medium_02 (71.2, 11.6, -73.3)
+  covered by ENV_PC_Roots_B: World/Rocks/PFB_ENV_Rock_Small_01 (-210.4, 8, -84.8)
+  1.89 m under the ground: World/Resources/PFB_RES_Stone_01
+  5.82 m under the ground: World/Resources/PFB_RES_Stone_01
+  2.97 m under the ground: World/Resources/PFB_RES_Stone_01
+  1.89 m under the ground: World/Resources/PFB_RES_Stone_01
+  3.94 m under the ground: World/Resources/PFB_RES_Stone_01
+  3.77 m under the ground: World/Resources/PFB_RES_Stone_01
+  2.18 m under the ground: World/Resources/PFB_RES_Stone_01
+  1.01 m under the ground: World/Resources/PFB_RES_Stone_01
+  2.09 m under the ground: World/Resources/PFB_RES_Stone_01
+player spawn (-20, 1.5, 211): ENV props within 20 m 2, ENV terrain trees 0
+player (-20, 1.5, 211): ENV props within 12 m 1, ENV terrain trees 0
+active PROP_PC_Petroglyph instances: 2
+VolcanoLandmark World/Landmarks/Volcano at (-360, -2, 640): ON
+Check finished, 0 warning(s)
+
+Vegetation  started 2026-09-30 13:35:56
+prefabs: 23 (Prefabs/Environment/PC), detail prefabs: 3
+terrain trees: 1322 v1 kept in order (421 swapped to the new tree ferns, 117 to the new cycads: old tree ferns, old cycads, part of the broadleaf) + 0 other appended + ENV 82 tree ferns and 75 cycads (prototypes ENV_PC_TreeFern_A=4, ENV_PC_TreeFern_B=5, ENV_PC_TreeFern_C=6, ENV_PC_Cycad_A=7, ENV_PC_Cycad_B=8, ENV_PC_Cycad_C=9)
+details: grass / fern / bush 135741 -> 90596 (grass x0.35 with part of it as low ferns, bushes x0.5); new: horsetail 4375, reeds 5395, giant fern 8499
+placed: 30 fallen trunks, 38 root plates at old araucarias, 80 moss rocks (+18 round the waterfall pool), 55 riverside giant ferns, 64 horsetail clumps, 100 magnolia shrubs, 38 basalt groups, 31 hanging moss / vine curtains
+waterfall dressing (World/Environment/WaterfallDressing): 5 moss / fern curtains on the walls, 2 wet mossy boulders (M_Env_WetRockMossy on) on the back of the pool, 34 giant ferns, 3 horsetail clumps; pool r 8 m, drop 14.5 m, the sheet, pool water and downstream bank left clear
+scene saved: Assets/_Project/Scenes/Island_VerticalSlice.unity
+Vegetation finished, 0 warning(s)
+
+Story  started 2026-09-30 15:31:31
+story prefabs: 14
+theropod trail: 22 prints along the predator path
+storytelling: kill site, predator path, 18 blood stains, nest, fossil bed, old camp (4), claw rock by the spring + castaway marks by the cave, 10 wreck pieces; 17 Examinables (ids in LOCATIONS.md); old petroglyph instances switched off: 0
+  env_giant_skeleton: huge bones @ (-118.0, 14.1, -50.0)
+  env_scattered_bones: scattered bones @ (-111.5, 14.8, -47.0)
+  env_broken_trees: snapped trees @ (-76.8, 12.8, -54.9)
+  env_claw_marks: deep scratches @ (-112.5, 23.8, -74.9)
+  env_blood_trail: dark stains @ (-80.8, 13.7, -50.8)
+  env_theropod_trail: giant tracks @ (-64.9, 11.8, -40.9)
+  env_nest_eggs: a nest @ (-152.0, 13.0, -28.0)
+  env_fossil_bed: bones in the rock @ (-128.9, 20.7, -120.0)
+  env_old_camp_firering: old fire ring @ (122.0, 12.2, -66.0)
+  env_old_camp_shelter: collapsed shelter @ (118.6, 12.4, -65.2)
+  env_old_camp_tally: scratched marks @ (125.6, 11.6, -67.2)
+  env_old_camp_tool: shaped stone @ (123.0, 12.2, -65.5)
+  env_markings_ridge: deep claw gouges in the rock @ (105.7, 43.3, -197.2)
+  env_markings_cave: knife tally marks, a scrap of sailcloth @ (-11.4, 18.2, -129.3)
+  env_wreck_remains: wreck pieces @ (-23.0, 1.3, 212.0)
+  env_view_knoll: the view @ (-40.0, 25.8, -92.0)
+  env_spring: clear water @ (104.0, 40.8, -193.0)
+scene saved: Assets/_Project/Scenes/Island_VerticalSlice.unity
+Story finished, 0 warning(s)
+
+Volcano  started 2026-09-30 15:39:13
+lava channel 56 pts (280 verts), vent pool, 11 cracks, vent smoke, embers (vent + channel), 2 point lights (no shadows), shimmer vent + channel, Examinable env_lava_channel
+VentSystem VolcanoLandmark at (-100, 44.7, -232): smoke drift x1.2, embers 1.5/6 per s (day / night), rumble puff 5 m, ash 30..130 m (M_VFX_Chip)
+offshore volcano World/Landmarks/Volcano at (-360, -2, 640): switched off (SetActive false, kept)
+scene saved: Assets/_Project/Scenes/Island_VerticalSlice.unity
+Volcano finished, 0 warning(s)
+
+Capture E1;only=volcano_ash+waterfall;focus=VentSystem@24@10+ClawRock_Spring@4.5@1.2+CastawayMarks_Cave@4@1.2 started 2026-09-30 15:39:26
+wrote Documentation/Screenshots/PCPhase/Env/E1_waterfall.png eye (78, 21, -126)
+wrote Documentation/Screenshots/PCPhase/Env/E1_volcano_ash.png eye (-152, 47.5, -196)
+wrote Documentation/Screenshots/PCPhase/Env/E1_focus_VentSystem.png eye (-100, 54.9, -208)
+wrote Documentation/Screenshots/PCPhase/Env/E1_focus_ClawRock_Spring.png eye (104, 44.5, -193)
+wrote Documentation/Screenshots/PCPhase/Env/E1_focus_CastawayMarks_Cave.png eye (-11.2, 19.4, -125.3)
+Capture finished, 0 warning(s)
+
+Water started 2026-09-30 15:45:25
+ME_Env_Wetland: 1871 quads at 1 m, level 0.85 m
+water bodies: 7 (river 2016 v, lower river 665 v, mouth 196 v, brook 195 v, pool, spring, wetland 2055 v); WaterSource: fresh, dirty (spring clean)
+waterfall: drop 14.5 m, sheet + back sheet + 3 rivulets, mist and spray at (93.9, 18.7, -167.2) (PF/Waterfall)
+World/Cliffs/PFB_ENV_Cliff_02: moved to the waterfall's east face (86.5, 17.7, -168.7)
+waterfall rock face: 12 cliff / rock pieces under World/Environment/Water/Waterfall/RockFace
+scene saved: Assets/_Project/Scenes/Island_VerticalSlice.unity
+next: PrimalWaterBuilder.Build (flow maps + PF/Water Flow materials for the new bodies)
+Water finished, 0 warning(s)
+
+Capture E2;only=waterfall_close+river_valley started 2026-09-30 15:45:38
+wrote Documentation/Screenshots/PCPhase/Env/E2_river_valley.png eye (58, 19.6, -18)
+wrote Documentation/Screenshots/PCPhase/Env/E2_waterfall_close.png eye (93, 23.5, -145)
+Capture finished, 0 warning(s)
+
+Wet  started 2026-09-30 15:47:04
+shared materials on PF/Wet Surface: 0 switched, 7 already there (textures, colours and cull kept)
+ENV materials: M_Env_WetRockMossy (always wet + moss) on 12 waterfall rock slots, M_Env_MossRock, M_Env_Basalt
+terrain material: M_Env_TerrainWet (PF/Terrain Lit Wet); previous Assets/_Project/Art/Materials/M_Terrain.mat
+scene saved: Assets/_Project/Scenes/Island_VerticalSlice.unity
+check: set _PF_Wetness to 1 (rain) and look at rocks, wood, terrain; undo: PrimalEnvironmentBuilder.Wet revert
+Wet finished, 0 warning(s)
+
+Check  started 2026-09-30 15:47:16
+ENV groups: Forest (765), Rocks (392), WaterEdge (357), Volcano (177), Storytelling (114), WaterfallDressing (134)
+  ENV_PC_TreeFern_A: 0 placed + 175 terrain trees
+  ENV_PC_TreeFern_B: 0 placed + 162 terrain trees
+  ENV_PC_TreeFern_C: 0 placed + 166 terrain trees
+  ENV_PC_Cycad_A: 0 placed + 56 terrain trees
+  ENV_PC_Cycad_B: 0 placed + 60 terrain trees
+  ENV_PC_Cycad_C: 0 placed + 76 terrain trees
+  ENV_PC_GiantFern_A: 42 placed
+  ENV_PC_GiantFern_B: 47 placed
+  ENV_PC_HorsetailClump: 67 placed
+  ENV_PC_Magnolia_A: 50 placed
+  ENV_PC_Magnolia_B: 50 placed
+  ENV_PC_VineCurtain_A: 20 placed
+  ENV_PC_VineCurtain_B: 16 placed
+  ENV_PC_Roots_A: 19 placed
+  ENV_PC_Roots_B: 19 placed
+  ENV_PC_FallenTrunk_A: 15 placed
+  ENV_PC_FallenTrunk_B: 15 placed
+  ENV_PC_MossRock_A: 33 placed
+  ENV_PC_MossRock_B: 33 placed
+  ENV_PC_MossRock_C: 34 placed
+  ENV_PC_Basalt_A: 13 placed
+  ENV_PC_Basalt_B: 13 placed
+  ENV_PC_BasaltBoulder: 12 placed
+ENV_PC models in the scene: 23 / 23
+  DET_PC_GiantFern (terrain detail): 8499
+  DET_PC_Horsetail (terrain detail): 4375
+  DET_PC_Reeds (terrain detail): 5395
+  PROP_PC_Bones: 3
+  PROP_PC_BrokenTree_A: 2
+  PROP_PC_BrokenTree_B: 1
+  PROP_PC_CastawayMarks: 1
+  PROP_PC_ClawRock: 1
+  PROP_PC_ClawSnag: 1
+  PROP_PC_FireRing: 1
+  PROP_PC_FossilSlab: 1
+  PROP_PC_LeanTo: 1
+  PROP_PC_Nest: 1
+  PROP_PC_Skeleton: 1
+  PROP_PC_StoneTool: 1
+  PROP_PC_TallyStone: 1
+  PROP_PC_WreckPlanks: 7
+references: 1945 ENV objects checked; missing prefab 0, mesh 0, material 0, broken shader 0, missing script 0, LOD renderer 0, mesh collider mesh 0; terrain prototypes without asset 0
+resource nodes (active): 1440; covered by an ENV collider 8, new ENV terrain tree within 0.9 m 0 (v1 trees swapped in place to ENV models, same position as before: 7), more than 0.6 m under the terrain 0 (not moved by ENV)
+  covered by ENV_PC_Roots_A: World/Rocks/PFB_ENV_Rock_Medium_02 (-209.4, 5.9, 21.2)
+  covered by ENV_PC_Roots_B: World/Rocks/PFB_ENV_Rock_Medium_01 (158.7, 6.2, -70.8)
+  covered by ENV_PC_Roots_B: World/Rocks/PFB_ENV_Rock_Medium_02 (177.5, 6.9, 8.4)
+  covered by ENV_PC_Roots_B: World/Rocks/PFB_ENV_Rock_Medium_01 (-213.7, 6.3, -11.7)
+  covered by ENV_PC_Roots_B: World/Rocks/PFB_ENV_Rock_Small_01 (-210.4, 8, -84.8)
+  covered by ENV_PC_Roots_A: World/Vegetation/PFB_ENV_FallenLog_01 (-192, 5.6, 107.7)
+  covered by ENV_PC_Roots_B: [Resources]/Island/Cluster_032_Forest/Resource_Fiber_Fern_0167 (-123.3, 13.7, -27.5)
+  covered by ENV_PC_Roots_A: [Resources]/Island/Cluster_136_Forest/Resource_Fiber_Fern_0439 (211.9, 4.7, -106.7)
+player spawn (-20, 1.5, 211): ENV props within 20 m 2 (WreckPlanks_0 3.16 m, PFB_PROP_Ship_Debris 15.03 m), ENV terrain trees 0
+player (-20, 1.5, 211): ENV props within 12 m 1 (WreckPlanks_0 3.16 m), ENV terrain trees 0
+surface Water/ENV_Ocean: OFF, M_Ocean / PF/Water cull -, 121 v, 94 % above the terrain, faces up, y 0..0
+surface Water/ENV_Pond_Water: on, M_Water_Pond / PF/Water Flow cull -, 48 v, 10 % above the terrain, faces up, y 9.55..9.55
+surface Water/ENV_Stream_Water: OFF, M_Water_Stream / PF/Water Flow cull -, 550 v, 59 % above the terrain, faces up, y 9.67..27.48
+surface Water/ENV_River_Water: on, M_Water_River / PF/Water Flow cull -, 2016 v, 71 % above the terrain, faces up, y 9.61..18.45
+surface Water/ENV_LowerRiver_Water: on, M_Water_LowerRiver / PF/Water Flow cull -, 665 v, 73 % above the terrain, faces up, y 3.25..9.52
+surface Water/ENV_RiverMouth_Water: on, M_Water_RiverMouth / PF/Water Flow cull -, 196 v, 71 % above the terrain, faces up, y 0.07..0.73
+surface Water/ENV_SpringStream_Water: on, M_Water_SpringStream / PF/Water Flow cull -, 195 v, 63 % above the terrain, faces up, y 33.03..40.83
+surface Water/ENV_WaterfallPool_Water: on, M_Water_fallPool / PF/Water Flow cull -, 281 v, 19 % above the terrain, faces up, y 18.5..18.5
+surface Water/ENV_Spring_Water: on, M_Water_Spring / PF/Water Flow cull -, 73 v, 45 % above the terrain, faces up, y 40.8..40.8
+surface Water/ENV_Wetland_Water: on, M_Water_Wetland / PF/Water Flow cull -, 2055 v, 73 % above the terrain, faces up, y 0.85..0.85
+surface Water/PF_Ocean: on, M_Water_Ocean / PF/Ocean cull -, 32761 v, 71 % above the terrain, faces up, y -2..2
+surface Water/PF_OceanShore/PF_OceanShore: on, M_Water_Shore / PF/Ocean Shore cull -, 336 v, 100 % above the terrain, faces up, y -0.23..12.07
+surface Water/PF_OceanShore/PF_OceanShore_03_00: on, M_Water_Shore / PF/Ocean Shore cull -, 693 v, 100 % above the terrain, faces up, y -0.23..8.48
+surface Water/PF_OceanShore/PF_OceanShore_04_00: on, M_Water_Shore / PF/Ocean Shore cull -, 567 v, 100 % above the terrain, faces up, y -0.23..2.47
+surface Water/PF_OceanShore/PF_OceanShore_05_00: on, M_Water_Shore / PF/Ocean Shore cull -, 856 v, 100 % above the terrain, faces up, y -0.23..2.35
+surface Water/PF_OceanShore/PF_OceanShore_06_00: on, M_Water_Shore / PF/Ocean Shore cull -, 734 v, 100 % above the terrain, faces up, y -0.23..2.28
+surface Water/PF_OceanShore/PF_OceanShore_07_00: on, M_Water_Shore / PF/Ocean Shore cull -, 459 v, 100 % above the terrain, faces up, y -0.23..0.27
+surface Water/PF_OceanShore/PF_OceanShore_01_01: on, M_Water_Shore / PF/Ocean Shore cull -, 683 v, 100 % above the terrain, faces up, y -0.23..19.6
+surface Water/PF_OceanShore/PF_OceanShore_02_01: on, M_Water_Shore / PF/Ocean Shore cull -, 676 v, 100 % above the terrain, faces up, y -0.23..28.24
+surface Water/PF_OceanShore/PF_OceanShore_06_01: on, M_Water_Shore / PF/Ocean Shore cull -, 272 v, 100 % above the terrain, faces up, y -0.23..2.39
+surface Water/PF_OceanShore/PF_OceanShore_07_01: on, M_Water_Shore / PF/Ocean Shore cull -, 681 v, 100 % above the terrain, faces up, y -0.23..3.22
+surface Water/PF_OceanShore/PF_OceanShore_08_01: on, M_Water_Shore / PF/Ocean Shore cull -, 960 v, 100 % above the terrain, faces up, y -0.23..3.19
+surface Water/PF_OceanShore/PF_OceanShore_09_01: on, M_Water_Shore / PF/Ocean Shore cull -, 4 v, 100 % above the terrain, faces up, y -0.23..0.27
+surface Water/PF_OceanShore/PF_OceanShore_00_02: on, M_Water_Shore / PF/Ocean Shore cull -, 802 v, 100 % above the terrain, faces up, y -0.23..2.02
+surface Water/PF_OceanShore/PF_OceanShore_01_02: on, M_Water_Shore / PF/Ocean Shore cull -, 609 v, 100 % above the terrain, faces up, y -0.23..3.04
+surface Water/PF_OceanShore/PF_OceanShore_08_02: on, M_Water_Shore / PF/Ocean Shore cull -, 194 v, 100 % above the terrain, faces up, y -0.23..2.8
+surface Water/PF_OceanShore/PF_OceanShore_09_02: on, M_Water_Shore / PF/Ocean Shore cull -, 857 v, 100 % above the terrain, faces up, y -0.23..2.45
+surface Water/PF_OceanShore/PF_OceanShore_00_03: on, M_Water_Shore / PF/Ocean Shore cull -, 1603 v, 100 % above the terrain, faces up, y -0.23..1.78
+surface Water/PF_OceanShore/PF_OceanShore_08_03: on, M_Water_Shore / PF/Ocean Shore cull -, 426 v, 100 % above the terrain, faces up, y -0.23..1.79
+surface Water/PF_OceanShore/PF_OceanShore_09_03: on, M_Water_Shore / PF/Ocean Shore cull -, 951 v, 100 % above the terrain, faces up, y -0.23..2.08
+surface Water/PF_OceanShore/PF_OceanShore_00_04: on, M_Water_Shore / PF/Ocean Shore cull -, 1666 v, 100 % above the terrain, faces up, y -0.23..1.62
+surface Water/PF_OceanShore/PF_OceanShore_08_04: on, M_Water_Shore / PF/Ocean Shore cull -, 589 v, 100 % above the terrain, faces up, y -0.23..1.64
+surface Water/PF_OceanShore/PF_OceanShore_09_04: on, M_Water_Shore / PF/Ocean Shore cull -, 752 v, 100 % above the terrain, faces up, y -0.23..0.27
+surface Water/PF_OceanShore/PF_OceanShore_00_05: on, M_Water_Shore / PF/Ocean Shore cull -, 1408 v, 100 % above the terrain, faces up, y -0.23..1.67
+surface Water/PF_OceanShore/PF_OceanShore_01_05: on, M_Water_Shore / PF/Ocean Shore cull -, 14 v, 100 % above the terrain, faces up, y 0.93..1.62
+surface Water/PF_OceanShore/PF_OceanShore_08_05: on, M_Water_Shore / PF/Ocean Shore cull -, 1127 v, 100 % above the terrain, faces up, y -0.23..1.65
+surface Water/PF_OceanShore/PF_OceanShore_09_05: on, M_Water_Shore / PF/Ocean Shore cull -, 761 v, 100 % above the terrain, faces up, y -0.23..0.27
+surface Water/PF_OceanShore/PF_OceanShore_00_06: on, M_Water_Shore / PF/Ocean Shore cull -, 428 v, 100 % above the terrain, faces up, y -0.23..1.43
+surface Water/PF_OceanShore/PF_OceanShore_01_06: on, M_Water_Shore / PF/Ocean Shore cull -, 1063 v, 100 % above the terrain, faces up, y -0.23..1.68
+surface Water/PF_OceanShore/PF_OceanShore_08_06: on, M_Water_Shore / PF/Ocean Shore cull -, 1596 v, 100 % above the terrain, faces up, y -0.23..1.67
+surface Water/PF_OceanShore/PF_OceanShore_09_06: on, M_Water_Shore / PF/Ocean Shore cull -, 33 v, 100 % above the terrain, faces up, y -0.23..0.27
+surface Water/PF_OceanShore/PF_OceanShore_01_07: on, M_Water_Shore / PF/Ocean Shore cull -, 1221 v, 100 % above the terrain, faces up, y -0.23..1.67
+surface Water/PF_OceanShore/PF_OceanShore_02_07: on, M_Water_Shore / PF/Ocean Shore cull -, 200 v, 100 % above the terrain, faces up, y -0.23..1.65
+surface Water/PF_OceanShore/PF_OceanShore_06_07: on, M_Water_Shore / PF/Ocean Shore cull -, 2174 v, 100 % above the terrain, faces up, y 0.07..2.67
+surface Water/PF_OceanShore/PF_OceanShore_07_07: on, M_Water_Shore / PF/Ocean Shore cull -, 1136 v, 100 % above the terrain, faces up, y -0.23..2.63
+surface Water/PF_OceanShore/PF_OceanShore_08_07: on, M_Water_Shore / PF/Ocean Shore cull -, 871 v, 100 % above the terrain, faces up, y -0.23..1.69
+surface Water/PF_OceanShore/PF_OceanShore_01_08: on, M_Water_Shore / PF/Ocean Shore cull -, 23 v, 100 % above the terrain, faces up, y -0.23..0.27
+surface Water/PF_OceanShore/PF_OceanShore_02_08: on, M_Water_Shore / PF/Ocean Shore cull -, 1688 v, 100 % above the terrain, faces up, y -0.23..1.67
+surface Water/PF_OceanShore/PF_OceanShore_03_08: on, M_Water_Shore / PF/Ocean Shore cull -, 1588 v, 100 % above the terrain, faces up, y -0.23..1.59
+surface Water/PF_OceanShore/PF_OceanShore_04_08: on, M_Water_Shore / PF/Ocean Shore cull -, 1495 v, 100 % above the terrain, faces up, y -0.23..1.6
+surface Water/PF_OceanShore/PF_OceanShore_05_08: on, M_Water_Shore / PF/Ocean Shore cull -, 1475 v, 100 % above the terrain, faces up, y -0.23..1.6
+surface Water/PF_OceanShore/PF_OceanShore_06_08: on, M_Water_Shore / PF/Ocean Shore cull -, 2134 v, 100 % above the terrain, faces up, y -0.23..2.14
+surface Water/PF_OceanShore/PF_OceanShore_07_08: on, M_Water_Shore / PF/Ocean Shore cull -, 1764 v, 100 % above the terrain, faces up, y -0.23..1.63
+surface Water/PF_OceanShore/PF_OceanShore_08_08: on, M_Water_Shore / PF/Ocean Shore cull -, 24 v, 100 % above the terrain, faces up, y -0.23..0.27
+surface World/Environment/Volcano/Lava/LavaChannel: on, M_Env_Lava / PF/Lava cull -, 280 v, 46 % above the terrain, faces DOWN, y 43.65..46.36
+surface World/Environment/Volcano/Lava/VentPool: on, M_Env_Lava / PF/Lava cull -, 21 v, 4 % above the terrain, faces up, y 45..45
+surface World/Environment/Volcano/Lava/Cracks/Crack_00: on, M_Env_LavaCrack / PF/Lava cull -, 33 v, 100 % above the terrain, faces DOWN, y 45.28..45.53
+surface World/Environment/Volcano/Lava/Cracks/Crack_01: on, M_Env_LavaCrack / PF/Lava cull -, 45 v, 100 % above the terrain, faces DOWN, y 43.76..45.62
+surface World/Environment/Volcano/Lava/Cracks/Crack_02: on, M_Env_LavaCrack / PF/Lava cull -, 36 v, 100 % above the terrain, faces DOWN, y 45.47..45.78
+surface World/Environment/Volcano/Lava/Cracks/Crack_03: on, M_Env_LavaCrack / PF/Lava cull -, 24 v, 100 % above the terrain, faces DOWN, y 44.36..44.81
+surface World/Environment/Volcano/Lava/Cracks/Crack_04: on, M_Env_LavaCrack / PF/Lava cull -, 24 v, 100 % above the terrain, faces DOWN, y 44.3..44.73
+surface World/Environment/Volcano/Lava/Cracks/Crack_05: on, M_Env_LavaCrack / PF/Lava cull -, 33 v, 100 % above the terrain, faces DOWN, y 45.77..46.42
+surface World/Environment/Volcano/Lava/Cracks/Crack_06: on, M_Env_LavaCrack / PF/Lava cull -, 33 v, 100 % above the terrain, faces DOWN, y 44.55..45.14
+surface World/Environment/Volcano/Lava/Cracks/Crack_07: on, M_Env_LavaCrack / PF/Lava cull -, 21 v, 100 % above the terrain, faces DOWN, y 46.21..46.69
+surface World/Environment/Volcano/Lava/Cracks/Crack_08: on, M_Env_LavaCrack / PF/Lava cull -, 30 v, 100 % above the terrain, faces DOWN, y 44.74..47.74
+surface World/Environment/Volcano/Lava/Cracks/Crack_09: on, M_Env_LavaCrack / PF/Lava cull -, 45 v, 100 % above the terrain, faces DOWN, y 45.55..45.81
+surface World/Environment/Volcano/Lava/Cracks/Crack_10: on, M_Env_LavaCrack / PF/Lava cull -, 30 v, 100 % above the terrain, faces DOWN, y 44.42..45.19
+surface World/Environment/Water/Waterfall/WaterfallSheet: on, M_Env_Waterfall / PF/Waterfall cull -, 120 v, 93 % above the terrain, faces up, y 18.5..33
+surface World/Environment/Water/Waterfall/WaterfallSheetBack: on, M_Env_Waterfall / PF/Waterfall cull -, 66 v, 90 % above the terrain, faces up, y 18.4..32.9
+surface World/Environment/Water/Waterfall/Rivulet_0: on, M_Env_Rivulet / PF/Waterfall cull -, 36 v, 52 % above the terrain, faces up, y 18.7..28.94
+surface World/Environment/Water/Waterfall/Rivulet_1: on, M_Env_Rivulet / PF/Waterfall cull -, 36 v, 55 % above the terrain, faces up, y 18.7..30.83
+surface World/Environment/Water/Waterfall/Rivulet_2: on, M_Env_Rivulet / PF/Waterfall cull -, 36 v, 0 % above the terrain, faces up, y 18.7..25.03
+active PROP_PC_Petroglyph instances: 0
+VolcanoLandmark World/Landmarks/Volcano at (-360, -2, 640): off
+VolcanoLandmark World/Environment/Volcano/Lava/VentSystem at (-100, 44.7, -232): ON
+Check finished, 0 warning(s)
+
+Vegetation  started 2026-09-30 15:47:52
+prefabs: 23 (Prefabs/Environment/PC), detail prefabs: 3
+terrain trees: 1322 v1 kept in order (421 swapped to the new tree ferns, 117 to the new cycads: old tree ferns, old cycads, part of the broadleaf) + 0 other appended + ENV 82 tree ferns and 75 cycads (prototypes ENV_PC_TreeFern_A=4, ENV_PC_TreeFern_B=5, ENV_PC_TreeFern_C=6, ENV_PC_Cycad_A=7, ENV_PC_Cycad_B=8, ENV_PC_Cycad_C=9)
+details: grass / fern / bush 135741 -> 90596 (grass x0.35 with part of it as low ferns, bushes x0.5); new: horsetail 4375, reeds 5395, giant fern 8499
+placed: 30 fallen trunks, 25 root plates at old araucarias, 80 moss rocks (+18 round the waterfall pool), 55 riverside giant ferns, 60 horsetail clumps, 100 magnolia shrubs, 71 basalt groups, 31 hanging moss / vine curtains
+waterfall dressing (World/Environment/WaterfallDressing): 20 moss / fern curtains on the walls, 3 wet mossy boulders (M_Env_WetRockMossy on) on the back of the pool (rejected: fall 10, water 0, gameplay 41, spacing 26, no rock / ground 0), 34 giant ferns, 4 horsetail clumps; pool r 8 m, drop 14.5 m, the sheet, pool water and downstream bank left clear
+scene saved: Assets/_Project/Scenes/Island_VerticalSlice.unity
+Vegetation finished, 0 warning(s)
+
+Story  started 2026-09-30 15:48:41
+story prefabs: 14
+theropod trail: 22 prints along the predator path
+storytelling: kill site, predator path, 18 blood stains, nest, fossil bed, old camp (4), claw rock by the spring + castaway marks by the cave, 10 wreck pieces; 17 Examinables (ids in LOCATIONS.md); old petroglyph instances switched off: 0
+  env_giant_skeleton: huge bones @ (-118.0, 14.1, -50.0)
+  env_scattered_bones: scattered bones @ (-111.5, 14.8, -47.0)
+  env_broken_trees: snapped trees @ (-76.8, 12.8, -54.9)
+  env_claw_marks: deep scratches @ (-112.5, 23.8, -74.9)
+  env_blood_trail: dark stains @ (-80.8, 13.7, -50.8)
+  env_theropod_trail: giant tracks @ (-64.9, 11.8, -40.9)
+  env_nest_eggs: a nest @ (-152.0, 13.0, -28.0)
+  env_fossil_bed: bones in the rock @ (-128.9, 20.7, -120.0)
+  env_old_camp_firering: old fire ring @ (122.0, 12.2, -66.0)
+  env_old_camp_shelter: collapsed shelter @ (118.6, 12.4, -65.2)
+  env_old_camp_tally: scratched marks @ (125.6, 11.6, -67.2)
+  env_old_camp_tool: shaped stone @ (123.0, 12.2, -65.5)
+  env_markings_ridge: deep claw gouges in the rock @ (105.7, 43.3, -197.2)
+  env_markings_cave: knife tally marks, a scrap of sailcloth @ (-11.4, 18.2, -129.3)
+  env_wreck_remains: wreck pieces @ (-23.0, 1.3, 212.0)
+  env_view_knoll: the view @ (-40.0, 25.8, -92.0)
+  env_spring: clear water @ (104.0, 40.8, -193.0)
+scene saved: Assets/_Project/Scenes/Island_VerticalSlice.unity
+Story finished, 0 warning(s)
+
+Volcano  started 2026-09-30 15:49:19
+TL_Ash tinted dark (diffuse remap max 0.42 / 0.4 / 0.39)
+lava channel 56 pts (280 verts), vent pool, 11 cracks, vent smoke, embers (vent + channel), 2 point lights (no shadows), shimmer vent + channel, Examinable env_lava_channel
+VentSystem VolcanoLandmark at (-100, 44.7, -232): smoke drift x1.2, embers 1.5/6 per s (day / night), rumble puff 5 m, ash 30..130 m (M_VFX_Chip)
+offshore volcano World/Landmarks/Volcano at (-360, -2, 640): switched off (SetActive false, kept)
+scene saved: Assets/_Project/Scenes/Island_VerticalSlice.unity
+Volcano finished, 0 warning(s)
+
+Capture E3;only=volcano_close+volcano_ash+waterfall_close+waterfall;focus=CastawayMarks_Cave@4@1.2 started 2026-09-30 15:49:24
+wrote Documentation/Screenshots/PCPhase/Env/E3_waterfall.png eye (78, 21, -126)
+wrote Documentation/Screenshots/PCPhase/Env/E3_volcano_ash.png eye (-152, 47.5, -196)
+wrote Documentation/Screenshots/PCPhase/Env/E3_waterfall_close.png eye (93, 23.5, -145)
+wrote Documentation/Screenshots/PCPhase/Env/E3_volcano_close.png eye (-84, 54, -212)
+wrote Documentation/Screenshots/PCPhase/Env/E3_focus_CastawayMarks_Cave.png eye (-11.2, 19.4, -125.3)
+Capture finished, 0 warning(s)
+
+Volcano  started 2026-09-30 15:51:36
+TL_Ash tinted a little darker (diffuse remap max 0.78 / 0.76 / 0.75)
+ash ground: TL_Ash (layer 8) painted on 14278 splat texels inside the volcanic mask (up to 85 %)
+lava channel 56 pts (280 verts), vent pool, 11 cracks, vent smoke, embers (vent + channel), 2 point lights (no shadows), shimmer vent + channel, Examinable env_lava_channel
+VentSystem VolcanoLandmark at (-100, 44.7, -232): smoke drift x1.2, embers 1.5/6 per s (day / night), rumble puff 5 m, ash 30..130 m (M_VFX_Chip)
+offshore volcano World/Landmarks/Volcano at (-360, -2, 640): switched off (SetActive false, kept)
+scene saved: Assets/_Project/Scenes/Island_VerticalSlice.unity
+Volcano finished, 0 warning(s)
+
+Capture E4;only=volcano_close+volcano_ash started 2026-09-30 15:51:43
+wrote Documentation/Screenshots/PCPhase/Env/E4_volcano_ash.png eye (-152, 47.5, -196)
+wrote Documentation/Screenshots/PCPhase/Env/E4_volcano_close.png eye (-84, 54, -212)
+Capture finished, 0 warning(s)
+
+Check  started 2026-09-30 15:52:38
+ENV groups: Forest (713), Rocks (392), WaterEdge (345), Volcano (309), Storytelling (114), WaterfallDressing (186)
+  ENV_PC_TreeFern_A: 0 placed + 175 terrain trees
+  ENV_PC_TreeFern_B: 0 placed + 162 terrain trees
+  ENV_PC_TreeFern_C: 0 placed + 166 terrain trees
+  ENV_PC_Cycad_A: 0 placed + 56 terrain trees
+  ENV_PC_Cycad_B: 0 placed + 60 terrain trees
+  ENV_PC_Cycad_C: 0 placed + 76 terrain trees
+  ENV_PC_GiantFern_A: 43 placed
+  ENV_PC_GiantFern_B: 46 placed
+  ENV_PC_HorsetailClump: 64 placed
+  ENV_PC_Magnolia_A: 50 placed
+  ENV_PC_Magnolia_B: 50 placed
+  ENV_PC_VineCurtain_A: 25 placed
+  ENV_PC_VineCurtain_B: 26 placed
+  ENV_PC_Roots_A: 13 placed
+  ENV_PC_Roots_B: 12 placed
+  ENV_PC_FallenTrunk_A: 15 placed
+  ENV_PC_FallenTrunk_B: 15 placed
+  ENV_PC_MossRock_A: 34 placed
+  ENV_PC_MossRock_B: 33 placed
+  ENV_PC_MossRock_C: 34 placed
+  ENV_PC_Basalt_A: 24 placed
+  ENV_PC_Basalt_B: 24 placed
+  ENV_PC_BasaltBoulder: 23 placed
+ENV_PC models in the scene: 23 / 23
+  DET_PC_GiantFern (terrain detail): 8499
+  DET_PC_Horsetail (terrain detail): 4375
+  DET_PC_Reeds (terrain detail): 5395
+  PROP_PC_Bones: 3
+  PROP_PC_BrokenTree_A: 2
+  PROP_PC_BrokenTree_B: 1
+  PROP_PC_CastawayMarks: 1
+  PROP_PC_ClawRock: 1
+  PROP_PC_ClawSnag: 1
+  PROP_PC_FireRing: 1
+  PROP_PC_FossilSlab: 1
+  PROP_PC_LeanTo: 1
+  PROP_PC_Nest: 1
+  PROP_PC_Skeleton: 1
+  PROP_PC_StoneTool: 1
+  PROP_PC_TallyStone: 1
+  PROP_PC_WreckPlanks: 7
+references: 2065 ENV objects checked; missing prefab 0, mesh 0, material 0, broken shader 0, missing script 0, LOD renderer 0, mesh collider mesh 0; terrain prototypes without asset 0
+resource nodes (active): 1440; covered by an ENV collider 2, new ENV terrain tree within 0.9 m 0 (v1 trees swapped in place to ENV models, same position as before: 7), more than 0.6 m under the terrain 0 (not moved by ENV)
+  covered by ENV_PC_BasaltBoulder: World/Rocks/PFB_ENV_Rock_Large_03 (-100.6, 42, -187.4)
+  covered by ENV_PC_BasaltBoulder: World/Rocks/PFB_ENV_Rock_Large_02 (-82.8, 49, -231.9)
+player spawn (-20, 1.5, 211): ENV props within 20 m 2 (WreckPlanks_0 3.16 m, PFB_PROP_Ship_Debris 15.03 m), ENV terrain trees 0
+player (-20, 1.5, 211): ENV props within 12 m 1 (WreckPlanks_0 3.16 m), ENV terrain trees 0
+surface Water/ENV_Ocean: OFF, M_Ocean / PF/Water cull -, 121 v, 94 % above the terrain, faces up, y 0..0
+surface Water/ENV_Pond_Water: on, M_Water_Pond / PF/Water Flow cull -, 48 v, 10 % above the terrain, faces up, y 9.55..9.55
+surface Water/ENV_Stream_Water: OFF, M_Water_Stream / PF/Water Flow cull -, 550 v, 59 % above the terrain, faces up, y 9.67..27.48
+surface Water/ENV_River_Water: on, M_Water_River / PF/Water Flow cull -, 2016 v, 71 % above the terrain, faces up, y 9.61..18.45
+surface Water/ENV_LowerRiver_Water: on, M_Water_LowerRiver / PF/Water Flow cull -, 665 v, 73 % above the terrain, faces up, y 3.25..9.52
+surface Water/ENV_RiverMouth_Water: on, M_Water_RiverMouth / PF/Water Flow cull -, 196 v, 71 % above the terrain, faces up, y 0.07..0.73
+surface Water/ENV_SpringStream_Water: on, M_Water_SpringStream / PF/Water Flow cull -, 195 v, 63 % above the terrain, faces up, y 33.03..40.83
+surface Water/ENV_WaterfallPool_Water: on, M_Water_fallPool / PF/Water Flow cull -, 281 v, 19 % above the terrain, faces up, y 18.5..18.5
+surface Water/ENV_Spring_Water: on, M_Water_Spring / PF/Water Flow cull -, 73 v, 45 % above the terrain, faces up, y 40.8..40.8
+surface Water/ENV_Wetland_Water: on, M_Water_Wetland / PF/Water Flow cull -, 2055 v, 73 % above the terrain, faces up, y 0.85..0.85
+surface Water/PF_Ocean: on, M_Water_Ocean / PF/Ocean cull -, 32761 v, 71 % above the terrain, faces up, y -2..2
+surface Water/PF_OceanShore/PF_OceanShore: on, M_Water_Shore / PF/Ocean Shore cull -, 336 v, 100 % above the terrain, faces up, y -0.23..12.07
+surface Water/PF_OceanShore/PF_OceanShore_03_00: on, M_Water_Shore / PF/Ocean Shore cull -, 693 v, 100 % above the terrain, faces up, y -0.23..8.48
+surface Water/PF_OceanShore/PF_OceanShore_04_00: on, M_Water_Shore / PF/Ocean Shore cull -, 567 v, 100 % above the terrain, faces up, y -0.23..2.47
+surface Water/PF_OceanShore/PF_OceanShore_05_00: on, M_Water_Shore / PF/Ocean Shore cull -, 856 v, 100 % above the terrain, faces up, y -0.23..2.35
+surface Water/PF_OceanShore/PF_OceanShore_06_00: on, M_Water_Shore / PF/Ocean Shore cull -, 734 v, 100 % above the terrain, faces up, y -0.23..2.28
+surface Water/PF_OceanShore/PF_OceanShore_07_00: on, M_Water_Shore / PF/Ocean Shore cull -, 459 v, 100 % above the terrain, faces up, y -0.23..0.27
+surface Water/PF_OceanShore/PF_OceanShore_01_01: on, M_Water_Shore / PF/Ocean Shore cull -, 683 v, 100 % above the terrain, faces up, y -0.23..19.6
+surface Water/PF_OceanShore/PF_OceanShore_02_01: on, M_Water_Shore / PF/Ocean Shore cull -, 676 v, 100 % above the terrain, faces up, y -0.23..28.24
+surface Water/PF_OceanShore/PF_OceanShore_06_01: on, M_Water_Shore / PF/Ocean Shore cull -, 272 v, 100 % above the terrain, faces up, y -0.23..2.39
+surface Water/PF_OceanShore/PF_OceanShore_07_01: on, M_Water_Shore / PF/Ocean Shore cull -, 681 v, 100 % above the terrain, faces up, y -0.23..3.22
+surface Water/PF_OceanShore/PF_OceanShore_08_01: on, M_Water_Shore / PF/Ocean Shore cull -, 960 v, 100 % above the terrain, faces up, y -0.23..3.19
+surface Water/PF_OceanShore/PF_OceanShore_09_01: on, M_Water_Shore / PF/Ocean Shore cull -, 4 v, 100 % above the terrain, faces up, y -0.23..0.27
+surface Water/PF_OceanShore/PF_OceanShore_00_02: on, M_Water_Shore / PF/Ocean Shore cull -, 802 v, 100 % above the terrain, faces up, y -0.23..2.02
+surface Water/PF_OceanShore/PF_OceanShore_01_02: on, M_Water_Shore / PF/Ocean Shore cull -, 609 v, 100 % above the terrain, faces up, y -0.23..3.04
+surface Water/PF_OceanShore/PF_OceanShore_08_02: on, M_Water_Shore / PF/Ocean Shore cull -, 194 v, 100 % above the terrain, faces up, y -0.23..2.8
+surface Water/PF_OceanShore/PF_OceanShore_09_02: on, M_Water_Shore / PF/Ocean Shore cull -, 857 v, 100 % above the terrain, faces up, y -0.23..2.45
+surface Water/PF_OceanShore/PF_OceanShore_00_03: on, M_Water_Shore / PF/Ocean Shore cull -, 1603 v, 100 % above the terrain, faces up, y -0.23..1.78
+surface Water/PF_OceanShore/PF_OceanShore_08_03: on, M_Water_Shore / PF/Ocean Shore cull -, 426 v, 100 % above the terrain, faces up, y -0.23..1.79
+surface Water/PF_OceanShore/PF_OceanShore_09_03: on, M_Water_Shore / PF/Ocean Shore cull -, 951 v, 100 % above the terrain, faces up, y -0.23..2.08
+surface Water/PF_OceanShore/PF_OceanShore_00_04: on, M_Water_Shore / PF/Ocean Shore cull -, 1666 v, 100 % above the terrain, faces up, y -0.23..1.62
+surface Water/PF_OceanShore/PF_OceanShore_08_04: on, M_Water_Shore / PF/Ocean Shore cull -, 589 v, 100 % above the terrain, faces up, y -0.23..1.64
+surface Water/PF_OceanShore/PF_OceanShore_09_04: on, M_Water_Shore / PF/Ocean Shore cull -, 752 v, 100 % above the terrain, faces up, y -0.23..0.27
+surface Water/PF_OceanShore/PF_OceanShore_00_05: on, M_Water_Shore / PF/Ocean Shore cull -, 1408 v, 100 % above the terrain, faces up, y -0.23..1.67
+surface Water/PF_OceanShore/PF_OceanShore_01_05: on, M_Water_Shore / PF/Ocean Shore cull -, 14 v, 100 % above the terrain, faces up, y 0.93..1.62
+surface Water/PF_OceanShore/PF_OceanShore_08_05: on, M_Water_Shore / PF/Ocean Shore cull -, 1127 v, 100 % above the terrain, faces up, y -0.23..1.65
+surface Water/PF_OceanShore/PF_OceanShore_09_05: on, M_Water_Shore / PF/Ocean Shore cull -, 761 v, 100 % above the terrain, faces up, y -0.23..0.27
+surface Water/PF_OceanShore/PF_OceanShore_00_06: on, M_Water_Shore / PF/Ocean Shore cull -, 428 v, 100 % above the terrain, faces up, y -0.23..1.43
+surface Water/PF_OceanShore/PF_OceanShore_01_06: on, M_Water_Shore / PF/Ocean Shore cull -, 1063 v, 100 % above the terrain, faces up, y -0.23..1.68
+surface Water/PF_OceanShore/PF_OceanShore_08_06: on, M_Water_Shore / PF/Ocean Shore cull -, 1596 v, 100 % above the terrain, faces up, y -0.23..1.67
+surface Water/PF_OceanShore/PF_OceanShore_09_06: on, M_Water_Shore / PF/Ocean Shore cull -, 33 v, 100 % above the terrain, faces up, y -0.23..0.27
+surface Water/PF_OceanShore/PF_OceanShore_01_07: on, M_Water_Shore / PF/Ocean Shore cull -, 1221 v, 100 % above the terrain, faces up, y -0.23..1.67
+surface Water/PF_OceanShore/PF_OceanShore_02_07: on, M_Water_Shore / PF/Ocean Shore cull -, 200 v, 100 % above the terrain, faces up, y -0.23..1.65
+surface Water/PF_OceanShore/PF_OceanShore_06_07: on, M_Water_Shore / PF/Ocean Shore cull -, 2174 v, 100 % above the terrain, faces up, y 0.07..2.67
+surface Water/PF_OceanShore/PF_OceanShore_07_07: on, M_Water_Shore / PF/Ocean Shore cull -, 1136 v, 100 % above the terrain, faces up, y -0.23..2.63
+surface Water/PF_OceanShore/PF_OceanShore_08_07: on, M_Water_Shore / PF/Ocean Shore cull -, 871 v, 100 % above the terrain, faces up, y -0.23..1.69
+surface Water/PF_OceanShore/PF_OceanShore_01_08: on, M_Water_Shore / PF/Ocean Shore cull -, 23 v, 100 % above the terrain, faces up, y -0.23..0.27
+surface Water/PF_OceanShore/PF_OceanShore_02_08: on, M_Water_Shore / PF/Ocean Shore cull -, 1688 v, 100 % above the terrain, faces up, y -0.23..1.67
+surface Water/PF_OceanShore/PF_OceanShore_03_08: on, M_Water_Shore / PF/Ocean Shore cull -, 1588 v, 100 % above the terrain, faces up, y -0.23..1.59
+surface Water/PF_OceanShore/PF_OceanShore_04_08: on, M_Water_Shore / PF/Ocean Shore cull -, 1495 v, 100 % above the terrain, faces up, y -0.23..1.6
+surface Water/PF_OceanShore/PF_OceanShore_05_08: on, M_Water_Shore / PF/Ocean Shore cull -, 1475 v, 100 % above the terrain, faces up, y -0.23..1.6
+surface Water/PF_OceanShore/PF_OceanShore_06_08: on, M_Water_Shore / PF/Ocean Shore cull -, 2134 v, 100 % above the terrain, faces up, y -0.23..2.14
+surface Water/PF_OceanShore/PF_OceanShore_07_08: on, M_Water_Shore / PF/Ocean Shore cull -, 1764 v, 100 % above the terrain, faces up, y -0.23..1.63
+surface Water/PF_OceanShore/PF_OceanShore_08_08: on, M_Water_Shore / PF/Ocean Shore cull -, 24 v, 100 % above the terrain, faces up, y -0.23..0.27
+surface World/Environment/Volcano/Lava/LavaChannel: on, M_Env_Lava / PF/Lava cull -, 280 v, 46 % above the terrain, faces up, y 43.65..46.36
+surface World/Environment/Volcano/Lava/VentPool: on, M_Env_Lava / PF/Lava cull -, 21 v, 100 % above the terrain, faces up, y 45..47.93
+surface World/Environment/Volcano/Lava/Cracks/Crack_00: on, M_Env_LavaCrack / PF/Lava cull -, 33 v, 100 % above the terrain, faces up, y 45.28..45.53
+surface World/Environment/Volcano/Lava/Cracks/Crack_01: on, M_Env_LavaCrack / PF/Lava cull -, 45 v, 100 % above the terrain, faces up, y 43.76..45.62
+surface World/Environment/Volcano/Lava/Cracks/Crack_02: on, M_Env_LavaCrack / PF/Lava cull -, 36 v, 100 % above the terrain, faces up, y 45.47..45.78
+surface World/Environment/Volcano/Lava/Cracks/Crack_03: on, M_Env_LavaCrack / PF/Lava cull -, 24 v, 100 % above the terrain, faces up, y 44.36..44.81
+surface World/Environment/Volcano/Lava/Cracks/Crack_04: on, M_Env_LavaCrack / PF/Lava cull -, 24 v, 100 % above the terrain, faces up, y 44.3..44.73
+surface World/Environment/Volcano/Lava/Cracks/Crack_05: on, M_Env_LavaCrack / PF/Lava cull -, 33 v, 100 % above the terrain, faces up, y 45.77..46.42
+surface World/Environment/Volcano/Lava/Cracks/Crack_06: on, M_Env_LavaCrack / PF/Lava cull -, 33 v, 100 % above the terrain, faces up, y 44.55..45.14
+surface World/Environment/Volcano/Lava/Cracks/Crack_07: on, M_Env_LavaCrack / PF/Lava cull -, 21 v, 100 % above the terrain, faces up, y 46.21..46.69
+surface World/Environment/Volcano/Lava/Cracks/Crack_08: on, M_Env_LavaCrack / PF/Lava cull -, 30 v, 100 % above the terrain, faces up, y 44.74..47.74
+surface World/Environment/Volcano/Lava/Cracks/Crack_09: on, M_Env_LavaCrack / PF/Lava cull -, 45 v, 100 % above the terrain, faces up, y 45.55..45.81
+surface World/Environment/Volcano/Lava/Cracks/Crack_10: on, M_Env_LavaCrack / PF/Lava cull -, 30 v, 100 % above the terrain, faces up, y 44.42..45.19
+surface World/Environment/Water/Waterfall/WaterfallSheet: on, M_Env_Waterfall / PF/Waterfall cull -, 120 v, 93 % above the terrain, faces up, y 18.5..33
+surface World/Environment/Water/Waterfall/WaterfallSheetBack: on, M_Env_Waterfall / PF/Waterfall cull -, 66 v, 90 % above the terrain, faces up, y 18.4..32.9
+surface World/Environment/Water/Waterfall/Rivulet_0: on, M_Env_Rivulet / PF/Waterfall cull -, 36 v, 52 % above the terrain, faces up, y 18.7..28.94
+surface World/Environment/Water/Waterfall/Rivulet_1: on, M_Env_Rivulet / PF/Waterfall cull -, 36 v, 55 % above the terrain, faces up, y 18.7..30.83
+surface World/Environment/Water/Waterfall/Rivulet_2: on, M_Env_Rivulet / PF/Waterfall cull -, 36 v, 0 % above the terrain, faces up, y 18.7..25.03
+active PROP_PC_Petroglyph instances: 0
+VolcanoLandmark World/Environment/Volcano/Lava/VentSystem at (-100, 44.7, -232): ON
+VolcanoLandmark World/Landmarks/Volcano at (-360, -2, 640): off
+Check finished, 0 warning(s)
+
+Capture E5;focus=VentSystem@9@4+LavaChannel@6@3 started 2026-09-30 15:52:41
+wrote Documentation/Screenshots/PCPhase/Env/E5_focus_VentSystem.png eye (-100, 49.5, -223)
+wrote Documentation/Screenshots/PCPhase/Env/E5_focus_LavaChannel.png eye (0, 11.9, 6)
+Capture finished, 0 warning(s)
+
+Check  started 2026-09-30 15:54:36
+ENV groups: Forest (713), Rocks (392), WaterEdge (345), Volcano (309), Storytelling (114), WaterfallDressing (186)
+  ENV_PC_TreeFern_A: 0 placed + 175 terrain trees
+  ENV_PC_TreeFern_B: 0 placed + 162 terrain trees
+  ENV_PC_TreeFern_C: 0 placed + 166 terrain trees
+  ENV_PC_Cycad_A: 0 placed + 56 terrain trees
+  ENV_PC_Cycad_B: 0 placed + 60 terrain trees
+  ENV_PC_Cycad_C: 0 placed + 76 terrain trees
+  ENV_PC_GiantFern_A: 43 placed
+  ENV_PC_GiantFern_B: 46 placed
+  ENV_PC_HorsetailClump: 64 placed
+  ENV_PC_Magnolia_A: 50 placed
+  ENV_PC_Magnolia_B: 50 placed
+  ENV_PC_VineCurtain_A: 25 placed
+  ENV_PC_VineCurtain_B: 26 placed
+  ENV_PC_Roots_A: 13 placed
+  ENV_PC_Roots_B: 12 placed
+  ENV_PC_FallenTrunk_A: 15 placed
+  ENV_PC_FallenTrunk_B: 15 placed
+  ENV_PC_MossRock_A: 34 placed
+  ENV_PC_MossRock_B: 33 placed
+  ENV_PC_MossRock_C: 34 placed
+  ENV_PC_Basalt_A: 24 placed
+  ENV_PC_Basalt_B: 24 placed
+  ENV_PC_BasaltBoulder: 23 placed
+ENV_PC models in the scene: 23 / 23
+  DET_PC_GiantFern (terrain detail): 8499
+  DET_PC_Horsetail (terrain detail): 4375
+  DET_PC_Reeds (terrain detail): 5395
+  PROP_PC_Bones: 3
+  PROP_PC_BrokenTree_A: 2
+  PROP_PC_BrokenTree_B: 1
+  PROP_PC_CastawayMarks: 1
+  PROP_PC_ClawRock: 1
+  PROP_PC_ClawSnag: 1
+  PROP_PC_FireRing: 1
+  PROP_PC_FossilSlab: 1
+  PROP_PC_LeanTo: 1
+  PROP_PC_Nest: 1
+  PROP_PC_Skeleton: 1
+  PROP_PC_StoneTool: 1
+  PROP_PC_TallyStone: 1
+  PROP_PC_WreckPlanks: 7
+references: 2065 ENV objects checked; missing prefab 0, mesh 0, material 0, broken shader 0, missing script 0, LOD renderer 0, mesh collider mesh 0; terrain prototypes without asset 0
+resource nodes (active): 1440; covered by an ENV collider 2, new ENV terrain tree within 0.9 m 0 (v1 trees swapped in place to ENV models, same position as before: 7), more than 0.6 m under the terrain 0 (not moved by ENV)
+  covered by ENV_PC_BasaltBoulder: World/Rocks/PFB_ENV_Rock_Large_03 (-100.6, 42, -187.4)
+  covered by ENV_PC_BasaltBoulder: World/Rocks/PFB_ENV_Rock_Large_02 (-82.8, 49, -231.9)
+player spawn (-20, 1.5, 211): ENV props within 20 m 2 (WreckPlanks_0 3.16 m, PFB_PROP_Ship_Debris 15.03 m), ENV terrain trees 0
+player (-20, 1.5, 211): ENV props within 12 m 1 (WreckPlanks_0 3.16 m), ENV terrain trees 0
+surface Water/ENV_Ocean: OFF, M_Ocean / PF/Water cull -, 121 v, 94 % above the terrain, faces up, y 0..0
+surface Water/ENV_Pond_Water: on, M_Water_Pond / PF/Water Flow cull -, 48 v, 10 % above the terrain, faces up, y 9.55..9.55
+surface Water/ENV_Stream_Water: OFF, M_Water_Stream / PF/Water Flow cull -, 550 v, 59 % above the terrain, faces up, y 9.67..27.48
+surface Water/ENV_River_Water: on, M_Water_River / PF/Water Flow cull -, 2016 v, 71 % above the terrain, faces up, y 9.61..18.45
+surface Water/ENV_LowerRiver_Water: on, M_Water_LowerRiver / PF/Water Flow cull -, 665 v, 73 % above the terrain, faces up, y 3.25..9.52
+surface Water/ENV_RiverMouth_Water: on, M_Water_RiverMouth / PF/Water Flow cull -, 196 v, 71 % above the terrain, faces up, y 0.07..0.73
+surface Water/ENV_SpringStream_Water: on, M_Water_SpringStream / PF/Water Flow cull -, 195 v, 63 % above the terrain, faces up, y 33.03..40.83
+surface Water/ENV_WaterfallPool_Water: on, M_Water_fallPool / PF/Water Flow cull -, 281 v, 19 % above the terrain, faces up, y 18.5..18.5
+surface Water/ENV_Spring_Water: on, M_Water_Spring / PF/Water Flow cull -, 73 v, 45 % above the terrain, faces up, y 40.8..40.8
+surface Water/ENV_Wetland_Water: on, M_Water_Wetland / PF/Water Flow cull -, 2055 v, 73 % above the terrain, faces up, y 0.85..0.85
+surface Water/PF_Ocean: on, M_Water_Ocean / PF/Ocean cull -, 32761 v, 71 % above the terrain, faces up, y -2..2
+surface Water/PF_OceanShore/PF_OceanShore: on, M_Water_Shore / PF/Ocean Shore cull -, 336 v, 100 % above the terrain, faces up, y -0.23..12.07
+surface Water/PF_OceanShore/PF_OceanShore_03_00: on, M_Water_Shore / PF/Ocean Shore cull -, 693 v, 100 % above the terrain, faces up, y -0.23..8.48
+surface Water/PF_OceanShore/PF_OceanShore_04_00: on, M_Water_Shore / PF/Ocean Shore cull -, 567 v, 100 % above the terrain, faces up, y -0.23..2.47
+surface Water/PF_OceanShore/PF_OceanShore_05_00: on, M_Water_Shore / PF/Ocean Shore cull -, 856 v, 100 % above the terrain, faces up, y -0.23..2.35
+surface Water/PF_OceanShore/PF_OceanShore_06_00: on, M_Water_Shore / PF/Ocean Shore cull -, 734 v, 100 % above the terrain, faces up, y -0.23..2.28
+surface Water/PF_OceanShore/PF_OceanShore_07_00: on, M_Water_Shore / PF/Ocean Shore cull -, 459 v, 100 % above the terrain, faces up, y -0.23..0.27
+surface Water/PF_OceanShore/PF_OceanShore_01_01: on, M_Water_Shore / PF/Ocean Shore cull -, 683 v, 100 % above the terrain, faces up, y -0.23..19.6
+surface Water/PF_OceanShore/PF_OceanShore_02_01: on, M_Water_Shore / PF/Ocean Shore cull -, 676 v, 100 % above the terrain, faces up, y -0.23..28.24
+surface Water/PF_OceanShore/PF_OceanShore_06_01: on, M_Water_Shore / PF/Ocean Shore cull -, 272 v, 100 % above the terrain, faces up, y -0.23..2.39
+surface Water/PF_OceanShore/PF_OceanShore_07_01: on, M_Water_Shore / PF/Ocean Shore cull -, 681 v, 100 % above the terrain, faces up, y -0.23..3.22
+surface Water/PF_OceanShore/PF_OceanShore_08_01: on, M_Water_Shore / PF/Ocean Shore cull -, 960 v, 100 % above the terrain, faces up, y -0.23..3.19
+surface Water/PF_OceanShore/PF_OceanShore_09_01: on, M_Water_Shore / PF/Ocean Shore cull -, 4 v, 100 % above the terrain, faces up, y -0.23..0.27
+surface Water/PF_OceanShore/PF_OceanShore_00_02: on, M_Water_Shore / PF/Ocean Shore cull -, 802 v, 100 % above the terrain, faces up, y -0.23..2.02
+surface Water/PF_OceanShore/PF_OceanShore_01_02: on, M_Water_Shore / PF/Ocean Shore cull -, 609 v, 100 % above the terrain, faces up, y -0.23..3.04
+surface Water/PF_OceanShore/PF_OceanShore_08_02: on, M_Water_Shore / PF/Ocean Shore cull -, 194 v, 100 % above the terrain, faces up, y -0.23..2.8
+surface Water/PF_OceanShore/PF_OceanShore_09_02: on, M_Water_Shore / PF/Ocean Shore cull -, 857 v, 100 % above the terrain, faces up, y -0.23..2.45
+surface Water/PF_OceanShore/PF_OceanShore_00_03: on, M_Water_Shore / PF/Ocean Shore cull -, 1603 v, 100 % above the terrain, faces up, y -0.23..1.78
+surface Water/PF_OceanShore/PF_OceanShore_08_03: on, M_Water_Shore / PF/Ocean Shore cull -, 426 v, 100 % above the terrain, faces up, y -0.23..1.79
+surface Water/PF_OceanShore/PF_OceanShore_09_03: on, M_Water_Shore / PF/Ocean Shore cull -, 951 v, 100 % above the terrain, faces up, y -0.23..2.08
+surface Water/PF_OceanShore/PF_OceanShore_00_04: on, M_Water_Shore / PF/Ocean Shore cull -, 1666 v, 100 % above the terrain, faces up, y -0.23..1.62
+surface Water/PF_OceanShore/PF_OceanShore_08_04: on, M_Water_Shore / PF/Ocean Shore cull -, 589 v, 100 % above the terrain, faces up, y -0.23..1.64
+surface Water/PF_OceanShore/PF_OceanShore_09_04: on, M_Water_Shore / PF/Ocean Shore cull -, 752 v, 100 % above the terrain, faces up, y -0.23..0.27
+surface Water/PF_OceanShore/PF_OceanShore_00_05: on, M_Water_Shore / PF/Ocean Shore cull -, 1408 v, 100 % above the terrain, faces up, y -0.23..1.67
+surface Water/PF_OceanShore/PF_OceanShore_01_05: on, M_Water_Shore / PF/Ocean Shore cull -, 14 v, 100 % above the terrain, faces up, y 0.93..1.62
+surface Water/PF_OceanShore/PF_OceanShore_08_05: on, M_Water_Shore / PF/Ocean Shore cull -, 1127 v, 100 % above the terrain, faces up, y -0.23..1.65
+surface Water/PF_OceanShore/PF_OceanShore_09_05: on, M_Water_Shore / PF/Ocean Shore cull -, 761 v, 100 % above the terrain, faces up, y -0.23..0.27
+surface Water/PF_OceanShore/PF_OceanShore_00_06: on, M_Water_Shore / PF/Ocean Shore cull -, 428 v, 100 % above the terrain, faces up, y -0.23..1.43
+surface Water/PF_OceanShore/PF_OceanShore_01_06: on, M_Water_Shore / PF/Ocean Shore cull -, 1063 v, 100 % above the terrain, faces up, y -0.23..1.68
+surface Water/PF_OceanShore/PF_OceanShore_08_06: on, M_Water_Shore / PF/Ocean Shore cull -, 1596 v, 100 % above the terrain, faces up, y -0.23..1.67
+surface Water/PF_OceanShore/PF_OceanShore_09_06: on, M_Water_Shore / PF/Ocean Shore cull -, 33 v, 100 % above the terrain, faces up, y -0.23..0.27
+surface Water/PF_OceanShore/PF_OceanShore_01_07: on, M_Water_Shore / PF/Ocean Shore cull -, 1221 v, 100 % above the terrain, faces up, y -0.23..1.67
+surface Water/PF_OceanShore/PF_OceanShore_02_07: on, M_Water_Shore / PF/Ocean Shore cull -, 200 v, 100 % above the terrain, faces up, y -0.23..1.65
+surface Water/PF_OceanShore/PF_OceanShore_06_07: on, M_Water_Shore / PF/Ocean Shore cull -, 2174 v, 100 % above the terrain, faces up, y 0.07..2.67
+surface Water/PF_OceanShore/PF_OceanShore_07_07: on, M_Water_Shore / PF/Ocean Shore cull -, 1136 v, 100 % above the terrain, faces up, y -0.23..2.63
+surface Water/PF_OceanShore/PF_OceanShore_08_07: on, M_Water_Shore / PF/Ocean Shore cull -, 871 v, 100 % above the terrain, faces up, y -0.23..1.69
+surface Water/PF_OceanShore/PF_OceanShore_01_08: on, M_Water_Shore / PF/Ocean Shore cull -, 23 v, 100 % above the terrain, faces up, y -0.23..0.27
+surface Water/PF_OceanShore/PF_OceanShore_02_08: on, M_Water_Shore / PF/Ocean Shore cull -, 1688 v, 100 % above the terrain, faces up, y -0.23..1.67
+surface Water/PF_OceanShore/PF_OceanShore_03_08: on, M_Water_Shore / PF/Ocean Shore cull -, 1588 v, 100 % above the terrain, faces up, y -0.23..1.59
+surface Water/PF_OceanShore/PF_OceanShore_04_08: on, M_Water_Shore / PF/Ocean Shore cull -, 1495 v, 100 % above the terrain, faces up, y -0.23..1.6
+surface Water/PF_OceanShore/PF_OceanShore_05_08: on, M_Water_Shore / PF/Ocean Shore cull -, 1475 v, 100 % above the terrain, faces up, y -0.23..1.6
+surface Water/PF_OceanShore/PF_OceanShore_06_08: on, M_Water_Shore / PF/Ocean Shore cull -, 2134 v, 100 % above the terrain, faces up, y -0.23..2.14
+surface Water/PF_OceanShore/PF_OceanShore_07_08: on, M_Water_Shore / PF/Ocean Shore cull -, 1764 v, 100 % above the terrain, faces up, y -0.23..1.63
+surface Water/PF_OceanShore/PF_OceanShore_08_08: on, M_Water_Shore / PF/Ocean Shore cull -, 24 v, 100 % above the terrain, faces up, y -0.23..0.27
+surface World/Environment/Volcano/Lava/LavaChannel: on, M_Env_Lava / PF/Lava cull -, 280 v, 46 % above the terrain, faces up, y 43.65..46.36
+surface World/Environment/Volcano/Lava/VentPool: on, M_Env_Lava / PF/Lava cull -, 21 v, 100 % above the terrain, faces up, y 45..47.93
+surface World/Environment/Volcano/Lava/Cracks/Crack_00: on, M_Env_LavaCrack / PF/Lava cull -, 33 v, 100 % above the terrain, faces up, y 45.28..45.53
+surface World/Environment/Volcano/Lava/Cracks/Crack_01: on, M_Env_LavaCrack / PF/Lava cull -, 45 v, 100 % above the terrain, faces up, y 43.76..45.62
+surface World/Environment/Volcano/Lava/Cracks/Crack_02: on, M_Env_LavaCrack / PF/Lava cull -, 36 v, 100 % above the terrain, faces up, y 45.47..45.78
+surface World/Environment/Volcano/Lava/Cracks/Crack_03: on, M_Env_LavaCrack / PF/Lava cull -, 24 v, 100 % above the terrain, faces up, y 44.36..44.81
+surface World/Environment/Volcano/Lava/Cracks/Crack_04: on, M_Env_LavaCrack / PF/Lava cull -, 24 v, 100 % above the terrain, faces up, y 44.3..44.73
+surface World/Environment/Volcano/Lava/Cracks/Crack_05: on, M_Env_LavaCrack / PF/Lava cull -, 33 v, 100 % above the terrain, faces up, y 45.77..46.42
+surface World/Environment/Volcano/Lava/Cracks/Crack_06: on, M_Env_LavaCrack / PF/Lava cull -, 33 v, 100 % above the terrain, faces up, y 44.55..45.14
+surface World/Environment/Volcano/Lava/Cracks/Crack_07: on, M_Env_LavaCrack / PF/Lava cull -, 21 v, 100 % above the terrain, faces up, y 46.21..46.69
+surface World/Environment/Volcano/Lava/Cracks/Crack_08: on, M_Env_LavaCrack / PF/Lava cull -, 30 v, 100 % above the terrain, faces up, y 44.74..47.74
+surface World/Environment/Volcano/Lava/Cracks/Crack_09: on, M_Env_LavaCrack / PF/Lava cull -, 45 v, 100 % above the terrain, faces up, y 45.55..45.81
+surface World/Environment/Volcano/Lava/Cracks/Crack_10: on, M_Env_LavaCrack / PF/Lava cull -, 30 v, 100 % above the terrain, faces up, y 44.42..45.19
+surface World/Environment/Water/Waterfall/WaterfallSheet: on, M_Env_Waterfall / PF/Waterfall cull -, 120 v, 93 % above the terrain, faces up, y 18.5..33
+surface World/Environment/Water/Waterfall/WaterfallSheetBack: on, M_Env_Waterfall / PF/Waterfall cull -, 66 v, 90 % above the terrain, faces up, y 18.4..32.9
+surface World/Environment/Water/Waterfall/Rivulet_0: on, M_Env_Rivulet / PF/Waterfall cull -, 36 v, 52 % above the terrain, faces up, y 18.7..28.94
+surface World/Environment/Water/Waterfall/Rivulet_1: on, M_Env_Rivulet / PF/Waterfall cull -, 36 v, 55 % above the terrain, faces up, y 18.7..30.83
+surface World/Environment/Water/Waterfall/Rivulet_2: on, M_Env_Rivulet / PF/Waterfall cull -, 36 v, 0 % above the terrain, faces up, y 18.7..25.03
+on the lava (non-ENV colliders within 4 m of the vent or 2 m of the channel): 1: World/Rocks/PFB_ENV_Rock_Large_03 (0.21 m, resource node); resource nodes within 3 m of the channel: 3
+active PROP_PC_Petroglyph instances: 0
+VolcanoLandmark World/Environment/Volcano/Lava/VentSystem at (-100, 44.7, -232): ON
+VolcanoLandmark World/Landmarks/Volcano at (-360, -2, 640): off
+Check finished, 0 warning(s)
+
+Vegetation  started 2026-09-30 15:55:52
+prefabs: 23 (Prefabs/Environment/PC), detail prefabs: 3
+terrain trees: 1322 v1 kept in order (421 swapped to the new tree ferns, 117 to the new cycads: old tree ferns, old cycads, part of the broadleaf) + 0 other appended + ENV 82 tree ferns and 75 cycads (prototypes ENV_PC_TreeFern_A=4, ENV_PC_TreeFern_B=5, ENV_PC_TreeFern_C=6, ENV_PC_Cycad_A=7, ENV_PC_Cycad_B=8, ENV_PC_Cycad_C=9)
+details: grass / fern / bush 135741 -> 90596 (grass x0.35 with part of it as low ferns, bushes x0.5); new: horsetail 4375, reeds 5395, giant fern 8499
+placed: 30 fallen trunks, 25 root plates at old araucarias, 80 moss rocks (+18 round the waterfall pool), 55 riverside giant ferns, 60 horsetail clumps, 100 magnolia shrubs, 47 basalt groups, 31 hanging moss / vine curtains
+waterfall dressing (World/Environment/WaterfallDressing): 20 moss / fern curtains on the walls, 3 wet mossy boulders (M_Env_WetRockMossy on) on the back of the pool (rejected: fall 10, water 0, gameplay 41, spacing 26, no rock / ground 0), 34 giant ferns, 4 horsetail clumps; pool r 8 m, drop 14.5 m, the sheet, pool water and downstream bank left clear
+scene saved: Assets/_Project/Scenes/Island_VerticalSlice.unity
+Vegetation finished, 0 warning(s)
+
+Check  started 2026-09-30 15:56:15
+ENV groups: Forest (713), Rocks (392), WaterEdge (345), Volcano (213), Storytelling (114), WaterfallDressing (186)
+  ENV_PC_TreeFern_A: 0 placed + 175 terrain trees
+  ENV_PC_TreeFern_B: 0 placed + 162 terrain trees
+  ENV_PC_TreeFern_C: 0 placed + 166 terrain trees
+  ENV_PC_Cycad_A: 0 placed + 56 terrain trees
+  ENV_PC_Cycad_B: 0 placed + 60 terrain trees
+  ENV_PC_Cycad_C: 0 placed + 76 terrain trees
+  ENV_PC_GiantFern_A: 43 placed
+  ENV_PC_GiantFern_B: 46 placed
+  ENV_PC_HorsetailClump: 64 placed
+  ENV_PC_Magnolia_A: 50 placed
+  ENV_PC_Magnolia_B: 50 placed
+  ENV_PC_VineCurtain_A: 25 placed
+  ENV_PC_VineCurtain_B: 26 placed
+  ENV_PC_Roots_A: 13 placed
+  ENV_PC_Roots_B: 12 placed
+  ENV_PC_FallenTrunk_A: 15 placed
+  ENV_PC_FallenTrunk_B: 15 placed
+  ENV_PC_MossRock_A: 34 placed
+  ENV_PC_MossRock_B: 33 placed
+  ENV_PC_MossRock_C: 34 placed
+  ENV_PC_Basalt_A: 16 placed
+  ENV_PC_Basalt_B: 16 placed
+  ENV_PC_BasaltBoulder: 15 placed
+ENV_PC models in the scene: 23 / 23
+  DET_PC_GiantFern (terrain detail): 8499
+  DET_PC_Horsetail (terrain detail): 4375
+  DET_PC_Reeds (terrain detail): 5395
+  PROP_PC_Bones: 3
+  PROP_PC_BrokenTree_A: 2
+  PROP_PC_BrokenTree_B: 1
+  PROP_PC_CastawayMarks: 1
+  PROP_PC_ClawRock: 1
+  PROP_PC_ClawSnag: 1
+  PROP_PC_FireRing: 1
+  PROP_PC_FossilSlab: 1
+  PROP_PC_LeanTo: 1
+  PROP_PC_Nest: 1
+  PROP_PC_Skeleton: 1
+  PROP_PC_StoneTool: 1
+  PROP_PC_TallyStone: 1
+  PROP_PC_WreckPlanks: 7
+references: 1969 ENV objects checked; missing prefab 0, mesh 0, material 0, broken shader 0, missing script 0, LOD renderer 0, mesh collider mesh 0; terrain prototypes without asset 0
+resource nodes (active): 1440; covered by an ENV collider 0, new ENV terrain tree within 0.9 m 0 (v1 trees swapped in place to ENV models, same position as before: 7), more than 0.6 m under the terrain 0 (not moved by ENV)
+player spawn (-20, 1.5, 211): ENV props within 20 m 2 (WreckPlanks_0 3.16 m, PFB_PROP_Ship_Debris 15.03 m), ENV terrain trees 0
+player (-20, 1.5, 211): ENV props within 12 m 1 (WreckPlanks_0 3.16 m), ENV terrain trees 0
+surface Water/ENV_Ocean: OFF, M_Ocean / PF/Water cull -, 121 v, 94 % above the terrain, faces up, y 0..0
+surface Water/ENV_Pond_Water: on, M_Water_Pond / PF/Water Flow cull -, 48 v, 10 % above the terrain, faces up, y 9.55..9.55
+surface Water/ENV_Stream_Water: OFF, M_Water_Stream / PF/Water Flow cull -, 550 v, 59 % above the terrain, faces up, y 9.67..27.48
+surface Water/ENV_River_Water: on, M_Water_River / PF/Water Flow cull -, 2016 v, 71 % above the terrain, faces up, y 9.61..18.45
+surface Water/ENV_LowerRiver_Water: on, M_Water_LowerRiver / PF/Water Flow cull -, 665 v, 73 % above the terrain, faces up, y 3.25..9.52
+surface Water/ENV_RiverMouth_Water: on, M_Water_RiverMouth / PF/Water Flow cull -, 196 v, 71 % above the terrain, faces up, y 0.07..0.73
+surface Water/ENV_SpringStream_Water: on, M_Water_SpringStream / PF/Water Flow cull -, 195 v, 63 % above the terrain, faces up, y 33.03..40.83
+surface Water/ENV_WaterfallPool_Water: on, M_Water_fallPool / PF/Water Flow cull -, 281 v, 19 % above the terrain, faces up, y 18.5..18.5
+surface Water/ENV_Spring_Water: on, M_Water_Spring / PF/Water Flow cull -, 73 v, 45 % above the terrain, faces up, y 40.8..40.8
+surface Water/ENV_Wetland_Water: on, M_Water_Wetland / PF/Water Flow cull -, 2055 v, 73 % above the terrain, faces up, y 0.85..0.85
+surface Water/PF_Ocean: on, M_Water_Ocean / PF/Ocean cull -, 32761 v, 71 % above the terrain, faces up, y -2..2
+surface Water/PF_OceanShore/PF_OceanShore: on, M_Water_Shore / PF/Ocean Shore cull -, 336 v, 100 % above the terrain, faces up, y -0.23..12.07
+surface Water/PF_OceanShore/PF_OceanShore_03_00: on, M_Water_Shore / PF/Ocean Shore cull -, 693 v, 100 % above the terrain, faces up, y -0.23..8.48
+surface Water/PF_OceanShore/PF_OceanShore_04_00: on, M_Water_Shore / PF/Ocean Shore cull -, 567 v, 100 % above the terrain, faces up, y -0.23..2.47
+surface Water/PF_OceanShore/PF_OceanShore_05_00: on, M_Water_Shore / PF/Ocean Shore cull -, 856 v, 100 % above the terrain, faces up, y -0.23..2.35
+surface Water/PF_OceanShore/PF_OceanShore_06_00: on, M_Water_Shore / PF/Ocean Shore cull -, 734 v, 100 % above the terrain, faces up, y -0.23..2.28
+surface Water/PF_OceanShore/PF_OceanShore_07_00: on, M_Water_Shore / PF/Ocean Shore cull -, 459 v, 100 % above the terrain, faces up, y -0.23..0.27
+surface Water/PF_OceanShore/PF_OceanShore_01_01: on, M_Water_Shore / PF/Ocean Shore cull -, 683 v, 100 % above the terrain, faces up, y -0.23..19.6
+surface Water/PF_OceanShore/PF_OceanShore_02_01: on, M_Water_Shore / PF/Ocean Shore cull -, 676 v, 100 % above the terrain, faces up, y -0.23..28.24
+surface Water/PF_OceanShore/PF_OceanShore_06_01: on, M_Water_Shore / PF/Ocean Shore cull -, 272 v, 100 % above the terrain, faces up, y -0.23..2.39
+surface Water/PF_OceanShore/PF_OceanShore_07_01: on, M_Water_Shore / PF/Ocean Shore cull -, 681 v, 100 % above the terrain, faces up, y -0.23..3.22
+surface Water/PF_OceanShore/PF_OceanShore_08_01: on, M_Water_Shore / PF/Ocean Shore cull -, 960 v, 100 % above the terrain, faces up, y -0.23..3.19
+surface Water/PF_OceanShore/PF_OceanShore_09_01: on, M_Water_Shore / PF/Ocean Shore cull -, 4 v, 100 % above the terrain, faces up, y -0.23..0.27
+surface Water/PF_OceanShore/PF_OceanShore_00_02: on, M_Water_Shore / PF/Ocean Shore cull -, 802 v, 100 % above the terrain, faces up, y -0.23..2.02
+surface Water/PF_OceanShore/PF_OceanShore_01_02: on, M_Water_Shore / PF/Ocean Shore cull -, 609 v, 100 % above the terrain, faces up, y -0.23..3.04
+surface Water/PF_OceanShore/PF_OceanShore_08_02: on, M_Water_Shore / PF/Ocean Shore cull -, 194 v, 100 % above the terrain, faces up, y -0.23..2.8
+surface Water/PF_OceanShore/PF_OceanShore_09_02: on, M_Water_Shore / PF/Ocean Shore cull -, 857 v, 100 % above the terrain, faces up, y -0.23..2.45
+surface Water/PF_OceanShore/PF_OceanShore_00_03: on, M_Water_Shore / PF/Ocean Shore cull -, 1603 v, 100 % above the terrain, faces up, y -0.23..1.78
+surface Water/PF_OceanShore/PF_OceanShore_08_03: on, M_Water_Shore / PF/Ocean Shore cull -, 426 v, 100 % above the terrain, faces up, y -0.23..1.79
+surface Water/PF_OceanShore/PF_OceanShore_09_03: on, M_Water_Shore / PF/Ocean Shore cull -, 951 v, 100 % above the terrain, faces up, y -0.23..2.08
+surface Water/PF_OceanShore/PF_OceanShore_00_04: on, M_Water_Shore / PF/Ocean Shore cull -, 1666 v, 100 % above the terrain, faces up, y -0.23..1.62
+surface Water/PF_OceanShore/PF_OceanShore_08_04: on, M_Water_Shore / PF/Ocean Shore cull -, 589 v, 100 % above the terrain, faces up, y -0.23..1.64
+surface Water/PF_OceanShore/PF_OceanShore_09_04: on, M_Water_Shore / PF/Ocean Shore cull -, 752 v, 100 % above the terrain, faces up, y -0.23..0.27
+surface Water/PF_OceanShore/PF_OceanShore_00_05: on, M_Water_Shore / PF/Ocean Shore cull -, 1408 v, 100 % above the terrain, faces up, y -0.23..1.67
+surface Water/PF_OceanShore/PF_OceanShore_01_05: on, M_Water_Shore / PF/Ocean Shore cull -, 14 v, 100 % above the terrain, faces up, y 0.93..1.62
+surface Water/PF_OceanShore/PF_OceanShore_08_05: on, M_Water_Shore / PF/Ocean Shore cull -, 1127 v, 100 % above the terrain, faces up, y -0.23..1.65
+surface Water/PF_OceanShore/PF_OceanShore_09_05: on, M_Water_Shore / PF/Ocean Shore cull -, 761 v, 100 % above the terrain, faces up, y -0.23..0.27
+surface Water/PF_OceanShore/PF_OceanShore_00_06: on, M_Water_Shore / PF/Ocean Shore cull -, 428 v, 100 % above the terrain, faces up, y -0.23..1.43
+surface Water/PF_OceanShore/PF_OceanShore_01_06: on, M_Water_Shore / PF/Ocean Shore cull -, 1063 v, 100 % above the terrain, faces up, y -0.23..1.68
+surface Water/PF_OceanShore/PF_OceanShore_08_06: on, M_Water_Shore / PF/Ocean Shore cull -, 1596 v, 100 % above the terrain, faces up, y -0.23..1.67
+surface Water/PF_OceanShore/PF_OceanShore_09_06: on, M_Water_Shore / PF/Ocean Shore cull -, 33 v, 100 % above the terrain, faces up, y -0.23..0.27
+surface Water/PF_OceanShore/PF_OceanShore_01_07: on, M_Water_Shore / PF/Ocean Shore cull -, 1221 v, 100 % above the terrain, faces up, y -0.23..1.67
+surface Water/PF_OceanShore/PF_OceanShore_02_07: on, M_Water_Shore / PF/Ocean Shore cull -, 200 v, 100 % above the terrain, faces up, y -0.23..1.65
+surface Water/PF_OceanShore/PF_OceanShore_06_07: on, M_Water_Shore / PF/Ocean Shore cull -, 2174 v, 100 % above the terrain, faces up, y 0.07..2.67
+surface Water/PF_OceanShore/PF_OceanShore_07_07: on, M_Water_Shore / PF/Ocean Shore cull -, 1136 v, 100 % above the terrain, faces up, y -0.23..2.63
+surface Water/PF_OceanShore/PF_OceanShore_08_07: on, M_Water_Shore / PF/Ocean Shore cull -, 871 v, 100 % above the terrain, faces up, y -0.23..1.69
+surface Water/PF_OceanShore/PF_OceanShore_01_08: on, M_Water_Shore / PF/Ocean Shore cull -, 23 v, 100 % above the terrain, faces up, y -0.23..0.27
+surface Water/PF_OceanShore/PF_OceanShore_02_08: on, M_Water_Shore / PF/Ocean Shore cull -, 1688 v, 100 % above the terrain, faces up, y -0.23..1.67
+surface Water/PF_OceanShore/PF_OceanShore_03_08: on, M_Water_Shore / PF/Ocean Shore cull -, 1588 v, 100 % above the terrain, faces up, y -0.23..1.59
+surface Water/PF_OceanShore/PF_OceanShore_04_08: on, M_Water_Shore / PF/Ocean Shore cull -, 1495 v, 100 % above the terrain, faces up, y -0.23..1.6
+surface Water/PF_OceanShore/PF_OceanShore_05_08: on, M_Water_Shore / PF/Ocean Shore cull -, 1475 v, 100 % above the terrain, faces up, y -0.23..1.6
+surface Water/PF_OceanShore/PF_OceanShore_06_08: on, M_Water_Shore / PF/Ocean Shore cull -, 2134 v, 100 % above the terrain, faces up, y -0.23..2.14
+surface Water/PF_OceanShore/PF_OceanShore_07_08: on, M_Water_Shore / PF/Ocean Shore cull -, 1764 v, 100 % above the terrain, faces up, y -0.23..1.63
+surface Water/PF_OceanShore/PF_OceanShore_08_08: on, M_Water_Shore / PF/Ocean Shore cull -, 24 v, 100 % above the terrain, faces up, y -0.23..0.27
+surface World/Environment/Volcano/Lava/LavaChannel: on, M_Env_Lava / PF/Lava cull -, 280 v, 46 % above the terrain, faces up, y 43.65..46.36
+surface World/Environment/Volcano/Lava/VentPool: on, M_Env_Lava / PF/Lava cull -, 21 v, 100 % above the terrain, faces up, y 45..47.93
+surface World/Environment/Volcano/Lava/Cracks/Crack_00: on, M_Env_LavaCrack / PF/Lava cull -, 33 v, 100 % above the terrain, faces up, y 45.28..45.53
+surface World/Environment/Volcano/Lava/Cracks/Crack_01: on, M_Env_LavaCrack / PF/Lava cull -, 45 v, 100 % above the terrain, faces up, y 43.76..45.62
+surface World/Environment/Volcano/Lava/Cracks/Crack_02: on, M_Env_LavaCrack / PF/Lava cull -, 36 v, 100 % above the terrain, faces up, y 45.47..45.78
+surface World/Environment/Volcano/Lava/Cracks/Crack_03: on, M_Env_LavaCrack / PF/Lava cull -, 24 v, 100 % above the terrain, faces up, y 44.36..44.81
+surface World/Environment/Volcano/Lava/Cracks/Crack_04: on, M_Env_LavaCrack / PF/Lava cull -, 24 v, 100 % above the terrain, faces up, y 44.3..44.73
+surface World/Environment/Volcano/Lava/Cracks/Crack_05: on, M_Env_LavaCrack / PF/Lava cull -, 33 v, 100 % above the terrain, faces up, y 45.77..46.42
+surface World/Environment/Volcano/Lava/Cracks/Crack_06: on, M_Env_LavaCrack / PF/Lava cull -, 33 v, 100 % above the terrain, faces up, y 44.55..45.14
+surface World/Environment/Volcano/Lava/Cracks/Crack_07: on, M_Env_LavaCrack / PF/Lava cull -, 21 v, 100 % above the terrain, faces up, y 46.21..46.69
+surface World/Environment/Volcano/Lava/Cracks/Crack_08: on, M_Env_LavaCrack / PF/Lava cull -, 30 v, 100 % above the terrain, faces up, y 44.74..47.74
+surface World/Environment/Volcano/Lava/Cracks/Crack_09: on, M_Env_LavaCrack / PF/Lava cull -, 45 v, 100 % above the terrain, faces up, y 45.55..45.81
+surface World/Environment/Volcano/Lava/Cracks/Crack_10: on, M_Env_LavaCrack / PF/Lava cull -, 30 v, 100 % above the terrain, faces up, y 44.42..45.19
+surface World/Environment/Water/Waterfall/WaterfallSheet: on, M_Env_Waterfall / PF/Waterfall cull -, 120 v, 93 % above the terrain, faces up, y 18.5..33
+surface World/Environment/Water/Waterfall/WaterfallSheetBack: on, M_Env_Waterfall / PF/Waterfall cull -, 66 v, 90 % above the terrain, faces up, y 18.4..32.9
+surface World/Environment/Water/Waterfall/Rivulet_0: on, M_Env_Rivulet / PF/Waterfall cull -, 36 v, 52 % above the terrain, faces up, y 18.7..28.94
+surface World/Environment/Water/Waterfall/Rivulet_1: on, M_Env_Rivulet / PF/Waterfall cull -, 36 v, 55 % above the terrain, faces up, y 18.7..30.83
+surface World/Environment/Water/Waterfall/Rivulet_2: on, M_Env_Rivulet / PF/Waterfall cull -, 36 v, 0 % above the terrain, faces up, y 18.7..25.03
+on the lava (non-ENV colliders within 4 m of the vent or 2 m of the channel): 1: World/Rocks/PFB_ENV_Rock_Large_03 (0.21 m, resource node); resource nodes within 3 m of the channel: 3
+active PROP_PC_Petroglyph instances: 0
+VolcanoLandmark World/Environment/Volcano/Lava/VentSystem at (-100, 44.7, -232): ON
+VolcanoLandmark World/Landmarks/Volcano at (-360, -2, 640): off
+Check finished, 0 warning(s)
+
+Capture E6;only=waterfall_close+waterfall+volcano_close+volcano_ash;focus=ClawRock_Spring@4.5@1.2+CastawayMarks_Cave@3.5@1.1 started 2026-09-30 15:56:26
+wrote Documentation/Screenshots/PCPhase/Env/E6_waterfall.png eye (78, 21, -126)
+wrote Documentation/Screenshots/PCPhase/Env/E6_volcano_ash.png eye (-152, 47.5, -196)
+wrote Documentation/Screenshots/PCPhase/Env/E6_waterfall_close.png eye (93, 23.5, -145)
+wrote Documentation/Screenshots/PCPhase/Env/E6_volcano_close.png eye (-84, 54, -212)
+wrote Documentation/Screenshots/PCPhase/Env/E6_focus_ClawRock_Spring.png eye (104, 44.5, -193)
+wrote Documentation/Screenshots/PCPhase/Env/E6_focus_CastawayMarks_Cave.png eye (-11.2, 19.3, -125.8)
+Capture finished, 0 warning(s)
+
+Check  started 2026-09-30 17:24:17
+ENV groups: ForestDressing (713), Rocks (392), WaterEdge (345), Volcano (241), Storytelling (114), WaterfallDressing (186)
+  ENV_PC_TreeFern_A: 0 placed + 175 terrain trees
+  ENV_PC_TreeFern_B: 0 placed + 162 terrain trees
+  ENV_PC_TreeFern_C: 0 placed + 166 terrain trees
+  ENV_PC_Cycad_A: 0 placed + 56 terrain trees
+  ENV_PC_Cycad_B: 0 placed + 60 terrain trees
+  ENV_PC_Cycad_C: 0 placed + 76 terrain trees
+  ENV_PC_GiantFern_A: 43 placed
+  ENV_PC_GiantFern_B: 46 placed
+  ENV_PC_HorsetailClump: 64 placed
+  ENV_PC_Magnolia_A: 50 placed
+  ENV_PC_Magnolia_B: 50 placed
+  ENV_PC_VineCurtain_A: 25 placed
+  ENV_PC_VineCurtain_B: 26 placed
+  ENV_PC_Roots_A: 13 placed
+  ENV_PC_Roots_B: 12 placed
+  ENV_PC_FallenTrunk_A: 15 placed
+  ENV_PC_FallenTrunk_B: 15 placed
+  ENV_PC_MossRock_A: 34 placed
+  ENV_PC_MossRock_B: 33 placed
+  ENV_PC_MossRock_C: 34 placed
+  ENV_PC_Basalt_A: 16 placed
+  ENV_PC_Basalt_B: 16 placed
+  ENV_PC_BasaltBoulder: 15 placed
+ENV_PC models in the scene: 23 / 23
+  DET_PC_GiantFern (terrain detail): 8499
+  DET_PC_Horsetail (terrain detail): 4375
+  DET_PC_Reeds (terrain detail): 5395
+  PROP_PC_Bones: 3
+  PROP_PC_BrokenTree_A: 2
+  PROP_PC_BrokenTree_B: 1
+  PROP_PC_CastawayMarks: 1
+  PROP_PC_ClawRock: 1
+  PROP_PC_ClawSnag: 1
+  PROP_PC_FireRing: 1
+  PROP_PC_FossilSlab: 1
+  PROP_PC_LeanTo: 1
+  PROP_PC_Nest: 1
+  PROP_PC_Skeleton: 1
+  PROP_PC_StoneTool: 1
+  PROP_PC_TallyStone: 1
+  PROP_PC_WreckPlanks: 7
+references: 1997 ENV objects checked; missing prefab 0, mesh 0, material 0, broken shader 0, missing script 0, LOD renderer 0, mesh collider mesh 0; terrain prototypes without asset 0
+resource nodes (active): 1440; covered by an ENV collider 0, new ENV terrain tree within 0.9 m 0 (v1 trees swapped in place to ENV models, same position as before: 7), more than 0.6 m under the terrain 0 (not moved by ENV)
+player spawn (-20, 1.5, 211): ENV props within 20 m 2 (WreckPlanks_0 3.16 m, PFB_PROP_Ship_Debris 15.03 m), ENV terrain trees 0
+player (-20, 1.5, 211): ENV props within 12 m 1 (WreckPlanks_0 3.16 m), ENV terrain trees 0
+surface World/Environment/Ocean/Water/ENV_Ocean: OFF, M_Ocean / PF/Water cull -, 121 v, 94 % above the terrain, faces up, y 0..0
+surface World/Environment/Ocean/Water/PF_Ocean: on, M_Water_Ocean / PF/Ocean cull -, 32761 v, 71 % above the terrain, faces up, y -2..2
+surface World/Environment/Ocean/Water/PF_OceanShore/PF_OceanShore: on, M_Water_Shore / PF/Ocean Shore cull -, 336 v, 100 % above the terrain, faces up, y -0.23..12.07
+surface World/Environment/Ocean/Water/PF_OceanShore/PF_OceanShore_03_00: on, M_Water_Shore / PF/Ocean Shore cull -, 693 v, 100 % above the terrain, faces up, y -0.23..8.48
+surface World/Environment/Ocean/Water/PF_OceanShore/PF_OceanShore_04_00: on, M_Water_Shore / PF/Ocean Shore cull -, 567 v, 100 % above the terrain, faces up, y -0.23..2.47
+surface World/Environment/Ocean/Water/PF_OceanShore/PF_OceanShore_05_00: on, M_Water_Shore / PF/Ocean Shore cull -, 856 v, 100 % above the terrain, faces up, y -0.23..2.35
+surface World/Environment/Ocean/Water/PF_OceanShore/PF_OceanShore_06_00: on, M_Water_Shore / PF/Ocean Shore cull -, 734 v, 100 % above the terrain, faces up, y -0.23..2.28
+surface World/Environment/Ocean/Water/PF_OceanShore/PF_OceanShore_07_00: on, M_Water_Shore / PF/Ocean Shore cull -, 459 v, 100 % above the terrain, faces up, y -0.23..0.27
+surface World/Environment/Ocean/Water/PF_OceanShore/PF_OceanShore_01_01: on, M_Water_Shore / PF/Ocean Shore cull -, 683 v, 100 % above the terrain, faces up, y -0.23..19.6
+surface World/Environment/Ocean/Water/PF_OceanShore/PF_OceanShore_02_01: on, M_Water_Shore / PF/Ocean Shore cull -, 676 v, 100 % above the terrain, faces up, y -0.23..28.24
+surface World/Environment/Ocean/Water/PF_OceanShore/PF_OceanShore_06_01: on, M_Water_Shore / PF/Ocean Shore cull -, 272 v, 100 % above the terrain, faces up, y -0.23..2.39
+surface World/Environment/Ocean/Water/PF_OceanShore/PF_OceanShore_07_01: on, M_Water_Shore / PF/Ocean Shore cull -, 681 v, 100 % above the terrain, faces up, y -0.23..3.22
+surface World/Environment/Ocean/Water/PF_OceanShore/PF_OceanShore_08_01: on, M_Water_Shore / PF/Ocean Shore cull -, 960 v, 100 % above the terrain, faces up, y -0.23..3.19
+surface World/Environment/Ocean/Water/PF_OceanShore/PF_OceanShore_09_01: on, M_Water_Shore / PF/Ocean Shore cull -, 4 v, 100 % above the terrain, faces up, y -0.23..0.27
+surface World/Environment/Ocean/Water/PF_OceanShore/PF_OceanShore_00_02: on, M_Water_Shore / PF/Ocean Shore cull -, 802 v, 100 % above the terrain, faces up, y -0.23..2.02
+surface World/Environment/Ocean/Water/PF_OceanShore/PF_OceanShore_01_02: on, M_Water_Shore / PF/Ocean Shore cull -, 609 v, 100 % above the terrain, faces up, y -0.23..3.04
+surface World/Environment/Ocean/Water/PF_OceanShore/PF_OceanShore_08_02: on, M_Water_Shore / PF/Ocean Shore cull -, 194 v, 100 % above the terrain, faces up, y -0.23..2.8
+surface World/Environment/Ocean/Water/PF_OceanShore/PF_OceanShore_09_02: on, M_Water_Shore / PF/Ocean Shore cull -, 857 v, 100 % above the terrain, faces up, y -0.23..2.45
+surface World/Environment/Ocean/Water/PF_OceanShore/PF_OceanShore_00_03: on, M_Water_Shore / PF/Ocean Shore cull -, 1603 v, 100 % above the terrain, faces up, y -0.23..1.78
+surface World/Environment/Ocean/Water/PF_OceanShore/PF_OceanShore_08_03: on, M_Water_Shore / PF/Ocean Shore cull -, 426 v, 100 % above the terrain, faces up, y -0.23..1.79
+surface World/Environment/Ocean/Water/PF_OceanShore/PF_OceanShore_09_03: on, M_Water_Shore / PF/Ocean Shore cull -, 951 v, 100 % above the terrain, faces up, y -0.23..2.08
+surface World/Environment/Ocean/Water/PF_OceanShore/PF_OceanShore_00_04: on, M_Water_Shore / PF/Ocean Shore cull -, 1666 v, 100 % above the terrain, faces up, y -0.23..1.62
+surface World/Environment/Ocean/Water/PF_OceanShore/PF_OceanShore_08_04: on, M_Water_Shore / PF/Ocean Shore cull -, 589 v, 100 % above the terrain, faces up, y -0.23..1.64
+surface World/Environment/Ocean/Water/PF_OceanShore/PF_OceanShore_09_04: on, M_Water_Shore / PF/Ocean Shore cull -, 752 v, 100 % above the terrain, faces up, y -0.23..0.27
+surface World/Environment/Ocean/Water/PF_OceanShore/PF_OceanShore_00_05: on, M_Water_Shore / PF/Ocean Shore cull -, 1408 v, 100 % above the terrain, faces up, y -0.23..1.67
+surface World/Environment/Ocean/Water/PF_OceanShore/PF_OceanShore_01_05: on, M_Water_Shore / PF/Ocean Shore cull -, 14 v, 100 % above the terrain, faces up, y 0.93..1.62
+surface World/Environment/Ocean/Water/PF_OceanShore/PF_OceanShore_08_05: on, M_Water_Shore / PF/Ocean Shore cull -, 1127 v, 100 % above the terrain, faces up, y -0.23..1.65
+surface World/Environment/Ocean/Water/PF_OceanShore/PF_OceanShore_09_05: on, M_Water_Shore / PF/Ocean Shore cull -, 761 v, 100 % above the terrain, faces up, y -0.23..0.27
+surface World/Environment/Ocean/Water/PF_OceanShore/PF_OceanShore_00_06: on, M_Water_Shore / PF/Ocean Shore cull -, 428 v, 100 % above the terrain, faces up, y -0.23..1.43
+surface World/Environment/Ocean/Water/PF_OceanShore/PF_OceanShore_01_06: on, M_Water_Shore / PF/Ocean Shore cull -, 1063 v, 100 % above the terrain, faces up, y -0.23..1.68
+surface World/Environment/Ocean/Water/PF_OceanShore/PF_OceanShore_08_06: on, M_Water_Shore / PF/Ocean Shore cull -, 1596 v, 100 % above the terrain, faces up, y -0.23..1.67
+surface World/Environment/Ocean/Water/PF_OceanShore/PF_OceanShore_09_06: on, M_Water_Shore / PF/Ocean Shore cull -, 33 v, 100 % above the terrain, faces up, y -0.23..0.27
+surface World/Environment/Ocean/Water/PF_OceanShore/PF_OceanShore_01_07: on, M_Water_Shore / PF/Ocean Shore cull -, 1221 v, 100 % above the terrain, faces up, y -0.23..1.67
+surface World/Environment/Ocean/Water/PF_OceanShore/PF_OceanShore_02_07: on, M_Water_Shore / PF/Ocean Shore cull -, 200 v, 100 % above the terrain, faces up, y -0.23..1.65
+surface World/Environment/Ocean/Water/PF_OceanShore/PF_OceanShore_06_07: on, M_Water_Shore / PF/Ocean Shore cull -, 2174 v, 100 % above the terrain, faces up, y 0.07..2.67
+surface World/Environment/Ocean/Water/PF_OceanShore/PF_OceanShore_07_07: on, M_Water_Shore / PF/Ocean Shore cull -, 1136 v, 100 % above the terrain, faces up, y -0.23..2.63
+surface World/Environment/Ocean/Water/PF_OceanShore/PF_OceanShore_08_07: on, M_Water_Shore / PF/Ocean Shore cull -, 871 v, 100 % above the terrain, faces up, y -0.23..1.69
+surface World/Environment/Ocean/Water/PF_OceanShore/PF_OceanShore_01_08: on, M_Water_Shore / PF/Ocean Shore cull -, 23 v, 100 % above the terrain, faces up, y -0.23..0.27
+surface World/Environment/Ocean/Water/PF_OceanShore/PF_OceanShore_02_08: on, M_Water_Shore / PF/Ocean Shore cull -, 1688 v, 100 % above the terrain, faces up, y -0.23..1.67
+surface World/Environment/Ocean/Water/PF_OceanShore/PF_OceanShore_03_08: on, M_Water_Shore / PF/Ocean Shore cull -, 1588 v, 100 % above the terrain, faces up, y -0.23..1.59
+surface World/Environment/Ocean/Water/PF_OceanShore/PF_OceanShore_04_08: on, M_Water_Shore / PF/Ocean Shore cull -, 1495 v, 100 % above the terrain, faces up, y -0.23..1.6
+surface World/Environment/Ocean/Water/PF_OceanShore/PF_OceanShore_05_08: on, M_Water_Shore / PF/Ocean Shore cull -, 1475 v, 100 % above the terrain, faces up, y -0.23..1.6
+surface World/Environment/Ocean/Water/PF_OceanShore/PF_OceanShore_06_08: on, M_Water_Shore / PF/Ocean Shore cull -, 2134 v, 100 % above the terrain, faces up, y -0.23..2.14
+surface World/Environment/Ocean/Water/PF_OceanShore/PF_OceanShore_07_08: on, M_Water_Shore / PF/Ocean Shore cull -, 1764 v, 100 % above the terrain, faces up, y -0.23..1.63
+surface World/Environment/Ocean/Water/PF_OceanShore/PF_OceanShore_08_08: on, M_Water_Shore / PF/Ocean Shore cull -, 24 v, 100 % above the terrain, faces up, y -0.23..0.27
+surface World/Environment/Rivers/ENV_River_Water: on, M_Water_River / PF/Water Flow cull -, 2016 v, 71 % above the terrain, faces up, y 9.61..18.45
+surface World/Environment/Rivers/ENV_LowerRiver_Water: on, M_Water_LowerRiver / PF/Water Flow cull -, 665 v, 73 % above the terrain, faces up, y 3.25..9.52
+surface World/Environment/Rivers/ENV_RiverMouth_Water: on, M_Water_RiverMouth / PF/Water Flow cull -, 196 v, 71 % above the terrain, faces up, y 0.07..0.73
+surface World/Environment/Rivers/ENV_SpringStream_Water: on, M_Water_SpringStream / PF/Water Flow cull -, 195 v, 63 % above the terrain, faces up, y 33.03..40.83
+surface World/Environment/Rivers/ENV_Stream_Water: OFF, M_Water_Stream / PF/Water Flow cull -, 550 v, 59 % above the terrain, faces up, y 9.67..27.48
+surface World/Environment/Wetlands/ENV_Wetland_Water: on, M_Water_Wetland / PF/Water Flow cull -, 2055 v, 73 % above the terrain, faces up, y 0.85..0.85
+surface World/Gameplay/WaterSources/ENV_Pond_Water: on, M_Water_Pond / PF/Water Flow cull -, 48 v, 10 % above the terrain, faces up, y 9.55..9.55
+surface World/Gameplay/WaterSources/ENV_Spring_Water: on, M_Water_Spring / PF/Water Flow cull -, 73 v, 45 % above the terrain, faces up, y 40.8..40.8
+surface World/Gameplay/WaterSources/ENV_WaterfallPool_Water: on, M_Water_fallPool / PF/Water Flow cull -, 281 v, 19 % above the terrain, faces up, y 18.5..18.5
+surface World/Environment/Volcano/Lava/LavaChannel: on, M_Env_Lava / PF/Lava cull -, 280 v, 46 % above the terrain, faces up, y 43.65..46.36
+surface World/Environment/Volcano/Lava/VentPool: on, M_Env_Lava / PF/Lava cull -, 21 v, 100 % above the terrain, faces up, y 45..47.93
+surface World/Environment/Volcano/Lava/Cracks/Crack_00: on, M_Env_LavaCrack / PF/Lava cull -, 33 v, 100 % above the terrain, faces up, y 45.28..45.53
+surface World/Environment/Volcano/Lava/Cracks/Crack_01: on, M_Env_LavaCrack / PF/Lava cull -, 45 v, 100 % above the terrain, faces up, y 43.76..45.62
+surface World/Environment/Volcano/Lava/Cracks/Crack_02: on, M_Env_LavaCrack / PF/Lava cull -, 36 v, 100 % above the terrain, faces up, y 45.47..45.78
+surface World/Environment/Volcano/Lava/Cracks/Crack_03: on, M_Env_LavaCrack / PF/Lava cull -, 24 v, 100 % above the terrain, faces up, y 44.36..44.81
+surface World/Environment/Volcano/Lava/Cracks/Crack_04: on, M_Env_LavaCrack / PF/Lava cull -, 24 v, 100 % above the terrain, faces up, y 44.3..44.73
+surface World/Environment/Volcano/Lava/Cracks/Crack_05: on, M_Env_LavaCrack / PF/Lava cull -, 33 v, 100 % above the terrain, faces up, y 45.77..46.42
+surface World/Environment/Volcano/Lava/Cracks/Crack_06: on, M_Env_LavaCrack / PF/Lava cull -, 33 v, 100 % above the terrain, faces up, y 44.55..45.14
+surface World/Environment/Volcano/Lava/Cracks/Crack_07: on, M_Env_LavaCrack / PF/Lava cull -, 21 v, 100 % above the terrain, faces up, y 46.21..46.69
+surface World/Environment/Volcano/Lava/Cracks/Crack_08: on, M_Env_LavaCrack / PF/Lava cull -, 30 v, 100 % above the terrain, faces up, y 44.74..47.74
+surface World/Environment/Volcano/Lava/Cracks/Crack_09: on, M_Env_LavaCrack / PF/Lava cull -, 45 v, 100 % above the terrain, faces up, y 45.55..45.81
+surface World/Environment/Volcano/Lava/Cracks/Crack_10: on, M_Env_LavaCrack / PF/Lava cull -, 30 v, 100 % above the terrain, faces up, y 44.42..45.19
+surface World/Environment/Waterfalls/Water/Waterfall/WaterfallSheet: on, M_Env_Waterfall / PF/Waterfall cull -, 120 v, 93 % above the terrain, faces up, y 18.5..33
+surface World/Environment/Waterfalls/Water/Waterfall/WaterfallSheetBack: on, M_Env_Waterfall / PF/Waterfall cull -, 66 v, 90 % above the terrain, faces up, y 18.4..32.9
+surface World/Environment/Waterfalls/Water/Waterfall/Rivulet_0: on, M_Env_Rivulet / PF/Waterfall cull -, 36 v, 52 % above the terrain, faces up, y 18.7..28.94
+surface World/Environment/Waterfalls/Water/Waterfall/Rivulet_1: on, M_Env_Rivulet / PF/Waterfall cull -, 36 v, 55 % above the terrain, faces up, y 18.7..30.83
+surface World/Environment/Waterfalls/Water/Waterfall/Rivulet_2: on, M_Env_Rivulet / PF/Waterfall cull -, 36 v, 0 % above the terrain, faces up, y 18.7..25.03
+on the lava (non-ENV colliders within 4 m of the vent or 2 m of the channel): 0; resource nodes within 3 m of the channel: 0
+active PROP_PC_Petroglyph instances: 0
+VolcanoLandmark World/Environment/Volcano/Landmarks/Volcano at (-360, -2, 640): ON
+VolcanoLandmark World/Environment/Volcano/Lava/VentSystem at (-100, 44.7, -232): off
+Check finished, 0 warning(s)
+

@@ -1,0 +1,61 @@
+BV BoneValley terrain started 2026-09-30 21:27:28
+blockers: 1609
+WARNING: fresh carcass: no free flat spot near (-108, -56): using the preferred point
+WARNING: rotting carcass: no free flat spot near (-119, -40): using the preferred point
+plan: entrance (-98.9, 13.6, -62.1) (path arc 44.1 of 96.79), fresh (-108, 14.5, -56), rotting (-119, 14.1, -40), old (-136, 13.3, -72), landmark (-118, 28.5, -77.2) slope 24.77 yaw 24.85
+terrain backup made: Assets/_Project/Art/Terrain/TD_Island.asset -> Assets/_Project/Art/Terrain/_Backup/TD_Island_before_BV.asset
+splat: 22945 texels (TL_DarkSoil through the zone core, darker at the carcasses / landmark / kill site, TL_Mud along the path; rock kept)
+details: 5728 cells on 4 layers (0, 1, 2, 5), 4912 -> 3878 instances in the zone rect
+scene saved: Assets/_Project/Scenes/Island_VerticalSlice.unity
+finished, 2 warning(s)
+
+BV BoneValley  started 2026-09-30 21:37:29
+blockers: 1609
+plan rejections (fresh + rotting search): slope 173, path 116, blocked / zone 459
+plan: entrance (-98.9, 13.6, -62.1) (path arc 44.1 of 96.79), fresh (-107.6, 14.6, -55.1), rotting (-115.9, 14.4, -42.6), old (-136, 13.3, -72), landmark (-118, 28.5, -77.2) slope 24.77 yaw 24.85
+terrain baseline: Assets/_Project/Art/Terrain/_Backup/TD_Island_before_BV.asset (existing backup, kept)
+splat: 22945 texels (TL_DarkSoil through the zone core, darker at the carcasses / landmark / kill site, TL_Mud along the path; rock kept)
+details: 5728 cells on 4 layers (0, 1, 2, 5), 3878 -> 3878 instances in the zone rect
+made Assets/_Project/Art/Environment/Textures/Zones/T_BV_DragMark_D.png
+ART kit: BoneScatter no (PROP_PC_Bones), Ribcage no, Skull_Large no, LM_FossilSkeleton no (marker)
+baked Parasaurolophus death pose (Death @ 2.5 s): 26267 verts, 3 sub-meshes, size (4.2, 1.7, 9) -> Assets/_Project/Art/Environment/Generated/BoneValley/ME_BV_Dead_Parasaurolophus.asset
+baked Triceratops death pose (Death @ 2.5 s): 30151 verts, 3 sub-meshes, size (3.3, 2.6, 9.1) -> Assets/_Project/Art/Environment/Generated/BoneValley/ME_BV_Dead_Triceratops.asset
+landmark: marker LM_BoneValley (ART prefab not delivered) at (-118, 28.5, -77.2) yaw 24.85 (faces downhill into the basin)
+props: 27 bone props, 16 prints, 18 decals (drag marks, blood), 2 claw snags, 4 broken trees, 5 Examinables; carcasses: fresh yes, rotting yes, old yes
+AI anchors: 11 scavenge, 9 predator route, 4 perches, 1 circle centre
+  carcass bv_carcass_fresh (Fresh, parasaurolophus) at (-107.6, 14.5, -55.1) r 4.5 + Carcass (butcher: meat 3, hide 2, bone 2)
+  carcass bv_carcass_rotting (Rotting, triceratops) at (-115.9, 13.7, -42.6) r 4.56
+  carcass bv_carcass_old (Old, ) at (-136, 13.3, -72) r 2.5
+  examinable bv_rotting_carcass at (-115.9, 13.7, -42.6)
+  examinable bv_old_bones at (-135.5, 13.1, -70.9)
+  examinable bv_drag_marks at (-102.5, 13.7, -62.5)
+  examinable bv_fresh_tracks at (-102, 14.3, -64.3)
+  examinable bv_bone_line at (-97.9, 13.9, -64.6)
+scene saved: Assets/_Project/Scenes/Island_VerticalSlice.unity
+finished, 0 warning(s)
+
+BV BoneValley  started 2026-09-30 23:02:07
+blockers: 1618
+WARNING: landmark: no clear footprint found in the zone: marker at the basin north edge, scale 0.7
+landmark search: 0 clear footprints, best score -Infinity
+plan rejections (fresh + rotting search): slope 169, path 174, blocked / zone 459
+plan: entrance (-98.9, 13.6, -62.1) (path arc 44.1 of 96.79), fresh (-107.6, 14.6, -55.1), rotting (-117.1, 14.4, -44.2), old (-136, 13.3, -72), landmark (-120, 13.9, -32) scale 0.7 yaw 180 pitch 0 roll 0 ground fit 0 m, footprint 28.46 x 16.42 m
+terrain baseline: Assets/_Project/Art/Terrain/_Backup/TD_Island_before_BV.asset (existing backup, kept)
+splat: 22945 texels (TL_DarkSoil through the zone core, darker at the carcasses / landmark / kill site, TL_Mud along the path; rock kept)
+details: 5728 cells on 4 layers (0, 1, 2, 5), 4058 -> 3834 instances in the zone rect
+ART kit: BoneScatter_A/B no (PROP_PC_Bones), Ribcage no, Skull_Large no, LM_FossilSkeleton yes
+landmark: LM_FossilSkeleton placed at (-120, 13.6, -32) scale 0.7 yaw 180 (exposed side faces (0, 0, -1), bank behind)
+props: 27 bone props, 16 prints, 18 decals (drag marks, blood), 2 claw snags, 5 broken trees, 6 Examinables; carcasses: fresh yes, rotting yes, old yes
+AI anchors: 11 scavenge, 9 predator route, 4 perches, 1 circle centre
+  carcass bv_carcass_fresh (Fresh, parasaurolophus) at (-107.6, 14.5, -55.1) r 4.5 + Carcass (butcher: meat 3, hide 2, bone 2)
+  carcass bv_carcass_rotting (Rotting, triceratops) at (-117.1, 13.6, -44.2) r 4.56
+  carcass bv_carcass_old (Old, ) at (-136, 13.3, -72) r 2.5
+  examinable bv_rotting_carcass at (-117.1, 13.6, -44.2)
+  examinable bv_old_bones at (-135.5, 13.1, -70.9)
+  examinable bv_drag_marks at (-102.5, 13.7, -62.5)
+  examinable bv_fresh_tracks at (-102, 14.3, -64.3)
+  examinable bv_bone_line at (-97.9, 13.9, -64.6)
+  examinable bv_fossil_skeleton at (-120, 13.6, -32)
+scene saved: Assets/_Project/Scenes/Island_VerticalSlice.unity
+finished, 1 warning(s)
+

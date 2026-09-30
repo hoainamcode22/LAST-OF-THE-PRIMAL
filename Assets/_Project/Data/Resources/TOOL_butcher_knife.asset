@@ -27,3 +27,4 @@ MonoBehaviour:
     speed: 1
   wearPerAction: 0.5
   level: 0
+  heavyWork: 1

@@ -1,0 +1,192 @@
+using System.Collections.Generic;
+using UnityEngine;
+using PrimalFrontier.Animation;
+using PrimalFrontier.Core;
+using PrimalFrontier.Items;
+using PrimalFrontier.Player;
+using PrimalFrontier.Survival;
+using System.Globalization;
+
+namespace PrimalFrontier.World
+{
+    /// <summary>
+    /// Fresh water (pond, stream) you can drink from and fill containers at. The water surface mesh defines where:
+    /// the closest vertex to the player is the drinking spot. The ocean is handled by <see cref="OceanShore"/>.
+    /// Pond / stream water is DirtyWater (a spring marked clean gives CleanWater): drinking it by hand or from an
+    /// unboiled container can make you stomach sick. Fill a container, boil it at a lit campfire, then drink it safely.
+    /// All numbers and rules come from WaterRules / SurvivalConfig; prompts are cached (no per-frame strings).
+    /// </summary>
+    public class WaterSource : Interactable
+    {
+        public string displayName = "Fresh water";
+        public bool fresh = true;
+        [Tooltip("spring water: safe without boiling")] public bool clean;
+        public MeshFilter surface;
+        Vector3[] _pts; Bounds _worldBounds; Vector3 _focus;
+        public static readonly List<WaterSource> All = new List<WaterSource>();
+
+        public override float Range => 2.0f;
+        public override float Radius => 0f;
+        public override Vector3 FocusPoint => _focus;
+        public override bool LargeArea => true;
+        public override int Priority => -1;
+        /// <summary>what a container filled here holds (not fresh = salt, clean spring = clean, else unboiled)</summary>
+        public WaterType SourceType => !fresh ? WaterType.SaltWater : clean ? WaterType.CleanWater : WaterType.DirtyWater;
+
+        protected override void OnEnable() { base.OnEnable(); if (!All.Contains(this)) All.Add(this); Cache(); }
+        protected override void OnDisable() { base.OnDisable(); All.Remove(this); }
+
+        void Cache()
+        {
+            if (!surface) surface = GetComponentInChildren<MeshFilter>();
+            if (!surface || !surface.sharedMesh) { _pts = new Vector3[0]; return; }
+            var m = surface.sharedMesh; var v = m.vertices; var t = surface.transform;
+            // keep ~1 point per 0.8 m so the lookup stays cheap
+            var pts = new List<Vector3>(); var seen = new HashSet<Vector3Int>();
+            foreach (var lv in v)
+            {
+                var w = t.TransformPoint(lv); var key = new Vector3Int(Mathf.RoundToInt(w.x / 0.8f), 0, Mathf.RoundToInt(w.z / 0.8f));
+                if (seen.Add(key)) pts.Add(w);
+            }
+            _pts = pts.ToArray();
+            var r = surface.GetComponent<Renderer>(); _worldBounds = r ? r.bounds : new Bounds(t.position, Vector3.one * 10f);
+            _worldBounds.Expand(6f);
+            _focus = _pts.Length > 0 ? _pts[0] : transform.position;
+        }
+
+        /// <summary>closest water point to pos (and distance); updates the focus used by the interaction scan</summary>
+        public float Closest(Vector3 pos, out Vector3 point)
+        {
+            point = _focus;
+            if (_pts == null || _pts.Length == 0 || !_worldBounds.Contains(new Vector3(pos.x, _worldBounds.center.y, pos.z))) return float.MaxValue;
+            float best = float.MaxValue;
+            foreach (var p in _pts) { float d = (p.x - pos.x) * (p.x - pos.x) + (p.z - pos.z) * (p.z - pos.z); if (d < best) { best = d; point = p; } }
+            return Mathf.Sqrt(best);
+        }
+
+        float _nextFocus;
+        void Update()
+        {
+            // the focus feeds the interaction scan (12 Hz): a 214 m river has a few thousand surface points, no need to scan them every frame
+            if (Time.time < _nextFocus) return;
+            _nextFocus = Time.time + 0.08f;
+            var pl = PlayerLocator.Position;
+            if (pl.HasValue) Closest(pl.Value, out _focus);
+        }
+
+        public static bool IsNearFresh(Vector3 pos, float range = 2.5f)
+        {
+            foreach (var w in All) if (w.fresh && w.Closest(pos, out _) <= range) return true;
+            return false;
+        }
+
+        // ------------------------------------------------------------------ prompt (cached strings)
+        const string SaltSub = "Salt water. Drinking it will only make you thirstier.";
+        const string DirtySub = "Unboiled. It may upset your stomach.";
+        const string CleanSub = "Clear spring water. Safe to drink.";
+        string _drinkPrompt, _drinkFor;
+        readonly WaterPromptCache _fill = new WaterPromptCache();
+
+        string DrinkPrompt
+        {
+            get
+            {
+                if (_drinkPrompt == null || !ReferenceEquals(_drinkFor, displayName))
+                {
+                    _drinkFor = displayName;
+                    string n = (displayName ?? "water").ToLowerInvariant();
+                    // "Drink river water" but "Drink from the waterfall pool" (ENV names some bodies without the word water)
+                    _drinkPrompt = n.EndsWith("water") ? "Drink " + n : "Drink from the " + n;
+                }
+                return _drinkPrompt;
+            }
+        }
+
+        public override string GetPrompt(PlayerInteraction p, out string sub)
+        {
+            var st = p ? p.ActiveStack : null; var type = SourceType;
+            if (WaterRules.IsContainer(st) && !WaterRules.IsFull(st))
+            {
+                if (WaterRules.CanFill(st, type)) return _fill.Fill(st, type, out sub);
+                sub = _fill.Mixed(st, type);                           // other water inside: drink by hand instead
+                return DrinkPrompt;
+            }
+            sub = type == WaterType.SaltWater ? SaltSub : type == WaterType.DirtyWater ? DirtySub : CleanSub;
+            return DrinkPrompt;
+        }
+
+        public override void Interact(PlayerInteraction p)
+        {
+            var st = p.ActiveStack; var type = SourceType;
+            int slot = p.Inventory.ActiveSlot;
+            if (WaterRules.CanFill(st, type))
+            {
+                // Collect_Water (kneel, scoop; placeholder Drink clip until CHAR's arrives): fills on its hand event or the timer
+                p.DoOneShot(PlayerActions.CollectWater, "OnDrink", () => FillSlot(p, slot, type), FocusPoint, 2.0f, this);
+                return;
+            }
+            p.DoOneShot(PlayerActions.Drink, "OnDrink", () => Drink(p), FocusPoint, 2.0f, this);
+        }
+
+        /// <summary>fill the container in this inventory slot with this water (WaterRules: never mixes kinds)</summary>
+        public static bool FillSlot(PlayerInteraction p, int slot, WaterType type)
+        {
+            var s = p ? p.Inventory.Get(slot) : null;
+            if (WaterRules.Fill(s, type) <= 0) return false;
+            p.Inventory.ForceNotify();
+            PlayerInteraction.Notify(s.item.displayName + " filled with " + WaterRules.Label(type) + (WaterRules.NeedsBoiling(s) ? ". Boil it at a campfire before drinking." : "."));
+            return true;
+        }
+
+        /// <summary>drink by hand: salt makes thirst worse, pond / stream water rolls the unboiled-water sickness</summary>
+        public void Drink(PlayerInteraction p)
+        {
+            if (!p || !p.Survival) return;
+            var type = SourceType;
+            if (type == WaterType.SaltWater)
+            {
+                WaterRules.ApplyDrink(p.Survival, type);
+                PlayerInteraction.Notify(OceanShore.SaltMessage);
+                return;
+            }
+            WaterRules.ApplyDrink(p.Survival, type, SurvivalConfig.Instance.handDrinkThirst);
+        }
+    }
+
+    /// <summary>prompt / sub strings for filling a container at a water source, rebuilt only when the container state changes</summary>
+    public class WaterPromptCache
+    {
+        ItemDefinition _item; int _water = -1, _cap = -1; WaterType _type, _inside; string _prompt, _sub, _mixed;
+        ItemDefinition _mixItem; WaterType _mixInside = (WaterType)(-1), _mixSource;
+
+        public string Fill(ItemStack st, WaterType type, out string sub)
+        {
+            if (st.item != _item || st.water != _water || st.item.waterCharges != _cap || type != _type || WaterRules.TypeOf(st) != _inside)
+            {
+                if (st.item != _item || _prompt == null) _prompt = "Fill " + st.item.displayName;
+                _item = st.item; _water = st.water; _cap = st.item.waterCharges; _type = type; _inside = WaterRules.TypeOf(st);
+                bool boil = SurvivalConfig.Instance.Water(type).boilSeconds > 0f && SurvivalConfig.Instance.Water(type).boilResult != type;
+                _sub = WaterRules.MlOf(st) + ", " + WaterRules.Label(type) + (boil ? " (boil it before drinking)" : "");
+            }
+            sub = _sub; return _prompt;
+        }
+
+        public string Mixed(ItemStack st, WaterType source)
+        {
+            var inside = WaterRules.TypeOf(st);
+            if (st.item != _mixItem || inside != _mixInside || source != _mixSource || _mixed == null)
+            {
+                _mixItem = st.item; _mixInside = inside; _mixSource = source;
+                _mixed = "The " + st.item.displayName + " holds " + WaterRules.Label(inside) + ". Empty it in the inventory to fill it here.";
+            }
+            return _mixed;
+        }
+    }
+
+    /// <summary>cheap global access to the player's position for world scripts (set by GameManager / the player)</summary>
+    public static class PlayerLocator
+    {
+        public static Transform Player;
+        public static Vector3? Position => Player ? Player.position : (Vector3?)null;
+    }
+}

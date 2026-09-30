@@ -23,13 +23,13 @@ MonoBehaviour:
   bonusChance: 0.25
   bestTool: 1
   requiredTool: 1
-  handsFactor: 0.25
+  handsFactor: 0
   toolFactor: 1
   gatherSeconds: 1.25
   handAction: 17
   toolAction: 2
   toolWear: 1
-  handHint: Bare hands only strip dry twigs. An axe fells the tree.
+  handHint: Need an axe to chop a tree.
   punchable: 1
   damagePerUnit: 4
   respawnHours: 72

@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: da16c94d01ae979459249a8a00bd7eab, type: 3}
+  m_Name: RCP_nailed_crate
+  m_EditorClassIdentifier: PrimalFrontier.Runtime::PrimalFrontier.Items.RecipeDefinition
+  id: nailed_crate
+  category: 8
+  output: {fileID: 11400000, guid: a21fa4eadf5ea5647a2c5925007e6c9f, type: 2}
+  outputCount: 1
+  ingredients:
+  - item: {fileID: 11400000, guid: b44ddd1d863e4de47a95118bf8fd7b5d, type: 2}
+    count: 4
+  - item: {fileID: 11400000, guid: 6b6947f058713f8419cc994ec088524d, type: 2}
+    count: 4
+  craftSeconds: 6
+  station: 0
+  knownAtStart: 0
+  hint: Iron nails from the wreck hold a crate together without lashing.
+  requirements: []
+  extraResults: []

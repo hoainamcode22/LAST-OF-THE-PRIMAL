@@ -1,0 +1,175 @@
+using System.IO;
+using System.Text;
+using UnityEditor;
+using UnityEditor.SceneManagement;
+using UnityEngine;
+using PrimalFrontier.AI;
+
+namespace PrimalFrontier.EditorTools
+{
+    /// <summary>
+    /// Wildlife in the island scene (AI agent, PC phase), idempotent: lays WildlifePlan out under [Gameplay]/[Dinosaurs]
+    /// (herds of 3-12 with a HerdGroup each, the migration herd with its MigrationDirector and the Markers/Migration route,
+    /// predators moved to territories by the ENV location ids, every other land creature re-snapped to terrain v2.1 and
+    /// out of the water), moves the matching Markers/Habitats markers, writes the per species wildlife values (behaviour,
+    /// weight, tracks) into the DINO_*.asset files, creates Resources/WildlifeConfig and bakes the track art (decal atlas,
+    /// bird sheet, materials, Resources/WildlifeArt). Existing creatures are kept and moved; only missing herd members are
+    /// added, as prefab instances of the same creature with its components. Logs every step and saves the scene.
+    /// Bridge: PrimalWildlifeBuilder.Build "" | "no-art"; PrimalWildlifeBuilder.Inspect.
+    /// </summary>
+    public static class PrimalWildlifeBuilder
+    {
+        const string Scene = "Assets/_Project/Scenes/Island_VerticalSlice.unity";
+        const string ArtDir = "Assets/_Project/Art/Wildlife", ConfigPath = "Assets/_Project/Resources/WildlifeConfig.asset", ArtPath = "Assets/_Project/Resources/WildlifeArt.asset";
+        static readonly StringBuilder Log = new StringBuilder();
+        static void L(string s) { Log.AppendLine(s); Debug.Log("[PrimalWildlifeBuilder] " + s); }
+
+        [MenuItem("Primal Frontier/Wildlife/Build herds, territories and tracks")]
+        static void Menu() => Build("");
+
+        [PrimalBridgeCommand]
+        public static string Build(string arg)
+        {
+            Log.Clear(); arg ??= "";
+            if (EditorApplication.isPlayingOrWillChangePlaymode) return "stop Play mode first";
+            var scene = EditorSceneManager.GetActiveScene();
+            if (scene.path != Scene) scene = EditorSceneManager.OpenScene(Scene, OpenSceneMode.Single);
+            Directory.CreateDirectory("Assets/_Project/Resources");
+            if (!AssetDatabase.LoadAssetAtPath<WildlifeConfig>(ConfigPath)) { AssetDatabase.CreateAsset(ScriptableObject.CreateInstance<WildlifeConfig>(), ConfigPath); L("created " + ConfigPath); }
+            else L("config exists (kept): " + ConfigPath);
+            if (!arg.Contains("no-art")) BakeArt();
+
+            var spawner = Object.FindFirstObjectByType<DinosaurSpawner>(FindObjectsInactive.Include);
+            if (!spawner) { L("no DinosaurSpawner ([Gameplay]/[Dinosaurs]) in the scene: nothing placed"); return Log.ToString(); }
+            L($"root {Path(spawner.transform)}: {spawner.GetComponentsInChildren<DinosaurController>(true).Length} land creatures before");
+            var ctx = new WildlifePlan.Context
+            {
+                editor = true,
+                clone = CloneInstance,
+                dirty = o => { if (o) EditorUtility.SetDirty(o); },
+                log = L,
+            };
+            string summary = WildlifePlan.Apply(spawner.transform, ctx);
+            foreach (var line in summary.Split('\n')) if (!string.IsNullOrWhiteSpace(line)) L(line.TrimEnd());
+            L($"after: {spawner.GetComponentsInChildren<DinosaurController>(true).Length} land creatures, {spawner.GetComponentsInChildren<HerdGroup>(true).Length} herds, " +
+              $"{spawner.GetComponentsInChildren<MigrationDirector>(true).Length} migration director(s)");
+            Checks(spawner);
+            AssetDatabase.SaveAssets();
+            EditorSceneManager.MarkSceneDirty(scene);
+            EditorSceneManager.SaveScene(scene);
+            L("scene saved: " + scene.path);
+            return Log.ToString();
+        }
+
+        /// <summary>a new herd member: a prefab instance of the same creature (same prefab link) with the placed one's added components and values</summary>
+        static GameObject CloneInstance(GameObject src, Transform parent)
+        {
+            GameObject go = null;
+            var prefab = PrefabUtility.GetCorrespondingObjectFromSource(src);
+            if (prefab && PrefabUtility.IsAnyPrefabInstanceRoot(src))
+            {
+                go = (GameObject)PrefabUtility.InstantiatePrefab(prefab, parent);
+                // components the scene added to the placed instance (brain, life, audio...): copy them with their values
+                foreach (var c in src.GetComponents<Component>())
+                {
+                    if (!c || c is Transform || !PrefabUtility.IsAddedComponentOverride(c)) continue;
+                    var have = go.GetComponent(c.GetType());
+                    if (!have) have = go.AddComponent(c.GetType());
+                    if (have) EditorUtility.CopySerialized(c, have);
+                }
+            }
+            else go = Object.Instantiate(src, parent);
+            Undo.RegisterCreatedObjectUndo(go, "Wildlife herd member");
+            return go;
+        }
+
+        // ------------------------------------------------------------------ art
+        static void BakeArt()
+        {
+            Directory.CreateDirectory(ArtDir);
+            var atlasTex = TrackArt.Atlas(out var normalTex);
+            var atlas = SavePng(atlasTex, ArtDir + "/T_Wildlife_TrackAtlas.png", true);
+            var normals = SavePng(normalTex, ArtDir + "/T_Wildlife_TrackAtlas_N.png", true, true);
+            var birds = SavePng(TrackArt.BirdSheet(), ArtDir + "/T_Wildlife_Birds.png", false);
+            var art = AssetDatabase.LoadAssetAtPath<WildlifeArt>(ArtPath);
+            if (!art) { art = ScriptableObject.CreateInstance<WildlifeArt>(); AssetDatabase.CreateAsset(art, ArtPath); }
+            art.decals = SaveMat(TrackArt.DecalMaterial(atlas, normals), ArtDir + "/M_Wildlife_Decals.mat");
+            art.dung = SaveMat(TrackArt.OpaqueMaterial("M_Wildlife_Dung", new Color(0.2f, 0.14f, 0.075f), 0.5f), ArtDir + "/M_Wildlife_Dung.mat");
+            art.dungOld = SaveMat(TrackArt.OpaqueMaterial("M_Wildlife_DungOld", new Color(0.33f, 0.27f, 0.18f), 0.08f), ArtDir + "/M_Wildlife_DungOld.mat");
+            art.bones = SaveMat(TrackArt.OpaqueMaterial("M_Wildlife_Bones", new Color(0.76f, 0.71f, 0.6f), 0.22f), ArtDir + "/M_Wildlife_Bones.mat");
+            art.birds = SaveMat(TrackArt.BirdMaterialMake(birds), ArtDir + "/M_Wildlife_Birds.mat");
+            EditorUtility.SetDirty(art);
+            L($"track art baked: {ArtDir} (atlas {TrackArt.AtlasPx} px + normal map, {TrackArt.CellCount} cells; bird sheet; 5 materials) + {ArtPath}");
+        }
+
+        static Texture2D SavePng(Texture2D tex, string path, bool mips, bool normalMap = false)
+        {
+            File.WriteAllBytes(path, tex.EncodeToPNG());
+            Object.DestroyImmediate(tex);
+            AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceUpdate);
+            var imp = (TextureImporter)AssetImporter.GetAtPath(path);
+            if (imp && normalMap)
+            {
+                imp.textureType = TextureImporterType.NormalMap; imp.mipmapEnabled = mips; imp.wrapMode = TextureWrapMode.Clamp;
+                imp.filterMode = FilterMode.Trilinear; imp.anisoLevel = 4; imp.textureCompression = TextureImporterCompression.CompressedHQ;
+                imp.SaveAndReimport();
+            }
+            else if (imp)
+            {
+                imp.textureType = TextureImporterType.Default; imp.alphaIsTransparency = true; imp.alphaSource = TextureImporterAlphaSource.FromInput;
+                imp.mipmapEnabled = mips; imp.wrapMode = TextureWrapMode.Clamp; imp.filterMode = mips ? FilterMode.Trilinear : FilterMode.Bilinear; imp.anisoLevel = mips ? 4 : 1;
+                imp.sRGBTexture = true; imp.textureCompression = TextureImporterCompression.CompressedHQ;
+                imp.SaveAndReimport();
+            }
+            return AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+        }
+
+        static Material SaveMat(Material m, string path)
+        {
+            var old = AssetDatabase.LoadAssetAtPath<Material>(path);
+            if (old) { old.shader = m.shader; old.CopyPropertiesFromMaterial(m); old.renderQueue = m.renderQueue; old.enableInstancing = true; EditorUtility.SetDirty(old); Object.DestroyImmediate(m); return old; }
+            m.enableInstancing = true; AssetDatabase.CreateAsset(m, path); return m;
+        }
+
+        // ------------------------------------------------------------------ checks
+        static void Checks(DinosaurSpawner spawner)
+        {
+            int bad = 0;
+            foreach (var d in spawner.GetComponentsInChildren<DinosaurController>(true))
+            {
+                if (!d.def) { L($"CHECK {d.name}: no definition"); bad++; continue; }
+                if (!WildlifePlan.GoodGround(d.transform.position, d.def.bodyRadius, out _)) L($"note {d.name} at {d.transform.position}: tight spot (rock / slope / bank nearby)");
+                if (TrackSigns.IsUnderWater(d.transform.position)) { L($"CHECK {d.name}: under water at {d.transform.position}"); bad++; }
+            }
+            foreach (var h in spawner.GetComponentsInChildren<HerdGroup>(true))
+            {
+                int n = 0; foreach (var d in h.GetComponentsInChildren<DinosaurController>(true)) if (d.def == h.species) n++;
+                if (n < 3 || n > 12) { L($"CHECK herd {h.label}: {n} members (3-12 wanted)"); bad++; }
+            }
+            var mig = spawner.GetComponentInChildren<MigrationDirector>(true);
+            if (!mig || mig.route == null || mig.route.Length < 2) { L("CHECK no migration route"); bad++; }
+            L(bad == 0 ? "checks: OK" : $"checks: {bad} problem(s)");
+        }
+
+        [PrimalBridgeCommand]
+        public static string Inspect()
+        {
+            Log.Clear();
+            var spawner = Object.FindFirstObjectByType<DinosaurSpawner>(FindObjectsInactive.Include);
+            if (!spawner) return "no DinosaurSpawner";
+            foreach (Transform g in spawner.transform)
+            {
+                var h = g.GetComponent<HerdGroup>();
+                L($"{g.name} at {g.position}{(h ? $" herd '{h.label}' home {h.home.graze} away {h.away.graze}" : "")}");
+                foreach (Transform c in g)
+                {
+                    var d = c.GetComponent<DinosaurController>();
+                    if (d) L($"   {c.name} {c.position} home {d.home} r {d.homeRadius}");
+                }
+            }
+            return Log.ToString();
+        }
+
+        static string Path(Transform t) => t.parent ? Path(t.parent) + "/" + t.name : t.name;
+    }
+}

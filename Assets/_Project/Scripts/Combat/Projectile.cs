@@ -20,7 +20,7 @@ namespace PrimalFrontier.Combat
         public float gravity = -9.81f;
         public float maxLife = 8f;
         public float recoverChance = 1f;
-        Vector3 _vel; HitInfo _hit; ItemStack _stack; GameObject _owner; float _t; int _mask; bool _done;
+        Vector3 _vel; HitInfo _hit; ItemStack _stack; GameObject _owner; float _t; int _mask; bool _done; bool _isArrow;
         VfxId _impactFx; SfxId _impactSfx;
         static int _defaultMask = -1;
         /// <summary>set by ProjectilePool: the pool stack this instance returns to (null = not pooled, destroyed on landing)</summary>
@@ -34,7 +34,7 @@ namespace PrimalFrontier.Combat
             p._t = 0f; p._done = false;
             if (_defaultMask == -1) _defaultMask = ~LayerMask.GetMask("Player", "Ignore Raycast");
             p._mask = _defaultMask;
-            p._impactFx = isArrow ? VfxId.ArrowImpact : VfxId.SpearImpact; p._impactSfx = isArrow ? SfxId.ArrowImpact : SfxId.SpearImpact;
+            p._impactFx = isArrow ? VfxId.ArrowImpact : VfxId.SpearImpact; p._impactSfx = isArrow ? SfxId.ArrowImpact : SfxId.SpearImpact; p._isArrow = isArrow;
             p.transform.position = pos; p.Orient();
             return p;
         }
@@ -77,8 +77,18 @@ namespace PrimalFrontier.Combat
                 VfxPool.Instance.Play(_impactFx, rh.point, rh.normal);
                 SfxPlayer.Instance.Play(_impactSfx, rh.point);
             }
-            if (rh.collider is TerrainCollider || dmg == null) Land(rh.point, true);
-            else Land(rh.point + rh.normal * 0.3f, false);                           // falls off the animal
+            // a miss (ground, rock, tree, a resource node, a dead body: anything but a living creature) makes a noise where it
+            // comes to rest; creatures may turn to it
+            bool missed = !flesh;
+            if (rh.collider is TerrainCollider || dmg == null) { if (missed) RaiseLanded(rh.point); Land(rh.point, true); }
+            else { Vector3 at = rh.point + rh.normal * 0.3f; if (missed) RaiseLanded(at); Land(at, false); }   // falls off the animal
+        }
+
+        /// <summary>GameEventType.ProjectileLanded: id = item id (or "arrow" / "spear"), amount = loudness (1 arrow, 2 spear), position = where it lies</summary>
+        void RaiseLanded(Vector3 at)
+        {
+            string id = _stack != null && _stack.item ? _stack.item.id : _isArrow ? "arrow" : "spear";
+            GameEvents.Raise(GameEventType.ProjectileLanded, id, _isArrow ? 1 : 2, at);
         }
 
         void Land(Vector3 at, bool stuck)

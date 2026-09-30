@@ -32,6 +32,9 @@ namespace PrimalFrontier.Player
         [Tooltip("pelvis offset speed limit (m/s)")] public float pelvisMaxRate = 1.5f;
         [Tooltip("both feet this far below the capsule's support (m): the capsule is perched on an edge, the pelvis does not drop")] public float perchGap = 0.12f;
         [Range(0, 1)] public float runningFootWeight = 0.35f;
+        [Tooltip("a planted foot keeps its world spot while the body turns / pivots over it (foot lock); released when the clip lifts it or it would stretch further than this (m)")]
+        public float footLockMaxDrift = 0.18f;
+        [Tooltip("foot lock only below this planar speed (m/s): at a run the clips' own contacts are used")] public float footLockMaxSpeed = 2.2f;
         [Header("Look")]
         public bool lookIK = true;
         [Range(0, 1)] public float lookWeight = 0.75f;
@@ -47,7 +50,33 @@ namespace PrimalFrontier.Player
         [System.NonSerialized] public Climbable Climb;
         /// <summary>the right hand reaches for this (picking fruit)</summary>
         [System.NonSerialized] public Transform ReachTarget;
-        float _climbW, _reachW;
+        /// <summary>climbing a face / pulling over a lip: the feet leave the face (legs swinging over the edge)</summary>
+        [System.NonSerialized] public bool ClimbFeetFree;
+        float _climbW, _reachW, _holdW, _feetW = 1f;
+        Vector3 _holdL, _holdR; bool _holds;
+        /// <summary>
+        /// hands placed by an action program (kneel-drink scoop, container to the mouth): world targets and weights set every
+        /// frame by PlayerInteraction; the weights ease toward what is asked (0 = the clip's hands)
+        /// </summary>
+        public void SetActionHands(Vector3 left, float wl, Vector3 right, float wr) { _actL = left; _actR = right; _actWantL = wl; _actWantR = wr; _actFrame = Time.frameCount; }
+        Vector3 _actL, _actR; float _actWantL, _actWantR, _actWL, _actWR; int _actFrame = -10;
+        /// <summary>current weight of the action-program hands (0 = the clip's hands); diagnostics / tests</summary>
+        public float ActionHandWeight => Mathf.Max(_actWL, _actWR);
+        /// <summary>where the action program last asked the hands to be (midpoint of both goals); diagnostics / tests</summary>
+        public Vector3 ActionHandGoal => (_actL + _actR) * 0.5f;
+        /// <summary>
+        /// an action program's look: head and upper body turn toward a point (the spine bends forward to scoop water, then
+        /// straightens as the hands come up). Set every frame; eases out when no longer asked. The legs are untouched.
+        /// </summary>
+        public void SetActionLook(Vector3 at, float weight, float bodyWeight, float drop = 0f) { _actLook = at; _actLookWant = weight; _actLookBody = bodyWeight; _actDropWant = drop; _actLookFrame = Time.frameCount; }
+        Vector3 _actLook; float _actLookWant, _actLookBody, _actLookW, _actLookBodyW, _actDropWant, _actDrop; int _actLookFrame = -10;
+        /// <summary>how far an action program has lowered the body right now (m, the feet stay planted); diagnostics / tests</summary>
+        public float ActionDrop => _actDrop;
+        /// <summary>frame of the last IK pass that placed the hands (diagnostics)</summary>
+        public int LastHandIKFrame => _ikFrame;
+        /// <summary>both hands grip these points (a ledge lip) while climbing; eased in and out</summary>
+        public void SetHolds(Vector3 left, Vector3 right) { _holdL = left; _holdR = right; _holds = true; ClimbFeetFree = false; }
+        public void ClearHolds() { _holds = false; }
         [Header("Lean")]
         public float maxLean = 9f;
         public float leanScale = 0.35f;
@@ -87,8 +116,12 @@ namespace PrimalFrontier.Player
             groundMask &= ~(1 << 2);                                    // nor Ignore Raycast
         }
 
+        /// <summary>IK passes run so far (diagnostics)</summary>
+        public int IKPasses { get; private set; }
+
         void OnAnimatorIK(int layer)
         {
+            IKPasses++;
             if (layer != 0 || _a == null || !_a.isHuman) return;
             float dt = Time.deltaTime;
             _climbW = Mathf.MoveTowards(_climbW, Climb ? 1f : 0f, dt * 3f);
@@ -121,6 +154,10 @@ namespace PrimalFrontier.Player
             float wantLean = grounded && body && !actionOwnsBody ? Mathf.Clamp(turn * Mathf.Deg2Rad * speed / 9.81f * Mathf.Rad2Deg * leanScale, -maxLean, maxLean) : 0f;
             _lean = Mathf.Lerp(_lean, wantLean, 1f - Mathf.Exp(-6f * dt));
 
+            // an action program may sink the body deeper (kneeling to scoop water on a crouch placeholder): the feet IK keeps
+            // the feet planted, the knees bend more
+            _actDrop = Mathf.MoveTowards(_actDrop, feetOn && Time.frameCount - _actLookFrame <= 1 ? Mathf.Clamp(_actDropWant, 0f, 0.3f) : 0f, dt * 0.6f);
+            if (_actDrop > 1e-4f) _a.bodyPosition -= up * _actDrop;
             if (Mathf.Abs(_pelvis) > 1e-4f || Mathf.Abs(_lean) > 0.01f)
             {
                 _a.bodyPosition += up * _pelvis;
@@ -150,7 +187,16 @@ namespace PrimalFrontier.Player
             _moveK = Mathf.MoveTowards(_moveK, moveK, dt * 4f);
             float wantBody = Mathf.Lerp(bodyWeight, movingBodyWeight, moveK);
             _bodyW = _bodyW < 0f ? wantBody : Mathf.MoveTowards(_bodyW, wantBody, Mathf.Min(dt * 1.5f, 0.05f));
-            if (_lookW > 0.001f && _hasLook)
+            // an action program's look (scooping water) takes over while asked, eased in and out
+            bool actLook = body && Time.frameCount - _actLookFrame <= 1;
+            _actLookW = Mathf.MoveTowards(_actLookW, actLook ? _actLookWant : 0f, dt * 3f);
+            _actLookBodyW = Mathf.MoveTowards(_actLookBodyW, actLook ? _actLookBody : 0f, dt * 2f);
+            if (_actLookW > 0.001f)
+            {
+                _a.SetLookAtWeight(Mathf.Max(_actLookW, _lookW), _actLookBodyW, 0.9f, eyesWeight, 0.35f);
+                _a.SetLookAtPosition(_lookW > 0.001f && _hasLook ? Vector3.Lerp(_lookPos, _actLook, _actLookW / Mathf.Max(_actLookW, _lookW)) : _actLook);
+            }
+            else if (_lookW > 0.001f && _hasLook)
             {
                 _a.SetLookAtWeight(_lookW, _bodyW, headWeight, eyesWeight, clampWeight);
                 _a.SetLookAtPosition(_lookPos);
@@ -213,7 +259,14 @@ namespace PrimalFrontier.Player
                 _a.SetIKPosition(AvatarIKGoal.RightHand, wrist);
                 if (_hier) _hier.RightHandIK.position = wrist;
             }
-            _a.SetIKPositionWeight(AvatarIKGoal.LeftHand, wl); _a.SetIKRotationWeight(AvatarIKGoal.LeftHand, wl * offHandRotationWeight);
+            // action programs (drink at water, container to the mouth): asked for this frame or last, else they fade out
+            bool asked = Time.frameCount - _actFrame <= 1 && on;
+            _actWL = Mathf.MoveTowards(_actWL, asked ? _actWantL : 0f, dt * 4f);
+            _actWR = Mathf.MoveTowards(_actWR, asked ? _actWantR : 0f, dt * 4f);
+            float wlRot = wl * offHandRotationWeight;
+            if (_actWL > 0.001f) { _a.SetIKPosition(AvatarIKGoal.LeftHand, Vector3.Lerp(wl > 0f ? _a.GetIKPosition(AvatarIKGoal.LeftHand) : _goalPosL, _actL, _actWL / Mathf.Max(_actWL, wl))); wl = Mathf.Max(wl, _actWL); }
+            if (_actWR > 0.001f) { _a.SetIKPosition(AvatarIKGoal.RightHand, Vector3.Lerp(wr > 0f ? _a.GetIKPosition(AvatarIKGoal.RightHand) : _goalPosR, _actR, _actWR / Mathf.Max(_actWR, wr))); wr = Mathf.Max(wr, _actWR); }
+            _a.SetIKPositionWeight(AvatarIKGoal.LeftHand, wl); _a.SetIKRotationWeight(AvatarIKGoal.LeftHand, wlRot);
             _a.SetIKPositionWeight(AvatarIKGoal.RightHand, wr); _a.SetIKRotationWeight(AvatarIKGoal.RightHand, 0f);
             ElbowHint(AvatarIKHint.LeftElbow, _elbowL, -1f, wl, _hier ? _hier.LeftElbowHint : null);
             ElbowHint(AvatarIKHint.RightElbow, _elbowR, 1f, wr, _hier ? _hier.RightElbowHint : null);
@@ -272,6 +325,26 @@ namespace PrimalFrontier.Player
             return Physics.Raycast(new Vector3(p.x, baseY + rayAbove, p.z), Vector3.down, out var hit, rayAbove + rayBelow, groundMask, QueryTriggerInteraction.Ignore) ? hit.point.y - baseY : 0f;
         }
 
+        Vector3 _lockL, _lockR; bool _lockedL, _lockedR;
+        /// <summary>
+        /// foot lock: while a foot is planted and the body turns / pivots slowly, the ankle keeps the world spot it planted on
+        /// (the animated foot would rotate and slide with the capsule). Released when the clip lifts the foot, when the
+        /// animated foot drifts further than footLockMaxDrift from the spot, or at speed.
+        /// </summary>
+        Vector3 LockFoot(AvatarIKGoal goal, Vector3 animated, float planted, bool allow)
+        {
+            ref Vector3 spot = ref (goal == AvatarIKGoal.LeftFoot ? ref _lockL : ref _lockR);
+            ref bool locked = ref (goal == AvatarIKGoal.LeftFoot ? ref _lockedL : ref _lockedR);
+            if (!allow || planted < 0.85f) { locked = false; return animated; }
+            if (!locked) { spot = animated; locked = true; return animated; }
+            Vector3 d = animated - spot; d.y = 0f;
+            if (d.magnitude > footLockMaxDrift) { locked = false; return animated; }
+            // ease back toward the animation as the drift grows, so the release never pops
+            float k = Mathf.InverseLerp(footLockMaxDrift * 0.5f, footLockMaxDrift, d.magnitude);
+            Vector3 p = Vector3.Lerp(new Vector3(spot.x, animated.y, spot.z), animated, k);
+            return p;
+        }
+
         void Foot(AvatarIKGoal goal, ref float w, bool on, float speedK, float baseY, Vector3 up, ref float wantPelvis, float dt)
         {
             Vector3 p = _a.GetIKPosition(goal);                // animated ankle (world), before IK
@@ -279,6 +352,8 @@ namespace PrimalFrontier.Player
             float sole = goal == AvatarIKGoal.LeftFoot ? _a.leftFeetBottomHeight : _a.rightFeetBottomHeight;
             if (sole < 0.02f) sole = plantedAnkle;              // ankle height of a flat, planted foot
             float planted = 1f - Mathf.Clamp01((ankleUp - sole - 0.02f) / 0.12f);
+            bool lockOk = on && _motor && _motor.PlanarSpeed < footLockMaxSpeed && Mathf.Abs(_motor.TurnRate) > 20f && !(_drv && _drv.IsBusy);
+            p = LockFoot(goal, p, planted, lockOk);
             float target = 0f; Vector3 pos = p; Quaternion rot = _a.GetIKRotation(goal);
             if (on && Physics.Raycast(new Vector3(p.x, baseY + rayAbove, p.z), Vector3.down, out var hit, rayAbove + rayBelow, groundMask, QueryTriggerInteraction.Ignore)
                 && Vector3.Angle(hit.normal, up) < 50f)
@@ -296,12 +371,20 @@ namespace PrimalFrontier.Player
             if (w > 0.001f) { _a.SetIKPosition(goal, pos); _a.SetIKRotation(goal, rot); }
         }
 
-        /// <summary>hands and feet on the trunk surface; while picking, the right hand goes to the fruit</summary>
+        /// <summary>
+        /// hands and feet on the trunk surface or the rock face plane (inside its width); while picking, the right hand goes
+        /// to the fruit; while pulling over a lip, both hands grip the lip holds and the feet leave the face at the end
+        /// </summary>
         void ClimbIK()
         {
+            float dt = Time.deltaTime;
+            _holdW = Mathf.MoveTowards(_holdW, _holds ? 1f : 0f, dt * 5f);
+            _feetW = Mathf.MoveTowards(_feetW, ClimbFeetFree ? 0f : 1f, dt * 4f);
             Vector3 a = Climb.Bottom, b = Climb.Top; Vector3 ab = b - a; float len2 = Mathf.Max(0.01f, ab.sqrMagnitude);
+            bool face = Climb.IsFace;
             Vector3 OnTrunk(Vector3 p, float extra)
             {
+                if (face) return Climb.OnFace(p, extra);
                 float t = Mathf.Clamp01(Vector3.Dot(p - a, ab) / len2); Vector3 axis = a + ab * t;
                 Vector3 d = p - axis; d.y = 0f; if (d.sqrMagnitude < 1e-4f) d = -_root.forward;
                 return axis + d.normalized * (Climb.trunkRadius + extra);
@@ -311,13 +394,17 @@ namespace PrimalFrontier.Player
                 Vector3 p = _a.GetIKPosition(g);
                 Vector3 target = OnTrunk(p, extra);
                 if (g == AvatarIKGoal.RightHand && ReachTarget) target = Vector3.Lerp(target, ReachTarget.position, _reachW);
+                if (_holdW > 0.001f && (g == AvatarIKGoal.LeftHand || g == AvatarIKGoal.RightHand))
+                    target = Vector3.Lerp(target, g == AvatarIKGoal.LeftHand ? _holdL : _holdR, _holdW);
                 _a.SetIKPositionWeight(g, w); _a.SetIKPosition(g, target);
                 _a.SetIKRotationWeight(g, 0f);
             }
             Goal(AvatarIKGoal.LeftHand, _climbW, 0.03f);
             Goal(AvatarIKGoal.RightHand, _climbW, 0.03f);
-            Goal(AvatarIKGoal.LeftFoot, _climbW * 0.7f, 0.06f);
-            Goal(AvatarIKGoal.RightFoot, _climbW * 0.7f, 0.06f);
+            Goal(AvatarIKGoal.LeftFoot, _climbW * 0.7f * _feetW, 0.06f);
+            Goal(AvatarIKGoal.RightFoot, _climbW * 0.7f * _feetW, 0.06f);
+            ElbowHint(AvatarIKHint.LeftElbow, _elbowL ? _elbowL : (_elbowL = _a.GetBoneTransform(HumanBodyBones.LeftLowerArm)), -1f, _climbW, null);
+            ElbowHint(AvatarIKHint.RightElbow, _elbowR ? _elbowR : (_elbowR = _a.GetBoneTransform(HumanBodyBones.RightLowerArm)), 1f, _climbW, null);
             // look up the trunk, or at the fruit being picked
             Vector3 look = ReachTarget ? ReachTarget.position : _root.position + Vector3.up * 2.6f + _root.forward * 0.4f;
             _a.SetLookAtWeight(0.7f * _climbW, 0.1f, 0.8f, 1f, 0.5f); _a.SetLookAtPosition(look);

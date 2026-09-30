@@ -38,6 +38,7 @@ namespace PrimalFrontier.World
         public float radius = 0.4f;
         [Header("Feedback")]
         [Tooltip("the node wobbles on every hit")] public float hitWobble = 0.07f;
+        [Tooltip("fish shoals: water depth over the node (the ripple / fin cue plays at the surface); set by the builder")] public float cueHeight;
         [Tooltip("legacy: piles get smaller as they are used up (1 = no shrink)")] [Range(0.4f, 1f)] public float emptyScale = 0.7f;
 
         public enum NodeState { Full, Damaged, Depleted, Regrowing }
@@ -83,7 +84,7 @@ namespace PrimalFrontier.World
             FindProduce();
             _subName = _def.displayName;
             _subSlow = string.IsNullOrEmpty(_def.handHint) ? _def.displayName : _def.displayName + ": " + _def.handHint;
-            _subNeeds = "Needs " + GatheringSystem.ToolName(_def.requiredTool != ToolKind.None ? _def.requiredTool : _def.bestTool) + " in hand";
+            _subNeeds = GatheringSystem.NeedText(_def.requiredTool != ToolKind.None ? _def.requiredTool : _def.bestTool);
             _subFaster = _def.bestTool != ToolKind.None ? _def.displayName + ": " + GatheringSystem.ToolName(_def.bestTool) + " is faster" : _def.displayName;
             _subEmpty = _def.category switch
             {

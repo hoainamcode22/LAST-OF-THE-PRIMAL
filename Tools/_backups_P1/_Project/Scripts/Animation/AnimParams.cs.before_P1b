@@ -1,0 +1,102 @@
+using UnityEngine;
+
+namespace PrimalFrontier.Animation
+{
+    /// <summary>Animator parameter names/hashes shared by the generated controllers (PrimalCharacterBuilder).</summary>
+    public static class AnimParams
+    {
+        // shared
+        public static readonly int Speed = Animator.StringToHash("Speed");                 // m/s (horizontal)
+        public static readonly int Action = Animator.StringToHash("Action");               // player: int (PlayerActions); dinos: trigger
+        public static readonly int ActionType = Animator.StringToHash("ActionType");       // int, see ActionTypes
+        public static readonly int Attack = Animator.StringToHash("Attack");               // trigger
+        public static readonly int AttackType = Animator.StringToHash("AttackType");       // int
+        public static readonly int Hurt = Animator.StringToHash("Hurt");                   // trigger
+        public static readonly int HurtType = Animator.StringToHash("HurtType");           // int 0 light, 1 heavy/stagger
+        public static readonly int Dead = Animator.StringToHash("Dead");                   // bool
+        // player
+        public static readonly int VelX = Animator.StringToHash("VelX");                   // m/s, local right
+        public static readonly int VelZ = Animator.StringToHash("VelZ");                   // m/s, local forward
+        public static readonly int Turn = Animator.StringToHash("Turn");                   // -1 right .. 1 left (in place)
+        public static readonly int IsGrounded = Animator.StringToHash("IsGrounded");
+        public static readonly int VerticalVelocity = Animator.StringToHash("VerticalVelocity");
+        public static readonly int IsCrouching = Animator.StringToHash("IsCrouching");
+        public static readonly int IsAttacking = Animator.StringToHash("IsAttacking");     // bool, set by gameplay while an attack runs
+        public static readonly int Jump = Animator.StringToHash("Jump");                   // trigger
+        public static readonly int Revive = Animator.StringToHash("Revive");               // trigger
+        public static readonly int UpperBody = Animator.StringToHash("UpperBody");         // int 0 none, 1 carry, 2 bow idle, 3 bow draw, 4 bow release
+        public static readonly int HealthState = Animator.StringToHash("HealthState");     // int (PlayerHealthStates)
+        public static readonly int TurnSpeed = Animator.StringToHash("TurnSpeed");         // deg/s, + = left (turn in place)
+        public static readonly int IdleVariant = Animator.StringToHash("IdleVariant");     // trigger: play Idle_Variation once
+        public static readonly int IdleMirror = Animator.StringToHash("IdleMirror");       // bool: the variation to the other side (Idle_Variation_Mirror)
+        public static readonly int CombatMode = Animator.StringToHash("CombatMode");       // bool: weapon out and fighting / aiming (WeaponAnimatorBridge)
+        public static readonly int WeaponType = Animator.StringToHash("WeaponType");       // int: WeaponKind of the weapon in hand (0 none, 1 spear, 2 bow, 3 knife, 4 sword)
+        public static readonly int IsMoving = Animator.StringToHash("IsMoving");           // bool: planar speed above a small threshold
+        public static readonly int AttackSpeed = Animator.StringToHash("AttackSpeed");     // float: attack clip speed multiplier (WeaponData.attackSpeed)
+        public static readonly int Strafe = Animator.StringToHash("Strafe");               // bool: facing locked to the camera (aim), 2D locomotion on VelX / VelZ
+        public static readonly int FullBodyBusy = Animator.StringToHash("FullBodyBusy");   // bool: base layer runs an action / attack / hurt / death / climb state
+        public static readonly int HurtLight = Animator.StringToHash("HurtLight");         // trigger: additive upper-body flinch (HitReaction layer); the legs keep moving
+        public static readonly int LocoRate = Animator.StringToHash("LocoRate");           // float: Locomotion / Strafe state speed (1 = normal); the driver lowers it to LocoIdleRate when standing
+        public static readonly int LocoIdleRate = Animator.StringToHash("LocoIdleRate");   // float: its default = Idle's own rate inside the tree (Idle is time-scaled to Walk's cycle)
+        // phase C (start / stop / pivot clips): off until the clips exist and PlayerAnimationDriver.useStartStopClips is on
+        public static readonly int UseLocoClips = Animator.StringToHash("UseLocoClips");   // bool: start / stop / pivot states may be entered
+        public static readonly int LocoEvent = Animator.StringToHash("LocoEvent");         // int (LocoEvents), set for one frame by the driver
+        public static readonly int LocoMirror = Animator.StringToHash("LocoMirror");       // bool: mirror the start / stop clip (lead foot)
+        // dinosaur
+        public static readonly int Alert = Animator.StringToHash("Alert");                 // bool
+    }
+
+    /// <summary>Values of the player's "Action" int parameter (PlayerAnimator.controller).</summary>
+    public static class PlayerActions
+    {
+        public const int None = 0, Pickup = 1, GatherWood = 2, GatherStone = 3, GatherPlant = 4, Interact = 5, Craft = 6, Eat = 7, Drink = 8,
+            Build = 9, UseItem = 10, Sleep = 11, WakeUp = 12, GetUp = 13,
+            CollectWater = 14,                                                                 // full body one-shot (kneel, scoop; placeholder Drink until the clip exists)
+            Butcher = 15,                                                                      // full body loop (kneel, cut): state only when the clip exists
+            GatherStoneHand = 16,                                                              // full body loop, OnGatherHit (bare-hand stone; placeholder Gather_Plant)
+            GatherBranch = 17,                                                                 // full body loop, OnGatherHit (fallen branch; placeholder Gather_Plant)
+            BandageUse = 18,                                                                   // full body one-shot (wrap a wound; placeholder Use_Item)
+            DrinkKneel = 19,                                                                   // full body one-shot: kneel at the water, scoop, drink (placeholder Crouch + IK program)
+            AttackSpear = 20, AttackSpearHeavy = 21, ThrowSpear = 22, SpearAttack2 = 23, KnifeAttack = 24,
+            Dodge = 25,
+            SwordAttack1 = 26, SwordAttack2 = 27, SwordAttack3 = 28, SwordHeavy = 29,        // full body
+            BowAim = 30, BowDraw = 31, BowRelease = 32,
+            SwordBlock = 33, SwordEquip = 34, SwordUnequip = 35,                               // upper body (30..40)
+            UnarmedBlock = 36,                                                                 // upper body hold (like SwordBlock), until StopAction
+            BowEquip = 37, BowNock = 38,                                                       // upper body one-shots (clips pending)
+            BowFullDraw = 39,                                                                  // upper body hold at full draw (clip pending)
+            CarryItem = 40,
+            // bare-hand attacks (full body one-shots, tag Attack, speed x AttackSpeed, events OnAttackStart / OnAttackActive /
+            // OnAttackHit / OnAttackEnd). Played by the bare-hand MeleeWeapon (WeaponData WPN_bare_hands); until the BareHand_*
+            // clips are in the FBX the states play placeholder clips (PrimalCharacterBuilder). Combo_End follows Punch_3.
+            BareHandPunch1 = 50, BareHandPunch2 = 51, BareHandHeavy = 52, Kick = 53, BareHandPunch3 = 54, BareHandComboEnd = 55;
+        public static bool IsLooping(int a) => a == GatherWood || a == GatherStone || a == GatherPlant || a == Craft || a == Build || a == Sleep || a == Butcher
+                                               || a == GatherStoneHand || a == GatherBranch;
+        public static bool IsAttack(int a) => (a >= AttackSpear && a <= KnifeAttack) || (a >= SwordAttack1 && a <= SwordHeavy) || IsUnarmedAttack(a);
+        public static bool IsUnarmedAttack(int a) => a >= BareHandPunch1 && a <= BareHandComboEnd;
+        public static bool IsHeavyAttack(int a) => a == AttackSpearHeavy || a == SwordHeavy || a == BareHandHeavy;
+        public static bool IsGather(int a) => a == GatherWood || a == GatherStone || a == GatherPlant || a == GatherStoneHand || a == GatherBranch || a == Butcher;
+        public static bool IsUpperBody(int a) => a >= BowAim && a <= CarryItem;
+        /// <summary>full-body actions the body must be (nearly) standing for: the driver brakes the motor before starting them</summary>
+        public static bool NeedsStop(int a) => (a >= Pickup && a <= Sleep) || (a >= CollectWater && a <= DrinkKneel);
+    }
+
+    /// <summary>Values of the "LocoEvent" int parameter (phase C start / stop / pivot clips; unused until they exist).</summary>
+    public static class LocoEvents
+    {
+        public const int None = 0, WalkStart = 1, RunStart = 2, WalkStop = 3, RunStop = 4, RunPivot180 = 5, Turn180 = 6;
+    }
+
+    /// <summary>Values of the player's "HealthState" int parameter.</summary>
+    public static class PlayerHealthStates
+    {
+        public const int Normal = 0, HurtLight = 1, HurtHeavy = 2, Dead = 3;
+    }
+
+    /// <summary>ActionType values for dinosaurs (mapped per species by the override controller).</summary>
+    public static class DinoActions
+    {
+        public const int None = 0, Eat = 1, Drink = 2, Rest = 3, LookAround = 4, Roar = 5, Call = 6, Threaten = 7, Defend = 8, Investigate = 9;
+        public const int IdleVariant = 11, Breathe = 12, Recover = 13;   // PC phase (DINO clips)
+    }
+}

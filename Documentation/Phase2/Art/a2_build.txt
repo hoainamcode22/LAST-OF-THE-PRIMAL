@@ -1,0 +1,14 @@
+Build LM_RockRidge,LM_AncientFallenTree,LM_FossilSkeleton,LM_GiantTree,LM_BlackRidge started 2026-09-30 22:02:40
+material M_P2_AncientFallenTree (T_P2_AncientFallenTree)
+material M_P2_BlackRidge (T_P2_BlackRidge)
+material M_P2_Canopy (T_P2_Canopy)
+material M_P2_FossilSkeleton (T_P2_FossilSkeleton)
+material M_P2_GiantTree (T_P2_GiantTree)
+material M_P2_RockRidge (T_P2_RockRidge)
+prefab Assets/_Project/Prefabs/Environment/Phase2/LM_AncientFallenTree.prefab  zone=Prehistoric Wetland  size 38,27x10,72x7,96 m  tris 31000/10999/3500  col 1600
+prefab Assets/_Project/Prefabs/Environment/Phase2/LM_BlackRidge.prefab  zone=Volcanic Foothills  size 52,76x20,45x19,04 m  tris 32797/12000/3600  col 1800
+prefab Assets/_Project/Prefabs/Environment/Phase2/LM_FossilSkeleton.prefab  zone=Bone / Carcass Valley  size 40,66x23,45x7,47 m  tris 36885/13000/4200  col 2600
+prefab Assets/_Project/Prefabs/Environment/Phase2/LM_GiantTree.prefab  zone=Giant Fern Forest  size 42,27x40,3x59,59 m  tris 31873/9753/2898  col 1500
+prefab Assets/_Project/Prefabs/Environment/Phase2/LM_RockRidge.prefab  zone=Migration Valley  size 57x20,73x15,69 m  tris 28652/10999/3399  col 1800
+Build finished: 5 prefab(s), 0 warning(s)
+

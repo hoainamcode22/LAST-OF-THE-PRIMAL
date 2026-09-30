@@ -22,7 +22,9 @@ Shader "PF/Foliage Wind"
         _WindSway ("Sway at the top (m at wind 1)", Float) = 0.25
         _WindHeight ("Plant height (m)", Float) = 9
         _Flutter ("Leaf flutter (m)", Float) = 0
-        _VertexMask ("Vertex colour R masks the sway", Range(0,1)) = 0
+        _VertexMask ("Vertex colours mask the wind (R sway, G flutter)", Range(0,1)) = 0
+        _ColorVariation ("Per-plant colour variation", Range(0,0.5)) = 0
+        _VariationTint ("Variation toward", Color) = (1.08, 0.97, 0.72, 1)
     }
     SubShader
     {
@@ -43,6 +45,8 @@ Shader "PF/Foliage Wind"
             float _WindHeight;
             float _Flutter;
             float _VertexMask;
+            half _ColorVariation;
+            half4 _VariationTint;
         CBUFFER_END
         TEXTURE2D(_BaseMap); SAMPLER(sampler_BaseMap);
 
@@ -50,7 +54,7 @@ Shader "PF/Foliage Wind"
         float _PF_Wetness;    // WeatherManager: 0..1
 
         // world position after the sway (every pass calls this, so shadows and depth match the lit surface)
-        float3 PF_WindPositionWS(float3 positionOS, float mask)
+        float3 PF_WindPositionWS(float3 positionOS, float mask, float flutterMask)
         {
             float3 ws = TransformObjectToWorld(positionOS);
             float3 origin = TransformObjectToWorld(float3(0.0, 0.0, 0.0));
@@ -63,13 +67,24 @@ Shader "PF/Foliage Wind"
             float gust = 0.6 + _PF_Wind.w * 0.8;
             float sway = (sin(t * 1.3 + phase) * 0.6 + sin(t * 2.3 + phase * 1.7) * 0.25 + 0.35) * gust;
             float3 offset = float3(dir.x, 0.0, dir.y) * (sway * _WindSway * wind * bend);
-            float f = sin(t * 7.0 + dot(ws, float3(1.7, 2.3, 1.1))) * _Flutter * wind * h * mask;
+            float f = sin(t * 7.0 + dot(ws, float3(1.7, 2.3, 1.1))) * _Flutter * wind * h * mask * flutterMask;
             offset += float3(f * 0.6, f * 0.3, f * 0.6);
             offset.y -= length(offset.xz) * 0.25 * bend;                                      // bend, not shear
             return ws + offset;
         }
 
         float PF_WindMask(half4 vertexColor) { return lerp(1.0, (float)vertexColor.r, _VertexMask); }
+        // G = leaf flutter weight (ENV prehistoric plants: leaf tips 1, fronds' base and trunks 0); models without colours keep 1
+        float PF_FlutterMask(half4 vertexColor) { return lerp(1.0, (float)vertexColor.g, _VertexMask); }
+        // subtle colour variation per plant (hash of the object's position: instancing and terrain trees keep it)
+        half3 PF_PlantTint()
+        {
+            float3 o = TransformObjectToWorld(float3(0.0, 0.0, 0.0));
+            float h = frac(sin(dot(o.xz, float2(12.9898, 78.233))) * 43758.5453);
+            float h2 = frac(h * 5.31 + 0.19);
+            half3 tint = lerp(half3(1, 1, 1), _VariationTint.rgb, (half)(h * _ColorVariation * 2.0));
+            return tint * (half)(1.0 + (h2 - 0.5) * _ColorVariation);
+        }
         half PF_Alpha(float2 uv) { return SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, uv).a * _BaseColor.a; }
         ENDHLSL
 
@@ -113,7 +128,7 @@ Shader "PF/Foliage Wind"
                 UNITY_SETUP_INSTANCE_ID(i);
                 UNITY_TRANSFER_INSTANCE_ID(i, o);
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
-                float3 ws = PF_WindPositionWS(i.positionOS.xyz, PF_WindMask(i.color));
+                float3 ws = PF_WindPositionWS(i.positionOS.xyz, PF_WindMask(i.color), PF_FlutterMask(i.color));
                 o.positionWS = ws;
                 o.positionCS = TransformWorldToHClip(ws);
                 o.normalWS = TransformObjectToWorldNormal(i.normalOS);
@@ -135,7 +150,7 @@ Shader "PF/Foliage Wind"
                 half ndl = (half)dot(n, light.direction);
                 half atten = light.distanceAttenuation * light.shadowAttenuation;
                 half3 direct = light.color * atten * (saturate(ndl) + saturate(-ndl) * _Translucency);
-                half3 albedo = tex.rgb * (1.0h - _WetDarken * (half)saturate(_PF_Wetness));
+                half3 albedo = tex.rgb * PF_PlantTint() * (1.0h - _WetDarken * (half)saturate(_PF_Wetness));
                 half3 c = albedo * (direct + SampleSH(n));
                 c = MixFog(c, i.fogFactor);
                 return half4(c, 1.0h);
@@ -169,7 +184,7 @@ Shader "PF/Foliage Wind"
             {
                 V o = (V)0;
                 UNITY_SETUP_INSTANCE_ID(i);
-                float3 ws = PF_WindPositionWS(i.positionOS.xyz, PF_WindMask(i.color));
+                float3 ws = PF_WindPositionWS(i.positionOS.xyz, PF_WindMask(i.color), PF_FlutterMask(i.color));
                 float3 nws = TransformObjectToWorldNormal(i.normalOS);
                 #if defined(_CASTING_PUNCTUAL_LIGHT_SHADOW)
                     float3 L = normalize(_LightPosition - ws);
@@ -212,7 +227,7 @@ Shader "PF/Foliage Wind"
                 V o = (V)0;
                 UNITY_SETUP_INSTANCE_ID(i);
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
-                o.positionCS = TransformWorldToHClip(PF_WindPositionWS(i.positionOS.xyz, PF_WindMask(i.color)));
+                o.positionCS = TransformWorldToHClip(PF_WindPositionWS(i.positionOS.xyz, PF_WindMask(i.color), PF_FlutterMask(i.color)));
                 o.uv = TRANSFORM_TEX(i.uv, _BaseMap);
                 return o;
             }
@@ -247,7 +262,7 @@ Shader "PF/Foliage Wind"
                 V o = (V)0;
                 UNITY_SETUP_INSTANCE_ID(i);
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
-                o.positionCS = TransformWorldToHClip(PF_WindPositionWS(i.positionOS.xyz, PF_WindMask(i.color)));
+                o.positionCS = TransformWorldToHClip(PF_WindPositionWS(i.positionOS.xyz, PF_WindMask(i.color), PF_FlutterMask(i.color)));
                 o.uv = TRANSFORM_TEX(i.uv, _BaseMap);
                 o.normalWS = TransformObjectToWorldNormal(i.normalOS);
                 return o;

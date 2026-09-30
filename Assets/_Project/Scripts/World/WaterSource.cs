@@ -64,8 +64,12 @@ namespace PrimalFrontier.World
             return Mathf.Sqrt(best);
         }
 
+        float _nextFocus;
         void Update()
         {
+            // the focus feeds the interaction scan (12 Hz): a 214 m river has a few thousand surface points, no need to scan them every frame
+            if (Time.time < _nextFocus) return;
+            _nextFocus = Time.time + 0.08f;
             var pl = PlayerLocator.Position;
             if (pl.HasValue) Closest(pl.Value, out _focus);
         }
@@ -79,6 +83,7 @@ namespace PrimalFrontier.World
         // ------------------------------------------------------------------ prompt (cached strings)
         const string SaltSub = "Salt water. Drinking it will only make you thirstier.";
         const string DirtySub = "Unboiled. It may upset your stomach.";
+        const string CleanSub = "Clear spring water. Safe to drink.";
         string _drinkPrompt, _drinkFor;
         readonly WaterPromptCache _fill = new WaterPromptCache();
 
@@ -86,21 +91,27 @@ namespace PrimalFrontier.World
         {
             get
             {
-                if (_drinkPrompt == null || !ReferenceEquals(_drinkFor, displayName)) { _drinkFor = displayName; _drinkPrompt = "Drink " + (displayName ?? "water").ToLowerInvariant(); }
+                if (_drinkPrompt == null || !ReferenceEquals(_drinkFor, displayName))
+                {
+                    _drinkFor = displayName;
+                    string n = (displayName ?? "water").ToLowerInvariant();
+                    // "Drink river water" but "Drink from the waterfall pool" (ENV names some bodies without the word water)
+                    _drinkPrompt = n.EndsWith("water") ? "Drink " + n : "Drink from the " + n;
+                }
                 return _drinkPrompt;
             }
         }
 
         public override string GetPrompt(PlayerInteraction p, out string sub)
         {
-            var st = p.ActiveStack; var type = SourceType;
+            var st = p ? p.ActiveStack : null; var type = SourceType;
             if (WaterRules.IsContainer(st) && !WaterRules.IsFull(st))
             {
                 if (WaterRules.CanFill(st, type)) return _fill.Fill(st, type, out sub);
                 sub = _fill.Mixed(st, type);                           // other water inside: drink by hand instead
                 return DrinkPrompt;
             }
-            sub = type == WaterType.SaltWater ? SaltSub : type == WaterType.DirtyWater ? DirtySub : null;
+            sub = type == WaterType.SaltWater ? SaltSub : type == WaterType.DirtyWater ? DirtySub : CleanSub;
             return DrinkPrompt;
         }
 
@@ -123,7 +134,7 @@ namespace PrimalFrontier.World
             var s = p ? p.Inventory.Get(slot) : null;
             if (WaterRules.Fill(s, type) <= 0) return false;
             p.Inventory.ForceNotify();
-            PlayerInteraction.Notify(s.item.displayName + " filled with " + WaterRules.Label(type) + (WaterRules.NeedsBoiling(s) ? ". Boil it at a campfire before drinking." : "."));
+            PlayerInteraction.Notify(s.item.displayName + " filled with " + WaterRules.Label(type) + (type == WaterType.SaltWater ? ". Not drinkable: boiling does not remove salt." : WaterRules.NeedsBoiling(s) ? ". Boil it at a campfire before drinking." : "."));
             return true;
         }
 
@@ -154,8 +165,7 @@ namespace PrimalFrontier.World
             {
                 if (st.item != _item || _prompt == null) _prompt = "Fill " + st.item.displayName;
                 _item = st.item; _water = st.water; _cap = st.item.waterCharges; _type = type; _inside = WaterRules.TypeOf(st);
-                bool boil = SurvivalConfig.Instance.Water(type).boilSeconds > 0f && SurvivalConfig.Instance.Water(type).boilResult != type;
-                _sub = WaterRules.MlOf(st) + ", " + WaterRules.Label(type) + (boil ? " (boil it before drinking)" : "");
+                _sub = WaterRules.MlOf(st) + ", " + WaterRules.Label(type) + WaterRules.FillAdvice(type);
             }
             sub = _sub; return _prompt;
         }

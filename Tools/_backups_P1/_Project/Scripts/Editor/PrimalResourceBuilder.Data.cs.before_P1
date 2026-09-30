@@ -1,0 +1,311 @@
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
+using UnityEditor;
+using UnityEngine;
+using PrimalFrontier.Animation;
+using PrimalFrontier.Audio;
+using PrimalFrontier.Items;
+using PrimalFrontier.VFX;
+using PrimalFrontier.World;
+
+namespace PrimalFrontier.EditorTools
+{
+    /// <summary>Resource data: ResourceDefinition / GatherToolDefinition assets, ResourceDatabase, node prefabs, materials, the berry mesh.</summary>
+    public static partial class PrimalResourceBuilder
+    {
+        public const string DataDir = "Assets/_Project/Data/Resources";
+        public const string DbPath = "Assets/_Project/Resources/ResourceDatabase.asset";
+        public const string NodePrefabDir = "Assets/_Project/Prefabs/Resources/Nodes";
+        const string MatDir = "Assets/_Project/Art/Materials";
+        const string GenDir = "Assets/_Project/Art/Models/Generated";
+
+        struct Def
+        {
+            public string id, name, prompt, item, hint; public ResourceCategory cat; public ResourceSize size;
+            public int min, max; public ToolKind best, req; public float hands, gather, respawn, damagePerUnit, damaged, depleted, sink, radius;
+            public int handAnim, toolAnim; public DepletedLook look; public bool punch;
+        }
+
+        static Def D(string id, string name, ResourceCategory cat, ResourceSize size, string prompt, string item, int min, int max, ToolKind best, ToolKind req, float hands,
+                     float gather, int handAnim, int toolAnim, float respawn, DepletedLook look, float damaged = 0.75f, float depleted = 0.45f, float sink = 0.12f,
+                     float radius = 0.4f, float damagePerUnit = 4f, string hint = null, bool punch = true) =>
+            new Def { id = id, name = name, cat = cat, size = size, prompt = prompt, item = item, min = min, max = max, best = best, req = req, hands = hands, gather = gather,
+                      handAnim = handAnim, toolAnim = toolAnim, respawn = respawn, look = look, damaged = damaged, depleted = depleted, sink = sink, radius = radius,
+                      damagePerUnit = damagePerUnit, hint = hint, punch = punch };
+
+        const string BigRockHint = "Too big to break by hand. A pick breaks it.";
+
+        /// <summary>the resource table (RESOURCE_SYSTEM.md 3): yields per node, tools, hand rate, respawn hours, looks</summary>
+        static readonly Def[] Defs =
+        {
+            // stone: hands 1 per action on small / medium, 1 every third action on large; pick 3-5 (tool table)
+            D("stone_small", "Small stones", ResourceCategory.Stone, ResourceSize.Small, "Gather Stone", "stone", 2, 4, ToolKind.Mine, ToolKind.None, 1f, 1.1f, PlayerActions.GatherStoneHand, PlayerActions.GatherStone, 30f, DepletedLook.Hide, 0.7f, 0.45f, 0.1f, 0.35f),
+            D("stone_medium", "Stone", ResourceCategory.Stone, ResourceSize.Medium, "Gather Stone", "stone", 4, 8, ToolKind.Mine, ToolKind.None, 1f, 1.3f, PlayerActions.GatherStoneHand, PlayerActions.GatherStone, 40f, DepletedLook.Rubble, 0.78f, 0.45f, 0.2f, 0.4f, 5f),
+            D("stone_large", "Large rock", ResourceCategory.Stone, ResourceSize.Large, "Gather Stone", "stone", 8, 15, ToolKind.Mine, ToolKind.Mine, 0.34f, 1.4f, PlayerActions.GatherStoneHand, PlayerActions.GatherStone, 48f, DepletedLook.Mined, 0.9f, 0.82f, 0.12f, 0.8f, 5f, BigRockHint),
+            D("stone_boulder", "Boulder", ResourceCategory.Stone, ResourceSize.Huge, "Gather Stone", "stone", 8, 15, ToolKind.Mine, ToolKind.Mine, 0.34f, 1.4f, PlayerActions.GatherStoneHand, PlayerActions.GatherStone, 60f, DepletedLook.Mined, 0.98f, 0.95f, 0.03f, 1.5f, 5f, BigRockHint),
+            // wood: branches / driftwood / logs by hand 1 per action, axe 2-3; trees need an axe (hands: dry twigs, 1 every fourth action)
+            D("wood_branch", "Fallen branch", ResourceCategory.Wood, ResourceSize.Small, "Gather Wood", "wood", 1, 3, ToolKind.Chop, ToolKind.None, 1f, 1.0f, PlayerActions.GatherBranch, PlayerActions.GatherWood, 20f, DepletedLook.Hide, 0.8f, 0.45f, 0.05f, 0.45f),
+            D("wood_driftwood", "Driftwood", ResourceCategory.Wood, ResourceSize.Medium, "Gather Wood", "wood", 2, 5, ToolKind.Chop, ToolKind.None, 1f, 1.2f, PlayerActions.GatherBranch, PlayerActions.GatherWood, 24f, DepletedLook.Hide, 0.75f, 0.45f, 0.1f, 0.6f),
+            D("wood_small_log", "Small log", ResourceCategory.Wood, ResourceSize.Medium, "Gather Wood", "wood", 4, 8, ToolKind.Chop, ToolKind.None, 1f, 1.3f, PlayerActions.GatherBranch, PlayerActions.GatherWood, 36f, DepletedLook.Rubble, 0.8f, 0.4f, 0.3f, 0.5f, 5f),
+            D("wood_deadwood", "Fallen deadwood", ResourceCategory.Wood, ResourceSize.Large, "Gather Wood", "wood", 5, 8, ToolKind.Chop, ToolKind.None, 1f, 1.3f, PlayerActions.GatherBranch, PlayerActions.GatherWood, 48f, DepletedLook.Rubble, 0.85f, 0.5f, 0.35f, 0.7f, 6f),
+            D("wood_tree", "Tree", ResourceCategory.Wood, ResourceSize.Huge, "Chop Tree", "wood", 12, 18, ToolKind.Chop, ToolKind.Chop, 0.25f, 1.25f, PlayerActions.GatherBranch, PlayerActions.GatherWood, 72f, DepletedLook.Mined, 1f, 1f, 0f, 0.45f, 4f, "Bare hands only strip dry twigs. An axe fells the tree."),
+            // fibre: by hand (1-2 per action), a knife 2-3
+            D("fiber_plant", "Fibre plant", ResourceCategory.Fiber, ResourceSize.Small, "Gather Fiber", "fiber", 2, 4, ToolKind.Cut, ToolKind.None, 1f, 1.0f, PlayerActions.GatherPlant, PlayerActions.GatherPlant, 16f, DepletedLook.Hide, 0.75f, 0.45f, 0.05f, 0.45f),
+            D("fiber_grass", "Long grass", ResourceCategory.Fiber, ResourceSize.Small, "Gather Fiber", "fiber", 1, 3, ToolKind.Cut, ToolKind.None, 1f, 0.9f, PlayerActions.GatherPlant, PlayerActions.GatherPlant, 12f, DepletedLook.Hide, 0.75f, 0.45f, 0.05f, 0.35f),
+            D("fiber_fern", "Fern", ResourceCategory.Fiber, ResourceSize.Small, "Gather Fiber", "fiber", 1, 3, ToolKind.Cut, ToolKind.None, 1f, 1.0f, PlayerActions.GatherPlant, PlayerActions.GatherPlant, 16f, DepletedLook.Hide, 0.75f, 0.45f, 0.05f, 0.5f),
+            D("fiber_bush", "Small bush", ResourceCategory.Fiber, ResourceSize.Small, "Gather Fiber", "fiber", 2, 4, ToolKind.Cut, ToolKind.None, 1f, 1.1f, PlayerActions.GatherPlant, PlayerActions.GatherPlant, 20f, DepletedLook.Stripped, 0.8f, 0.55f, 0.05f, 0.45f),
+            // food
+            D("food_berry_bush", "Berry bush", ResourceCategory.Food, ResourceSize.Medium, "Harvest", "berries", 4, 6, ToolKind.None, ToolKind.None, 1f, 1.0f, PlayerActions.GatherPlant, PlayerActions.GatherPlant, 20f, DepletedLook.Stripped, 0.97f, 0.9f, 0f, 0.6f),
+            D("food_fallen_fruit", "Fallen fruit", ResourceCategory.Food, ResourceSize.Small, "Harvest", "fruit", 1, 3, ToolKind.None, ToolKind.None, 1f, 0.9f, PlayerActions.GatherPlant, PlayerActions.GatherPlant, 20f, DepletedLook.Hide, 0.85f, 0.45f, 0f, 0.3f),
+            D("food_edible_plant", "Edible plant", ResourceCategory.Food, ResourceSize.Small, "Harvest", "edible_plant", 1, 2, ToolKind.Cut, ToolKind.None, 1f, 0.9f, PlayerActions.GatherPlant, PlayerActions.GatherPlant, 18f, DepletedLook.Hide, 0.8f, 0.45f, 0f, 0.3f),
+            D("fish_shoal", "Fish in the shallows", ResourceCategory.Fish, ResourceSize.Small, "Catch Fish", "raw_fish", 2, 3, ToolKind.None, ToolKind.None, 0.34f, 1.4f, PlayerActions.GatherPlant, PlayerActions.GatherPlant, 16f, DepletedLook.Hide, 1f, 1f, 0f, 0.8f, 4f, "Quick fish. Patience, or a spear later.", false),
+            // rare (directive 23-25): bones at the kill site and in the predator territory, one hide at the kill site, shipwreck scraps along the shore
+            D("rare_bones", "Old bones", ResourceCategory.Rare, ResourceSize.Small, "Take Bones", "bone", 1, 2, ToolKind.None, ToolKind.None, 1f, 0.9f, PlayerActions.Pickup, PlayerActions.Pickup, 120f, DepletedLook.Hide, 0.85f, 0.45f, 0f, 0.35f, 4f, null, false),
+            D("rare_hide", "Torn hide", ResourceCategory.Rare, ResourceSize.Small, "Take Hide", "hide", 1, 1, ToolKind.None, ToolKind.None, 1f, 0.9f, PlayerActions.Pickup, PlayerActions.Pickup, 168f, DepletedLook.Hide, 0.85f, 0.45f, 0f, 0.35f, 4f, null, false),
+            D("rare_wreck_scraps", "Wreckage", ResourceCategory.Rare, ResourceSize.Small, "Search Wreckage", "wreck_scraps", 1, 2, ToolKind.None, ToolKind.None, 1f, 1.1f, PlayerActions.GatherPlant, PlayerActions.GatherPlant, 96f, DepletedLook.Hide, 0.85f, 0.45f, 0f, 0.5f, 4f, null, false),
+        };
+
+        struct Tool { public string id, item; public ToolEfficiency[] eff; public float wear; }
+        static readonly Tool[] Tools =
+        {
+            new Tool { id = "hands", item = null, wear = 0f, eff = new[] { new ToolEfficiency(ResourceCategory.Stone, 1, 1), new ToolEfficiency(ResourceCategory.Wood, 1, 1), new ToolEfficiency(ResourceCategory.Fiber, 1, 2), new ToolEfficiency(ResourceCategory.Food, 1, 2), new ToolEfficiency(ResourceCategory.Fish, 1, 1), new ToolEfficiency(ResourceCategory.Rare, 1, 1) } },
+            new Tool { id = "stone_pick", item = "stone_pick", wear = 1f, eff = new[] { new ToolEfficiency(ResourceCategory.Stone, 3, 5) } },
+            new Tool { id = "stone_axe", item = "stone_axe", wear = 1f, eff = new[] { new ToolEfficiency(ResourceCategory.Wood, 2, 3) } },
+            new Tool { id = "hand_stone", item = "hand_stone", wear = 1f, eff = new[] { new ToolEfficiency(ResourceCategory.Stone, 2, 2), new ToolEfficiency(ResourceCategory.Wood, 1, 2) } },
+            new Tool { id = "stone_hammer", item = "stone_hammer", wear = 1f, eff = new[] { new ToolEfficiency(ResourceCategory.Stone, 2, 3) } },
+            new Tool { id = "flint_knife", item = "flint_knife", wear = 0.5f, eff = new[] { new ToolEfficiency(ResourceCategory.Fiber, 2, 3), new ToolEfficiency(ResourceCategory.Food, 2, 3) } },
+            new Tool { id = "butcher_knife", item = "butcher_knife", wear = 0.5f, eff = new[] { new ToolEfficiency(ResourceCategory.Fiber, 2, 3), new ToolEfficiency(ResourceCategory.Food, 2, 3) } },
+        };
+
+        static ItemDefinition Item(string id) { var db = ItemDatabase.Instance; return db ? db.Item(id) : null; }
+
+        static T LoadOrCreate<T>(string path, StringBuilder log) where T : ScriptableObject
+        {
+            var a = AssetDatabase.LoadAssetAtPath<T>(path);
+            if (a) return a;
+            a = ScriptableObject.CreateInstance<T>(); AssetDatabase.CreateAsset(a, path); log.AppendLine("created " + path);
+            return a;
+        }
+
+        /// <summary>definitions, tools, database, materials, berry mesh, node prefabs (idempotent: assets are updated in place)</summary>
+        [PrimalBridgeCommand]
+        public static string BuildData(string arg)
+        {
+            var log = new StringBuilder();
+            BuildDataInto(log);
+            AssetDatabase.SaveAssets();
+            return log.ToString();
+        }
+
+        static ResourceDatabase BuildDataInto(StringBuilder log)
+        {
+            Directory.CreateDirectory(DataDir); Directory.CreateDirectory(NodePrefabDir); Directory.CreateDirectory(GenDir);
+            var db = LoadOrCreate<ResourceDatabase>(DbPath, log);
+            db.resources.Clear(); db.tools.Clear();
+            foreach (var d in Defs)
+            {
+                var item = Item(d.item);
+                var a = LoadOrCreate<ResourceDefinition>($"{DataDir}/RES_{d.id}.asset", log);
+                a.id = d.id; a.displayName = d.name; a.category = d.cat; a.size = d.size; a.prompt = d.prompt; a.item = item;
+                a.yieldRange = new Vector2Int(d.min, d.max); a.bestTool = d.best; a.requiredTool = d.req; a.handsFactor = d.hands; a.toolFactor = 1f;
+                a.gatherSeconds = d.gather; a.handAction = d.handAnim; a.toolAction = d.toolAnim; a.toolWear = 1f; a.handHint = d.hint;
+                a.punchable = d.punch; a.damagePerUnit = d.damagePerUnit; a.respawnHours = d.respawn; a.depletedLook = d.look;
+                a.damagedScale = d.damaged; a.depletedScale = d.depleted; a.sink = d.sink; a.radius = d.radius;
+                a.bonusItem = null; a.bonusChance = 0f;
+                a.FeedbackDefaults();
+                if (d.id == "wood_tree") { a.hitVfx2 = VfxId.Leaves; a.bonusItem = Item("fiber"); a.bonusChance = 0.25f; }
+                if (d.cat == ResourceCategory.Food) a.handSfx = a.toolSfx = SfxId.LeafRustle;
+                EditorUtility.SetDirty(a);
+                if (item == null) { log.AppendLine($"RES_{d.id}: item '{d.item}' missing: definition kept, nodes of it are skipped"); continue; }
+                db.resources.Add(a);
+            }
+            foreach (var t in Tools)
+            {
+                var item = t.item != null ? Item(t.item) : null;
+                if (t.item != null && item == null) { log.AppendLine($"TOOL_{t.id}: item missing, skipped"); continue; }
+                var a = LoadOrCreate<GatherToolDefinition>($"{DataDir}/TOOL_{t.id}.asset", log);
+                a.id = t.id; a.displayName = item ? item.displayName : "Bare hands"; a.item = item; a.toolKind = item ? item.tool : ToolKind.None;
+                a.efficiency = t.eff; a.wearPerAction = t.wear; a.level = 0;
+                EditorUtility.SetDirty(a);
+                if (item == null) db.hands = a; else db.tools.Add(a);
+            }
+            db.unripeMaterial = UnripeMaterial(log);
+            EditorUtility.SetDirty(db);
+            AssetDatabase.SaveAssets();
+            log.AppendLine($"ResourceDatabase: {db.resources.Count} resources, {db.tools.Count} tools + hands");
+            BuildNodePrefabs(db, log);
+            return db;
+        }
+
+        static Material UnripeMaterial(StringBuilder log)
+        {
+            string path = $"{MatDir}/M_Berry_Unripe.mat";
+            var m = AssetDatabase.LoadAssetAtPath<Material>(path);
+            var src = AssetDatabase.LoadAssetAtPath<Material>($"{MatDir}/M_Berry.mat");
+            if (!m && src) { m = new Material(src) { name = "M_Berry_Unripe" }; AssetDatabase.CreateAsset(m, path); log.AppendLine("created " + path); }
+            if (m && m.HasProperty("_BaseColor")) { m.SetColor("_BaseColor", new Color(0.42f, 0.58f, 0.22f, 1f)); EditorUtility.SetDirty(m); }
+            return m;
+        }
+
+        static Material DryGrassMaterial(StringBuilder log)
+        {
+            string path = $"{MatDir}/M_Foliage_DryGrass.mat";
+            var m = AssetDatabase.LoadAssetAtPath<Material>(path);
+            var src = AssetDatabase.LoadAssetAtPath<Material>($"{MatDir}/M_Foliage.mat");
+            if (!m && src) { m = new Material(src) { name = "M_Foliage_DryGrass" }; AssetDatabase.CreateAsset(m, path); log.AppendLine("created " + path); }
+            if (m && m.HasProperty("_BaseColor")) { m.SetColor("_BaseColor", new Color(1.0f, 0.86f, 0.52f, 1f)); EditorUtility.SetDirty(m); }
+            return m;
+        }
+
+        /// <summary>a small clump of berries (original, generated): 7 low-poly spheres</summary>
+        public static Mesh BerryMesh(StringBuilder log)
+        {
+            string path = $"{GenDir}/MESH_BerryCluster.asset";
+            var mesh = AssetDatabase.LoadAssetAtPath<Mesh>(path);
+            bool create = !mesh;
+            if (create) mesh = new Mesh { name = "MESH_BerryCluster" };
+            var verts = new List<Vector3>(); var norms = new List<Vector3>(); var tris = new List<int>();
+            var rng = new System.Random(5);
+            Vector3[] centers = { new Vector3(0, 0, 0), new Vector3(0.045f, 0.01f, 0.02f), new Vector3(-0.04f, 0.015f, 0.025f), new Vector3(0.01f, 0.02f, -0.045f),
+                                  new Vector3(-0.02f, -0.035f, -0.01f), new Vector3(0.03f, -0.03f, -0.03f), new Vector3(0.0f, 0.05f, 0.0f) };
+            foreach (var c in centers)
+            {
+                float r = 0.022f + (float)rng.NextDouble() * 0.008f; int b = verts.Count;
+                const int lat = 4, lon = 6;
+                for (int i = 0; i <= lat; i++)
+                    for (int j = 0; j <= lon; j++)
+                    {
+                        float th = Mathf.PI * i / lat, ph = 2 * Mathf.PI * j / lon;
+                        var n = new Vector3(Mathf.Sin(th) * Mathf.Cos(ph), Mathf.Cos(th), Mathf.Sin(th) * Mathf.Sin(ph));
+                        verts.Add(c + n * r); norms.Add(n);
+                    }
+                for (int i = 0; i < lat; i++)
+                    for (int j = 0; j < lon; j++)
+                    {
+                        int a = b + i * (lon + 1) + j, a2 = a + lon + 1;
+                        tris.Add(a); tris.Add(a + 1); tris.Add(a2); tris.Add(a + 1); tris.Add(a2 + 1); tris.Add(a2);
+                    }
+            }
+            mesh.Clear(); mesh.SetVertices(verts); mesh.SetNormals(norms); mesh.SetTriangles(tris, 0); mesh.RecalculateBounds();
+            if (create) { AssetDatabase.CreateAsset(mesh, path); log?.AppendLine("created " + path); } else EditorUtility.SetDirty(mesh);
+            return mesh;
+        }
+
+        // ------------------------------------------------------------------ node prefabs
+        enum Col { Solid, Trigger }
+        struct NodeKind { public string prefab, def, model; public float scale; public Vector3 euler; public Col col; public bool lod; public bool dryGrass; public int copies; }
+
+        /// <summary>one prefab per node variant (Resource_Stone_Small ...): model child, collider, LODGroup, ResourceNode with its definition</summary>
+        static readonly NodeKind[] Kinds =
+        {
+            new NodeKind { prefab = "Resource_Stone_Small", def = "stone_small", model = "Assets/_Project/Art/Models/Resources/RES_Stone_01.fbx", scale = 0.75f, col = Col.Solid, lod = true },
+            new NodeKind { prefab = "Resource_Stone_Medium", def = "stone_medium", model = "Assets/_Project/Art/Models/Rocks/ENV_Rock_Small_01.fbx", scale = 1.35f, col = Col.Solid, lod = true },
+            new NodeKind { prefab = "Resource_Stone_Medium_02", def = "stone_medium", model = "Assets/_Project/Art/Models/Rocks/ENV_Rock_Small_02.fbx", scale = 1.35f, col = Col.Solid, lod = true },
+            new NodeKind { prefab = "Resource_Stone_Large", def = "stone_large", model = "Assets/_Project/Art/Models/Rocks/ENV_Rock_Medium_01.fbx", scale = 0.8f, col = Col.Solid, lod = true },
+            new NodeKind { prefab = "Resource_Wood_Branch", def = "wood_branch", model = "Assets/_Project/Art/Models/Resources/RES_Branch_01.fbx", scale = 1f, col = Col.Trigger, lod = true },
+            new NodeKind { prefab = "Resource_Wood_Branch_02", def = "wood_branch", model = "Assets/_Project/Art/Models/Resources/RES_Branch_02.fbx", scale = 1f, col = Col.Trigger, lod = true },
+            new NodeKind { prefab = "Resource_Wood_Driftwood", def = "wood_driftwood", model = "Assets/_Project/Art/Models/Resources/RES_Wood_01.fbx", scale = 0.7f, col = Col.Solid, lod = true },
+            new NodeKind { prefab = "Resource_Wood_SmallLog", def = "wood_small_log", model = "Assets/_Project/Prefabs/Environment/PFB_ENV_FallenLog_01.prefab", scale = 0.38f, col = Col.Solid, lod = false },
+            new NodeKind { prefab = "Resource_Fiber_Plant", def = "fiber_plant", model = "Assets/_Project/Art/Models/Resources/RES_Fiber_01.fbx", scale = 0.85f, col = Col.Trigger, lod = true },
+            new NodeKind { prefab = "Resource_Fiber_LongGrass", def = "fiber_grass", model = "Assets/_Project/Prefabs/Environment/PFB_ENV_Grass_01.prefab", scale = 1.9f, col = Col.Trigger, lod = false, dryGrass = true },
+            new NodeKind { prefab = "Resource_Fiber_Fern", def = "fiber_fern", model = "Assets/_Project/Prefabs/Environment/PFB_ENV_Fern_01.prefab", scale = 0.8f, col = Col.Trigger, lod = false },
+            new NodeKind { prefab = "Resource_Fiber_SmallBush", def = "fiber_bush", model = "Assets/_Project/Prefabs/Environment/PFB_ENV_Bush_01.prefab", scale = 0.38f, col = Col.Trigger, lod = false },
+            new NodeKind { prefab = "Resource_Food_BerryBush", def = "food_berry_bush", model = "Assets/_Project/Art/Models/Resources/RES_BerryPlant_01.fbx", scale = 0.65f, col = Col.Trigger, lod = true },
+            new NodeKind { prefab = "Resource_Food_FallenFruit", def = "food_fallen_fruit", model = "Assets/_Project/Art/Models/Props/PROP_FruitBunch.fbx", scale = 1f, euler = new Vector3(0, 0, 90), col = Col.Trigger, lod = true, copies = 2 },
+        };
+
+        static readonly Dictionary<string, GameObject> _prefabs = new Dictionary<string, GameObject>();
+
+        static void BuildNodePrefabs(ResourceDatabase db, StringBuilder log)
+        {
+            _prefabs.Clear();
+            var dry = DryGrassMaterial(log);
+            var kinds = new List<NodeKind>(Kinds);
+            // SURV's new items (edible plant, raw fish, wreck scraps) and the rare piles use the item's own world model when it exists;
+            // bones and scraps fall back to ENV's storytelling props (PROP_PC_Bones / PROP_PC_WreckPlanks) when those prefabs exist
+            foreach (var (defId, prefab, scale, col, copies, fallback) in new[]
+            {
+                ("food_edible_plant", "Resource_Food_EdiblePlant", 1.2f, Col.Trigger, 1, (string)null),
+                ("fish_shoal", "Resource_Fish_Shoal", 1f, Col.Trigger, 3, null),
+                ("rare_bones", "Resource_Rare_Bones", 1f, Col.Trigger, 3, "Assets/_Project/Prefabs/Environment/PC/PROP_PC_Bones.prefab"),
+                ("rare_hide", "Resource_Rare_Hide", 1f, Col.Trigger, 1, null),
+                ("rare_wreck_scraps", "Resource_Rare_WreckScraps", 1f, Col.Trigger, 2, "Assets/_Project/Prefabs/Environment/PC/PROP_PC_WreckPlanks.prefab"),
+            })
+            {
+                var def = db.Get(defId); var wp = def && def.item ? def.item.worldPrefab : null;
+                string model = wp ? AssetDatabase.GetAssetPath(wp) : (fallback != null && AssetDatabase.LoadAssetAtPath<GameObject>(fallback) ? fallback : null);
+                bool prop = model != null && model == fallback;
+                if (model != null) kinds.Add(new NodeKind { prefab = prefab, def = defId, model = model, scale = prop ? 0.6f : scale, col = col, lod = true, copies = prop ? 1 : copies });
+                else log.AppendLine($"{prefab}: skipped ({(def == null ? "definition unavailable (item missing)" : "item has no world model" + (fallback != null ? " and " + System.IO.Path.GetFileName(fallback) + " is not built yet" : ""))}); re-run once it exists");
+            }
+            foreach (var k in kinds)
+            {
+                var def = db.Get(k.def);
+                var model = AssetDatabase.LoadAssetAtPath<GameObject>(k.model);
+                if (!def || !model) { log.AppendLine($"{k.prefab}: skipped ({(!def ? "definition " + k.def + " unavailable" : "model missing " + k.model)})"); continue; }
+                var root = new GameObject(k.prefab);
+                int copies = Mathf.Max(1, k.copies);
+                for (int c = 0; c < copies; c++)
+                {
+                    var m = (GameObject)PrefabUtility.InstantiatePrefab(model);
+                    m.name = copies > 1 ? "Model_" + c : "Model";
+                    m.transform.SetParent(root.transform, false);
+                    m.transform.localScale = Vector3.one * k.scale;
+                    m.transform.localRotation = Quaternion.Euler(0, c * 67f, 0) * Quaternion.Euler(k.euler);
+                    if (copies > 1) m.transform.localPosition = Quaternion.Euler(0f, c * 360f / copies + 20f, 0f) * new Vector3(0.14f, 0f, 0f);
+                    foreach (var col in m.GetComponentsInChildren<Collider>(true)) Object.DestroyImmediate(col, true);
+                    if (k.dryGrass && dry) foreach (var r in m.GetComponentsInChildren<Renderer>(true)) r.sharedMaterial = dry;
+                    foreach (var r in m.GetComponentsInChildren<Renderer>(true)) r.shadowCastingMode = def.size == ResourceSize.Small ? UnityEngine.Rendering.ShadowCastingMode.Off : UnityEngine.Rendering.ShadowCastingMode.On;
+                }
+                // rest the model on the root's ground plane
+                var b = LocalBounds(root);
+                foreach (Transform ch in root.transform) ch.localPosition += Vector3.up * (-b.min.y);
+                b = LocalBounds(root);
+                var box = root.AddComponent<BoxCollider>(); box.center = b.center; box.size = Vector3.Max(b.size, new Vector3(0.2f, 0.15f, 0.2f));
+                box.isTrigger = k.col == Col.Trigger;
+                if (box.isTrigger) root.layer = 2;                   // Ignore Raycast: punches reach it, grounding rays and the camera do not
+                var node = root.AddComponent<ResourceNode>();
+                node.definition = def; node.charges = def.yieldRange.y;
+                node.radius = Mathf.Max(def.radius * 0.6f, Mathf.Min(b.extents.x, b.extents.z) * 0.9f);
+                if (k.lod)
+                {
+                    var lg = root.AddComponent<LODGroup>();
+                    lg.SetLODs(new[] { new LOD(0.012f, root.GetComponentsInChildren<Renderer>(true)) });
+                    lg.RecalculateBounds();
+                }
+                string path = $"{NodePrefabDir}/{k.prefab}.prefab";
+                var saved = PrefabUtility.SaveAsPrefabAsset(root, path);
+                Object.DestroyImmediate(root);
+                _prefabs[k.prefab] = saved;
+                log.AppendLine($"prefab {path}: {def.id}, size {b.size.x:F2}x{b.size.y:F2}x{b.size.z:F2}, radius {node.radius:F2}, {(k.col == Col.Trigger ? "trigger" : "solid")}");
+            }
+        }
+
+        static Bounds LocalBounds(GameObject root)
+        {
+            bool any = false; var b = new Bounds();
+            foreach (var r in root.GetComponentsInChildren<Renderer>(true))
+            {
+                var mf = r.GetComponent<MeshFilter>(); if (!mf || !mf.sharedMesh) continue;
+                var mb = mf.sharedMesh.bounds;
+                for (int i = 0; i < 8; i++)
+                {
+                    var c = mb.center + Vector3.Scale(mb.extents, new Vector3((i & 1) == 0 ? -1 : 1, (i & 2) == 0 ? -1 : 1, (i & 4) == 0 ? -1 : 1));
+                    var p = root.transform.InverseTransformPoint(r.transform.TransformPoint(c));
+                    if (!any) { b = new Bounds(p, Vector3.zero); any = true; } else b.Encapsulate(p);
+                }
+            }
+            return any ? b : new Bounds(Vector3.up * 0.2f, Vector3.one * 0.4f);
+        }
+
+        static GameObject NodePrefab(string name)
+        {
+            if (_prefabs.TryGetValue(name, out var p) && p) return p;
+            p = AssetDatabase.LoadAssetAtPath<GameObject>($"{NodePrefabDir}/{name}.prefab");
+            if (p) _prefabs[name] = p;
+            return p;
+        }
+    }
+}

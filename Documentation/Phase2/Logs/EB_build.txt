@@ -1,0 +1,31 @@
+EB FernForest dry started 2026-09-30 20:35:30
+zone fern: centre (168, 8, 20) r 70 blend 30; clearing (160, 8.8, 24) r 11; blockers 1609
+  prefab ENV_PC_GiantFern_A: bounds min (-1.8, -0.3, -1.6) max (1.7, 0.9, 1.7), colliders 0, LODGroup yes
+  prefab ENV_PC_GiantFern_B: bounds min (-1.7, -0.4, -1.9) max (1.7, 0.8, 1.9), colliders 0, LODGroup yes
+  prefab ENV_PC_Magnolia_A: bounds min (-1.4, -0.1, -1.4) max (1.2, 2.3, 1.5), colliders 0, LODGroup yes
+  prefab ENV_PC_Magnolia_B: bounds min (-1.4, -0.1, -1.3) max (1.5, 2.1, 1.4), colliders 0, LODGroup yes
+  prefab ENV_PC_FallenTrunk_A: bounds min (-6, -1.6, -1.5) max (6.9, 2.1, 1.6), colliders 1, LODGroup yes
+  prefab ENV_PC_FallenTrunk_B: bounds min (-5.3, -1.4, -1.7) max (6.2, 2.1, 1.7), colliders 1, LODGroup yes
+  prefab ENV_PC_Roots_A: bounds min (-5.4, -0.9, -5) max (4.4, 1.1, 5.5), colliders 1, LODGroup yes
+  prefab ENV_PC_VineCurtain_A: bounds min (-3.1, -4.5, -0.6) max (3.1, 0, -0.1), colliders 0, LODGroup yes
+  prefab ENV_PC_VineCurtain_B: bounds min (-3.5, -4.4, -0.7) max (4, 0, -0.1), colliders 0, LODGroup yes
+  prefab ENV_PC_TreeFern_A: bounds min (-3, -0.4, -3.4) max (2.6, 5.5, 2.4), colliders 1, LODGroup yes
+  prefab ENV_PC_Cycad_A: bounds min (-2.4, -0.3, -2) max (2.2, 2, 1.6), colliders 1, LODGroup yes
+  prefab PFB_ENV_Tree_01: bounds min (-7.4, -0.3, -6.8) max (7.1, 19.7, 7.2), colliders 1, LODGroup yes
+  prefab PROP_PC_BrokenTree_A: bounds min (-0.5, -0.3, -0.5) max (7.1, 3.5, 2.6), colliders 1, LODGroup yes
+  prefab PROP_PC_BrokenTree_B: bounds min (-6.3, -0.3, -0.7) max (0.7, 3.6, 5.8), colliders 1, LODGroup yes
+  prefab ENV_PC_Basalt_A: bounds min (-2.1, -0.4, -1.6) max (2.4, 2.5, 1.6), colliders 1, LODGroup yes
+  prefab ENV_PC_BasaltBoulder: bounds min (-2.3, -0.1, -1.7) max (2.2, 1.9, 1.3), colliders 1, LODGroup yes
+  prefab DET_ENV_Grass_01: bounds min (-0.3, 0, -0.3) max (0.3, 0.7, 0.3), colliders 0, LODGroup no
+  prefab LM_GiantTree: missing
+  prefab LM_BlackRidge: missing
+  other terrain trees in the zone + blend: 326
+  clearing candidate (140, 11.7, 48): 7 trees within 11 m, max slope 9.68
+  clearing candidate (136, 12.1, 44): 8 trees within 11 m, max slope 8.06
+  clearing candidate (140, 11.8, 44): 8 trees within 11 m, max slope 12.84
+  clearing candidate (136, 11.8, 48): 8 trees within 11 m, max slope 16.8
+  trail Trail_A_RiverApproach: 130.98 m, 71 samples, max slope 12.75, min water 37.87, blocked 8, colliders 6, tree hits 3
+  trail Trail_B_GameTrail: 148.07 m, 79 samples, max slope 11.24, min water 52.58, blocked 8, colliders 1, tree hits 9
+  trail Trail_C_StalkerPath: 79.37 m, 43 samples, max slope 13.32, min water 40.12, blocked 0, colliders 6, tree hits 4
+finished, 0 warning(s)
+

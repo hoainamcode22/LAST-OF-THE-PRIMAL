@@ -18,6 +18,8 @@ namespace PrimalFrontier.EditorTools
     /// the prefab).
     /// Atmosphere: ash flakes (M_VFX_Chip) and the heat shimmer (PF/Heat Shimmer, M_VFX_HeatShimmer) on the placed
     /// VolcanoLandmark, which builds both effects at run time; arg "off" switches them off again.
+    /// Eruption (Phase 1 wave 2a): fire fountain, flash light and the pooled volcanic bomb prefab on the offshore volcano,
+    /// which is THE volcano (owner decision); ENV's island vent copy of VolcanoLandmark is switched off. EruptionCheck verifies.
     /// </summary>
     public static class PrimalVolcanoBuilder
     {
@@ -142,6 +144,7 @@ namespace PrimalFrontier.EditorTools
                 vl.flowGlows = flows.ToArray();
                 vl.lava = m.GetComponentsInChildren<Renderer>(true).FirstOrDefault(r => r.name.Contains("Lava"));
                 vl.ashMaterial = AshMat(); vl.hazeMaterial = HazeMat();
+                AddEruption(root.transform, vl, meta, BombPrefab());
                 Directory.CreateDirectory(Path.GetDirectoryName(PrefabPath));
                 var p = PrefabUtility.SaveAsPrefabAsset(root, PrefabPath);
                 L("prefab " + PrefabPath);
@@ -241,7 +244,7 @@ namespace PrimalFrontier.EditorTools
                 scene = EditorSceneManager.OpenScene(Scene, OpenSceneMode.Single);
             }
             bool wasDirty = scene.isDirty;
-            var vl = Object.FindFirstObjectByType<VolcanoLandmark>();
+            var vl = Offshore();
             if (!vl) return "no VolcanoLandmark in the scene (run PrimalVolcanoBuilder.Build first)";
             bool off = arg == "off";
             vl.ashFall = !off; vl.heatHaze = !off;
@@ -285,7 +288,7 @@ namespace PrimalFrontier.EditorTools
         {
             var scene = EditorSceneManager.GetActiveScene();
             if (scene.path != Scene) scene = EditorSceneManager.OpenScene(Scene, OpenSceneMode.Single);
-            var existing = Object.FindFirstObjectByType<VolcanoLandmark>();
+            var existing = Offshore();
             if (existing)
             {
                 // the first version sat further out: move it only if nobody moved it since
@@ -295,13 +298,305 @@ namespace PrimalFrontier.EditorTools
                 return;
             }
             var world = GameObject.Find("World") ?? GameObject.Find("[World]");
-            Transform holder = world ? world.transform.Find("Landmarks") : null;
+            Transform holder = PrimalFrontier.Core.SceneRoots.Legacy("World/Landmarks");   // World/Environment/Volcano/Landmarks (HIER)
             if (!holder) { var h = GameObject.Find("Landmarks"); holder = h ? h.transform : new GameObject("Landmarks").transform; if (world && !h) holder.SetParent(world.transform, false); }
             var v = (GameObject)PrefabUtility.InstantiatePrefab(prefab, holder);
             v.name = "Volcano"; v.transform.position = Place; v.transform.rotation = Quaternion.identity;
             v.isStatic = false;
             EditorSceneManager.MarkSceneDirty(scene); EditorSceneManager.SaveScene(scene);
             L($"volcano placed at {Place} under {holder.name} (about {new Vector2(Place.x, Place.z).magnitude:0} m from the island centre)");
+        }
+        // ================================================================== eruption (Phase 1 wave 2a)
+        const string BombPrefabPath = "Assets/_Project/Prefabs/Environment/PFB_ENV_VolcanicBomb.prefab";
+        const string BombMeshPath = "Assets/_Project/Art/Models/Environment/ME_VolcanicBomb.asset";
+
+        /// <summary>the placed offshore volcano (instance of PFB_ENV_Volcano), active or not; null when it is not in the scene</summary>
+        public static VolcanoLandmark Offshore()
+        {
+            foreach (var vl in Object.FindObjectsByType<VolcanoLandmark>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            {
+                var src = PrefabUtility.GetCorrespondingObjectFromOriginalSource(vl.gameObject);
+                if (src && AssetDatabase.GetAssetPath(src) == PrefabPath) return vl;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Eruption on the offshore volcano: bomb mesh / material / prefab, fountain + flash on PFB_ENV_Volcano (prefab edited in
+        /// place, so the placed instance keeps its overrides), the offshore volcano switched on, every other VolcanoLandmark
+        /// (ENV's island vent copy) switched off (SetActive false, kept), scene saved.
+        /// </summary>
+        [PrimalBridgeCommand]
+        public static string Eruption(string arg)
+        {
+            Log.Clear();
+            if (EditorApplication.isPlayingOrWillChangePlaymode) return "stop Play mode first";
+            var scene = EditorSceneManager.GetActiveScene();
+            if (scene.path != Scene)
+            {
+                if (scene.isDirty) return "the open scene has unsaved changes: save it or open " + Scene + ", then run again";
+                scene = EditorSceneManager.OpenScene(Scene, OpenSceneMode.Single);
+            }
+            bool wasDirty = scene.isDirty;
+            var metaTa = AssetDatabase.LoadAssetAtPath<TextAsset>("Assets/_Project/Data/World/volcano.json");
+            if (!metaTa || !AssetDatabase.LoadAssetAtPath<GameObject>(PrefabPath)) return "MISSING Data/World/volcano.json or " + PrefabPath;
+            var meta = JsonUtility.FromJson<Meta>(metaTa.text);
+            var bomb = BombPrefab();
+            var contents = PrefabUtility.LoadPrefabContents(PrefabPath);
+            try
+            {
+                var vl = contents.GetComponent<VolcanoLandmark>();
+                if (!vl) return "PFB_ENV_Volcano has no VolcanoLandmark";
+                AddEruption(contents.transform, vl, meta, bomb);
+                PrefabUtility.SaveAsPrefabAsset(contents, PrefabPath);
+                L($"prefab {PrefabPath}: Eruption_Fountain, Eruption_Flash, bombPrefab {bomb.name}");
+            }
+            finally { PrefabUtility.UnloadPrefabContents(contents); }
+            // scene: the offshore volcano on, the island copy off
+            var off = Offshore();
+            if (!off) L("offshore volcano NOT in the scene (run PrimalVolcanoBuilder.Build)");
+            else
+            {
+                if (!off.gameObject.activeSelf) { off.gameObject.SetActive(true); EditorUtility.SetDirty(off.gameObject); }
+                if (!off.enabled) { off.enabled = true; EditorUtility.SetDirty(off); }
+                var gm = Object.FindFirstObjectByType<GameManager>(FindObjectsInactive.Include);
+                off.spawnSafeRadius = 120f; off.bombDamage = 25f;
+                off.spawnSafeCentre = gm && gm.spawnPoint ? gm.spawnPoint.position : new Vector3(-20f, 1.5f, 211f);
+                EditorUtility.SetDirty(off); PrefabUtility.RecordPrefabInstancePropertyModifications(off);
+                L($"start beach safe: no bomb lands within {off.spawnSafeRadius} m of {off.spawnSafeCentre} ({(gm && gm.spawnPoint ? "GameManager.spawnPoint" : "default")}), damage {off.bombDamage} elsewhere");
+                L($"offshore volcano {PathOf(off.transform)} at {off.transform.position}: ON (active {off.gameObject.activeInHierarchy}, eruptions {off.eruptions})");
+            }
+            foreach (var other in Object.FindObjectsByType<VolcanoLandmark>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            {
+                if (other == off) continue;
+                other.eruptions = false; EditorUtility.SetDirty(other);
+                if (other.transform.childCount == 0) { if (other.gameObject.activeSelf) { other.gameObject.SetActive(false); EditorUtility.SetDirty(other.gameObject); } }
+                else if (other.enabled) other.enabled = false;
+                L($"island copy {PathOf(other.transform)} at {other.transform.position}: switched off (object {other.gameObject.activeSelf}, component {other.enabled}), kept");
+            }
+            var v = AssetDatabase.LoadAssetAtPath<GameObject>(PrefabPath).GetComponent<VolcanoLandmark>();
+            L($"config: every {v.eruptionEvery.x:0}..{v.eruptionEvery.y:0} s (first {v.firstEruption.x:0}..{v.firstEruption.y:0} s), build-up {v.rumbleBuildUp} s, fountain {v.fountainTime} s at {v.fountainRate}/s, flash {v.flashIntensity}, " +
+              $"bombs {v.bombCount.x}..{v.bombCount.y} ({v.bombShoreShare:P0} shore), flight {v.bombFlightTime.x}..{v.bombFlightTime.y} s, size {v.bombSize.x}..{v.bombSize.y} m, glow {v.bombGlowTime} s, stay {v.bombStayTime} s, " +
+              $"damage {v.bombDamage} within {v.bombDamageRadius} m, shake within {v.bombShakeRadius} m, whoosh within {v.whooshDistance} m, impacts heard to {v.impactHearing} m, wildlife noise {v.impactNoise}");
+            EditorSceneManager.MarkSceneDirty(scene);
+            if (wasDirty) L("the scene had other unsaved changes: NOT saved, save it yourself");
+            else { EditorSceneManager.SaveScene(scene); L("scene saved"); }
+            AssetDatabase.SaveAssets();
+            return Log.ToString();
+        }
+
+        static string PathOf(Transform t) { var s = t.name; while (t.parent) { t = t.parent; s = t.name + "/" + s; } return s; }
+
+        /// <summary>fountain particle system + flash light on the volcano root, wired to its VolcanoLandmark (rebuilt each run)</summary>
+        static void AddEruption(Transform root, VolcanoLandmark vl, Meta meta, GameObject bomb)
+        {
+            foreach (var n in new[] { "Eruption_Fountain", "Eruption_Flash" }) { var old = root.Find(n); if (old) Object.DestroyImmediate(old.gameObject); }
+            Vector3 rim = U(meta.rim), floor = U(meta.crater_floor);
+            var ps = NewPs(root, "Eruption_Fountain", floor + Vector3.up * 6f, GlowMat());
+            var m = ps.main; m.duration = 5f; m.startLifetime = new ParticleSystem.MinMaxCurve(3.5f, 6.5f);
+            m.startSpeed = new ParticleSystem.MinMaxCurve(55f, 95f); m.startSize = new ParticleSystem.MinMaxCurve(6f, 15f);
+            m.gravityModifier = 1f; m.maxParticles = 500;
+            m.startColor = new ParticleSystem.MinMaxGradient(new Color(1f, 0.85f, 0.45f, 1f), new Color(1f, 0.4f, 0.08f, 1f));
+            var e = ps.emission; e.rateOverTime = 0f;
+            var sh = ps.shape; sh.shapeType = ParticleSystemShapeType.Cone; sh.angle = 14f; sh.radius = meta.crater_radius * 0.22f;
+            var col = ps.colorOverLifetime; col.enabled = true;
+            var g = new Gradient(); g.SetKeys(new[] { new GradientColorKey(Color.white, 0f), new GradientColorKey(new Color(1f, 0.5f, 0.12f), 0.45f), new GradientColorKey(new Color(0.5f, 0.08f, 0.02f), 1f) },
+                                             new[] { new GradientAlphaKey(1f, 0f), new GradientAlphaKey(0.85f, 0.6f), new GradientAlphaKey(0f, 1f) });
+            col.color = g;
+            var sz = ps.sizeOverLifetime; sz.enabled = true; sz.size = new ParticleSystem.MinMaxCurve(1f, AnimationCurve.Linear(0f, 1f, 1f, 0.45f));
+            ps.GetComponent<ParticleSystemRenderer>().renderMode = ParticleSystemRenderMode.Billboard;
+            var lg = new GameObject("Eruption_Flash"); lg.transform.SetParent(root, false); lg.transform.localPosition = rim + Vector3.up * 30f;
+            var li = lg.AddComponent<Light>(); li.type = LightType.Point; li.range = 520f; li.color = new Color(1f, 0.45f, 0.16f);
+            li.intensity = 0f; li.shadows = LightShadows.None; li.enabled = false;
+            vl.fountain = ps; vl.flash = li; vl.bombPrefab = bomb; vl.eruptions = true;
+        }
+
+        /// <summary>PFB_ENV_VolcanicBomb: Rock (faceted mesh, emissive basalt), FireTrail + SmokeTrail (world space, by distance), Flames, Glow light</summary>
+        static GameObject BombPrefab()
+        {
+            var root = new GameObject("PFB_ENV_VolcanicBomb");
+            try
+            {
+                var rock = new GameObject("Rock"); rock.transform.SetParent(root.transform, false);
+                rock.AddComponent<MeshFilter>().sharedMesh = BombMesh();
+                var mr = rock.AddComponent<MeshRenderer>(); mr.sharedMaterial = BombMat(); mr.shadowCastingMode = ShadowCastingMode.On;
+                var glow = GlowMat();
+                var fire = NewPs(root.transform, "FireTrail", Vector3.zero, glow);
+                { var m = fire.main; m.playOnAwake = false; m.duration = 5f; m.startLifetime = new ParticleSystem.MinMaxCurve(0.5f, 1.1f); m.startSpeed = new ParticleSystem.MinMaxCurve(0f, 1f);
+                  m.startSize = new ParticleSystem.MinMaxCurve(4f, 7f); m.maxParticles = 120; m.scalingMode = ParticleSystemScalingMode.Local;
+                  m.startColor = new ParticleSystem.MinMaxGradient(new Color(1f, 0.8f, 0.4f, 1f), new Color(1f, 0.45f, 0.1f, 1f));
+                  var e = fire.emission; e.rateOverTime = 0f; e.rateOverDistance = 1.4f;
+                  var sh = fire.shape; sh.shapeType = ParticleSystemShapeType.Sphere; sh.radius = 0.6f;
+                  var sz = fire.sizeOverLifetime; sz.enabled = true; sz.size = new ParticleSystem.MinMaxCurve(1f, AnimationCurve.Linear(0f, 1f, 1f, 0.2f));
+                  var col = fire.colorOverLifetime; col.enabled = true; var g = new Gradient();
+                  g.SetKeys(new[] { new GradientColorKey(Color.white, 0f), new GradientColorKey(new Color(1f, 0.45f, 0.1f), 0.4f), new GradientColorKey(new Color(0.4f, 0.06f, 0.02f), 1f) },
+                            new[] { new GradientAlphaKey(1f, 0f), new GradientAlphaKey(0.7f, 0.5f), new GradientAlphaKey(0f, 1f) });
+                  col.color = g; }
+                var smoke = NewPs(root.transform, "SmokeTrail", Vector3.zero, Vfx("M_VFX_Soft"));
+                { var m = smoke.main; m.playOnAwake = false; m.duration = 5f; m.startLifetime = new ParticleSystem.MinMaxCurve(4f, 7f); m.startSpeed = new ParticleSystem.MinMaxCurve(0.2f, 0.8f);
+                  m.startSize = new ParticleSystem.MinMaxCurve(3f, 6f); m.maxParticles = 90; m.scalingMode = ParticleSystemScalingMode.Local;
+                  m.startRotation = new ParticleSystem.MinMaxCurve(0f, Mathf.PI * 2f);
+                  m.startColor = new ParticleSystem.MinMaxGradient(new Color(0.16f, 0.15f, 0.14f, 0.55f), new Color(0.3f, 0.28f, 0.27f, 0.45f));
+                  var e = smoke.emission; e.rateOverTime = 0f; e.rateOverDistance = 0.3f;
+                  var sh = smoke.shape; sh.shapeType = ParticleSystemShapeType.Sphere; sh.radius = 0.5f;
+                  var sz = smoke.sizeOverLifetime; sz.enabled = true; sz.size = new ParticleSystem.MinMaxCurve(1f, AnimationCurve.Linear(0f, 1f, 1f, 2.8f));
+                  var col = smoke.colorOverLifetime; col.enabled = true; var g = new Gradient();
+                  g.SetKeys(new[] { new GradientColorKey(Color.white, 0f), new GradientColorKey(Color.white, 1f) },
+                            new[] { new GradientAlphaKey(0f, 0f), new GradientAlphaKey(1f, 0.1f), new GradientAlphaKey(0f, 1f) });
+                  col.color = g; }
+                var flames = NewPs(root.transform, "Flames", Vector3.up * 0.3f, glow);
+                { var m = flames.main; m.playOnAwake = false; m.duration = 2f; m.simulationSpace = ParticleSystemSimulationSpace.Local; m.cullingMode = ParticleSystemCullingMode.Automatic;
+                  m.startLifetime = new ParticleSystem.MinMaxCurve(0.4f, 0.9f); m.startSpeed = new ParticleSystem.MinMaxCurve(0.8f, 2.2f);
+                  m.startSize = new ParticleSystem.MinMaxCurve(0.5f, 1.3f); m.maxParticles = 40; m.gravityModifier = -0.2f;
+                  m.startColor = new ParticleSystem.MinMaxGradient(new Color(1f, 0.7f, 0.3f, 1f), new Color(1f, 0.35f, 0.08f, 1f));
+                  var e = flames.emission; e.rateOverTime = 16f;
+                  var sh = flames.shape; sh.shapeType = ParticleSystemShapeType.Hemisphere; sh.radius = 0.5f;
+                  var col = flames.colorOverLifetime; col.enabled = true; var g = new Gradient();
+                  g.SetKeys(new[] { new GradientColorKey(Color.white, 0f), new GradientColorKey(new Color(1f, 0.3f, 0.05f), 1f) },
+                            new[] { new GradientAlphaKey(1f, 0f), new GradientAlphaKey(0f, 1f) });
+                  col.color = g; }
+                var lg = new GameObject("Glow"); lg.transform.SetParent(root.transform, false); lg.transform.localPosition = Vector3.up * 0.8f;
+                var li = lg.AddComponent<Light>(); li.type = LightType.Point; li.range = 10f; li.intensity = 4f; li.color = new Color(1f, 0.45f, 0.15f);
+                li.shadows = LightShadows.None; li.enabled = false;
+                Directory.CreateDirectory(Path.GetDirectoryName(BombPrefabPath));
+                var p = PrefabUtility.SaveAsPrefabAsset(root, BombPrefabPath);
+                L("prefab " + BombPrefabPath);
+                return p;
+            }
+            finally { Object.DestroyImmediate(root); }
+        }
+
+        static Material BombMat()
+        {
+            string p = $"{Mats}/M_VolcanicBomb.mat";
+            var sh = Shader.Find("Universal Render Pipeline/Lit");
+            var m = AssetDatabase.LoadAssetAtPath<Material>(p);
+            if (!m) { m = new Material(sh) { name = "M_VolcanicBomb" }; AssetDatabase.CreateAsset(m, p); L("material M_VolcanicBomb"); }
+            m.shader = sh;
+            var d = AssetDatabase.LoadAssetAtPath<Texture2D>($"{Tex}/T_Rock_D.png"); var n = AssetDatabase.LoadAssetAtPath<Texture2D>($"{Tex}/T_Rock_N.png");
+            if (d) { m.SetTexture("_BaseMap", d); m.SetTexture("_EmissionMap", d); }
+            if (n) { m.SetTexture("_BumpMap", n); m.EnableKeyword("_NORMALMAP"); }
+            m.SetColor("_BaseColor", new Color(0.1f, 0.09f, 0.085f)); m.SetFloat("_Smoothness", 0.15f); m.SetFloat("_Metallic", 0f);
+            m.EnableKeyword("_EMISSION"); m.globalIlluminationFlags = MaterialGlobalIlluminationFlags.None;
+            m.SetColor("_EmissionColor", new Color(6f, 1.6f, 0.25f));
+            EditorUtility.SetDirty(m);
+            return m;
+        }
+
+        /// <summary>a lumpy faceted rock of diameter ~1 (icosphere, 2 subdivisions, radius jitter, flat shaded)</summary>
+        static Mesh BombMesh()
+        {
+            var mesh = AssetDatabase.LoadAssetAtPath<Mesh>(BombMeshPath);
+            bool isNew = !mesh; if (isNew) mesh = new Mesh { name = "ME_VolcanicBomb" };
+            float t = (1f + Mathf.Sqrt(5f)) / 2f;
+            var v = new System.Collections.Generic.List<Vector3> { new Vector3(-1, t, 0), new Vector3(1, t, 0), new Vector3(-1, -t, 0), new Vector3(1, -t, 0), new Vector3(0, -1, t), new Vector3(0, 1, t),
+                new Vector3(0, -1, -t), new Vector3(0, 1, -t), new Vector3(t, 0, -1), new Vector3(t, 0, 1), new Vector3(-t, 0, -1), new Vector3(-t, 0, 1) };
+            for (int i = 0; i < v.Count; i++) v[i] = v[i].normalized;
+            var f = new System.Collections.Generic.List<int> { 0,11,5, 0,5,1, 0,1,7, 0,7,10, 0,10,11, 1,5,9, 5,11,4, 11,10,2, 10,7,6, 7,1,8, 3,9,4, 3,4,2, 3,2,6, 3,6,8, 3,8,9, 4,9,5, 2,4,11, 6,2,10, 8,6,7, 9,8,1 };
+            for (int s = 0; s < 2; s++)
+            {
+                var cache = new System.Collections.Generic.Dictionary<long, int>(); var nf = new System.Collections.Generic.List<int>();
+                int Mid(int a, int b)
+                {
+                    long k = a < b ? ((long)a << 32) | (uint)b : ((long)b << 32) | (uint)a;
+                    if (cache.TryGetValue(k, out int idx)) return idx;
+                    v.Add(((v[a] + v[b]) * 0.5f).normalized); cache[k] = v.Count - 1; return v.Count - 1;
+                }
+                for (int i = 0; i < f.Count; i += 3)
+                {
+                    int a = f[i], b = f[i + 1], c = f[i + 2], ab = Mid(a, b), bc = Mid(b, c), ca = Mid(c, a);
+                    nf.AddRange(new[] { a, ab, ca, b, bc, ab, c, ca, bc, ab, bc, ca });
+                }
+                f = nf;
+            }
+            for (int i = 0; i < v.Count; i++)
+            {
+                var d = v[i];
+                float r = 0.5f * (0.8f + 0.28f * Mathf.PerlinNoise(d.x * 1.7f + 3.1f, d.y * 1.7f + d.z * 1.3f + 7.7f) + 0.08f * Mathf.PerlinNoise(d.z * 5f + 1f, d.x * 5f + 2f));
+                v[i] = new Vector3(d.x * r, d.y * r * 0.85f, d.z * r);
+            }
+            var fv = new Vector3[f.Count]; var uv = new Vector2[f.Count]; var tri = new int[f.Count];
+            for (int i = 0; i < f.Count; i++) { fv[i] = v[f[i]]; uv[i] = new Vector2(fv[i].x + fv[i].z * 0.7f, fv[i].y + fv[i].z * 0.3f) * 1.6f; tri[i] = i; }
+            mesh.Clear(); mesh.vertices = fv; mesh.uv = uv; mesh.triangles = tri;
+            mesh.RecalculateNormals(); mesh.RecalculateTangents(); mesh.RecalculateBounds();
+            if (isNew) { Directory.CreateDirectory(Path.GetDirectoryName(BombMeshPath)); AssetDatabase.CreateAsset(mesh, BombMeshPath); L("mesh " + BombMeshPath + $" ({tri.Length / 3} tris)"); }
+            else EditorUtility.SetDirty(mesh);
+            return mesh;
+        }
+
+        /// <summary>
+        /// read-only check: offshore volcano on and the only active VolcanoLandmark, island copy off, eruption refs set, no
+        /// missing mesh / material / script in PFB_ENV_Volcano and PFB_ENV_VolcanicBomb, VFX / SFX ids present, and 200 sample
+        /// bomb landing points (sea / shore split, distance to the player spawn)
+        /// </summary>
+        [PrimalBridgeCommand]
+        public static string EruptionCheck(string arg)
+        {
+            Log.Clear(); int bad = 0;
+            void Bad(string s) { bad++; L("BAD " + s); }
+            var off = Offshore();
+            if (!off) Bad("no offshore volcano in the scene");
+            else
+            {
+                L($"offshore {PathOf(off.transform)} at {off.transform.position}: activeInHierarchy {off.gameObject.activeInHierarchy}, component {off.enabled}, eruptions {off.eruptions}");
+                if (!off.gameObject.activeInHierarchy || !off.enabled || !off.eruptions) Bad("offshore volcano not active / not erupting");
+                if (!off.fountain) Bad("fountain missing"); if (!off.flash) Bad("flash missing"); if (!off.bombPrefab) Bad("bombPrefab missing");
+                if (!off.smoke) Bad("smoke missing"); if (!off.embers) Bad("embers missing");
+            }
+            int activeCount = 0;
+            foreach (var vl in Object.FindObjectsByType<VolcanoLandmark>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            {
+                bool on = vl.gameObject.activeInHierarchy && vl.enabled;
+                if (on) activeCount++;
+                if (vl != off) { L($"other VolcanoLandmark {PathOf(vl.transform)}: {(on ? "ON" : "off")}, eruptions {vl.eruptions}"); if (on) Bad("island copy still on"); }
+            }
+            L($"active VolcanoLandmarks: {activeCount}"); if (activeCount != 1) Bad("expected exactly 1 active VolcanoLandmark");
+            foreach (var path in new[] { PrefabPath, BombPrefabPath })
+            {
+                var go = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+                if (!go) { Bad("missing prefab " + path); continue; }
+                int miss = 0, rends = 0, ps = 0;
+                foreach (var t in go.GetComponentsInChildren<Transform>(true))
+                {
+                    miss += GameObjectUtility.GetMonoBehavioursWithMissingScriptCount(t.gameObject);
+                    var mf = t.GetComponent<MeshFilter>(); if (mf && !mf.sharedMesh) { miss++; L("  no mesh: " + t.name); }
+                    var r = t.GetComponent<Renderer>();
+                    if (r) { rends++; if (r is ParticleSystemRenderer) ps++; foreach (var m in r.sharedMaterials) if (!m || !m.shader || ShaderUtil.ShaderHasError(m.shader)) { miss++; L("  bad material on " + t.name); } }
+                }
+                L($"{Path.GetFileName(path)}: {rends} renderers ({ps} particle), missing / broken refs {miss}");
+                if (miss > 0) Bad(path + " has missing refs");
+            }
+            var bp = off ? off.bombPrefab : null;
+            if (bp) foreach (var n in new[] { "Rock", "FireTrail", "SmokeTrail", "Flames", "Glow" }) if (!bp.transform.Find(n)) Bad("bomb prefab part missing: " + n);
+            var lib = Resources.Load<PrimalFrontier.VFX.VfxLibrary>("VfxLibrary");
+            foreach (var id in new[] { PrimalFrontier.VFX.VfxId.WaterSplash, PrimalFrontier.VFX.VfxId.Steam, PrimalFrontier.VFX.VfxId.DustImpact, PrimalFrontier.VFX.VfxId.CraftSparks, PrimalFrontier.VFX.VfxId.FireIgnite })
+                if (!lib || !lib.entries.Exists(e => e.id == id && e.prefab)) Bad("VfxLibrary has no " + id);
+            var sfx = Resources.Load<PrimalFrontier.Audio.SfxLibrary>("SfxLibrary");
+            foreach (var id in new[] { PrimalFrontier.Audio.SfxId.Thunder, PrimalFrontier.Audio.SfxId.DinoStepHeavy, PrimalFrontier.Audio.SfxId.SpearWhoosh, PrimalFrontier.Audio.SfxId.WaterSplash, PrimalFrontier.Audio.SfxId.FireHiss, PrimalFrontier.Audio.SfxId.StoneHit })
+                if (!sfx || !sfx.entries.Exists(e => e.id == id && e.clips != null && e.clips.Length > 0)) Bad("SfxLibrary has no " + id);
+            if (off)
+            {
+                var gm = Object.FindFirstObjectByType<GameManager>(FindObjectsInactive.Include);
+                var spawn = GameObject.Find("ZONE_PlayerSpawn");
+                Vector3 sp = gm && gm.spawnPoint ? gm.spawnPoint.position : spawn ? spawn.transform.position : new Vector3(-20f, 1.5f, 211f);
+                int sea = 0, land = 0; float minSpawn = 1e9f, minLand = 1e9f, maxLand = 0f; float seaY = float.NaN;
+                var shore = Object.FindFirstObjectByType<OceanShore>(FindObjectsInactive.Include); seaY = shore ? shore.seaLevel : 0f;
+                var st = Random.state; Random.InitState(1234);
+                for (int i = 0; i < 200; i++)
+                {
+                    var q = off.PickBombTarget(i % 10 < Mathf.RoundToInt(off.bombShoreShare * 10f));
+                    float dv = new Vector2(q.x - off.transform.position.x, q.z - off.transform.position.z).magnitude;
+                    if (q.y > seaY + 0.05f) { land++; minLand = Mathf.Min(minLand, dv); maxLand = Mathf.Max(maxLand, dv); }
+                    else sea++;
+                    minSpawn = Mathf.Min(minSpawn, new Vector2(q.x - sp.x, q.z - sp.z).magnitude);
+                }
+                Random.state = st;
+                if (off.spawnSafeRadius > 0f && minSpawn < off.spawnSafeRadius) Bad($"a landing {minSpawn:0} m from the spawn (safe radius {off.spawnSafeRadius})");
+                L($"safe radius {off.spawnSafeRadius} m, damage {off.bombDamage}");
+                L($"200 sample landings: sea {sea}, land {land} (flat distance from the volcano {minLand:0}..{maxLand:0} m), nearest to the player spawn {sp}: {minSpawn:0} m; sea level {seaY:0.##}");
+            }
+            L(bad == 0 ? "ERUPTION CHECK OK" : $"ERUPTION CHECK: {bad} problems");
+            return Log.ToString();
         }
     }
 }

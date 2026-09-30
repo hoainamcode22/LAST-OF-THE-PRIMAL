@@ -1,0 +1,218 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
+using UnityEditor;
+using UnityEditor.SceneManagement;
+using UnityEngine;
+using PrimalFrontier.World;
+using Object = UnityEngine.Object;
+
+namespace PrimalFrontier.EditorTools
+{
+    /// <summary>
+    /// Phase 1 wave 2a (RES, 2026-09-30). Bridge: PrimalResourceBuilder.Phase1Lava ("" = apply and save, "dry" = report only).
+    /// Idempotent. Resource nodes on the island lava vent or within 3 m of the lava channel (ENV's env_features_v2 line)
+    /// move to solid ground: the vent rock World/Rocks/PFB_ENV_Rock_Large_03 to a spot clear of the vent pool on the side
+    /// away from the spawn / island centre (so it no longer hides the vent), channel nodes to a spot 5-10 m from the channel.
+    /// Basalt / obsidian-style stone nodes would be kept (none exist yet). Logs to Documentation/Phase1/R2_lava_build.txt.
+    /// </summary>
+    public static partial class PrimalResourceBuilder
+    {
+        const string R2Log = "Documentation/Phase1/R2_lava_build.txt";
+        const string R2Features = "Assets/_Project/Art/Environment/Terrain/env_features_v2.json";
+        const string R2VentRock = "World/Rocks/PFB_ENV_Rock_Large_03";
+        const float R2VentPoolR = 1.9f;
+
+        [Serializable] class R2Lava { public float[] points; public float[] vent; }
+        [Serializable] class R2Feat { public R2Lava lava; }
+
+        static List<Vector3> _r2Line;
+        static Vector3 _r2Vent;
+        static GameObject _r2Rock;
+
+        [PrimalBridgeCommand]
+        public static string Phase1Lava(string arg)
+        {
+            bool dry = !string.IsNullOrEmpty(arg) && arg.Contains("dry");
+            _log = new StringBuilder();
+            var scene = EditorSceneManager.GetActiveScene();
+            if (scene.path != ScenePath)
+            {
+                if (scene.isDirty) return "active scene has unsaved changes and is not the island: open the island first";
+                scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
+            }
+            L($"PrimalResourceBuilder.Phase1Lava {DateTime.Now:yyyy-MM-dd HH:mm} arg '{arg}'{(dry ? " (dry run)" : "")}");
+            if (!Setup()) return _log.ToString();
+            _seaY = SeaLevel();
+            var ta = AssetDatabase.LoadAssetAtPath<TextAsset>(R2Features);
+            var f = ta ? JsonUtility.FromJson<R2Feat>(ta.text) : null;
+            if (f?.lava?.points == null || f.lava.vent == null || f.lava.vent.Length < 3) { L("ERROR no lava line in " + R2Features); return _log.ToString(); }
+            _r2Line = new List<Vector3>(); for (int i = 0; i + 2 < f.lava.points.Length; i += 3) _r2Line.Add(new Vector3(f.lava.points[i], f.lava.points[i + 1], f.lava.points[i + 2]));
+            _r2Vent = new Vector3(f.lava.vent[0], f.lava.vent[1], f.lava.vent[2]);
+            L($"lava vent {V(_r2Vent)} (pool r {R2VentPoolR} m), channel {_r2Line.Count} pts to {V(_r2Line[_r2Line.Count - 1])}");
+
+            // 1. the vent rock
+            GameObject rockGo = null;                                       // two rocks share the name: the one nearest the vent
+            var rocks = PrimalFrontier.Core.SceneRoots.LegacyObject("World/Rocks");
+            if (rocks) foreach (Transform c in rocks.transform)
+                    if (c.name == "PFB_ENV_Rock_Large_03" && (!rockGo || R2VentDist(c.position) < R2VentDist(rockGo.transform.position))) rockGo = c.gameObject;
+            _r2Rock = rockGo;
+            L($"before: {R2Report()}");
+            if (!rockGo) L($"{R2VentRock}: not in the scene");
+            else R2Move(rockGo.transform, true, dry);
+
+            // 2. other nodes within 3 m of the channel (or on the vent)
+            var near = R2Near().Where(t => !rockGo || t != rockGo.transform).ToList();
+            L($"other nodes within 3 m of the channel or on the vent: {near.Count}");
+            foreach (var t in near) R2Move(t, false, dry);
+            Physics.SyncTransforms();
+
+            L($"after: {R2Report()}");
+            Verify();
+            if (!dry)
+            {
+                EditorSceneManager.MarkSceneDirty(scene);
+                EditorSceneManager.SaveScene(scene);
+                L("scene saved " + scene.path);
+            }
+            Directory.CreateDirectory(Path.GetDirectoryName(R2Log));
+            File.WriteAllText(dry ? R2Log.Replace(".txt", "_dry.txt") : R2Log, _log.ToString());
+            return _log.ToString();
+        }
+
+        static float R2SegDist(Vector3 p)
+        {
+            var q = new Vector2(p.x, p.z); float best = float.MaxValue;
+            for (int i = 0; i + 1 < _r2Line.Count; i++)
+            {
+                var a = new Vector2(_r2Line[i].x, _r2Line[i].z); var b = new Vector2(_r2Line[i + 1].x, _r2Line[i + 1].z);
+                var ab = b - a; float t = ab.sqrMagnitude > 1e-6f ? Mathf.Clamp01(Vector2.Dot(q - a, ab) / ab.sqrMagnitude) : 0f;
+                best = Mathf.Min(best, (a + ab * t - q).magnitude);
+            }
+            return best;
+        }
+        static float R2VentDist(Vector3 p) => Flat(p - _r2Vent).magnitude;
+
+        /// <summary>the movable roots (outermost prefab instance, else the node) of active nodes near the channel / vent</summary>
+        static List<Transform> R2Near()
+        {
+            var set = new List<Transform>();
+            foreach (var n in Object.FindObjectsByType<ResourceNode>(FindObjectsInactive.Exclude, FindObjectsSortMode.None))
+            {
+                if (!n.enabled) continue;
+                var p = n.transform.position;
+                if (R2SegDist(p) >= 3f && R2VentDist(p) >= R2VentPoolR + 2f) continue;
+                var root = PrefabUtility.GetOutermostPrefabInstanceRoot(n.gameObject); var t = root ? root.transform : n.transform;
+                if (!set.Contains(t)) set.Add(t);
+            }
+            return set;
+        }
+
+        static string R2Report()
+        {
+            var ns = Object.FindObjectsByType<ResourceNode>(FindObjectsInactive.Exclude, FindObjectsSortMode.None).Where(n => n.enabled).ToList();
+            int ch = ns.Count(n => R2SegDist(n.transform.position) < 3f), pts = ns.Count(n => { var q = n.transform.position; return _r2Line.Min(a => Flat(a - q).magnitude) < 3f; });
+            int vent = ns.Count(n => R2VentDist(n.transform.position) < 6f);
+            var names = string.Join(", ", ns.Where(n => R2SegDist(n.transform.position) < 3f || R2VentDist(n.transform.position) < 6f).Select(n => $"{n.transform.parent?.name}/{n.name}"));
+            var r = _r2Rock;
+            return $"nodes within 3 m of the channel {ch} (segments) / {pts} (points, ENV's check), within 6 m of the vent {vent}" +
+                   (names.Length > 0 ? $" [{names}]" : "") + (r ? $"; {r.name} at {V(r.transform.position)}, {R2VentDist(r.transform.position):F1} m from the vent, {R2SegDist(r.transform.position):F1} m from the channel" : "");
+        }
+
+        static float R2Radius(Transform t, out Bounds b)
+        {
+            var rs = t.GetComponentsInChildren<Renderer>(false); b = new Bounds(t.position, Vector3.zero);
+            if (rs.Length == 0) return 0.5f;
+            b = rs[0].bounds; foreach (var r in rs) b.Encapsulate(r.bounds);
+            return Mathf.Max(0.35f, Mathf.Max(b.extents.x, b.extents.z));
+        }
+
+        static void R2Move(Transform t, bool ventRock, bool dry)
+        {
+            var node = t.GetComponentInChildren<ResourceNode>();
+            string def = node && node.definition ? node.definition.id : "no definition";
+            string path = t.parent ? $"{t.parent.name}/{t.name}" : t.name;
+            var p = t.position; float r = R2Radius(t, out var b);
+            string lower = (t.name + " " + def).ToLowerInvariant();
+            if (!ventRock && (lower.Contains("basalt") || lower.Contains("obsidian")))
+            { L($"   kept {path} ({def}): volcanic stone fits next to the lava"); return; }
+            float dVent = R2VentDist(b.center), dCh = R2SegDist(b.center);
+            float ventClear = Mathf.Max(6f, R2VentPoolR + r + 2.5f);
+            if (ventRock ? dVent >= ventClear && dCh >= r + 3f : dCh >= 3f && dVent >= R2VentPoolR + 2f)
+            { L($"   {path} ({def}) already clear: {dVent:F1} m from the vent, {dCh:F1} m from the channel"); return; }
+
+            // the direction the vent is seen from: the spawn and the island centre
+            var spawnGo = GameObject.Find("ZONE_PlayerSpawn");
+            var centre = _tp + new Vector3(_td.size.x * 0.5f, 0f, _td.size.z * 0.5f);
+            var look = Flat((spawnGo ? spawnGo.transform.position : centre) - _r2Vent).normalized + Flat(centre - _r2Vent).normalized;
+            look = look.sqrMagnitude > 1e-4f ? look.normalized : Vector3.forward;
+            var own = new HashSet<Collider>(t.GetComponentsInChildren<Collider>(true));
+            Vector3 off = p - b.center; off.y = 0f;                         // pivot to bounds centre (flat)
+            float sink = p.y - Ground(p); sink = Mathf.Clamp(sink, -0.5f, 0.05f);
+
+            bool Ok(Vector3 c)
+            {
+                if (P1Wet(c) || WaterDistance(c, 2.5f) < 2.5f) return false;
+                if (!Free(c, Mathf.Min(r, 1.2f))) { if (!R2FreeOwn(c, Mathf.Min(r, 1.2f), own)) return false; }
+                if (ventRock && Steep(c) > 22f) return false;
+                if (r > 1.2f)
+                {
+                    var cc = new Vector3(c.x, Ground(c) + r + 0.15f, c.z);
+                    int n = Physics.OverlapSphereNonAlloc(cc, r * 0.85f, _ov, ~0, QueryTriggerInteraction.Collide);
+                    for (int i = 0; i < n; i++) if (_ov[i] && !(_ov[i] is TerrainCollider) && !own.Contains(_ov[i])) return false;
+                }
+                return true;
+            }
+
+            Vector3 best = Vector3.zero; float bestS = float.MaxValue;
+            if (ventRock)
+            {
+                for (float d = ventClear; d <= ventClear + 10f; d += 1f)
+                    for (int k = 0; k < 48; k++)
+                    {
+                        float a = k / 48f * Mathf.PI * 2f; var dir = new Vector3(Mathf.Cos(a), 0f, Mathf.Sin(a));
+                        var c = _r2Vent + dir * d;
+                        if (R2SegDist(c) < r + 3f || !Ok(c)) continue;
+                        float s = Vector3.Dot(dir, look) * 4f + (d - ventClear) * 0.3f + Mathf.Abs(Ground(c) - Ground(_r2Vent)) * 0.3f + Steep(c) * 0.05f;
+                        if (s < bestS) { bestS = s; best = c; }
+                    }
+            }
+            else
+            {
+                for (float d = 2f; d <= 14f; d += 1f)
+                    for (int k = 0; k < 36; k++)
+                    {
+                        float a = k / 36f * Mathf.PI * 2f; var c = b.center + new Vector3(Mathf.Cos(a) * d, 0f, Mathf.Sin(a) * d);
+                        float dc = R2SegDist(c);
+                        if (dc < 5f + r * 0.5f || dc > 10f || R2VentDist(c) < 6f || !Ok(c)) continue;
+                        float s = d * 0.2f + Mathf.Abs(Ground(c) - Ground(b.center)) * 0.5f;
+                        if (s < bestS) { bestS = s; best = c; }
+                    }
+            }
+            if (bestS == float.MaxValue) { L($"   NO SPOT for {path} ({def}) at {V(p)}: left as is"); return; }
+            var to = best + off; to.y = Ground(to) + sink;
+            L($"   {(dry ? "would move" : "moved")} {path} ({def}, r {r:F1} m) {V(p)} -> {V(to)} ({Flat(to - p).magnitude:F1} m): vent {dVent:F1} -> {R2VentDist(best):F1} m, channel {dCh:F1} -> {R2SegDist(best):F1} m, slope {Steep(best):F0} deg" +
+              (ventRock ? $", view side {Vector3.Dot(Flat(best - _r2Vent).normalized, look):F2} (-1 = behind the vent seen from the spawn / centre)" : ""));
+            if (dry) return;
+            Undo.RecordObject(t, "Phase1Lava");
+            t.position = to; P1Dirty(t); Physics.SyncTransforms();
+        }
+
+        static bool R2FreeOwn(Vector3 p, float r, HashSet<Collider> own)
+        {
+            // same as Free() but ignoring the moved object's own colliders (only called when Free() failed)
+            var u = p - _tp;
+            if (u.x < 4 || u.z < 4 || u.x > _td.size.x - 4 || u.z > _td.size.z - 4) return false;
+            float h = Ground(p); if (h < 0.45f || InWater(p) || WaterDistance(p, 1.5f) < 1.5f || Steep(p) > 30f) return false;
+            var k = Cell8(p);
+            for (int dx = -1; dx <= 1; dx++) for (int dz = -1; dz <= 1; dz++)
+                    if (_treeGrid.TryGetValue(new Vector2Int(k.x + dx, k.y + dz), out var l)) foreach (var tr in l) { var d = tr - p; d.y = 0; if (d.sqrMagnitude < 1.4f * 1.4f) return false; }
+            var c = new Vector3(p.x, h + r + 0.15f, p.z);
+            int n = Physics.OverlapSphereNonAlloc(c, r + 0.1f, _ov, ~0, QueryTriggerInteraction.Collide);
+            for (int i = 0; i < n; i++) if (_ov[i] && !(_ov[i] is TerrainCollider) && !own.Contains(_ov[i])) return false;
+            return true;
+        }
+    }
+}

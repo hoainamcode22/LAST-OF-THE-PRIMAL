@@ -23,13 +23,13 @@ MonoBehaviour:
   bonusChance: 0
   bestTool: 2
   requiredTool: 2
-  handsFactor: 0.34
+  handsFactor: 0
   toolFactor: 1
   gatherSeconds: 1.4
   handAction: 16
   toolAction: 3
   toolWear: 1
-  handHint: Too big to break by hand. A pick breaks it.
+  handHint: Need a pick. Too big to break by hand.
   punchable: 1
   damagePerUnit: 5
   respawnHours: 60

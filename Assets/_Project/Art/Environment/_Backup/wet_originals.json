@@ -1,0 +1,76 @@
+{
+    "materials": [
+        {
+            "path": "Assets/_Project/Art/Materials/M_Rock.mat",
+            "shader": "Universal Render Pipeline/Lit",
+            "keywords": [
+                "_METALLICSPECGLOSSMAP",
+                "_NORMALMAP",
+                "_OCCLUSIONMAP"
+            ],
+            "queue": 2000
+        },
+        {
+            "path": "Assets/_Project/Art/Materials/M_Bark.mat",
+            "shader": "Universal Render Pipeline/Lit",
+            "keywords": [
+                "_METALLICSPECGLOSSMAP",
+                "_NORMALMAP",
+                "_OCCLUSIONMAP"
+            ],
+            "queue": 2000
+        },
+        {
+            "path": "Assets/_Project/Art/Materials/M_Driftwood.mat",
+            "shader": "Universal Render Pipeline/Lit",
+            "keywords": [
+                "_METALLICSPECGLOSSMAP",
+                "_NORMALMAP",
+                "_OCCLUSIONMAP"
+            ],
+            "queue": 2000
+        },
+        {
+            "path": "Assets/_Project/Art/Materials/M_ShipPlanks.mat",
+            "shader": "Universal Render Pipeline/Lit",
+            "keywords": [
+                "_METALLICSPECGLOSSMAP",
+                "_NORMALMAP",
+                "_OCCLUSIONMAP"
+            ],
+            "queue": 2000
+        },
+        {
+            "path": "Assets/_Project/Art/Materials/M_ShipBeam.mat",
+            "shader": "Universal Render Pipeline/Lit",
+            "keywords": [
+                "_METALLICSPECGLOSSMAP",
+                "_NORMALMAP",
+                "_OCCLUSIONMAP"
+            ],
+            "queue": 2000
+        },
+        {
+            "path": "Assets/_Project/Art/Materials/M_CratePlanks.mat",
+            "shader": "Universal Render Pipeline/Lit",
+            "keywords": [
+                "_METALLICSPECGLOSSMAP",
+                "_NORMALMAP",
+                "_OCCLUSIONMAP"
+            ],
+            "queue": 2000
+        },
+        {
+            "path": "Assets/_Project/Art/Materials/M_BarrelStaves.mat",
+            "shader": "Universal Render Pipeline/Lit",
+            "keywords": [
+                "_METALLICSPECGLOSSMAP",
+                "_NORMALMAP",
+                "_OCCLUSIONMAP"
+            ],
+            "queue": 2000
+        }
+    ],
+    "terrainTemplate": "Assets/_Project/Art/Materials/M_Terrain.mat",
+    "builtAt": "2026-09-30T15:47:04"
+}

@@ -35,7 +35,10 @@ namespace PrimalFrontier.EditorTools
                       handAnim = handAnim, toolAnim = toolAnim, respawn = respawn, look = look, damaged = damaged, depleted = depleted, sink = sink, radius = radius,
                       damagePerUnit = damagePerUnit, hint = hint, punch = punch };
 
-        const string BigRockHint = "Too big to break by hand. A pick breaks it.";
+        // Phase 1 tool gating: trees and logs need an axe, large rocks and boulders a pick (hands 0, the prompt says what is missing)
+        const string BigRockHint = "Need a pick. Too big to break by hand.";
+        const string LogHint = "Need an axe to split it.";
+        const string TreeHint = "Need an axe to chop a tree.";
 
         /// <summary>the resource table (RESOURCE_SYSTEM.md 3): yields per node, tools, hand rate, respawn hours, looks</summary>
         static readonly Def[] Defs =
@@ -43,14 +46,14 @@ namespace PrimalFrontier.EditorTools
             // stone: hands 1 per action on small / medium, 1 every third action on large; pick 3-5 (tool table)
             D("stone_small", "Small stones", ResourceCategory.Stone, ResourceSize.Small, "Gather Stone", "stone", 2, 4, ToolKind.Mine, ToolKind.None, 1f, 1.1f, PlayerActions.GatherStoneHand, PlayerActions.GatherStone, 30f, DepletedLook.Hide, 0.7f, 0.45f, 0.1f, 0.35f),
             D("stone_medium", "Stone", ResourceCategory.Stone, ResourceSize.Medium, "Gather Stone", "stone", 4, 8, ToolKind.Mine, ToolKind.None, 1f, 1.3f, PlayerActions.GatherStoneHand, PlayerActions.GatherStone, 40f, DepletedLook.Rubble, 0.78f, 0.45f, 0.2f, 0.4f, 5f),
-            D("stone_large", "Large rock", ResourceCategory.Stone, ResourceSize.Large, "Gather Stone", "stone", 8, 15, ToolKind.Mine, ToolKind.Mine, 0.34f, 1.4f, PlayerActions.GatherStoneHand, PlayerActions.GatherStone, 48f, DepletedLook.Mined, 0.9f, 0.82f, 0.12f, 0.8f, 5f, BigRockHint),
-            D("stone_boulder", "Boulder", ResourceCategory.Stone, ResourceSize.Huge, "Gather Stone", "stone", 8, 15, ToolKind.Mine, ToolKind.Mine, 0.34f, 1.4f, PlayerActions.GatherStoneHand, PlayerActions.GatherStone, 60f, DepletedLook.Mined, 0.98f, 0.95f, 0.03f, 1.5f, 5f, BigRockHint),
+            D("stone_large", "Large rock", ResourceCategory.Stone, ResourceSize.Large, "Gather Stone", "stone", 8, 15, ToolKind.Mine, ToolKind.Mine, 0f, 1.4f, PlayerActions.GatherStoneHand, PlayerActions.GatherStone, 48f, DepletedLook.Mined, 0.9f, 0.82f, 0.12f, 0.8f, 5f, BigRockHint),
+            D("stone_boulder", "Boulder", ResourceCategory.Stone, ResourceSize.Huge, "Gather Stone", "stone", 8, 15, ToolKind.Mine, ToolKind.Mine, 0f, 1.4f, PlayerActions.GatherStoneHand, PlayerActions.GatherStone, 60f, DepletedLook.Mined, 0.98f, 0.95f, 0.03f, 1.5f, 5f, BigRockHint),
             // wood: branches / driftwood / logs by hand 1 per action, axe 2-3; trees need an axe (hands: dry twigs, 1 every fourth action)
             D("wood_branch", "Fallen branch", ResourceCategory.Wood, ResourceSize.Small, "Gather Wood", "wood", 1, 3, ToolKind.Chop, ToolKind.None, 1f, 1.0f, PlayerActions.GatherBranch, PlayerActions.GatherWood, 20f, DepletedLook.Hide, 0.8f, 0.45f, 0.05f, 0.45f),
             D("wood_driftwood", "Driftwood", ResourceCategory.Wood, ResourceSize.Medium, "Gather Wood", "wood", 2, 5, ToolKind.Chop, ToolKind.None, 1f, 1.2f, PlayerActions.GatherBranch, PlayerActions.GatherWood, 24f, DepletedLook.Hide, 0.75f, 0.45f, 0.1f, 0.6f),
-            D("wood_small_log", "Small log", ResourceCategory.Wood, ResourceSize.Medium, "Gather Wood", "wood", 4, 8, ToolKind.Chop, ToolKind.None, 1f, 1.3f, PlayerActions.GatherBranch, PlayerActions.GatherWood, 36f, DepletedLook.Rubble, 0.8f, 0.4f, 0.3f, 0.5f, 5f),
-            D("wood_deadwood", "Fallen deadwood", ResourceCategory.Wood, ResourceSize.Large, "Gather Wood", "wood", 5, 8, ToolKind.Chop, ToolKind.None, 1f, 1.3f, PlayerActions.GatherBranch, PlayerActions.GatherWood, 48f, DepletedLook.Rubble, 0.85f, 0.5f, 0.35f, 0.7f, 6f),
-            D("wood_tree", "Tree", ResourceCategory.Wood, ResourceSize.Huge, "Chop Tree", "wood", 12, 18, ToolKind.Chop, ToolKind.Chop, 0.25f, 1.25f, PlayerActions.GatherBranch, PlayerActions.GatherWood, 72f, DepletedLook.Mined, 1f, 1f, 0f, 0.45f, 4f, "Bare hands only strip dry twigs. An axe fells the tree."),
+            D("wood_small_log", "Small log", ResourceCategory.Wood, ResourceSize.Medium, "Gather Wood", "wood", 4, 8, ToolKind.Chop, ToolKind.Chop, 0f, 1.3f, PlayerActions.GatherBranch, PlayerActions.GatherWood, 36f, DepletedLook.Rubble, 0.8f, 0.4f, 0.3f, 0.5f, 5f, LogHint),
+            D("wood_deadwood", "Fallen deadwood", ResourceCategory.Wood, ResourceSize.Large, "Gather Wood", "wood", 5, 8, ToolKind.Chop, ToolKind.Chop, 0f, 1.3f, PlayerActions.GatherBranch, PlayerActions.GatherWood, 48f, DepletedLook.Rubble, 0.85f, 0.5f, 0.35f, 0.7f, 6f, LogHint),
+            D("wood_tree", "Tree", ResourceCategory.Wood, ResourceSize.Huge, "Chop Tree", "wood", 12, 18, ToolKind.Chop, ToolKind.Chop, 0f, 1.25f, PlayerActions.GatherBranch, PlayerActions.GatherWood, 72f, DepletedLook.Mined, 1f, 1f, 0f, 0.45f, 4f, TreeHint),
             // fibre: by hand (1-2 per action), a knife 2-3
             D("fiber_plant", "Fibre plant", ResourceCategory.Fiber, ResourceSize.Small, "Gather Fiber", "fiber", 2, 4, ToolKind.Cut, ToolKind.None, 1f, 1.0f, PlayerActions.GatherPlant, PlayerActions.GatherPlant, 16f, DepletedLook.Hide, 0.75f, 0.45f, 0.05f, 0.45f),
             D("fiber_grass", "Long grass", ResourceCategory.Fiber, ResourceSize.Small, "Gather Fiber", "fiber", 1, 3, ToolKind.Cut, ToolKind.None, 1f, 0.9f, PlayerActions.GatherPlant, PlayerActions.GatherPlant, 12f, DepletedLook.Hide, 0.75f, 0.45f, 0.05f, 0.35f),
@@ -61,21 +64,36 @@ namespace PrimalFrontier.EditorTools
             D("food_fallen_fruit", "Fallen fruit", ResourceCategory.Food, ResourceSize.Small, "Harvest", "fruit", 1, 3, ToolKind.None, ToolKind.None, 1f, 0.9f, PlayerActions.GatherPlant, PlayerActions.GatherPlant, 20f, DepletedLook.Hide, 0.85f, 0.45f, 0f, 0.3f),
             D("food_edible_plant", "Edible plant", ResourceCategory.Food, ResourceSize.Small, "Harvest", "edible_plant", 1, 2, ToolKind.Cut, ToolKind.None, 1f, 0.9f, PlayerActions.GatherPlant, PlayerActions.GatherPlant, 18f, DepletedLook.Hide, 0.8f, 0.45f, 0f, 0.3f),
             D("fish_shoal", "Fish in the shallows", ResourceCategory.Fish, ResourceSize.Small, "Catch Fish", "raw_fish", 2, 3, ToolKind.None, ToolKind.None, 0.34f, 1.4f, PlayerActions.GatherPlant, PlayerActions.GatherPlant, 16f, DepletedLook.Hide, 1f, 1f, 0f, 0.8f, 4f, "Quick fish. Patience, or a spear later.", false),
+            // rare (directive 23-25): bones at the kill site and in the predator territory, one hide at the kill site, shipwreck scraps along the shore
+            D("rare_bones", "Old bones", ResourceCategory.Rare, ResourceSize.Small, "Take Bones", "bone", 1, 2, ToolKind.None, ToolKind.None, 1f, 0.9f, PlayerActions.Pickup, PlayerActions.Pickup, 120f, DepletedLook.Hide, 0.85f, 0.45f, 0f, 0.35f, 4f, null, false),
+            D("rare_hide", "Torn hide", ResourceCategory.Rare, ResourceSize.Small, "Take Hide", "hide", 1, 1, ToolKind.None, ToolKind.None, 1f, 0.9f, PlayerActions.Pickup, PlayerActions.Pickup, 168f, DepletedLook.Hide, 0.85f, 0.45f, 0f, 0.35f, 4f, null, false),
+            D("rare_wreck_scraps", "Wreckage", ResourceCategory.Rare, ResourceSize.Small, "Search Wreckage", "wreck_scraps", 1, 2, ToolKind.None, ToolKind.None, 1f, 1.1f, PlayerActions.GatherPlant, PlayerActions.GatherPlant, 96f, DepletedLook.Hide, 0.85f, 0.45f, 0f, 0.5f, 4f, null, false),
+            // shipwreck salvage (Phase 1): by hand at the wreck, slow to come back (the tide washes up more)
+            D("salvage_planks", "Broken planks", ResourceCategory.Rare, ResourceSize.Medium, "Salvage", "wreck_scraps", 2, 3, ToolKind.None, ToolKind.None, 1f, 1.2f, PlayerActions.GatherBranch, PlayerActions.GatherBranch, 72f, DepletedLook.Hide, 0.85f, 0.45f, 0.05f, 0.7f, 4f, null, false),
+            D("salvage_nails", "Nailed timber", ResourceCategory.Rare, ResourceSize.Medium, "Salvage", "wreck_nails", 2, 4, ToolKind.None, ToolKind.None, 1f, 1.4f, PlayerActions.GatherBranch, PlayerActions.GatherBranch, 96f, DepletedLook.Hide, 0.85f, 0.45f, 0.05f, 0.7f, 4f, null, false),
+            D("salvage_sail", "Torn sail", ResourceCategory.Rare, ResourceSize.Medium, "Salvage", "sailcloth", 1, 2, ToolKind.None, ToolKind.None, 1f, 1.3f, PlayerActions.GatherPlant, PlayerActions.GatherPlant, 120f, DepletedLook.Hide, 0.85f, 0.45f, 0f, 0.8f, 4f, null, false),
         };
 
-        struct Tool { public string id, item; public ToolEfficiency[] eff; public float wear; }
+        struct Tool { public string id, item; public ToolEfficiency[] eff; public float wear; public bool crude; }
         static readonly Tool[] Tools =
         {
-            new Tool { id = "hands", item = null, wear = 0f, eff = new[] { new ToolEfficiency(ResourceCategory.Stone, 1, 1), new ToolEfficiency(ResourceCategory.Wood, 1, 1), new ToolEfficiency(ResourceCategory.Fiber, 1, 2), new ToolEfficiency(ResourceCategory.Food, 1, 2), new ToolEfficiency(ResourceCategory.Fish, 1, 1) } },
+            new Tool { id = "hands", item = null, wear = 0f, eff = new[] { new ToolEfficiency(ResourceCategory.Stone, 1, 1), new ToolEfficiency(ResourceCategory.Wood, 1, 1), new ToolEfficiency(ResourceCategory.Fiber, 1, 2), new ToolEfficiency(ResourceCategory.Food, 1, 2), new ToolEfficiency(ResourceCategory.Fish, 1, 1), new ToolEfficiency(ResourceCategory.Rare, 1, 1) } },
             new Tool { id = "stone_pick", item = "stone_pick", wear = 1f, eff = new[] { new ToolEfficiency(ResourceCategory.Stone, 3, 5) } },
             new Tool { id = "stone_axe", item = "stone_axe", wear = 1f, eff = new[] { new ToolEfficiency(ResourceCategory.Wood, 2, 3) } },
-            new Tool { id = "hand_stone", item = "hand_stone", wear = 1f, eff = new[] { new ToolEfficiency(ResourceCategory.Stone, 2, 2), new ToolEfficiency(ResourceCategory.Wood, 1, 2) } },
+            new Tool { id = "hand_stone", item = "hand_stone", wear = 1f, crude = true, eff = new[] { new ToolEfficiency(ResourceCategory.Stone, 2, 2), new ToolEfficiency(ResourceCategory.Wood, 1, 2) } },
             new Tool { id = "stone_hammer", item = "stone_hammer", wear = 1f, eff = new[] { new ToolEfficiency(ResourceCategory.Stone, 2, 3) } },
             new Tool { id = "flint_knife", item = "flint_knife", wear = 0.5f, eff = new[] { new ToolEfficiency(ResourceCategory.Fiber, 2, 3), new ToolEfficiency(ResourceCategory.Food, 2, 3) } },
             new Tool { id = "butcher_knife", item = "butcher_knife", wear = 0.5f, eff = new[] { new ToolEfficiency(ResourceCategory.Fiber, 2, 3), new ToolEfficiency(ResourceCategory.Food, 2, 3) } },
         };
 
-        static ItemDefinition Item(string id) { var db = ItemDatabase.Instance; return db ? db.Item(id) : null; }
+        /// <summary>the item by id: the database list (not its cached index, which misses items added in this run), else Data/Items/ITEM_id</summary>
+        static ItemDefinition Item(string id)
+        {
+            if (string.IsNullOrEmpty(id)) return null;
+            var db = ItemDatabase.Instance;
+            if (db && db.items != null) foreach (var i in db.items) if (i && i.id == id) return i;
+            return AssetDatabase.LoadAssetAtPath<ItemDefinition>($"Assets/_Project/Data/Items/ITEM_{id}.asset");
+        }
 
         static T LoadOrCreate<T>(string path, StringBuilder log) where T : ScriptableObject
         {
@@ -113,6 +131,7 @@ namespace PrimalFrontier.EditorTools
                 a.FeedbackDefaults();
                 if (d.id == "wood_tree") { a.hitVfx2 = VfxId.Leaves; a.bonusItem = Item("fiber"); a.bonusChance = 0.25f; }
                 if (d.cat == ResourceCategory.Food) a.handSfx = a.toolSfx = SfxId.LeafRustle;
+                SalvageData(a);
                 EditorUtility.SetDirty(a);
                 if (item == null) { log.AppendLine($"RES_{d.id}: item '{d.item}' missing: definition kept, nodes of it are skipped"); continue; }
                 db.resources.Add(a);
@@ -123,7 +142,7 @@ namespace PrimalFrontier.EditorTools
                 if (t.item != null && item == null) { log.AppendLine($"TOOL_{t.id}: item missing, skipped"); continue; }
                 var a = LoadOrCreate<GatherToolDefinition>($"{DataDir}/TOOL_{t.id}.asset", log);
                 a.id = t.id; a.displayName = item ? item.displayName : "Bare hands"; a.item = item; a.toolKind = item ? item.tool : ToolKind.None;
-                a.efficiency = t.eff; a.wearPerAction = t.wear; a.level = 0;
+                a.efficiency = t.eff; a.wearPerAction = t.wear; a.level = 0; a.heavyWork = !t.crude;
                 EditorUtility.SetDirty(a);
                 if (item == null) db.hands = a; else db.tools.Add(a);
             }
@@ -191,7 +210,7 @@ namespace PrimalFrontier.EditorTools
 
         // ------------------------------------------------------------------ node prefabs
         enum Col { Solid, Trigger }
-        struct NodeKind { public string prefab, def, model; public float scale; public Vector3 euler; public Col col; public bool lod; public bool dryGrass; public int copies; }
+        struct NodeKind { public string prefab, def, model; public float scale; public Vector3 euler; public Col col; public bool lod; public bool dryGrass; public int copies; public float fit; }
 
         /// <summary>one prefab per node variant (Resource_Stone_Small ...): model child, collider, LODGroup, ResourceNode with its definition</summary>
         static readonly NodeKind[] Kinds =
@@ -219,13 +238,23 @@ namespace PrimalFrontier.EditorTools
             _prefabs.Clear();
             var dry = DryGrassMaterial(log);
             var kinds = new List<NodeKind>(Kinds);
-            // SURV's new items (edible plant, raw fish) use their own world model when they exist
-            foreach (var (defId, prefab, scale, col) in new[] { ("food_edible_plant", "Resource_Food_EdiblePlant", 1.2f, Col.Trigger), ("fish_shoal", "Resource_Fish_Shoal", 1f, Col.Trigger) })
+            // SURV's new items (edible plant, raw fish, wreck scraps) and the rare piles use the item's own world model when it exists;
+            // bones and scraps fall back to ENV's storytelling props (PROP_PC_Bones / PROP_PC_WreckPlanks) when those prefabs exist
+            foreach (var (defId, prefab, scale, col, copies, fallback) in new[]
+            {
+                ("food_edible_plant", "Resource_Food_EdiblePlant", 1.2f, Col.Trigger, 1, (string)null),
+                ("fish_shoal", "Resource_Fish_Shoal", 1f, Col.Trigger, 3, null),
+                ("rare_bones", "Resource_Rare_Bones", 1f, Col.Trigger, 3, "Assets/_Project/Prefabs/Environment/PC/PROP_PC_Bones.prefab"),
+                ("rare_hide", "Resource_Rare_Hide", 1f, Col.Trigger, 1, null),
+            })
             {
                 var def = db.Get(defId); var wp = def && def.item ? def.item.worldPrefab : null;
-                if (wp) kinds.Add(new NodeKind { prefab = prefab, def = defId, model = AssetDatabase.GetAssetPath(wp), scale = scale, col = col, lod = true, copies = defId == "fish_shoal" ? 3 : 1 });
-                else log.AppendLine($"{prefab}: skipped ({(def ? "item has no world model" : "item missing")}); re-run once SURV adds it");
+                string model = wp ? AssetDatabase.GetAssetPath(wp) : (fallback != null && AssetDatabase.LoadAssetAtPath<GameObject>(fallback) ? fallback : null);
+                bool prop = model != null && model == fallback;
+                if (model != null) kinds.Add(new NodeKind { prefab = prefab, def = defId, model = model, scale = prop ? 0.6f : scale, col = col, lod = true, copies = prop ? 1 : copies });
+                else log.AppendLine($"{prefab}: skipped ({(def == null ? "definition unavailable (item missing)" : "item has no world model" + (fallback != null ? " and " + System.IO.Path.GetFileName(fallback) + " is not built yet" : ""))}); re-run once it exists");
             }
+            kinds.AddRange(SalvageKinds(log));                         // Phase 1: shipwreck salvage (wreckage, broken planks, nailed timber, torn sail)
             foreach (var k in kinds)
             {
                 var def = db.Get(k.def);
@@ -240,10 +269,16 @@ namespace PrimalFrontier.EditorTools
                     m.transform.SetParent(root.transform, false);
                     m.transform.localScale = Vector3.one * k.scale;
                     m.transform.localRotation = Quaternion.Euler(0, c * 67f, 0) * Quaternion.Euler(k.euler);
-                    if (copies > 1) m.transform.localPosition = new Vector3(c == 0 ? -0.12f : 0.14f, 0f, c == 0 ? 0.05f : -0.08f);
+                    if (copies > 1) m.transform.localPosition = Quaternion.Euler(0f, c * 360f / copies + 20f, 0f) * new Vector3(0.14f, 0f, 0f);
                     foreach (var col in m.GetComponentsInChildren<Collider>(true)) Object.DestroyImmediate(col, true);
                     if (k.dryGrass && dry) foreach (var r in m.GetComponentsInChildren<Renderer>(true)) r.sharedMaterial = dry;
                     foreach (var r in m.GetComponentsInChildren<Renderer>(true)) r.shadowCastingMode = def.size == ResourceSize.Small ? UnityEngine.Rendering.ShadowCastingMode.Off : UnityEngine.Rendering.ShadowCastingMode.On;
+                }
+                // fit: scale the model so its larger footprint side is this long (props of unknown size)
+                if (k.fit > 0f)
+                {
+                    var fb = LocalBounds(root); float side = Mathf.Max(fb.size.x, fb.size.z);
+                    if (side > 1e-3f) foreach (Transform ch in root.transform) { ch.localScale *= k.fit / side; ch.localPosition *= k.fit / side; }
                 }
                 // rest the model on the root's ground plane
                 var b = LocalBounds(root);

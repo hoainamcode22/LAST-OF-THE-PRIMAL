@@ -33,13 +33,13 @@ Units in a full node are rolled once per node (stable per save id) inside the ra
 |---|---|---|---|---|---|---|---|
 | stone_small | Small stones (Gather Stone) | Stone / Small | 2-4 | 1 per action | pick 3-5 | 30 | hidden with a puff |
 | stone_medium | Stone (Gather Stone) | Stone / Medium | 4-8 | 1 per action | pick 3-5 | 40 | rubble (45 %, settles) |
-| stone_large | Large rock (Gather Stone) | Stone / Large | 8-15 | 1 per 3 actions + hint | pick 3-5 | 48 | mined (82 %, settles) |
-| stone_boulder | Boulder (Gather Stone) | Stone / Huge | 8-15 | 1 per 3 actions + hint | pick 3-5 | 60 | mined (stays) |
+| stone_large | Large rock (Gather Stone) | Stone / Large | 8-15 | no: "Need a pick" | pick 3-5 | 48 | mined (82 %, settles) |
+| stone_boulder | Boulder (Gather Stone) | Stone / Huge | 8-15 | no: "Need a pick" | pick 3-5 | 60 | mined (stays) |
 | wood_branch | Fallen branch (Gather Wood) | Wood / Small | 1-3 | 1 per action | axe 2-3 | 20 | hidden with a puff |
 | wood_driftwood | Driftwood (Gather Wood) | Wood / Medium | 2-5 | 1 per action | axe 2-3 | 24 | hidden with a puff |
-| wood_small_log | Small log (Gather Wood) | Wood / Medium | 4-8 | 1 per action | axe 2-3 | 36 | rubble |
-| wood_deadwood | Fallen deadwood (Gather Wood) | Wood / Large | 5-8 | 1 per action | axe 2-3 | 48 | rubble |
-| wood_tree | Tree (Chop Tree / Gather Wood) | Wood / Huge | 6 hits, + 3 on the fall | dry twigs: 1 per 4 actions, max 2 per tree, never fells | axe 2-3 per hit, hand stone 1-2 | 72 | felled (hidden), regrows |
+| wood_small_log | Small log (Gather Wood) | Wood / Medium | 4-8 | no: "Need an axe" | axe 2-3 | 36 | rubble |
+| wood_deadwood | Fallen deadwood (Gather Wood) | Wood / Large | 5-8 | no: "Need an axe" | axe 2-3 | 48 | rubble |
+| wood_tree | Tree (Chop Tree) | Wood / Huge | 6 hits, + 3 on the fall | no: "Need an axe" | axe 2-3 per hit | 72 | felled (hidden), regrows |
 | fiber_plant | Fibre plant (Gather Fiber) | Fiber / Small | 2-4 | 1-2 per action | knife 2-3 | 16 | hidden |
 | fiber_grass | Long grass (Gather Fiber) | Fiber / Small | 1-3 | 1-2 | knife 2-3 | 12 | hidden |
 | fiber_fern | Fern (Gather Fiber) | Fiber / Small | 1-3 | 1-2 | knife 2-3 | 16 | hidden |
@@ -49,6 +49,9 @@ Units in a full node are rolled once per node (stable per save id) inside the ra
 | food_edible_plant | Edible plant (Harvest) | Food / Small | 1-2 | 1-2 | knife | 18 | hidden (placed once SURV's `edible_plant` exists) |
 | fish_shoal | Fish in the shallows (Catch Fish) | Fish | 2-3 | 1 per 3 actions | - | 16 | hidden (placed once SURV's `raw_fish` exists) |
 | fruit cluster | on the 4 climbable trees (Pick the fruit) | Food | 3 | all that fits | - | 30 | fruit hidden, green fruit swell in the 2nd half |
+| rare_bones | Old bones (Take Bones) | Rare | 1-2 bone | 1 | - | 120 | hidden; kill site, predator territory, theropod trail |
+| rare_hide | Torn hide (Take Hide) | Rare | 1 hide | 1 | - | 168 | hidden; one at the kill site |
+| rare_wreck_scraps | Wreckage (Search Wreckage) | Rare | 1-2 wreck_scraps | 1 | - | 96 | hidden; ENV's wreck remains along the shore + 2 at the wreck (SURV's `wreck_scraps` item) |
 
 Respawn is never instant (minimum 0.5 h, real values 12-72 game hours; 90 real seconds per game hour by default):
 trees slow, stone slow, fibre moderate, fruit regrows. A hidden node that is due waits until the player is 18 m away or
@@ -114,7 +117,7 @@ No material instances, no per-node Update:
 ## 7. Feedback
 
 Per hit: pooled particles by definition (stone: `StoneChips` + `DustImpact`; wood: `WoodChips` + `HitDust`, trees add
-`Leaves`; plants and fruit: `Leaves`), sound by hand / tool (`StoneGatherHand` / `StoneHit`, `BranchSnap` / `WoodChop`,
+`Leaves`; plants and fruit: `Leaves`; rare piles: `HitDust`), sound by hand / tool (`StoneGatherHand` / `StoneHit`, `BranchSnap` / `WoodChop`,
 `LeafRustle`), a soft `Pickup` inventory sound (at most every 0.15 s), and the HUD pickup feed "+3 Stone" (the HUD merges
 gains of one item within 3 s into one line, at most 6 lines, fading after 5 s). The last unit plays a bigger burst
 (`WoodBreak` / `StoneHit` / leaves). Events: `ResourceGathered` (every action, the AI hears it), `ResourceDepleted`,
@@ -128,6 +131,29 @@ from decoration by shape (loose stone piles, forked branches, straw-coloured lon
 placement (small clusters at beaches, forest edges, rock bases, water edges). Decoration that still exists: cliffs and
 the cave (scenery), terrain detail grass / ferns / bushes (ground cover), walk-through bushes without berries.
 
+## 8b. Trees: stump and sapling (PC phase)
+
+A felled terrain tree leaves a stump (pooled objects under `[TreeStumps]`, one generated 12-sided mesh with a jagged
+broken top, the tree prototype's bark material, sized by the instance's width / height scale, a capsule collider) for
+the first half of the 72 game hours. In the second half the stump goes and the tree instance itself grows back as a
+sapling (12 % to 100 % height, 35 % to 100 % width, updated twice a second) until the tree is back and choppable again.
+Stumps follow the saved felled list (`SaveData.felledTrees`), so they are there after a load; a save made in the
+second half restores the sapling at the right size on the next growth tick.
+
+## 8c. Food on the ground keeps its age (PC phase)
+
+`WorldPickup.DropStack` keeps the dropped stack when its item spoils (SURV's `ItemDefinition.spoilHours`): the pickup
+carries `madeAt`, the prompt says "Pick up Raw Meat x2 (aging)", `Collect` puts it back with `InventorySystem.Add(item, n,
+false, madeAt)` (what fits goes in with its age, the rest stays), and `SaveSystem` already saves the age of a pickup's
+stack. Plain resources drop as a count as before.
+
+## 8d. Fish shoal cue (PC phase)
+
+`ResourceManager` keeps the fish nodes; twice a second, for every shoal with fish left within 28 m of the player, it plays
+(every 1.4-3.2 s per shoal) a ring of `WaterDrops` on the water surface (`ResourceNode.cueHeight` = water depth over the
+node, set by the builder) and one time in three a small `WaterSplash` (scale 0.35) with a quiet `WaterSplash` sound: a
+fish breaking the surface. Pooled effects only, nothing for shoals out of range.
+
 ## 9. Placement (PrimalResourceBuilder.Build)
 
 Bridge: `run.sh <id> PrimalResourceBuilder.Build "" 6` (idempotent, fixed seed, logs to
@@ -138,14 +164,32 @@ Bridge: `run.sh <id> PrimalResourceBuilder.Build "" 6` (idempotent, fixed seed, 
 2. Conversion of what already looks gatherable: stone piles, driftwood, fibre plants, berry plants, berry bushes (plus a
    visible berry crop on the bush's shaking Visual), the medium rocks (large rock), the large rocks (boulder), the 136
    small decorative rocks (now Stone nodes) and the 14 fallen logs (deadwood).
-3. `[Resources]` root: `StartArea` (loose stones a few steps from the spawn on their own, then stone, wood, fibre and
+3. Re-snap of the kept nodes (`World/Resources`, the cave stones, `Markers/ResourceAreas`) to the current ground; a node
+   that ended up in water moves to the nearest dry spot within 10 m or is switched off (logged). Rocks standing in deep
+   water (over 0.4 m) keep their node switched off: scenery, no prompt under water.
+4. `[Resources]` root: `StartArea` (loose stones a few steps from the spawn on their own, then stone, wood, fibre and
    food in five groups within 40 m), `TrailToWater` (a small cluster every ~22 m from the beach past the camp and the
-   fibre meadow to the pond), `FruitTreeDrops` (fallen fruit under each fruit tree), `Island` (one small cluster per
-   ~34 m cell, recipe by biome: beach driftwood / stones / fruit; meadow grass / fibre / berries; forest edge fibre /
-   branches / stones / berries; forest ferns / branches / logs / stones; rocky stones; water edge reeds / stones /
-   edible plants). Spots avoid water, steep slopes, tree trunks, every collider and the camp site.
+   fibre meadow to the pond, and a second trail from the beach to the river mouth / lagoon), `FruitTreeDrops` (fallen
+   fruit under each fruit tree), `WaterEdge` (a bank cluster every ~20 m of fresh shore: river banks stones / reeds /
+   fibre / edible plants / driftwood, waterfall pool stones / ferns, wetland reeds / fibre / edible plants; fish shoals
+   in the shallows, every bank in the wetland and at the pool), `Biomes` (clusters inside ENV's locations: meadow 12,
+   herbivore valley 4, canyon 9 with much stone and little food, ridge 7 with stone and deadwood / logs, wetland 7,
+   waterfall 4, river 6, volcanic ridge 3), `Rare` (bones and one hide at the kill site and in the predator territory,
+   shipwreck scraps at the wreck remains and the wreck), `Island` (one small cluster per ~34 m cell elsewhere, recipe
+   by biome). Spots avoid water, steep slopes, tree trunks, every collider, the camp site, the old camp and the nest.
+   Positions are read at build time from `Markers/Zones/<id>` (ENV's `EnvLocation`), the storytelling `Examinable`
+   ids (`env_giant_skeleton`, `env_theropod_trail`), the wreck remains group, the water meshes and the old `ZONE_`
+   markers as fallbacks; nothing is hard-coded.
+5. Verify: the log ends with `VERIFY N active nodes: off the ground A, in fresh water (not fish) B, below sea level C`
+   and lists the first offenders; A, B and C must be 0 after a run on the final terrain.
 Other commands: `Audit` (read-only island map), `BuildData`, `Capture "before" / "after"` (edit-mode renders to
 `Documentation/Screenshots/Resources/`), `ProbeAssets`.
+
+## 9b. Footsteps (PlayerFeedback, U's request)
+
+Surface -> effect / sound: Sand `FootSand`, Dirt `FootDirt`, Grass `FootGrass`, Rock `FootRock`, Mud `FootMud`, Wood
+`FootWood`, Water `WaterDrops` / `FootWater`. `OnDrink` with param `kneel` skips the hand splash (the kneel program
+splashes at the water); `fill` plays nothing (no drinking happens); a plain `OnDrink` (container to the mouth) is unchanged.
 
 ## 10. Performance
 
@@ -167,3 +211,18 @@ small bushes; food 97 berry bushes, 26 fallen fruit, 17 edible plants, 4 fruit t
 (exact counts per run in `Documentation/Resources/resource_build.txt`). Within 40 m of the beach spawn: stone 6 nodes /
 26 units, wood 8 / 22, fibre 6 / 17, food 6 / 21; the first stones lie 7 m from the spawn; a chain of clusters leads
 137 m to the pond with no gap over 30 m. Captures: `Documentation/Screenshots/Resources/{before,after}_*.png`.
+
+## 13. Phase 1 changes (2026-09-30, RES)
+
+- Tool gating: trees, small logs and deadwood need an axe (Chop), large rocks and boulders a pick (Mine): `handsFactor` 0,
+  `requiredTool` set, the prompt says "Need an axe" / "Need a pick" (greyed), punches only show the hint. Hands keep branches,
+  driftwood, small / medium stones, fibre, berries, fruit, plants and the salvage. The hand stone is a crude tool
+  (`GatherToolDefinition.heavyWork = false`): faster on hand nodes, never fells a tree or breaks a boulder. Carcasses keep the knife rule.
+- Shipwreck items `wreck_scraps` (Shipwreck Scraps, SURV's definition), `wreck_nails` (Iron Nails), `sailcloth` (Sailcloth):
+  generated original models (`Prefabs/Resources/Items/PFB_ITEM_*`), rendered icons (`Art/Icons/ICON_WreckScraps / WreckNails /
+  Sailcloth`). Salvage nodes by hand around `World/Shipwreck` (`[Resources]/Shipwreck`): Broken planks (scraps 2-3, 72 h),
+  Nailed timber (nails 2-4, 96 h), Torn sail (sailcloth 1-2, 120 h), Wreckage (scraps 1-2, 96 h), with bonus items.
+- Physical drops (`WorldPickup`): box collider + Rigidbody on Ignore Raycast, no collision with the player; drops next to the
+  player leave the chest and are tossed forward; they settle and go kinematic; a caller that poses the pickup (stuck arrow)
+  pins it; `WorldPickup.Throw(stack, pos, velocity)` for thrown items. Stack data (durability, water, food age) and saving as before.
+- Bridge: `PrimalResourceBuilder.Phase1` ("" apply + save, "dry" report only), log `Documentation/Phase1/R_phase1_build.txt`.

@@ -1,0 +1,169 @@
+using System.Collections.Generic;
+using System.Linq;
+using UnityEditor;
+using UnityEngine;
+using PrimalFrontier.World;
+
+namespace PrimalFrontier.EditorTools
+{
+    /// <summary>
+    /// Phase 1 read-only check of what ENV placed (no scene change): per ENV_PC / DET_PC / PROP_PC model, the scene
+    /// instances plus terrain trees / detail instances; missing prefab / mesh / material / shader / script references among
+    /// ENV's own objects and terrain prototypes; resource nodes that an ENV collider or ENV terrain tree covers, nodes under
+    /// the ground, ENV objects near the player spawn; active petroglyphs; which VolcanoLandmarks are on.
+    /// </summary>
+    public static partial class PrimalEnvironmentBuilder
+    {
+        static readonly string[] EnvGroups = { "Forest", "Rocks", "WaterEdge", "Volcano", "Storytelling", "WaterfallDressing" };
+
+        [PrimalBridgeCommand]
+        public static string Check(string arg)
+        {
+            Begin("Check " + arg);
+            if (!IslandOpen(out var scene, out _)) return End("Check");
+            if (!FindTerrain()) { W("no terrain"); return End("Check"); }
+            var td = _terrain.terrainData;
+            var world = Root(scene, "World", false);
+            var groups = EnvGroups.Select(g => world ? world.Find("Environment/" + g) : null).Where(t => t != null).ToList();
+            L("ENV groups: " + string.Join(", ", groups.Select(g => $"{g.name} ({g.GetComponentsInChildren<Transform>(true).Length - 1})")));
+
+            // ---- per model counts
+            var count = new SortedDictionary<string, int>();
+            void Add(string n, int k = 1) { if (string.IsNullOrEmpty(n)) return; count.TryGetValue(n, out var v); count[n] = v + k; }
+            foreach (var t in scene.GetRootGameObjects().SelectMany(g => g.GetComponentsInChildren<Transform>(true)))
+            {
+                if (!PrefabUtility.IsOutermostPrefabInstanceRoot(t.gameObject)) continue;
+                var src = PrefabUtility.GetCorrespondingObjectFromOriginalSource(t.gameObject);
+                string n = src ? src.name : null;
+                if (n != null && (n.StartsWith("ENV_PC_") || n.StartsWith("PROP_PC_")) && t.gameObject.activeInHierarchy) Add(n);
+            }
+            var protos = td.treePrototypes; var perProto = new int[protos.Length];
+            foreach (var ti in td.treeInstances) if (ti.prototypeIndex >= 0 && ti.prototypeIndex < perProto.Length) perProto[ti.prototypeIndex]++;
+            for (int i = 0; i < protos.Length; i++) if (protos[i].prefab && protos[i].prefab.name.StartsWith("ENV_PC_")) Add(protos[i].prefab.name + " (terrain tree)", perProto[i]);
+            var dps = td.detailPrototypes;
+            for (int l = 0; l < dps.Length; l++)
+                if (dps[l].prototype && dps[l].prototype.name.StartsWith("DET_PC_"))
+                {
+                    long n = 0; foreach (var v in td.GetDetailLayer(0, 0, td.detailResolution, td.detailResolution, l)) n += v;
+                    Add(dps[l].prototype.name + " (terrain detail)", (int)System.Math.Min(n, (long)int.MaxValue));
+                }
+            var envModels = new[] { "ENV_PC_TreeFern_A", "ENV_PC_TreeFern_B", "ENV_PC_TreeFern_C", "ENV_PC_Cycad_A", "ENV_PC_Cycad_B", "ENV_PC_Cycad_C",
+                "ENV_PC_GiantFern_A", "ENV_PC_GiantFern_B", "ENV_PC_HorsetailClump", "ENV_PC_Magnolia_A", "ENV_PC_Magnolia_B", "ENV_PC_VineCurtain_A", "ENV_PC_VineCurtain_B",
+                "ENV_PC_Roots_A", "ENV_PC_Roots_B", "ENV_PC_FallenTrunk_A", "ENV_PC_FallenTrunk_B", "ENV_PC_MossRock_A", "ENV_PC_MossRock_B", "ENV_PC_MossRock_C",
+                "ENV_PC_Basalt_A", "ENV_PC_Basalt_B", "ENV_PC_BasaltBoulder" };
+            int placedModels = 0;
+            foreach (var m in envModels)
+            {
+                count.TryGetValue(m, out var a); count.TryGetValue(m + " (terrain tree)", out var b);
+                if (a + b > 0) placedModels++;
+                L($"  {m}: {a} placed{(b > 0 ? $" + {b} terrain trees" : "")}");
+            }
+            L($"ENV_PC models in the scene: {placedModels} / {envModels.Length}");
+            foreach (var kv in count) if (!envModels.Contains(kv.Key) && !kv.Key.EndsWith("(terrain tree)")) L($"  {kv.Key}: {kv.Value}");
+
+            // ---- missing references among ENV's own objects
+            int missPrefab = 0, missMesh = 0, missMat = 0, badShader = 0, missScript = 0, missLod = 0, missCol = 0, objs = 0;
+            var firstMiss = new List<string>();
+            void Miss(ref int k, Transform t, string what) { k++; if (firstMiss.Count < 12) firstMiss.Add(what + ": " + PathOf(t)); }
+            foreach (var g in groups)
+                foreach (var t in g.GetComponentsInChildren<Transform>(true))
+                {
+                    objs++;
+                    var go = t.gameObject;
+                    if (PrefabUtility.IsPartOfPrefabInstance(go) && PrefabUtility.GetPrefabInstanceStatus(go) == PrefabInstanceStatus.MissingAsset) Miss(ref missPrefab, t, "missing prefab");
+                    if (GameObjectUtility.GetMonoBehavioursWithMissingScriptCount(go) > 0) Miss(ref missScript, t, "missing script");
+                    var mf = go.GetComponent<MeshFilter>(); if (mf && !mf.sharedMesh) Miss(ref missMesh, t, "missing mesh");
+                    var mc = go.GetComponent<MeshCollider>(); if (mc && !mc.sharedMesh) Miss(ref missCol, t, "collider without mesh");
+                    foreach (var r in go.GetComponents<Renderer>())
+                    {
+                        if (r is ParticleSystemRenderer psr && psr.renderMode == ParticleSystemRenderMode.None) continue;
+                        foreach (var mat in r.sharedMaterials)
+                        {
+                            if (!mat) { Miss(ref missMat, t, "missing material"); continue; }
+                            if (!mat.shader || mat.shader.name == "Hidden/InternalErrorShader" || ShaderUtil.ShaderHasError(mat.shader)) Miss(ref badShader, t, "broken shader " + mat.name);
+                        }
+                    }
+                    var lg = go.GetComponent<LODGroup>();
+                    if (lg) foreach (var lod in lg.GetLODs()) foreach (var r in lod.renderers) if (!r) Miss(ref missLod, t, "LOD renderer missing");
+                }
+            int protoMiss = protos.Count(p => !p.prefab) + dps.Count(p => p.usePrototypeMesh ? !p.prototype : !p.prototypeTexture);
+            L($"references: {objs} ENV objects checked; missing prefab {missPrefab}, mesh {missMesh}, material {missMat}, broken shader {badShader}, missing script {missScript}, LOD renderer {missLod}, mesh collider mesh {missCol}; terrain prototypes without asset {protoMiss}");
+            foreach (var s in firstMiss) L("  " + s);
+
+            // ---- resource nodes: covered by an ENV collider / ENV terrain tree, or under the ground
+            Physics.SyncTransforms();
+            var envTreeIdx = new HashSet<int>(); for (int i = 0; i < protos.Length; i++) if (protos[i].prefab && protos[i].prefab.name.StartsWith("ENV_PC_")) envTreeIdx.Add(i);
+            var envTrees = new Dictionary<long, List<Vector3>>(); var swapped = new Dictionary<long, List<Vector3>>();
+            var tp = _terrain.transform.position;
+            var bk = AssetDatabase.LoadAssetAtPath<TerrainData>(BackupPath); int v1n = bk ? bk.treeInstanceCount : 0;
+            var allTrees = td.treeInstances;
+            for (int i = 0; i < allTrees.Length; i++) if (envTreeIdx.Contains(allTrees[i].prototypeIndex)) GAdd(i < v1n ? swapped : envTrees, Vector3.Scale(allTrees[i].position, td.size) + tp, 4f);
+            int nodes = 0, covered = 0, byTree = 0, bySwapped = 0, buried = 0; var bad = new List<string>();
+            foreach (var root in scene.GetRootGameObjects())
+                foreach (var n in root.GetComponentsInChildren<ResourceNode>(false))
+                {
+                    nodes++;
+                    var p = n.transform.position;
+                    var hits = Physics.OverlapSphere(p + Vector3.up * 0.5f, 0.55f, ~0, QueryTriggerInteraction.Ignore)
+                        .Where(col => groups.Any(g => col.transform.IsChildOf(g)) && !col.transform.IsChildOf(n.transform)).ToArray();
+                    if (hits.Length > 0) { covered++; if (bad.Count < 20) bad.Add($"covered by {hits[0].name}: {PathOf(n.transform)} {V(p)}"); }
+                    else if (GNear(envTrees, p, 0.9f, 4f)) { byTree++; if (bad.Count < 20) bad.Add($"new ENV terrain tree on top: {PathOf(n.transform)} {V(p)}"); }
+                    else if (GNear(swapped, p, 0.9f, 4f)) bySwapped++;
+                    if (GroundY(p) - p.y > 0.6f) { buried++; if (bad.Count < 20) bad.Add($"{F(GroundY(p) - p.y)} m under the ground: {PathOf(n.transform)}"); }
+                }
+            L($"resource nodes (active): {nodes}; covered by an ENV collider {covered}, new ENV terrain tree within 0.9 m {byTree} (v1 trees swapped in place to ENV models, same position as before: {bySwapped}), more than 0.6 m under the terrain {buried} (not moved by ENV)");
+            foreach (var s in bad) L("  " + s);
+
+            // ---- spawn and beach
+            var spawn = GameObject.Find("ZONE_PlayerSpawn"); var player = GameObject.Find("Player");
+            foreach (var (label, at, r) in new[] { ("player spawn", spawn ? spawn.transform.position : Vector3.zero, 20f), ("player", player ? player.transform.position : Vector3.zero, 12f) })
+            {
+                if (at == Vector3.zero) { L($"{label}: not found"); continue; }
+                int near = 0; var names = new List<string>();
+                foreach (var g in groups) foreach (Transform ch in g.GetComponentsInChildren<Transform>(true)) { if (ch == g) continue; var d = ch.position - at; d.y = 0; if (d.magnitude < r && PrefabUtility.IsOutermostPrefabInstanceRoot(ch.gameObject)) { near++; if (names.Count < 6) names.Add($"{ch.name} {F(d.magnitude)} m"); } }
+                int nearTrees = 0; foreach (var ti in td.treeInstances) if (envTreeIdx.Contains(ti.prototypeIndex)) { var d = Vector3.Scale(ti.position, td.size) + tp - at; d.y = 0; if (d.magnitude < r) nearTrees++; }
+                L($"{label} {V(at)}: ENV props within {F(r)} m {near} ({string.Join(", ", names)}), ENV terrain trees {nearTrees}");
+            }
+
+            // ---- water / lava surfaces: visible from above? (material, share of vertices above the terrain, face direction)
+            var surfRoots = new List<Transform>(); var wr = Root(scene, "Water", false); if (wr) surfRoots.Add(wr);
+            if (world) { var lv = world.Find("Environment/Volcano/Lava"); if (lv) surfRoots.Add(lv); var wf = world.Find("Environment/Water/Waterfall"); if (wf) surfRoots.Add(wf); }
+            foreach (var sr in surfRoots)
+                foreach (var mr in sr.GetComponentsInChildren<MeshRenderer>(true))
+                {
+                    var mf = mr.GetComponent<MeshFilter>(); var mesh = mf ? mf.sharedMesh : null; if (!mesh || !mesh.isReadable) continue;
+                    var vs = mesh.vertices; var tri = mesh.triangles; var tr = mr.transform;
+                    int above = 0; foreach (var v in vs) { var w = tr.TransformPoint(v); if (w.y > GroundY(w) + 0.02f) above++; }
+                    float ny = 0f; for (int i = 0; i + 2 < tri.Length; i += 3) ny += Vector3.Cross(tr.TransformPoint(vs[tri[i + 1]]) - tr.TransformPoint(vs[tri[i]]), tr.TransformPoint(vs[tri[i + 2]]) - tr.TransformPoint(vs[tri[i]])).y;
+                    var mat = mr.sharedMaterial;
+                    string cull = mat && mat.HasProperty("_Cull") ? F(mat.GetFloat("_Cull")) : "-";
+                    L($"surface {PathOf(tr)}: {(mr.gameObject.activeInHierarchy && mr.enabled ? "on" : "OFF")}, {(mat ? mat.name + " / " + mat.shader.name + " cull " + cull : "NO MATERIAL")}, {vs.Length} v, {above * 100 / Mathf.Max(1, vs.Length)} % above the terrain, faces {(ny >= 0f ? "up" : "DOWN")}, y {F(mr.bounds.min.y)}..{F(mr.bounds.max.y)}");
+                }
+
+            // ---- what else stands on the lava (vent pool, channel): colliders that are not ENV's, resource nodes nearby
+            if (LoadFeatures() != null && _features.lava != null && _features.lava.points != null)
+            {
+                var lavaPts = Pts(_features.lava.points); var ventP = V3(_features.lava.vent);
+                var onLava = new List<string>(); int nodesNear = 0;
+                foreach (var col in Object.FindObjectsByType<Collider>(FindObjectsSortMode.None))
+                {
+                    if (col is TerrainCollider || groups.Any(g => col.transform.IsChildOf(g))) continue;
+                    var cp = col.bounds.center; var dv = cp - ventP; dv.y = 0f;
+                    float dl = DistToLine(lavaPts, cp);
+                    if (dv.magnitude < 4f || dl < 2f) { if (onLava.Count < 10) onLava.Add($"{PathOf(col.transform)} ({F(Mathf.Min(dv.magnitude, dl))} m, {(col.GetComponentInParent<ResourceNode>() ? "resource node" : "prop")})"); }
+                }
+                foreach (var root in scene.GetRootGameObjects()) foreach (var n in root.GetComponentsInChildren<ResourceNode>(false)) if (DistToLine(lavaPts, n.transform.position) < 3f) nodesNear++;
+                L($"on the lava (non-ENV colliders within 4 m of the vent or 2 m of the channel): {onLava.Count}{(onLava.Count > 0 ? ": " + string.Join("; ", onLava) : "")}; resource nodes within 3 m of the channel: {nodesNear}");
+            }
+
+            // ---- petroglyph + volcano state
+            int glyph = 0;
+            foreach (var t in scene.GetRootGameObjects().SelectMany(g => g.GetComponentsInChildren<Transform>(false)))
+            { var src = PrefabUtility.GetCorrespondingObjectFromOriginalSource(t.gameObject); if (src && src.name == "PROP_PC_Petroglyph" && PrefabUtility.IsOutermostPrefabInstanceRoot(t.gameObject)) glyph++; }
+            L($"active PROP_PC_Petroglyph instances: {glyph}");
+            foreach (var vl in Object.FindObjectsByType<VolcanoLandmark>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+                L($"VolcanoLandmark {PathOf(vl.transform)} at {V(vl.transform.position)}: {(vl.gameObject.activeInHierarchy ? "ON" : "off")}");
+            return End("Check");
+        }
+    }
+}

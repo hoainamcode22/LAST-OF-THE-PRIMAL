@@ -1,0 +1,66 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a680d24947751ff46bfd489842d3f354, type: 3}
+  m_Name: MIS_build_shelter
+  m_EditorClassIdentifier: PrimalFrontier.Runtime::PrimalFrontier.Story.MissionDefinition
+  id: build_shelter
+  chapter: 1
+  order: 50
+  main: 1
+  endsChapter: 0
+  title: Build Shelter
+  objective: Build a shelter before nightfall
+  lateObjective: Build a shelter
+  clue: 
+  requires:
+  - wake
+  startMode: 0
+  startWhen:
+  - kind: 4
+    events: 
+    ids: 
+    check: 
+    count: 1
+    distinct: 0
+    radius: 0
+    hourFrom: 13
+    hourTo: 24
+  - kind: 5
+    events: 
+    ids: make_fire
+    check: 
+    count: 1
+    distinct: 0
+    radius: 0
+    hourFrom: 0
+    hourTo: 0
+  completeMode: 0
+  complete:
+  - kind: 3
+    events: 
+    ids: 
+    check: shelter_exists
+    count: 1
+    distinct: 0
+    radius: 0
+    hourFrom: 0
+    hourTo: 0
+  deadline: 2
+  deadlineHour: 18
+  marker: 0
+  markerId: 
+  markerAfterHours: 0
+  startLine: 
+  doneLine: 
+  lateLine: 
+  journalPage: 
+  startCue: 

@@ -1,0 +1,13 @@
+{
+ "Assets/_Project/Scripts/World/ZoneManager.cs": "ff2aed3e62935545692a5e89ac8369d5",
+ "Assets/_Project/Scripts/World/HazardZone.cs": "6b089a918264f4230c94afc7482715d0",
+ "Assets/_Project/Scripts/World/HazardZoneMonitor.cs": "e8b1227a9c5fa877105e2387cc5109f7",
+ "Assets/_Project/Scripts/Story/StoryTexts.cs": "f26a4ff6aa4b8bcf2f51ebd45807bc40",
+ "Assets/_Project/Scripts/Story/JournalSystem.cs": "101da63f3d77dc79ea0ffab72abadda2",
+ "Assets/_Project/Scripts/Story/ProtagonistVoice.cs": "ad83ce71c7a184b5f615b4a83f2f4490",
+ "Assets/_Project/Scripts/Story/StoryIds.cs": "d62f548241b109e94d760d7acd2f9a25",
+ "Assets/_Project/Scripts/UI/Minimap.cs": "71b21b0d031e3a9582a297c5dff5343a",
+ "Assets/_Project/Scripts/Core/AmbienceManager.cs": "721d0263e5e00c1a9f17ce0cf0b4d957",
+ "Assets/_Project/Scripts/Core/AmbienceEmitter.cs": "f004e3a1bb1b12cd5101d2362393e7cb",
+ "Assets/_Project/Scripts/Editor/PrimalAtmosphereBuilder.cs": "08797376010010842c9fc9a303d2072d"
+}

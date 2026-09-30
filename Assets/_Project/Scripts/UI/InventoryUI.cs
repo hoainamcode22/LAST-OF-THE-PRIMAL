@@ -163,13 +163,18 @@ namespace PrimalFrontier.UI
         {
             var left = UIFactory.Image(_craftTab, "Categories", UIStyle.PanelDark, new Color(1, 1, 1, 0.8f), new Vector2(0, 0), new Vector2(0, 1), new Vector2(0, 0.5f), Vector2.zero, new Vector2(230, 0)).rectTransform;
             // tab order and names are game data (the buttons themselves can be moved / restyled in the scene);
-            // new tabs are appended so the scene objects Cat0..CatN keep their category
-            string[] names = { "ALL", "TOOLS", "WEAPONS", "FOOD", "WATER", "BUILDING", "SURVIVAL", "RESOURCES" };
-            RecipeCategory?[] cats = { null, RecipeCategory.Tools, RecipeCategory.Weapons, RecipeCategory.Food, RecipeCategory.Water, RecipeCategory.Structures, RecipeCategory.Survival, RecipeCategory.Resources };
+            // the label and category of button Cat<i> come from here (phase 1: FIRE and STORAGE; the order is the owner's
+            // Tools, Weapons, Food, Water, Fire, Building, Storage, Survival). Positions are set every build so the column
+            // always matches this order (restyle colours / sprites in the scene, not the layout)
+            string[] names = { "ALL", "TOOLS", "WEAPONS", "FOOD", "WATER", "FIRE", "BUILDING", "STORAGE", "SURVIVAL", "RESOURCES" };
+            RecipeCategory?[] cats = { null, RecipeCategory.Tools, RecipeCategory.Weapons, RecipeCategory.Food, RecipeCategory.Water, RecipeCategory.Fire, RecipeCategory.Structures, RecipeCategory.Storage, RecipeCategory.Survival, RecipeCategory.Resources };
+            const float catStep = 60f, catHeight = 50f;
             for (int i = 0; i < names.Length; i++)
             {
                 var cat = cats[i];
-                var b = UIFactory.Button(left, "Cat" + i, names[i], () => { _cat = cat; EnsureTiles(); }, new Vector2(0.5f, 1), new Vector2(0.5f, 1), new Vector2(0.5f, 1), new Vector2(0, -18 - i * 62), new Vector2(200, 52), 20);
+                var b = UIFactory.Button(left, "Cat" + i, names[i], () => { _cat = cat; EnsureTiles(); }, new Vector2(0.5f, 1), new Vector2(0.5f, 1), new Vector2(0.5f, 1), new Vector2(0, -16 - i * catStep), new Vector2(200, catHeight), 20);
+                var brt = (RectTransform)b.transform;
+                brt.anchorMin = brt.anchorMax = brt.pivot = new Vector2(0.5f, 1); brt.anchoredPosition = new Vector2(0, -16 - i * catStep); brt.sizeDelta = new Vector2(200, catHeight);
                 var t = b.GetComponentInChildren<Text>(); if (t) t.text = names[i];
                 _catButtons.Add(b); _catOf.Add(cat);
             }
@@ -315,7 +320,7 @@ namespace PrimalFrontier.UI
             var st = _selected ? _selected.Stack : null;
             bool has = st != null && _selected.inventory == _inv;
             _dIcon.enabled = st != null; if (st != null) _dIcon.sprite = st.item.icon;
-            _dName.text = st != null ? st.item.displayName : "Select an item";
+            _dName.text = st == null ? "Select an item" : st.item.IsWaterContainer && st.water > 0 ? st.item.displayName + " (" + WaterRules.TempWord(st) + ")" : st.item.displayName;
             _dCat.text = st != null ? st.item.category.ToString().ToUpperInvariant() + $"   {st.item.weight:0.##} kg each" : "";
             _dDesc.text = st != null ? st.item.description : "Items you carry appear here. Your pack has a weight limit.";
             _dStats.text = st != null ? Stats(st, true) : "";
@@ -379,15 +384,16 @@ namespace PrimalFrontier.UI
             var t = WaterRules.TypeOf(st);
             string n = WaterRules.MlOf(st);
             if (t == WaterType.None) return n + " (empty)";
-            var c = WaterRules.Color(t); if (onPaper) c = Color.Lerp(c, Color.black, 0.45f);
-            return n + " <color=#" + ColorUtility.ToHtmlStringRGB(c) + ">" + WaterRules.Label(t) + "</color>";
+            var c = WaterRules.ColorOf(st); if (onPaper) c = Color.Lerp(c, Color.black, 0.45f);
+            return n + " <color=#" + ColorUtility.ToHtmlStringRGB(c) + ">" + WaterRules.NameOf(st) + "</color>";     // "Clean Water (Hot)"
         }
         static string WaterAdvice(ItemStack st)
         {
             var t = WaterRules.TypeOf(st);
             if (t == WaterType.None) return "";
-            if (t == WaterType.SaltWater) return "  (makes thirst worse: boil it at a campfire)";
-            return WaterRules.NeedsBoiling(st) ? "  (boil it at a campfire)" : "  (safe to drink)";
+            if (t == WaterType.SaltWater) return "  (makes thirst worse; boiling does not remove salt: pour it out)";
+            if (WaterRules.NeedsBoiling(st)) return "  (boil it at a campfire)";
+            return WaterRules.IsHot(st) ? "  (safe to drink; warms you in the cold, rain or at night)" : "  (safe to drink; heat it at a campfire for a warm drink)";
         }
 
         // ================================================================== actions

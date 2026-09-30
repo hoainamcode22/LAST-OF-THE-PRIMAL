@@ -1,0 +1,300 @@
+using System.Collections.Generic;
+using UnityEngine;
+using PrimalFrontier.Audio;
+using PrimalFrontier.Core;
+using PrimalFrontier.VFX;
+using PrimalFrontier.World;
+
+namespace PrimalFrontier.AI
+{
+    /// <summary>
+    /// The migration world event (directive 31-36): every second morning the crested herd walks the valley route
+    /// (Markers/Migration/Route_00..13: meadow -> river crossing -> near the waterfall -> grassland terrace -> resting
+    /// hollow), stops to drink at the ford, and two days later walks back. The schedule follows the game clock, so a
+    /// migration slept through or missed during a load puts the herd on the right side when nobody is looking.
+    /// While it moves: dust rising from the feet, a low rumble of many heavy footfalls, calls carrying across the valley,
+    /// birds bursting out of the trees beside the herd, plants trampled flat behind it. From the lookout (migration_view)
+    /// the whole crossing reads as one scene; watching it raises MigrationSeen once per migration.
+    /// Events: MigrationStarted (id species, amount 1 out / 2 back), MigrationSeen (id species).
+    /// </summary>
+    public class MigrationDirector : MonoBehaviour
+    {
+        public static MigrationDirector Instance { get; private set; }
+        public HerdGroup herd;
+        [Tooltip("route in outward order (meadow first); empty = read Markers/Migration/Route_* when the game starts")] public Vector3[] route;
+        [Tooltip("the lookout (migration_view), for gizmos and tests")] public Vector3 viewpoint;
+        [Tooltip("off = the schedule does nothing (tests, cutscenes)")] public bool scheduled = true;
+
+        public bool InProgress => herd && herd.OnRoute;
+        /// <summary>+1 outward (meadow to the hollow), -1 back</summary>
+        public int Direction { get; private set; }
+        public int MigrationCount { get; private set; }
+        public bool SeenThisMigration => _seen;
+        public float WatchedSeconds => _seenT;
+        public int DustPuffs { get; private set; }
+        public int Calls { get; private set; }
+
+        AudioSource _rumble; static AudioClip _rumbleClip;
+        float _nextCheck, _nextDust, _nextCall, _nextBirds, _nextSeen; bool _seen; float _seenT;
+
+        void Awake() { Instance = this; }
+        void OnDestroy() { if (Instance == this) Instance = null; }
+
+        void Start()
+        {
+            if (route == null || route.Length < 2) route = ReadRoute();
+            if (!herd) herd = GetComponentInParent<HerdGroup>();
+            if (!herd) foreach (var h in HerdGroup.All) if (h && h.away.Valid) { herd = h; break; }
+            // the rumble follows the herd on its own child (moving this object would move the herd members under it)
+            var rg = new GameObject("HerdRumble"); rg.transform.SetParent(transform, false);
+            _rumble = rg.AddComponent<AudioSource>();
+            _rumble.clip = RumbleClip(); _rumble.loop = true; _rumble.playOnAwake = false; _rumble.spatialBlend = 1f;
+            _rumble.rolloffMode = AudioRolloffMode.Linear; _rumble.minDistance = 25f; _rumble.maxDistance = WildlifeConfig.Instance.rumbleDistance;
+            _rumble.dopplerLevel = 0f; _rumble.volume = 0f; _rumble.priority = 90;
+            _nextCheck = Time.time + 2.5f;
+        }
+
+        /// <summary>Route_00.. under Markers/Migration, in name order (world positions)</summary>
+        public static Vector3[] ReadRoute()
+        {
+            var list = new List<Transform>();
+            var scene = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
+            foreach (var root in scene.GetRootGameObjects())
+            {
+                if (root.name != "Markers") continue;
+                var mig = root.transform.Find("Migration"); if (!mig) continue;
+                foreach (Transform c in mig) if (c.name.StartsWith("Route_")) list.Add(c);
+            }
+            list.Sort((a, b) => string.CompareOrdinal(a.name, b.name));
+            var pts = new Vector3[list.Count];
+            for (int i = 0; i < list.Count; i++) pts[i] = list[i].position;
+            return pts;
+        }
+
+        // ------------------------------------------------------------------ schedule
+        static int Every => Mathf.Max(1, WildlifeConfig.Instance.migrationEveryDays);
+        static float StartHour(TimeManager tm) => (tm ? tm.morningStart : 7.25f) + WildlifeConfig.Instance.migrationStartDelayHours;
+        static float EndHour(TimeManager tm) => tm ? tm.noonStart : 11f;
+        static bool IsMigrationDay(int day) => day >= Every && day % Every == 0;
+
+        /// <summary>migrations that should be over by (day, hour): one on every migration day, finished by noon</summary>
+        public static int CompletedBy(int day, float hour, TimeManager tm)
+        {
+            int n = Mathf.Max(0, day / Every);
+            if (IsMigrationDay(day) && hour < EndHour(tm)) n--;
+            return Mathf.Max(0, n);
+        }
+        /// <summary>side the herd should be on: 0 home (meadow) after an even number of migrations, 1 the resting hollow</summary>
+        public static int SideAfter(int completed) => completed % 2 == 1 ? 1 : 0;
+
+        void Update()
+        {
+            if (!herd) return;
+            if (scheduled && Time.time >= _nextCheck) { _nextCheck = Time.time + 2f; Schedule(); }
+            if (InProgress) { Spectacle(); if (Time.time >= _nextSeen) { _nextSeen = Time.time + 0.25f; Watch(0.25f); } }
+            else if (_rumble && _rumble.isPlaying) { _rumble.volume = Mathf.MoveTowards(_rumble.volume, 0f, Time.deltaTime * 0.3f); if (_rumble.volume <= 0f) _rumble.Stop(); }
+        }
+
+        void Schedule()
+        {
+            if (InProgress || route == null || route.Length < 2 || herd.Members.Count == 0) return;
+            var tm = TimeManager.Instance; if (!tm) return;
+            int day = tm.day; float hour = tm.hour;
+            int want = SideAfter(CompletedBy(day, hour, tm));
+            bool window = IsMigrationDay(day) && hour >= StartHour(tm) && hour < EndHour(tm);
+            int before = SideAfter(CompletedBy(day, 0f, tm));
+            if (window && herd.Side == before) { Begin(herd.Side == 0 ? 1 : -1); return; }
+            if (herd.Side != want && !window)
+            {
+                // missed (slept through it, a load): move them over unseen, or walk now if the player is watching either end
+                var pp = PlayerLocator.Position;
+                Vector3 dest = want == 1 ? herd.away.graze : herd.home.graze;
+                bool watched = pp.HasValue && (Flat(pp.Value - herd.Centroid) < 170f || Flat(pp.Value - dest) < 170f);
+                if (watched) Begin(want == 1 ? 1 : -1);
+                else { herd.Relocate(want); Debug.Log($"[Wildlife] migration missed: {herd.label} moved to side {want} (day {day} {hour:F1} h)"); }
+            }
+        }
+
+        /// <summary>start a migration now (+1 out to the resting hollow, -1 back); story / tests</summary>
+        public void Begin(int dir)
+        {
+            if (!herd || route == null || route.Length < 2 || InProgress) return;
+            var c = WildlifeConfig.Instance;
+            Direction = dir >= 0 ? 1 : -1;
+            if (herd.away.Valid) Direction = herd.Side == 0 ? 1 : -1;            // it always sets off from the side it is on
+            var pts = (Vector3[])route.Clone();
+            int ford = c.fordIndex;
+            if (Direction < 0) { System.Array.Reverse(pts); if (ford >= 0) ford = pts.Length - 1 - ford; }
+            herd.BeginRoute(pts, ford, c.fordPause, OnDone);
+            MigrationCount++; _seen = false; _seenT = 0f;
+            _nextDust = _nextCall = Time.time + 1f; _nextBirds = Time.time + Random.Range(c.birdFlushEvery.x, c.birdFlushEvery.y);
+            if (_rumble && !_rumble.isPlaying) { _rumble.volume = 0f; _rumble.Play(); }
+            var sp = herd.species;
+            GameEvents.Raise(GameEventType.MigrationStarted, sp ? sp.id : "herd", Direction > 0 ? 1 : 2, herd.Centroid);
+            Debug.Log($"[Wildlife] migration {MigrationCount} started: {herd.label} ({herd.Members.Count}) {(Direction > 0 ? "outward" : "back")}");
+        }
+
+        void OnDone() { Debug.Log($"[Wildlife] migration {MigrationCount} done: {(herd ? herd.label : "")} on side {(herd ? herd.Side : -1)}"); }
+
+        // ------------------------------------------------------------------ the scene
+        void Spectacle()
+        {
+            var c = WildlifeConfig.Instance;
+            var cam = Camera.main; Vector3 cp = cam ? cam.transform.position : herd.Centroid;
+            float camD = Flat(cp - herd.Centroid);
+            int moving = 0, alive = 0;
+            foreach (var m in herd.Members) { if (!m || !m.IsAlive) continue; alive++; if (m.CurrentSpeed > 0.3f) moving++; }
+            float movingK = alive > 0 ? moving / (float)alive : 0f;
+            if (_rumble)
+            {
+                _rumble.transform.position = herd.Centroid + Vector3.up;
+                _rumble.volume = Mathf.MoveTowards(_rumble.volume, 0.85f * movingK * AudioBus.Sfx, Time.deltaTime * 0.25f);
+            }
+            if (camD > 320f || alive == 0) return;                 // nobody near enough to see or hear any of it
+            float now = Time.time;
+            if (now >= _nextDust)
+            {
+                _nextDust = now + 1f / Mathf.Max(0.2f, c.dustPerSecond) * Random.Range(0.6f, 1.4f);
+                var m = Pick(true);
+                if (m && m.Tier <= 2)
+                {
+                    Vector3 f = m.transform.position - m.transform.forward * m.def.bodyRadius * 0.4f;
+                    if (TrackSigns.IsUnderWater(f)) VfxPool.Instance.Play(VfxId.WaterSplash, f, Vector3.up, null, m.def.bodyRadius * 1.1f);
+                    else { DinoSenses.Weather(out _, out _, out float rain); if (rain < 0.5f || Random.value < 0.3f) VfxPool.Instance.Play(VfxId.DinoFootDust, f, Vector3.up, null, m.def.bodyRadius * c.dustScale); }
+                    DustPuffs++;
+                }
+            }
+            if (now >= _nextCall)
+            {
+                _nextCall = now + Random.Range(c.migrationCallEvery.x, c.migrationCallEvery.y);
+                var m = Pick(false); if (m && m.HerdCall(c.callDistance)) Calls++;
+            }
+            if (now >= _nextBirds && camD < 280f)
+            {
+                _nextBirds = now + Random.Range(c.birdFlushEvery.x, c.birdFlushEvery.y);
+                // the leading animals push past the trees first
+                DinosaurController lead = null; float ahead = float.MinValue;
+                foreach (var m in herd.Members) { if (!m || !m.IsAlive) continue; float a = Vector3.Dot(m.transform.position - herd.Centroid, herd.Heading); if (a > ahead) { ahead = a; lead = m; } }
+                if (lead)
+                {
+                    int tree = CoverMap.NearestStandingTree(lead.transform.position + herd.Heading * 8f, c.birdFlushRange, 3f);
+                    if (tree >= 0)
+                    {
+                        Vector3 tp = CoverMap.TreePosition(tree);
+                        Vector3 away = tp - herd.Centroid; away.y = 0f;
+                        BirdFlush.Burst(tp + Vector3.up * Random.Range(6f, 10f), away.normalized + herd.Heading * 0.5f, Random.Range(7, 13));
+                    }
+                }
+            }
+        }
+
+        DinosaurController Pick(bool movingOnly)
+        {
+            int n = herd.Members.Count; if (n == 0) return null;
+            int start = Random.Range(0, n);
+            for (int k = 0; k < n; k++)
+            {
+                var m = herd.Members[(start + k) % n];
+                if (m && m.IsAlive && (!movingOnly || m.CurrentSpeed > 0.3f)) return m;
+            }
+            return null;
+        }
+
+        /// <summary>the player watches the moving herd: in range, looking at it, a clear line of sight (terrain), for a few seconds</summary>
+        void Watch(float dt)
+        {
+            if (_seen) return;
+            var cam = Camera.main; if (!cam) return;
+            var c = WildlifeConfig.Instance;
+            Vector3 cp = cam.transform.position, cf = cam.transform.forward;
+            DinosaurController best = null; float bd = float.MaxValue;
+            foreach (var m in herd.Members)
+            {
+                if (!m || !m.IsAlive) continue;
+                Vector3 to = m.transform.position + Vector3.up * m.def.bodyRadius * 1.5f - cp; float d = to.magnitude;
+                if (d > c.viewDistance || d < 1f || Vector3.Dot(cf, to / d) < 0.72f) continue;
+                if (d < bd) { bd = d; best = m; }
+            }
+            bool ok = best && !Physics.Linecast(cp, best.transform.position + Vector3.up * best.def.bodyRadius * 1.5f, HerdGroup.TerrainMask, QueryTriggerInteraction.Ignore);
+            _seenT = ok ? _seenT + dt : Mathf.Max(0f, _seenT - dt * 0.5f);
+            if (_seenT < c.seenSeconds) return;
+            _seen = true;
+            var sp = herd.species;
+            GameEvents.Raise(GameEventType.MigrationSeen, sp ? sp.id : "herd", MigrationCount, herd.Centroid);
+            Debug.Log($"[Wildlife] migration {MigrationCount} seen from {bd:F0} m");
+        }
+
+        /// <summary>old signs of past crossings along the route (trampled plants, prints), for the start of the game</summary>
+        public void SeedOldTrail()
+        {
+            if (route == null || route.Length < 2 || !herd || !herd.species) return;
+            var sp = herd.species; var rnd = new System.Random(77);
+            float fresh = WildlifeConfig.Instance.freshHours + WildlifeConfig.Instance.fadeHours;
+            for (int i = 0; i + 1 < route.Length; i++)
+            {
+                Vector3 a = route[i], b = route[i + 1]; Vector3 d = b - a; d.y = 0f; float len = d.magnitude; if (len < 1f) continue;
+                Vector3 f = d / len, r = Vector3.Cross(Vector3.up, f);
+                float yaw = Mathf.Atan2(f.x, f.z) * Mathf.Rad2Deg;
+                for (float s = 0f; s < len; s += 11f)
+                {
+                    Vector3 p = a + f * s + r * (float)(rnd.NextDouble() - 0.5) * 8f;
+                    TrackSigns.Flatten(sp, p, yaw, 2f, fresh * 1.6f * (0.5 + rnd.NextDouble() * 0.4));
+                    if (rnd.NextDouble() < 0.5) TrackSigns.Step(sp, p + r * 2f, f, rnd.NextDouble() < 0.5, fresh * (0.4 + rnd.NextDouble() * 0.5));
+                }
+            }
+        }
+
+        // ------------------------------------------------------------------ sound
+        /// <summary>
+        /// Original synthesised loop (4 s, 22 kHz mono): a low brown-noise bed and many overlapping heavy footfalls
+        /// (decaying 30-55 Hz thumps with a little grit), the end crossfaded into the start so it loops without a seam.
+        /// </summary>
+        static AudioClip RumbleClip()
+        {
+            if (_rumbleClip) return _rumbleClip;
+            const int rate = 22050; const float seconds = 4f; int n = (int)(rate * seconds), fade = rate / 4;
+            var d = new float[n + fade];
+            var rnd = new System.Random(3301);
+            float brown = 0f, lp = 0f;
+            for (int i = 0; i < d.Length; i++)
+            {
+                brown = Mathf.Clamp(brown + ((float)rnd.NextDouble() * 2f - 1f) * 0.02f, -1f, 1f);
+                lp += (brown - lp) * 0.02f;
+                d[i] = lp * 0.9f;
+            }
+            float t = 0f;
+            while (t < seconds + 0.25f)
+            {
+                t += 0.12f + (float)rnd.NextDouble() * 0.28f;
+                int s0 = (int)(t * rate); float f = 30f + (float)rnd.NextDouble() * 25f, amp = 0.25f + (float)rnd.NextDouble() * 0.45f;
+                int len = rate / 3;
+                for (int k = 0; k < len && s0 + k < d.Length; k++)
+                {
+                    float x = k / (float)rate, env = Mathf.Exp(-x * 11f) * Mathf.Min(1f, x * 180f);
+                    d[s0 + k] += Mathf.Sin(2f * Mathf.PI * f * x) * env * amp + ((float)rnd.NextDouble() - 0.5f) * env * amp * 0.08f;
+                }
+            }
+            var o = new float[n];
+            for (int i = 0; i < n; i++) o[i] = d[i];
+            for (int i = 0; i < fade; i++) { float k = i / (float)fade; o[i] = o[i] * k + d[n + i] * (1f - k); }
+            float peak = 0.001f; for (int i = 0; i < n; i++) peak = Mathf.Max(peak, Mathf.Abs(o[i]));
+            for (int i = 0; i < n; i++) o[i] = o[i] / peak * 0.8f;
+            _rumbleClip = AudioClip.Create("HerdRumble", n, 1, rate, false);
+            _rumbleClip.SetData(o, 0);
+            return _rumbleClip;
+        }
+
+        static float Flat(Vector3 v) { v.y = 0f; return v.magnitude; }
+
+#if UNITY_EDITOR
+        void OnDrawGizmosSelected()
+        {
+            var pts = route != null && route.Length >= 2 ? route : null;
+            if (pts == null) return;
+            Gizmos.color = new Color(1f, 0.8f, 0.3f, 0.9f);
+            for (int i = 0; i + 1 < pts.Length; i++) Gizmos.DrawLine(pts[i] + Vector3.up, pts[i + 1] + Vector3.up);
+            if (viewpoint != Vector3.zero) { Gizmos.color = Color.cyan; Gizmos.DrawWireSphere(viewpoint + Vector3.up * 2f, 2f); }
+        }
+#endif
+    }
+}

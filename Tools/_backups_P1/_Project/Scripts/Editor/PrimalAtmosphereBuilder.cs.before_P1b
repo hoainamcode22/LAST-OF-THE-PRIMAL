@@ -1,0 +1,713 @@
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
+using UnityEditor;
+using UnityEditor.SceneManagement;
+using UnityEngine;
+using UnityEngine.Rendering.Universal;
+using PrimalFrontier.Core;
+using PrimalFrontier.Survival;
+using PrimalFrontier.World;
+
+namespace PrimalFrontier.EditorTools
+{
+    /// <summary>
+    /// WORLD agent builder (bridge PrimalAtmosphereBuilder.Build, idempotent, saves the scene). Makes / fills:
+    /// Resources/WeatherConfig (created once, never overwritten), Resources/StatusEffects/SE_heat + SE_heat_severe (created
+    /// once), import settings of the ambience clips (Audio/Ambience, Tools/Audio/ambience_synth.py), the AmbienceManager
+    /// layers and one-shots, the TimeManager lighting keys (only when the scene holds an older lighting version), ZoneManager
+    /// zones for ENV's locations (Markers/Zones/&lt;id&gt; + Documentation/PCPhase/LOCATIONS.md radii, climate from
+    /// ZoneManager.LocationDefaults), and the scene root [Atmosphere] with generated children: Emitters (3D water / wetland /
+    /// lava loops at the WaterSources, ENV's water objects and markers), Hazards (HazardZone at the volcano marker and along
+    /// lava) and Reverb (cave reverb zones). Generated children (EMIT_, HZ_, REV_) are rebuilt on every run from ENV's current
+    /// objects, snapped to the terrain; anything else placed under [Atmosphere] by hand is kept.
+    /// Other commands: Capture (edit-mode lighting / weather review shots), Status (what is in the scene).
+    /// </summary>
+    public static class PrimalAtmosphereBuilder
+    {
+        const string ScenePath = "Assets/_Project/Scenes/Island_VerticalSlice.unity";
+        const string AmbDir = "Assets/_Project/Audio/Ambience", OneShotDir = "Assets/_Project/Audio/Ambience/OneShots";
+        const string WeatherConfigPath = "Assets/_Project/Resources/WeatherConfig.asset", StatusDir = "Assets/_Project/Resources/StatusEffects";
+        const string LocationsDoc = "Documentation/PCPhase/LOCATIONS.md", TerrainReady = "Documentation/PCPhase/TERRAIN_READY.txt";
+        const string ShotDir = "Documentation/Screenshots/PCPhase/World";
+
+        static readonly string[] Beds = { "ForestDay", "InsectsDay", "NightInsects", "WindSoft", "WindStrong", "RainLight", "RainHeavy", "OceanSurf", "CaveRoom" };
+        static readonly string[] Spatial = { "River", "Stream", "Waterfall", "WetlandDay", "WetlandNight", "Pond", "Lava" };
+
+        static void L(StringBuilder sb, string s) { sb.AppendLine(s); Debug.Log("[PrimalAtmosphere] " + s); }
+
+        static bool OpenScene(StringBuilder log)
+        {
+            var scene = EditorSceneManager.GetActiveScene();
+            if (scene.path == ScenePath) return true;
+            if (scene.isDirty) { L(log, "active scene has unsaved changes: open Island_VerticalSlice first"); return false; }
+            EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
+            return true;
+        }
+
+        // ================================================================== Build
+        [PrimalBridgeCommand]
+        public static string Build(string arg)
+        {
+            var log = new StringBuilder();
+            if (!OpenScene(log)) return log.ToString();
+            L(log, "## Assets");
+            var cfg = WeatherConfigAsset(log);
+            StatusAssets(log);
+            ImportAudio(log);
+            AssetDatabase.SaveAssets();
+
+            L(log, "## Scene");
+            var tm = UnityEngine.Object.FindFirstObjectByType<TimeManager>();
+            if (tm)
+            {
+                var so = new SerializedObject(tm); var v = so.FindProperty("lightingVersion");
+                if (v == null || v.intValue < TimeManager.LightingVersion || arg == "lighting") { tm.Defaults(); EditorUtility.SetDirty(tm); L(log, $"- TimeManager: lighting keys v{TimeManager.LightingVersion} written"); }
+                else L(log, "- TimeManager: lighting keys current (kept)");
+            }
+            else L(log, "- WARNING no TimeManager in the scene");
+            var wm = UnityEngine.Object.FindFirstObjectByType<WeatherManager>();
+            if (wm) { if (wm.config != cfg) { wm.config = cfg; EditorUtility.SetDirty(wm); } L(log, "- WeatherManager: config " + (cfg ? cfg.name : "none")); }
+            else L(log, "- WARNING no WeatherManager in the scene");
+            AmbienceClips(log);
+            var zm = UnityEngine.Object.FindFirstObjectByType<ZoneManager>();
+            if (zm) Zones(zm, log); else L(log, "- WARNING no ZoneManager in the scene");
+
+            var root = GameObject.Find("[Atmosphere]") ?? new GameObject("[Atmosphere]");
+            var emitters = Child(root.transform, "Emitters"); var hazards = Child(root.transform, "Hazards"); var reverb = Child(root.transform, "Reverb");
+            int removed = ClearGenerated(emitters) + ClearGenerated(hazards) + ClearGenerated(reverb);
+            L(log, $"- [Atmosphere]: {removed} generated children cleared, rebuilding");
+            Sky(root.transform, log);
+            var terrain = Terrain.activeTerrain;
+            WaterEmitters(emitters, terrain, zm, log);
+            Hazards(hazards, emitters, terrain, zm, log);
+            Reverb(reverb, terrain, zm, log);
+
+            EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
+            EditorSceneManager.SaveScene(EditorSceneManager.GetActiveScene());
+            L(log, "scene saved");
+            Directory.CreateDirectory("Documentation/PCPhase/World");
+            File.WriteAllText("Documentation/PCPhase/World/atmosphere_build.md", "# PrimalAtmosphereBuilder.Build " + DateTime.Now.ToString("s") + "\n\n" + log);
+            return log.ToString();
+        }
+
+        static Transform Child(Transform parent, string name)
+        {
+            var t = parent.Find(name);
+            if (!t) { t = new GameObject(name).transform; t.SetParent(parent, false); }
+            return t;
+        }
+
+        static bool Generated(string n) => n.StartsWith("EMIT_") || n.StartsWith("HZ_") || n.StartsWith("REV_");
+        static int ClearGenerated(Transform t)
+        {
+            int n = 0;
+            for (int i = t.childCount - 1; i >= 0; i--) { var c = t.GetChild(i); if (Generated(c.name)) { UnityEngine.Object.DestroyImmediate(c.gameObject); n++; } }
+            return n;
+        }
+
+        static float Ground(Terrain t, Vector3 p) => t ? t.SampleHeight(p) + t.transform.position.y : p.y;
+        static bool OnTerrain(Terrain t, Vector3 p)
+        {
+            if (!t) return true;
+            var o = t.transform.position; var s = t.terrainData.size;
+            return p.x >= o.x && p.z >= o.z && p.x <= o.x + s.x && p.z <= o.z + s.z;
+        }
+
+        // ------------------------------------------------------------------ clouds
+        const string CloudMatPath = "Assets/_Project/Art/World/M_CloudVeil.mat";
+        static Material CloudMaterial(StringBuilder log)
+        {
+            var sh = Shader.Find("PF/Cloud Veil");
+            if (!sh || ShaderUtil.ShaderHasError(sh)) { if (log != null) L(log, "- WARNING PF/Cloud Veil missing or has errors: no cloud layer"); return null; }
+            var m = AssetDatabase.LoadAssetAtPath<Material>(CloudMatPath);
+            if (!m)
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(CloudMatPath));
+                m = new Material(sh) { name = "M_CloudVeil" }; AssetDatabase.CreateAsset(m, CloudMatPath);
+                if (log != null) L(log, "- created " + CloudMatPath);
+            }
+            else if (m.shader != sh) { m.shader = sh; EditorUtility.SetDirty(m); }
+            return m;
+        }
+
+        static void Sky(Transform root, StringBuilder log)
+        {
+            var mat = CloudMaterial(log); if (!mat) return;
+            var sky = Child(root, "Sky");
+            var cv = sky.GetComponent<VFX.CloudVeil>() ?? sky.gameObject.AddComponent<VFX.CloudVeil>();
+            if (cv.material != mat) { cv.material = mat; EditorUtility.SetDirty(cv); }
+            L(log, "- [Atmosphere]/Sky: CloudVeil (weather clouds over the procedural sky)");
+        }
+
+        // ------------------------------------------------------------------ assets
+        static WeatherConfig WeatherConfigAsset(StringBuilder log)
+        {
+            Directory.CreateDirectory("Assets/_Project/Resources");
+            var cfg = AssetDatabase.LoadAssetAtPath<WeatherConfig>(WeatherConfigPath);
+            if (!cfg) { cfg = ScriptableObject.CreateInstance<WeatherConfig>(); AssetDatabase.CreateAsset(cfg, WeatherConfigPath); L(log, "- created " + WeatherConfigPath); }
+            else L(log, "- " + WeatherConfigPath + " kept (hand-tuned values stay)");
+            WeatherConfig.Override(null);
+            return cfg;
+        }
+
+        static void StatusAssets(StringBuilder log)
+        {
+            Directory.CreateDirectory(StatusDir);
+            foreach (var id in new[] { HazardZoneMonitor.HeatId, HazardZoneMonitor.SevereHeatId })
+            {
+                string path = $"{StatusDir}/SE_{id}.asset";
+                var d = AssetDatabase.LoadAssetAtPath<StatusEffectDefinition>(path);
+                if (!d) { d = HazardZoneMonitor.BuiltIn(id); d.hideFlags = HideFlags.None; AssetDatabase.CreateAsset(d, path); L(log, "- created " + path); }
+                var icon = AssetDatabase.LoadAssetAtPath<Sprite>($"Assets/_Project/Resources/UI/icon_status_{id}.png");
+                if (icon && d.icon != icon) { d.icon = icon; EditorUtility.SetDirty(d); L(log, $"- {id}: icon set"); }
+            }
+            StatusEffectDefinition.ClearCache();
+        }
+
+        static void ImportAudio(StringBuilder log)
+        {
+            int n = 0, missing = 0;
+            foreach (var b in Beds) n += Import($"{AmbDir}/AMB_{b}_Loop.wav", false, AudioClipLoadType.CompressedInMemory, 0.6f, ref missing);
+            foreach (var s in Spatial) n += Import($"{AmbDir}/AMB_{s}_Loop.wav", true, AudioClipLoadType.CompressedInMemory, 0.55f, ref missing);
+            if (Directory.Exists(OneShotDir))
+                foreach (var f in Directory.GetFiles(OneShotDir, "AMB_*.wav")) n += Import(f.Replace('\\', '/'), !Path.GetFileName(f).StartsWith("AMB_Thunder"), AudioClipLoadType.DecompressOnLoad, 0.7f, ref missing);
+            L(log, $"- ambience clips: {n} import settings changed, {missing} missing (run Tools/Audio/ambience_synth.py)");
+        }
+
+        static int Import(string path, bool mono, AudioClipLoadType load, float quality, ref int missing)
+        {
+            var ai = AssetImporter.GetAtPath(path) as AudioImporter;
+            if (!ai) { missing++; return 0; }
+            var s = ai.defaultSampleSettings;
+            bool change = ai.forceToMono != mono || s.loadType != load || s.compressionFormat != AudioCompressionFormat.Vorbis || Mathf.Abs(s.quality - quality) > 0.01f || !ai.loadInBackground;
+            if (!change) return 0;
+            ai.forceToMono = mono; ai.loadInBackground = true;
+            s.loadType = load; s.compressionFormat = AudioCompressionFormat.Vorbis; s.quality = quality; s.sampleRateSetting = AudioSampleRateSetting.PreserveSampleRate;
+            ai.defaultSampleSettings = s;
+            ai.SaveAndReimport();
+            return 1;
+        }
+
+        static AudioClip Clip(string name) => AssetDatabase.LoadAssetAtPath<AudioClip>($"{AmbDir}/AMB_{name}_Loop.wav");
+        static AudioClip[] Shots(string prefix)
+        {
+            if (!Directory.Exists(OneShotDir)) return new AudioClip[0];
+            return Directory.GetFiles(OneShotDir, $"AMB_{prefix}_*.wav").OrderBy(f => f).Select(f => AssetDatabase.LoadAssetAtPath<AudioClip>(f.Replace('\\', '/'))).Where(c => c).ToArray();
+        }
+
+        static void AmbienceClips(StringBuilder log)
+        {
+            var a = UnityEngine.Object.FindFirstObjectByType<AmbienceManager>();
+            if (!a) { L(log, "- WARNING no AmbienceManager in the scene"); return; }
+            a.forestDay = Clip("ForestDay"); a.insectsDay = Clip("InsectsDay"); a.nightInsects = Clip("NightInsects");
+            a.windSoft = Clip("WindSoft"); a.windStrong = Clip("WindStrong"); a.rainLight = Clip("RainLight"); a.rainHeavy = Clip("RainHeavy");
+            a.oceanSurf = Clip("OceanSurf"); a.caveRoom = Clip("CaveRoom");
+            a.birdCalls = Shots("Bird"); a.distantCalls = Shots("DistantCall"); a.nightCritters = Shots("Critter");
+            a.thunderNear = Shots("ThunderNear"); a.thunderFar = Shots("ThunderFar");
+            EditorUtility.SetDirty(a);
+            int beds = new[] { a.forestDay, a.insectsDay, a.nightInsects, a.windSoft, a.windStrong, a.rainLight, a.rainHeavy, a.oceanSurf, a.caveRoom }.Count(c => c);
+            L(log, $"- AmbienceManager: {beds}/9 layers, birds {a.birdCalls.Length}, distant calls {a.distantCalls.Length}, critters {a.nightCritters.Length}, thunder {a.thunderNear.Length}+{a.thunderFar.Length}");
+        }
+
+        // ------------------------------------------------------------------ zones (ENV locations)
+        /// <summary>radius per id from LOCATIONS.md: a markdown table with an id column and a radius column, or "id ... r=NN / radius NN" lines</summary>
+        static Dictionary<string, float> LocationRadii(StringBuilder log)
+        {
+            var r = new Dictionary<string, float>();
+            if (!File.Exists(LocationsDoc)) { L(log, "- " + LocationsDoc + " not found yet (ENV): marker / default radii"); return r; }
+            var ids = new HashSet<string>(ZoneManager.LocationDefaults.Select(l => l.id));
+            int radiusCol = -1;
+            foreach (var raw in File.ReadAllLines(LocationsDoc))
+            {
+                var line = raw.Trim();
+                if (line.StartsWith("|"))
+                {
+                    var cells = line.Trim('|').Split('|').Select(c => c.Trim().Trim('`', '*').Trim()).ToArray();
+                    int rc = Array.FindIndex(cells, c => c.ToLowerInvariant().StartsWith("radius") || c.ToLowerInvariant() == "r" || c.ToLowerInvariant().StartsWith("r (m)"));
+                    if (rc >= 0 && !cells.Any(c => ids.Contains(c))) { radiusCol = rc; continue; }
+                    int idc = Array.FindIndex(cells, c => ids.Contains(c));
+                    if (idc < 0) continue;
+                    float v;
+                    if (radiusCol >= 0 && radiusCol < cells.Length && TryNum(cells[radiusCol], out v)) { r[cells[idc]] = v; continue; }
+                    var m = Regex.Match(line, @"(?:r\s*=|radius\s*[:=]?)\s*([0-9]+(?:\.[0-9]+)?)", RegexOptions.IgnoreCase);
+                    if (m.Success && TryNum(m.Groups[1].Value, out v)) r[cells[idc]] = v;
+                }
+                else
+                {
+                    var m = Regex.Match(line, @"`?([a-z_]+)`?.*?(?:r\s*=|radius\s*[:=]?)\s*([0-9]+(?:\.[0-9]+)?)", RegexOptions.IgnoreCase);
+                    if (m.Success && ids.Contains(m.Groups[1].Value) && TryNum(m.Groups[2].Value, out var v)) r[m.Groups[1].Value] = v;
+                }
+            }
+            L(log, $"- {LocationsDoc}: radius for {r.Count} ids");
+            return r;
+        }
+        static bool TryNum(string s, out float v)
+        {
+            var m = Regex.Match(s ?? "", @"[0-9]+(?:\.[0-9]+)?");
+            v = 0f; return m.Success && float.TryParse(m.Value, NumberStyles.Float, CultureInfo.InvariantCulture, out v) && v > 0f;
+        }
+
+        /// <summary>marker name to a location id: prefix ZONE_ / LOC_ / MARKER_ dropped, CamelCase to snake_case, lower case</summary>
+        static string MarkerId(string name)
+        {
+            var s = (name ?? "").Trim();
+            foreach (var pre in new[] { "ZONE_", "LOC_", "LOCATION_", "MARKER_" })
+                if (s.StartsWith(pre, StringComparison.OrdinalIgnoreCase)) { s = s.Substring(pre.Length); break; }
+            s = Regex.Replace(s, @"(?<=[a-z0-9])(?=[A-Z])", "_").Replace(' ', '_').Replace('-', '_');
+            return s.ToLowerInvariant();
+        }
+
+        static Transform Marker(string id)
+        {
+            var root = EditorSceneManager.GetActiveScene().GetRootGameObjects().FirstOrDefault(g => g.name == "Markers");
+            var zones = root ? root.transform.Find("Zones") : null;
+            if (!zones) return null;
+            foreach (Transform t in zones) if (t.name == id) return t;          // ENV's own marker first
+            foreach (Transform t in zones) if (MarkerId(t.name) == id) return t; // then an older / prefixed one (ZONE_Cave -> cave)
+            return null;
+        }
+
+        /// <summary>ENV's EnvLocation.radius on a marker (read by name: no compile-time link to ENV's class)</summary>
+        static bool EnvRadius(Transform m, out float r)
+        {
+            r = 0f;
+            var c = m.GetComponent("EnvLocation"); if (!c) return false;
+            var f = c.GetType().GetField("radius");
+            if (f == null || f.FieldType != typeof(float)) return false;
+            r = (float)f.GetValue(c);
+            return r > 0.5f;
+        }
+
+        static void Zones(ZoneManager zm, StringBuilder log)
+        {
+            var radii = LocationRadii(log);
+            int reg = 0; var missing = new List<string>();
+            foreach (var l in ZoneManager.LocationDefaults)
+            {
+                var m = Marker(l.id);
+                if (!m) { missing.Add(l.id); continue; }
+                float radius = l.radius; string src = "default";
+                if (EnvRadius(m, out var er)) { radius = er; src = "EnvLocation"; }
+                else if (radii.TryGetValue(l.id, out var rr)) { radius = rr; src = "LOCATIONS.md"; }
+                else if (m.TryGetComponent<SphereCollider>(out var sc)) { radius = sc.radius * Mathf.Max(m.lossyScale.x, m.lossyScale.z); src = "collider"; }
+                else if (m.localScale.x > 2.5f) { radius = m.localScale.x; src = "marker scale"; }
+                var z = zm.Register(l.id, l.displayName, m.position, radius, l.indoor, l.dayOffset);
+                z.separateNight = true; z.nightTemperatureOffset = l.nightOffset; z.humidity = l.humidity;
+                z.stableAir = l.stable; z.stableAirTemperature = 15f; z.stableAirWeight = 0.8f;
+                reg++;
+                L(log, $"  - zone {l.id}: r {radius:F0} ({src}), day {l.dayOffset:+0.0;-0.0;0} / night {l.nightOffset:+0.0;-0.0;0} C, humidity {l.humidity:F2}{(l.indoor ? ", indoor" : "")}{(l.stable ? ", stable air 15 C" : "")}");
+            }
+            // the old cave marker: stable cave air instead of a flat -4 C (a refuge on a cold night, cool on a hot afternoon)
+            var oldCave = zm.Find("ZONE_Cave");
+            if (oldCave != null && oldCave.indoor && !oldCave.stableAir) { oldCave.stableAir = true; oldCave.stableAirTemperature = 15f; oldCave.stableAirWeight = 0.8f; oldCave.temperatureOffset = 0f; oldCave.humidity = 0.8f; L(log, "  - ZONE_Cave: stable air 15 C (was -4 C)"); }
+            EditorUtility.SetDirty(zm);
+            L(log, $"- ZoneManager: {reg} ENV locations registered ({zm.zones.Count} zones in all); no marker yet: {(missing.Count == 0 ? "none" : string.Join(", ", missing))}"
+                   + (File.Exists(TerrainReady) ? "" : "; TERRAIN_READY.txt not found (re-run after ENV's terrain pass)"));
+        }
+
+        // ------------------------------------------------------------------ emitters
+        static AmbienceEmitter Emitter(Transform parent, string name, Vector3 pos, AmbienceEmitter.Kind kind)
+        {
+            var go = new GameObject(name); go.transform.SetParent(parent, false); go.transform.position = pos;
+            var e = go.AddComponent<AmbienceEmitter>(); e.kind = kind;
+            switch (kind)
+            {
+                case AmbienceEmitter.Kind.River: e.clip = Clip("River"); e.volume = 0.55f; e.nightVolume = 0.55f; e.minDistance = 7f; e.maxDistance = 55f; e.spread = 120f; e.rainMask = 0.2f; break;
+                case AmbienceEmitter.Kind.Stream: e.clip = Clip("Stream"); e.volume = 0.45f; e.nightVolume = 0.45f; e.minDistance = 4f; e.maxDistance = 32f; e.spread = 100f; e.rainMask = 0.4f; break;
+                case AmbienceEmitter.Kind.Waterfall: e.clip = Clip("Waterfall"); e.volume = 0.85f; e.nightVolume = 0.85f; e.minDistance = 14f; e.maxDistance = 140f; e.spread = 150f; e.rainMask = 0f; break;
+                case AmbienceEmitter.Kind.Wetland: e.clip = Clip("WetlandDay"); e.nightClip = Clip("WetlandNight"); e.volume = 0.45f; e.nightVolume = 0.6f; e.minDistance = 10f; e.maxDistance = 70f; e.spread = 160f; e.hushable = true; e.rainMask = 0.5f; break;
+                case AmbienceEmitter.Kind.Lava: e.clip = Clip("Lava"); e.volume = 0.6f; e.nightVolume = 0.6f; e.minDistance = 4f; e.maxDistance = 34f; e.spread = 90f; e.rainMask = 0.1f; break;
+                default: e.clip = Clip("Pond"); e.volume = 0.32f; e.nightVolume = 0.3f; e.minDistance = 4f; e.maxDistance = 26f; e.spread = 120f; e.rainMask = 0.6f; break;
+            }
+            return e;
+        }
+
+        static AmbienceEmitter.Kind? Classify(string n)
+        {
+            n = n.ToLowerInvariant();
+            if (n.Contains("ocean") || n.Contains("sea") || n.Contains("shore")) return null;
+            if (n.Contains("fall")) return AmbienceEmitter.Kind.Waterfall;
+            if (n.Contains("wet") || n.Contains("marsh") || n.Contains("swamp") || n.Contains("bog")) return AmbienceEmitter.Kind.Wetland;
+            if (n.Contains("river")) return AmbienceEmitter.Kind.River;
+            if (n.Contains("stream") || n.Contains("creek") || n.Contains("brook") || n.Contains("rivulet") || n.Contains("source")) return AmbienceEmitter.Kind.Stream;
+            if (n.Contains("pond") || n.Contains("pool") || n.Contains("lake")) return AmbienceEmitter.Kind.Custom;
+            return null;
+        }
+
+        /// <summary>points on a mesh at least 'spacing' apart (world space; bounds centre when the mesh cannot be read)</summary>
+        static List<Vector3> Sample(MeshFilter mf, Renderer r, float spacing, int max)
+        {
+            var pts = new List<Vector3>();
+            Vector3[] v = null;
+            try { if (mf && mf.sharedMesh) v = mf.sharedMesh.vertices; } catch { v = null; }
+            if (v == null || v.Length == 0) { if (r) pts.Add(r.bounds.center); return pts; }
+            var m = mf.transform.localToWorldMatrix;
+            float s2 = spacing * spacing;
+            int step = Mathf.Max(1, v.Length / 4000);
+            for (int i = 0; i < v.Length && pts.Count < max; i += step)
+            {
+                var w = m.MultiplyPoint3x4(v[i]);
+                bool far = true;
+                foreach (var q in pts) { var d = q - w; d.y = 0f; if (d.sqrMagnitude < s2) { far = false; break; } }
+                if (far) pts.Add(w);
+            }
+            return pts;
+        }
+
+        static void WaterEmitters(Transform parent, Terrain terrain, ZoneManager zm, StringBuilder log)
+        {
+            var counts = new Dictionary<AmbienceEmitter.Kind, int>();
+            var done = new HashSet<GameObject>();
+            var placed = new List<(AmbienceEmitter.Kind k, Vector3 p)>();
+            float Gap(AmbienceEmitter.Kind k) => k == AmbienceEmitter.Kind.Waterfall ? 18f : k == AmbienceEmitter.Kind.River ? 20f : k == AmbienceEmitter.Kind.Wetland ? 22f : 14f;
+            AmbienceEmitter Add(AmbienceEmitter.Kind k, string src, Vector3 p)
+            {
+                // one emitter per place: sheets, rivulets and mist of one waterfall make a single plunge emitter
+                foreach (var q in placed) if (q.k == k && (q.p - p).sqrMagnitude < Gap(k) * Gap(k)) return null;
+                placed.Add((k, p));
+                counts.TryGetValue(k, out int n); counts[k] = n + 1;
+                return Emitter(parent, $"EMIT_{k}_{src}_{n}", p + Vector3.up * 0.4f, k);
+            }
+            // 1. fresh water sources (pond / stream / river surfaces)
+            foreach (var w in UnityEngine.Object.FindObjectsByType<WaterSource>(FindObjectsInactive.Exclude, FindObjectsSortMode.None))
+            {
+                if (!w.fresh) continue;
+                var k = Classify(w.name + " " + w.displayName) ?? AmbienceEmitter.Kind.Stream;
+                if (k == AmbienceEmitter.Kind.Waterfall) k = AmbienceEmitter.Kind.Custom;      // the plunge pool laps; the roar comes from the falling sheet
+                var mf = w.surface ? w.surface : w.GetComponentInChildren<MeshFilter>();
+                var r = mf ? mf.GetComponent<Renderer>() : w.GetComponentInChildren<Renderer>();
+                if (k == AmbienceEmitter.Kind.Custom) { var c = r ? r.bounds.center : w.transform.position; Add(k, Safe(w.name), c); done.Add(w.gameObject); if (mf) done.Add(mf.gameObject); continue; }
+                foreach (var p in Sample(mf, r, Spacing(k), MaxPer(k))) Add(k, Safe(w.name), p);
+                done.Add(w.gameObject); if (mf) done.Add(mf.gameObject);
+            }
+            // 2. ENV's water objects under the Water root (waterfall, river, wetland meshes without a WaterSource)
+            // the scene root named Water and ENV's World/Environment/Water (waterfall sheet, rivulets, mist)
+            var roots = EditorSceneManager.GetActiveScene().GetRootGameObjects();
+            var waterRoots = new List<Transform>();
+            var wr = roots.FirstOrDefault(g => g.name == "Water"); if (wr) waterRoots.Add(wr.transform);
+            var world = roots.FirstOrDefault(g => g.name == "World"); var envWater = world ? world.transform.Find("Environment/Water") : null; if (envWater) waterRoots.Add(envWater);
+            foreach (var water in waterRoots)
+                foreach (var r in water.GetComponentsInChildren<MeshRenderer>())
+                {
+                    if (done.Contains(r.gameObject)) continue;
+                    var k = Classify(r.name + " " + (r.transform.parent ? r.transform.parent.name : ""));
+                    if (k == null) continue;
+                    if (k == AmbienceEmitter.Kind.Waterfall)
+                    {
+                        var b = r.bounds;
+                        Add(k.Value, Safe(r.name), new Vector3(b.center.x, b.min.y + 1.5f, b.center.z));                // the plunge
+                        if (b.size.y > 8f && placed.Count(q => q.k == AmbienceEmitter.Kind.Waterfall && (q.p - new Vector3(b.center.x, b.max.y - 1f, b.center.z)).sqrMagnitude < 18f * 18f) == 0)
+                        {
+                            var tp = new Vector3(b.center.x, b.max.y - 1f, b.center.z); placed.Add((AmbienceEmitter.Kind.Waterfall, tp));
+                            var top = Emitter(parent, $"EMIT_Waterfall_{Safe(r.name)}_top", tp, AmbienceEmitter.Kind.Waterfall); top.volume = 0.4f; top.maxDistance = 70f;
+                        }
+                        continue;
+                    }
+                    var mf = r.GetComponent<MeshFilter>();
+                    foreach (var p in Sample(mf, r, Spacing(k.Value), MaxPer(k.Value))) Add(k.Value, Safe(r.name), p);
+                }
+            // 3. markers of places ENV describes but may not have a water mesh for (waterfall / wetland / river)
+            foreach (var (id, kind) in new[] { ("waterfall", AmbienceEmitter.Kind.Waterfall), ("wetland", AmbienceEmitter.Kind.Wetland), ("river", AmbienceEmitter.Kind.River) })
+            {
+                counts.TryGetValue(kind, out int have);
+                if (have > 0) continue;
+                var m = Marker(id); if (!m) continue;
+                var p = m.position; p.y = Ground(terrain, p) + 0.5f;
+                Add(kind, "marker", p);
+            }
+            L(log, "- emitters: " + (counts.Count == 0 ? "none (no fresh water found)" : string.Join(", ", counts.Select(kv => $"{kv.Key} {kv.Value}"))));
+        }
+
+        /// <summary>emitter spacing along a water body (m) and the most per body (voices stay few)</summary>
+        static float Spacing(AmbienceEmitter.Kind k) => k == AmbienceEmitter.Kind.River ? 30f : k == AmbienceEmitter.Kind.Stream ? 24f : k == AmbienceEmitter.Kind.Wetland ? 40f : 1000f;
+        static int MaxPer(AmbienceEmitter.Kind k) => k == AmbienceEmitter.Kind.River ? 10 : k == AmbienceEmitter.Kind.Stream ? 8 : k == AmbienceEmitter.Kind.Wetland ? 6 : 1;
+
+        static string Safe(string n) => Regex.Replace(n ?? "x", @"[^A-Za-z0-9]+", "");
+
+        // ------------------------------------------------------------------ hazards
+        static void Hazards(Transform parent, Transform emitters, Terrain terrain, ZoneManager zm, StringBuilder log)
+        {
+            int n = 0;
+            // the volcano: ENV's location marker (radius from the zone), else the landmark when it stands on the island
+            Vector3? centre = null; float radius = 120f;
+            var vz = zm ? zm.Find("volcano") : null;
+            if (vz != null) { centre = vz.center; radius = vz.radius; }
+            var land = UnityEngine.Object.FindFirstObjectByType<VolcanoLandmark>();
+            if (centre == null && land && OnTerrain(terrain, land.transform.position)) centre = land.transform.position;
+            if (centre.HasValue)
+            {
+                var c = centre.Value;
+                // without an ENV location the landmark's smoke vent is the hottest point
+                if (vz == null && land && land.smoke) { var s = land.smoke.transform.position; c = new Vector3(s.x, c.y, s.z); }
+                c.y = Ground(terrain, c);
+                var go = new GameObject("HZ_volcano"); go.transform.SetParent(parent, false); go.transform.position = c;
+                var h = go.AddComponent<HazardZone>(); h.hazardId = "volcano";
+                // the whole volcanic ridge is warm (a margin past the zone), the middle hot, the lava core dangerous
+                h.warmRadius = radius * 1.35f; h.hotRadius = radius * 0.7f; h.dangerRadius = radius * 0.22f;
+                h.minHeight = -60f; h.maxHeight = 300f; h.warmHeat = 6f; h.hotHeat = 14f; h.coreHeat = 24f;
+                h.smoke = 0.35f; h.smokeRadius = radius * 1.4f; h.smokeDrift = radius * 0.3f;
+                n++;
+                L(log, $"- HZ_volcano at {c} rings {h.warmRadius:F0} / {h.hotRadius:F0} / {h.dangerRadius:F0} m, heat +{h.warmHeat} / +{h.hotHeat} / +{h.coreHeat} C, smoke {h.smoke}");
+            }
+            else L(log, "- volcano: no 'volcano' marker and the landmark is off the island: no volcano hazard yet (ENV)");
+            // lava: ENV's lava line and vent (env_features_v2.json) and any renderer named *lava* on the island, every ~10 m
+            int lava = 0, lavaEmit = 0;
+            var seen = new List<Vector3>();
+            void LavaAt(Vector3 p, string src)
+            {
+                if (lava >= 60 || !OnTerrain(terrain, p)) return;
+                foreach (var q in seen) { var d = q - p; d.y = 0f; if (d.sqrMagnitude < 81f) return; }
+                seen.Add(p);
+                p.y = Mathf.Max(p.y, Ground(terrain, p));
+                var go = new GameObject($"HZ_lava_{lava}"); go.transform.SetParent(parent, false); go.transform.position = p;
+                var h = go.AddComponent<HazardZone>(); h.hazardId = "lava";
+                h.warmRadius = 13f; h.hotRadius = 7f; h.dangerRadius = 3.5f; h.minHeight = -6f; h.maxHeight = 14f;
+                h.warmHeat = 6f; h.hotHeat = 14f; h.coreHeat = 26f; h.smoke = 0.12f; h.smokeRadius = 18f; h.smokeDrift = 6f;
+                if (lava % 2 == 0) { Emitter(emitters, $"EMIT_Lava_{lavaEmit}", p + Vector3.up * 0.5f, AmbienceEmitter.Kind.Lava); lavaEmit++; }
+                lava++;
+            }
+            var feat = EnvLava(log);
+            if (feat.vent.HasValue)
+            {
+                var v = feat.vent.Value; v.y = Mathf.Max(v.y, Ground(terrain, v));
+                var go = new GameObject("HZ_vent"); go.transform.SetParent(parent, false); go.transform.position = v;
+                var h = go.AddComponent<HazardZone>(); h.hazardId = "volcano";
+                h.warmRadius = 20f; h.hotRadius = 11f; h.dangerRadius = 5f; h.minHeight = -8f; h.maxHeight = 25f;
+                h.warmHeat = 7f; h.hotHeat = 15f; h.coreHeat = 30f; h.smoke = 0.55f; h.smokeRadius = 55f; h.smokeDrift = 18f;
+                Emitter(emitters, "EMIT_Lava_vent", v + Vector3.up * 0.6f, AmbienceEmitter.Kind.Lava).volume = 0.75f;
+                n++;
+                L(log, $"- HZ_vent at {v}: rings 20 / 11 / 5 m, +7 / +15 / +30 C, smoke 0.55 over 55 m");
+            }
+            foreach (var p in feat.line) LavaAt(p, "env");
+            foreach (var r in UnityEngine.Object.FindObjectsByType<MeshRenderer>(FindObjectsInactive.Exclude, FindObjectsSortMode.None))
+            {
+                if (!r.name.ToLowerInvariant().Contains("lava") || r.GetComponentInParent<HazardZone>()) continue;
+                if (!OnTerrain(terrain, r.bounds.center)) continue;
+                foreach (var p in Sample(r.GetComponent<MeshFilter>(), r, 10f, 24)) LavaAt(p, r.name);
+            }
+            L(log, $"- lava: {lava} small hazard zones along the lava, {lavaEmit} lava emitters" + (lava == 0 ? " (no lava line / mesh on the island yet: ENV)" : ""));
+        }
+
+        [Serializable] class EnvLavaJson { public float[] points; public float[] vent; }
+        [Serializable] class EnvFeaturesJson { public EnvLavaJson lava; }
+        const string EnvFeatures = "Assets/_Project/Art/Environment/Terrain/env_features_v2.json";
+
+        /// <summary>ENV's lava line (points ~10 m apart) and vent from env_features_v2.json (read only); empty when the file is missing</summary>
+        static (List<Vector3> line, Vector3? vent) EnvLava(StringBuilder log)
+        {
+            var line = new List<Vector3>(); Vector3? vent = null;
+            var ta = AssetDatabase.LoadAssetAtPath<TextAsset>(EnvFeatures);
+            if (!ta) { L(log, "- " + EnvFeatures + " not found (ENV): lava from renderers only"); return (line, vent); }
+            var f = JsonUtility.FromJson<EnvFeaturesJson>(ta.text);
+            if (f?.lava == null) return (line, vent);
+            var a = f.lava.points;
+            Vector3 last = new Vector3(float.MaxValue, 0f, 0f);
+            if (a != null) for (int i = 0; i + 2 < a.Length; i += 3)
+            {
+                var p = new Vector3(a[i], a[i + 1], a[i + 2]);
+                if ((p - last).sqrMagnitude >= 100f || i + 5 >= a.Length) { line.Add(p); last = p; }
+            }
+            if (f.lava.vent != null && f.lava.vent.Length >= 3) vent = new Vector3(f.lava.vent[0], f.lava.vent[1], f.lava.vent[2]);
+            L(log, $"- ENV lava line: {line.Count} points, vent {(vent.HasValue ? vent.Value.ToString() : "none")}");
+            return (line, vent);
+        }
+
+        // ------------------------------------------------------------------ cave reverb
+        static void Reverb(Transform parent, Terrain terrain, ZoneManager zm, StringBuilder log)
+        {
+            int n = 0;
+            if (zm)
+                foreach (var z in zm.zones)
+                {
+                    if (!z.indoor) continue;
+                    var p = z.center; p.y = Ground(terrain, p) + 2f;
+                    bool dup = false;
+                    foreach (Transform t in parent) if (t.name.StartsWith("REV_") && (t.position - p).sqrMagnitude < 36f) { dup = true; break; }
+                    if (dup) continue;                                                        // ZONE_Cave and cave: one reverb
+                    var go = new GameObject("REV_" + Safe(z.id)); go.transform.SetParent(parent, false);
+                    go.transform.position = p;
+                    var rz = go.AddComponent<AudioReverbZone>(); rz.reverbPreset = AudioReverbPreset.Cave;
+                    rz.minDistance = Mathf.Max(2f, z.radius * 0.55f); rz.maxDistance = Mathf.Max(rz.minDistance + 2f, z.radius);
+                    n++;
+                }
+            L(log, $"- reverb: {n} cave reverb zones");
+        }
+
+        // ================================================================== Status
+        [PrimalBridgeCommand]
+        public static string Status(string arg)
+        {
+            var sb = new StringBuilder();
+            var tm = UnityEngine.Object.FindFirstObjectByType<TimeManager>();
+            if (tm) { var v = new SerializedObject(tm).FindProperty("lightingVersion"); sb.AppendLine($"TimeManager hour {tm.hour:F1}, lighting v{(v != null ? v.intValue : -1)} (code v{TimeManager.LightingVersion}), sun {(tm.sun ? tm.sun.name : "none")}"); }
+            var wm = UnityEngine.Object.FindFirstObjectByType<WeatherManager>();
+            sb.AppendLine("WeatherManager config: " + (wm && wm.config ? AssetDatabase.GetAssetPath(wm.config) : "none"));
+            var a = UnityEngine.Object.FindFirstObjectByType<AmbienceManager>();
+            if (a) sb.AppendLine($"Ambience: forestDay {(a.forestDay ? "ok" : "-")}, night {(a.nightInsects ? "ok" : "-")}, rain {(a.rainLight ? "ok" : "-")}/{(a.rainHeavy ? "ok" : "-")}, birds {a.birdCalls?.Length}, calls {a.distantCalls?.Length}");
+            var zm = UnityEngine.Object.FindFirstObjectByType<ZoneManager>();
+            if (zm) sb.AppendLine("Zones: " + string.Join(", ", zm.zones.Select(z => $"{z.id}({z.radius:F0}{(z.indoor ? ",in" : "")})")));
+            sb.AppendLine($"Emitters {UnityEngine.Object.FindObjectsByType<AmbienceEmitter>(FindObjectsSortMode.None).Length}, hazard zones {UnityEngine.Object.FindObjectsByType<HazardZone>(FindObjectsSortMode.None).Length}, reverb {UnityEngine.Object.FindObjectsByType<AudioReverbZone>(FindObjectsSortMode.None).Length}");
+            sb.AppendLine($"LOCATIONS.md {(File.Exists(LocationsDoc) ? "yes" : "no")}, TERRAIN_READY.txt {(File.Exists(TerrainReady) ? "yes" : "no")}");
+            return sb.ToString();
+        }
+
+        // ================================================================== Capture
+        struct Shot { public string name; public Vector3 eye, target; public float fov; }
+
+        /// <summary>
+        /// edit-mode review shots of the day / weather light (nothing in the scene is changed or saved: every light / render
+        /// setting is restored). Arg: "" = six hours (dawn, morning, noon, afternoon, sunset, night) from three views + rain /
+        /// storm / cloudy at 15 h; "hours=6.3,9;weather=Clear|Rain;views=beach,meadow,player;tag=v2" to choose.
+        /// Output Documentation/Screenshots/PCPhase/World/&lt;view&gt;_&lt;hour&gt;_&lt;weather&gt;[_tag].png (1280 x 720).
+        /// </summary>
+        [PrimalBridgeCommand]
+        public static string Capture(string arg)
+        {
+            var log = new StringBuilder();
+            if (!OpenScene(log)) return log.ToString();
+            bool wasDirty = EditorSceneManager.GetActiveScene().isDirty;
+            var opts = (arg ?? "").Split(';').Select(s => s.Split('=')).Where(p => p.Length == 2).ToDictionary(p => p[0].Trim(), p => p[1].Trim());
+            float[] hours = opts.TryGetValue("hours", out var hs) ? hs.Split(',').Select(h => float.Parse(h, CultureInfo.InvariantCulture)).ToArray() : new[] { 6.4f, 8.8f, 12.5f, 16f, 19.1f, 22.5f };
+            string[] weathers = opts.TryGetValue("weather", out var ws) ? ws.Split(',') : new[] { "Clear" };
+            string tag = opts.TryGetValue("tag", out var tg) ? "_" + tg : "";
+            var shots = Views(opts.TryGetValue("views", out var vs) ? vs.Split(',') : null, log);
+            bool extraWeather = !opts.ContainsKey("hours") && !opts.ContainsKey("weather");
+
+            var tm = UnityEngine.Object.FindFirstObjectByType<TimeManager>();
+            if (!tm) return "no TimeManager";
+            var cfg = AssetDatabase.LoadAssetAtPath<WeatherConfig>(WeatherConfigPath) ?? WeatherConfig.Instance;
+            // ---- keep everything the preview changes
+            var sun = tm.sun ? tm.sun : RenderSettings.sun;
+            if (!tm.sun) tm.sun = sun;
+            Quaternion sunRot = sun ? sun.transform.rotation : Quaternion.identity; float sunI = sun ? sun.intensity : 0f; Color sunC = sun ? sun.color : Color.white; float sunS = sun ? sun.shadowStrength : 0f;
+            var ambMode = RenderSettings.ambientMode; Color a0 = RenderSettings.ambientSkyColor, a1 = RenderSettings.ambientEquatorColor, a2 = RenderSettings.ambientGroundColor;
+            Color fogC = RenderSettings.fogColor; float fogD = RenderSettings.fogDensity; float refl = RenderSettings.reflectionIntensity; var sky = RenderSettings.skybox;
+            float h0 = tm.hour, oc0 = tm.overcast, r0 = tm.rain, st0 = tm.storm, sm0 = tm.sunMultiplier, am0 = tm.ambientMultiplier, fm0 = tm.fogMultiplier, g0 = tm.weatherGrey;
+            var main = Camera.main;
+            var go = new GameObject("_AtmosphereCam") { hideFlags = HideFlags.HideAndDontSave };
+            var cam = go.AddComponent<Camera>();
+            if (main) cam.CopyFrom(main);
+            cam.enabled = false; cam.nearClipPlane = 0.1f; cam.farClipPlane = 2000f;
+            var extra = go.AddComponent<UniversalAdditionalCameraData>();
+            var mainExtra = main ? main.GetComponent<UniversalAdditionalCameraData>() : null;
+            extra.renderPostProcessing = mainExtra ? mainExtra.renderPostProcessing : true;
+            if (mainExtra) { extra.antialiasing = mainExtra.antialiasing; extra.volumeLayerMask = mainExtra.volumeLayerMask; }
+            const int W = 1280, H = 720;
+            var rt = new RenderTexture(W, H, 24, RenderTextureFormat.ARGB32) { antiAliasing = 4 };
+            var tex = new Texture2D(W, H, TextureFormat.RGB24, false);
+            Directory.CreateDirectory(ShotDir);
+            bool asyncWas = ShaderUtil.allowAsyncCompilation; ShaderUtil.allowAsyncCompilation = false;
+            Material skyCopy = sky ? new Material(sky) { hideFlags = HideFlags.HideAndDontSave } : null;
+            // the cloud layer and the stars are built at run time: temporary domes for the shots
+            var domeMesh = VFX.NightSky.BuildDome(32, 16); domeMesh.hideFlags = HideFlags.HideAndDontSave;
+            GameObject Dome(string n, Material m)
+            {
+                if (!m) return null;
+                var g = new GameObject(n) { hideFlags = HideFlags.HideAndDontSave };
+                g.AddComponent<MeshFilter>().sharedMesh = domeMesh;
+                var mr = g.AddComponent<MeshRenderer>(); mr.sharedMaterial = m; mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off; mr.receiveShadows = false;
+                return g;
+            }
+            var ns = UnityEngine.Object.FindFirstObjectByType<VFX.NightSky>();
+            var clouds = Dome("_CaptureClouds", CloudMaterial(null)); var stars = Dome("_CaptureStars", ns ? ns.material : null);
+            float ov0 = Shader.GetGlobalFloat("_PF_Overcast"), sk0 = Shader.GetGlobalFloat("_PF_StormK"), fl0 = Shader.GetGlobalFloat("_PF_Flash");
+            Vector4 wind0 = Shader.GetGlobalVector("_PF_Wind"), moon0 = Shader.GetGlobalVector("_PF_MoonDir");
+            int count = 0;
+            try
+            {
+                RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Trilight;
+                tm.UseSky(skyCopy);
+                var plan = new List<(float h, string w)>();
+                foreach (var h in hours) foreach (var w in weathers) plan.Add((h, w));
+                if (extraWeather) { plan.Add((15f, "Cloudy")); plan.Add((15f, "Rain")); plan.Add((15f, "Storm")); plan.Add((22.5f, "Rain")); }
+                foreach (var (h, w) in plan)
+                {
+                    if (!Enum.TryParse<WeatherState>(w, true, out var state)) state = WeatherState.Clear;
+                    WeatherManager.Preview(state, cfg, out float oc, out float rain, out float stormK);
+                    WeatherManager.PushLight(tm, cfg, oc, rain, stormK);
+                    tm.hour = h; tm.Apply();
+                    Shader.SetGlobalFloat("_PF_Overcast", oc); Shader.SetGlobalFloat("_PF_StormK", stormK); Shader.SetGlobalFloat("_PF_Flash", 0f);
+                    Shader.SetGlobalVector("_PF_Wind", new Vector4(0.8f, 0.6f, Mathf.Lerp(cfg.calmWind, cfg.stormWind, stormK), 0.3f));
+                    bool moonUp = tm.SunElevation < -2.5f && tm.sun;
+                    Vector3 md = moonUp ? -tm.sun.transform.forward : Vector3.zero;
+                    Shader.SetGlobalVector("_PF_MoonDir", new Vector4(md.x, md.y, md.z, moonUp ? 1f : 0f));
+                    if (stars) stars.SetActive(tm.NightFactor > 0.001f);
+                    if (clouds) clouds.SetActive(oc > 0.01f);
+                    foreach (var s in shots)
+                    {
+                        cam.transform.SetPositionAndRotation(s.eye, Quaternion.LookRotation((s.target - s.eye).normalized));
+                        if (clouds) clouds.transform.position = s.eye;
+                        if (stars) stars.transform.position = s.eye;
+                        cam.fieldOfView = s.fov;
+                        cam.targetTexture = rt; cam.Render(); cam.Render();
+                        var prev = RenderTexture.active; RenderTexture.active = rt;
+                        tex.ReadPixels(new Rect(0, 0, W, H), 0, 0); tex.Apply();
+                        RenderTexture.active = prev; cam.targetTexture = null;
+                        string file = $"{ShotDir}/{s.name}_{h.ToString("00.0", CultureInfo.InvariantCulture).Replace('.', 'h')}_{state}{tag}.png";
+                        File.WriteAllBytes(file, tex.EncodeToPNG());
+                        count++;
+                    }
+                    var col = sun ? sun.color : Color.black;
+                    L(log, $"- {h:00.0} h {state}: phase {tm.PhaseAt(h)}, sun elev {tm.SunElevation:F1} deg, sun {(sun ? sun.intensity : 0f):F2} rgb({col.r:F2},{col.g:F2},{col.b:F2}), sky amb ({RenderSettings.ambientSkyColor.r:F2},{RenderSettings.ambientSkyColor.g:F2},{RenderSettings.ambientSkyColor.b:F2}), fog {RenderSettings.fogDensity:F4}, air {tm.AirTemperature():F1} C");
+                }
+            }
+            finally
+            {
+                ShaderUtil.allowAsyncCompilation = asyncWas;
+                if (clouds) UnityEngine.Object.DestroyImmediate(clouds); if (stars) UnityEngine.Object.DestroyImmediate(stars); UnityEngine.Object.DestroyImmediate(domeMesh);
+                Shader.SetGlobalFloat("_PF_Overcast", ov0); Shader.SetGlobalFloat("_PF_StormK", sk0); Shader.SetGlobalFloat("_PF_Flash", fl0);
+                Shader.SetGlobalVector("_PF_Wind", wind0); Shader.SetGlobalVector("_PF_MoonDir", moon0);
+                tm.UseSky(null); RenderSettings.skybox = sky;
+                if (skyCopy) UnityEngine.Object.DestroyImmediate(skyCopy);
+                tm.hour = h0; tm.overcast = oc0; tm.rain = r0; tm.storm = st0; tm.sunMultiplier = sm0; tm.ambientMultiplier = am0; tm.fogMultiplier = fm0; tm.weatherGrey = g0;
+                if (sun) { sun.transform.rotation = sunRot; sun.intensity = sunI; sun.color = sunC; sun.shadowStrength = sunS; }
+                RenderSettings.ambientMode = ambMode; RenderSettings.ambientSkyColor = a0; RenderSettings.ambientEquatorColor = a1; RenderSettings.ambientGroundColor = a2;
+                RenderSettings.fogColor = fogC; RenderSettings.fogDensity = fogD; RenderSettings.reflectionIntensity = refl;
+                cam.targetTexture = null; RenderTexture.active = null;
+                UnityEngine.Object.DestroyImmediate(go); UnityEngine.Object.DestroyImmediate(tex); rt.Release(); UnityEngine.Object.DestroyImmediate(rt);
+            }
+            // every value was put back: a scene that was clean before stays clean (identical content)
+            var scene = EditorSceneManager.GetActiveScene();
+            if (!wasDirty && scene.isDirty) EditorSceneManager.SaveScene(scene);
+            L(log, $"{count} shots in {ShotDir}");
+            return log.ToString();
+        }
+
+        /// <summary>viewpoints from the zones (beach looking inland, meadow, forest edge) and behind the player</summary>
+        static List<Shot> Views(string[] want, StringBuilder log)
+        {
+            var list = new List<Shot>();
+            var terrain = Terrain.activeTerrain;
+            var zm = UnityEngine.Object.FindFirstObjectByType<ZoneManager>();
+            Vector3? Z(params string[] ids) { if (!zm) return null; foreach (var id in ids) { var z = zm.Find(id); if (z != null) return z.center; } return null; }
+            Vector3 G(Vector3 p, float up) { p.y = Ground(terrain, p) + up; return p; }
+            bool W(string n) => want == null || want.Contains(n);
+            var beach = Z("beach", "ZONE_StartBeach"); var meadow = Z("meadow", "ZONE_Meadow"); var rocky = Z("ridge", "ZONE_Rocky", "canyon"); var pond = Z("waterfall", "river", "ZONE_Pond");
+            if (W("beach") && beach.HasValue && meadow.HasValue)
+                list.Add(new Shot { name = "beach", eye = G(beach.Value, 2.2f), target = G(Vector3.Lerp(beach.Value, meadow.Value, 0.6f), 8f), fov = 60f });
+            if (W("meadow") && meadow.HasValue && rocky.HasValue)
+            {
+                var from = Vector3.Lerp(meadow.Value, beach ?? meadow.Value, 0.25f);
+                list.Add(new Shot { name = "meadow", eye = G(from, 2.4f), target = G(Vector3.Lerp(meadow.Value, rocky.Value, 0.7f), 12f), fov = 60f });
+            }
+            if (W("water") && pond.HasValue)
+            {
+                var dir = beach.HasValue ? (beach.Value - pond.Value) : Vector3.back; dir.y = 0f; dir = dir.normalized;
+                list.Add(new Shot { name = "water", eye = G(pond.Value + dir * 22f, 2.4f), target = G(pond.Value, 1f), fov = 60f });
+            }
+            var player = GameObject.FindWithTag("Player");
+            if (W("player") && player)
+            {
+                var t = player.transform;
+                list.Add(new Shot { name = "player", eye = G(t.position - t.forward * 3.6f + t.right * 1.2f, 1.9f), target = t.position + Vector3.up * 1.2f, fov = 50f });
+            }
+            L(log, "- views: " + string.Join(", ", list.Select(s => s.name)));
+            return list;
+        }
+    }
+}

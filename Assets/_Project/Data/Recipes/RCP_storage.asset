@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: RCP_storage
   m_EditorClassIdentifier: PrimalFrontier.Runtime::PrimalFrontier.Items.RecipeDefinition
   id: storage
-  category: 4
+  category: 8
   output: {fileID: 11400000, guid: a21fa4eadf5ea5647a2c5925007e6c9f, type: 2}
   outputCount: 1
   ingredients:
@@ -27,3 +27,5 @@ MonoBehaviour:
   station: 0
   knownAtStart: 1
   hint: 
+  requirements: []
+  extraResults: []

@@ -1,0 +1,242 @@
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using UnityEditor;
+using UnityEngine;
+using UnityEngine.Rendering;
+
+namespace PrimalFrontier.EditorTools
+{
+    /// <summary>
+    /// ENV models (tools/env/env_pc_assets.py, background Blender): import settings, the shared ENV materials, prefabs
+    /// (Prefabs/Environment/PC) with tuned LOD distances and simple colliders. Used by the Vegetation, Story and Volcano steps.
+    /// Materials are shared (one per surface type), instancing on, SRP-batcher compatible shaders.
+    /// </summary>
+    public static partial class PrimalEnvironmentBuilder
+    {
+        const string VegTexDir = EnvRoot + "/Textures/Plants";
+        const string OldTexDir = "Assets/_Project/Art/Textures";
+        static Dictionary<string, Material> _mats;
+
+        static Shader FindOk(string name, string fallback)
+        {
+            var sh = Shader.Find(name);
+            if (sh && !ShaderUtil.ShaderHasError(sh)) return sh;
+            W($"{name} missing or broken: using {fallback}");
+            return Shader.Find(fallback);
+        }
+
+        static Texture2D PlantTex(string file, bool normal, bool linear, bool cutout = false)
+        {
+            string path = $"{VegTexDir}/{file}";
+            var ti = AssetImporter.GetAtPath(path) as TextureImporter;
+            if (!ti) { W("missing texture " + path); return null; }
+            bool dirty = false;
+            void Set<T>(T now, T want, System.Action<T> apply) { if (!EqualityComparer<T>.Default.Equals(now, want)) { apply(want); dirty = true; } }
+            Set(ti.textureType, normal ? TextureImporterType.NormalMap : TextureImporterType.Default, v => ti.textureType = v);
+            Set(ti.sRGBTexture, !linear && !normal, v => ti.sRGBTexture = v);
+            Set(ti.mipmapEnabled, true, v => ti.mipmapEnabled = v);
+            Set(ti.maxTextureSize, 2048, v => ti.maxTextureSize = v);
+            Set(ti.anisoLevel, 4, v => ti.anisoLevel = v);
+            Set(ti.textureCompression, TextureImporterCompression.CompressedHQ, v => ti.textureCompression = v);
+            if (cutout)
+            {
+                Set(ti.alphaSource, TextureImporterAlphaSource.FromInput, v => ti.alphaSource = v);
+                Set(ti.alphaIsTransparency, true, v => ti.alphaIsTransparency = v);
+                Set(ti.mipMapsPreserveCoverage, true, v => ti.mipMapsPreserveCoverage = v);       // leaves do not melt away with distance
+                Set(ti.alphaTestReferenceValue, 0.45f, v => ti.alphaTestReferenceValue = v);
+                Set(ti.wrapMode, TextureWrapMode.Clamp, v => ti.wrapMode = v);
+            }
+            else Set(ti.wrapMode, TextureWrapMode.Repeat, v => ti.wrapMode = v);
+            if (dirty) ti.SaveAndReimport();
+            return AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+        }
+
+        static Material MatAsset(string name, Shader sh)
+        {
+            EnsureFolder(MatDir);
+            string p = $"{MatDir}/{name}.mat";
+            var m = AssetDatabase.LoadAssetAtPath<Material>(p);
+            if (!m) { m = new Material(sh) { name = name }; AssetDatabase.CreateAsset(m, p); }
+            else if (m.shader != sh) m.shader = sh;
+            m.enableInstancing = true;
+            return m;
+        }
+
+        /// <summary>every ENV material, created or refreshed (idempotent); keyed by name</summary>
+        static Dictionary<string, Material> EnvMaterials()
+        {
+            var wind = FindOk("PF/Foliage Wind", "Universal Render Pipeline/Lit");
+            var wet = FindOk(WetShader, "Universal Render Pipeline/Lit");
+            var d = new Dictionary<string, Material>();
+            var fol = PlantTex("T_EnvFoliage_D.png", false, false, true);
+            Material Leaves(string name, float height, float sway, float flutter)
+            {
+                var m = MatAsset(name, wind);
+                m.SetTexture("_BaseMap", fol); m.SetColor("_BaseColor", Color.white);
+                m.SetFloat("_Cutoff", 0.45f); m.SetFloat("_AlphaClip", 1f); m.EnableKeyword("_ALPHATEST_ON");
+                m.SetFloat("_Cull", 0f); m.doubleSidedGI = true; m.renderQueue = (int)RenderQueue.AlphaTest;
+                m.SetOverrideTag("RenderType", "TransparentCutout");
+                m.SetFloat("_Translucency", 0.45f); m.SetFloat("_WetDarken", 0.25f);
+                m.SetFloat("_WindHeight", height); m.SetFloat("_WindSway", sway); m.SetFloat("_Flutter", flutter);
+                m.SetFloat("_VertexMask", 1f); m.SetFloat("_ColorVariation", 0.2f); m.SetColor("_VariationTint", new Color(1.1f, 0.98f, 0.7f, 1f));
+                EditorUtility.SetDirty(m); d[name] = m; return m;
+            }
+            Leaves("M_Env_Foliage", 5.5f, 0.45f, 0.05f);
+            Leaves("M_Env_FoliageLow", 1.6f, 0.18f, 0.035f);
+            Material Trunk(string name, string tex, float height)
+            {
+                var m = MatAsset(name, wind);
+                var t = PlantTex($"T_{tex}_D.png", false, false);
+                m.SetTexture("_BaseMap", t); m.SetColor("_BaseColor", Color.white);
+                m.SetFloat("_AlphaClip", 0f); m.DisableKeyword("_ALPHATEST_ON"); m.SetFloat("_Cull", 2f);
+                m.SetFloat("_Translucency", 0f); m.SetFloat("_WetDarken", 0.35f);
+                m.SetFloat("_WindHeight", height); m.SetFloat("_WindSway", 0.45f); m.SetFloat("_Flutter", 0f);
+                m.SetFloat("_VertexMask", 1f); m.SetFloat("_ColorVariation", 0.12f);
+                EditorUtility.SetDirty(m); d[name] = m; return m;
+            }
+            Trunk("M_Env_TrunkFern", "EnvTrunkFern", 5.5f);
+            Trunk("M_Env_TrunkCycad", "EnvTrunkCycad", 5.5f);
+            var hs = Trunk("M_Env_Horsetail", "EnvHorsetail", 1.6f); hs.SetFloat("_WindSway", 0.2f);
+            // surfaces on PF/Wet Surface (rain darkens them)
+            var moss = ImportTexture($"{TexDir}/T_Moss_D.png", false, false);
+            Material Wet(string name, Texture2D albedo, Texture2D normal, Texture2D mask, Color tint, float smooth, float porosity, float mossAmount = 0f, float variation = 0.1f)
+            {
+                var m = MatAsset(name, wet);
+                m.SetTexture("_BaseMap", albedo); m.SetColor("_BaseColor", tint);
+                if (normal) m.SetTexture("_BumpMap", normal); m.SetFloat("_BumpScale", 1f);
+                if (mask) { m.SetTexture("_MetallicGlossMap", mask); m.SetTexture("_OcclusionMap", mask); m.SetFloat("_Smoothness", 1f); }
+                else { m.SetTexture("_MetallicGlossMap", null); m.SetTexture("_OcclusionMap", null); m.SetFloat("_Smoothness", smooth); }
+                m.SetFloat("_Porosity", porosity); m.SetFloat("_WetSmoothness", 0.7f); m.SetFloat("_WetResponse", 1f);
+                if (moss) m.SetTexture("_MossMap", moss);
+                m.SetFloat("_MossAmount", mossAmount); m.SetFloat("_MossTiling", 2.2f); m.SetFloat("_ColorVariation", variation);
+                EditorUtility.SetDirty(m); d[name] = m; return m;
+            }
+            Texture2D Old(string f) => AssetDatabase.LoadAssetAtPath<Texture2D>($"{OldTexDir}/{f}");
+            Wet("M_Env_RootBark", Old("T_Bark_D.png"), Old("T_Bark_N.png"), Old("T_Bark_M.png"), new Color(0.85f, 0.82f, 0.78f), 0.2f, 0.65f, 0.45f);
+            Wet("M_Env_RawWood", Old("T_Bark_D.png"), null, null, new Color(1.6f, 1.35f, 1.0f), 0.15f, 0.7f, 0f, 0.05f);
+            Wet("M_Env_MossRock", Old("T_Rock_D.png"), Old("T_Rock_N.png"), Old("T_Rock_M.png"), new Color(0.9f, 0.9f, 0.88f), 0.2f, 0.4f, 0.72f, 0.12f);
+            Wet("M_Env_Basalt", Old("T_Rock_D.png"), Old("T_Rock_N.png"), Old("T_Rock_M.png"), new Color(0.34f, 0.32f, 0.31f), 0.2f, 0.2f, 0f, 0.08f);
+            Wet("M_Env_WetRockMossy", Old("T_Rock_D.png"), Old("T_Rock_N.png"), Old("T_Rock_M.png"), new Color(0.82f, 0.82f, 0.8f), 0.2f, 0.45f, 0.62f, 0.12f).SetFloat("_BaseWetness", 0.85f);
+            Wet("M_Env_Bone", PlantTex("T_EnvBone_D.png", false, false), PlantTex("T_EnvBone_N.png", true, true), PlantTex("T_EnvBone_M.png", false, true), Color.white, 0.25f, 0.5f, 0.12f, 0.06f);
+            Wet("M_Env_Egg", PlantTex("T_EnvEgg_D.png", false, false), null, null, Color.white, 0.35f, 0.2f, 0f, 0.1f);
+            Wet("M_Env_Soil", ImportTexture($"{TexDir}/T_DarkSoil_D.png", false, false), ImportTexture($"{TexDir}/T_DarkSoil_N.png", true, true), ImportTexture($"{TexDir}/T_DarkSoil_M.png", false, true), Color.white, 0.25f, 0.6f, 0.2f);
+            Wet("M_Env_Charcoal", null, null, null, new Color(0.035f, 0.032f, 0.03f), 0.12f, 0.2f, 0f, 0.05f);
+            Wet("M_Env_Carving", null, null, null, new Color(0.56f, 0.53f, 0.48f), 0.12f, 0.35f, 0f, 0.02f);
+            // blood (dried): a cut-out decal material on the ground
+            var lit = FindOk("Universal Render Pipeline/Lit", "Universal Render Pipeline/Lit");
+            var bl = MatAsset("M_Env_BloodDried", lit);
+            bl.SetTexture("_BaseMap", PlantTex("T_EnvBlood_D.png", false, false, true)); bl.SetColor("_BaseColor", Color.white);
+            bl.SetFloat("_AlphaClip", 1f); bl.SetFloat("_Cutoff", 0.35f); bl.EnableKeyword("_ALPHATEST_ON"); bl.SetFloat("_Smoothness", 0.35f);
+            bl.renderQueue = (int)RenderQueue.AlphaTest; bl.SetOverrideTag("RenderType", "TransparentCutout");
+            EditorUtility.SetDirty(bl); d["M_Env_BloodDried"] = bl;
+            // lava
+            var lavaSh = FindOk("PF/Lava", "Universal Render Pipeline/Unlit");
+            var lv = MatAsset("M_Env_Lava", lavaSh);
+            var lt = ImportTexture($"{TexDir}/T_Lava.png", false, true, 512); if (lt && lv.HasProperty("_LavaTex")) lv.SetTexture("_LavaTex", lt);
+            EditorUtility.SetDirty(lv); d["M_Env_Lava"] = lv;
+            var cr = MatAsset("M_Env_LavaCrack", lavaSh);
+            if (lt && cr.HasProperty("_LavaTex")) cr.SetTexture("_LavaTex", lt);
+            if (cr.HasProperty("_Crust")) cr.SetFloat("_Crust", 0.78f);
+            if (cr.HasProperty("_FlowSpeed")) cr.SetFloat("_FlowSpeed", 0.01f);
+            EditorUtility.SetDirty(cr); d["M_Env_LavaCrack"] = cr;
+            // existing shared materials the models reference by name
+            foreach (var n in new[] { "M_Rock", "M_ShipPlanks", "M_ShipBeam", "M_Rope", "M_SailCloth" })
+            {
+                var m = AssetDatabase.LoadAssetAtPath<Material>($"Assets/_Project/Art/Materials/{n}.mat");
+                if (m) d[n] = m; else W("missing shared material " + n);
+            }
+            _mats = d;
+            return d;
+        }
+
+        /// <summary>model import settings + material remap by name (exact assets, no search)</summary>
+        static GameObject ImportModel(string name)
+        {
+            string path = $"{ModelDir}/{name}.fbx";
+            var mi = AssetImporter.GetAtPath(path) as ModelImporter;
+            if (!mi) { W("missing model " + path); return null; }
+            bool dirty = false;
+            if (mi.importAnimation) { mi.importAnimation = false; dirty = true; }
+            if (mi.importCameras || mi.importLights) { mi.importCameras = false; mi.importLights = false; dirty = true; }
+            if (mi.materialImportMode != ModelImporterMaterialImportMode.ImportStandard) { mi.materialImportMode = ModelImporterMaterialImportMode.ImportStandard; dirty = true; }
+            if (mi.animationType != ModelImporterAnimationType.None) { mi.animationType = ModelImporterAnimationType.None; dirty = true; }
+            if (mi.importNormals != ModelImporterNormals.Import) { mi.importNormals = ModelImporterNormals.Import; dirty = true; }
+            if (mi.importTangents != ModelImporterTangents.CalculateMikk) { mi.importTangents = ModelImporterTangents.CalculateMikk; dirty = true; }
+            if (mi.isReadable) { mi.isReadable = false; dirty = true; }
+            var existing = mi.GetExternalObjectMap();
+            foreach (var kv in _mats)
+            {
+                var id = new AssetImporter.SourceAssetIdentifier(typeof(Material), kv.Key);
+                if (!existing.TryGetValue(id, out var cur) || cur != kv.Value) { mi.AddRemap(id, kv.Value); dirty = true; }
+            }
+            if (dirty) mi.SaveAndReimport();
+            return AssetDatabase.LoadAssetAtPath<GameObject>(path);
+        }
+
+        enum ColKind { None, Capsule, Mesh, Box }
+
+        /// <summary>prefab from a model: LOD distances (fraction of screen height), a collider, material swaps</summary>
+        static GameObject MakePrefab(string name, float[] lodHeights, ColKind col, Dictionary<string, string> swap = null, bool castShadows = true, float capsuleRadius = 0.3f, float capsuleHeight = 3f)
+        {
+            var model = ImportModel(name); if (!model) return null;
+            EnsureFolder(PrefabDir);
+            var go = (GameObject)PrefabUtility.InstantiatePrefab(model);
+            try
+            {
+                go.name = name;
+                foreach (var r in go.GetComponentsInChildren<MeshRenderer>(true))
+                {
+                    if (swap != null)
+                    {
+                        var ms = r.sharedMaterials;
+                        for (int i = 0; i < ms.Length; i++) if (ms[i] && swap.TryGetValue(ms[i].name, out var to) && _mats.TryGetValue(to, out var tm)) ms[i] = tm;
+                        r.sharedMaterials = ms;
+                    }
+                    r.shadowCastingMode = castShadows ? ShadowCastingMode.On : ShadowCastingMode.Off;
+                    if (r.name.EndsWith("_LOD2")) r.shadowCastingMode = ShadowCastingMode.Off;
+                }
+                var lg = go.GetComponent<LODGroup>();
+                if (lg && lodHeights != null)
+                {
+                    var lods = lg.GetLODs();
+                    for (int i = 0; i < lods.Length && i < lodHeights.Length; i++) lods[i].screenRelativeTransitionHeight = lodHeights[i];
+                    for (int i = 1; i < lods.Length; i++) lods[i].screenRelativeTransitionHeight = Mathf.Min(lods[i].screenRelativeTransitionHeight, lods[i - 1].screenRelativeTransitionHeight * 0.9f);
+                    lg.SetLODs(lods); lg.fadeMode = LODFadeMode.None;
+                }
+                var mfs = go.GetComponentsInChildren<MeshFilter>(true);
+                var colMesh = mfs.FirstOrDefault(m => m.name.EndsWith("_LOD1")) ?? mfs.FirstOrDefault();
+                switch (col)
+                {
+                    case ColKind.Capsule:
+                        var cc = go.AddComponent<CapsuleCollider>(); cc.radius = capsuleRadius; cc.height = capsuleHeight; cc.center = new Vector3(0, capsuleHeight * 0.5f, 0); break;
+                    case ColKind.Mesh:
+                        if (colMesh) { var mc = go.AddComponent<MeshCollider>(); mc.sharedMesh = colMesh.sharedMesh; } break;
+                    case ColKind.Box:
+                        var b = new Bounds(); bool first = true;
+                        foreach (var r in go.GetComponentsInChildren<Renderer>()) { if (first) { b = r.bounds; first = false; } else b.Encapsulate(r.bounds); }
+                        var bc = go.AddComponent<BoxCollider>(); bc.center = b.center - go.transform.position; bc.size = b.size; break;
+                }
+                var prefab = PrefabUtility.SaveAsPrefabAsset(go, $"{PrefabDir}/{name}.prefab");
+                return prefab;
+            }
+            finally { Object.DestroyImmediate(go); }
+        }
+
+        /// <summary>a single-mesh detail prefab (terrain details draw the root mesh only)</summary>
+        static GameObject MakeDetailPrefab(string name, string material)
+        {
+            var model = ImportModel(name); if (!model) return null;
+            var mf = model.GetComponentsInChildren<MeshFilter>(true).FirstOrDefault(); if (!mf) { W(name + ": no mesh"); return null; }
+            var go = new GameObject(name);
+            try
+            {
+                go.AddComponent<MeshFilter>().sharedMesh = mf.sharedMesh;
+                var r = go.AddComponent<MeshRenderer>(); r.sharedMaterial = _mats[material]; r.shadowCastingMode = ShadowCastingMode.Off;
+                EnsureFolder(PrefabDir);
+                return PrefabUtility.SaveAsPrefabAsset(go, $"{PrefabDir}/{name}.prefab");
+            }
+            finally { Object.DestroyImmediate(go); }
+        }
+    }
+}

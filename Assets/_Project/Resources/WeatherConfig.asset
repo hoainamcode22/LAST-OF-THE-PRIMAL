@@ -1,0 +1,71 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1a92b5517826c29479dc14ac58f46011, type: 3}
+  m_Name: WeatherConfig
+  m_EditorClassIdentifier: PrimalFrontier.Runtime::PrimalFrontier.Core.WeatherConfig
+  cloudChancePerHour: 0.12
+  rainChancePerHour: 0.25
+  cloudHours: {x: 1.5, y: 4}
+  afterRainCloudHours: {x: 0.5, y: 1.5}
+  rainHours: {x: 1, y: 3}
+  heavyRainHours: {x: 0.7, y: 1.5}
+  lightRainShare: 0.4
+  heavyRainShare: 0.2
+  heavyRainBuild: 0.35
+  stormChance: 0.18
+  firstStormAfterHours: 20
+  minHoursBetweenStorms: 30
+  stormLeadHours: {x: 0.2, y: 0.4}
+  stormHours: {x: 0.45, y: 1.1}
+  stormTailHours: {x: 0.4, y: 1}
+  lightRain: 0.5
+  normalRain: 0.75
+  heavyRain: 0.94
+  stormRain: 1
+  rainSwell: 0.06
+  rainRampSeconds: 12
+  stormRampSeconds: 10
+  cloudyCover: 0.5
+  rainCover: 0.8
+  stormCover: 1
+  cloudRampSeconds: 20
+  soakSeconds: 50
+  dryDelaySeconds: 45
+  drySecondsClear: 240
+  drySecondsOvercast: 600
+  nightDrySlowdown: 1.6
+  lightRainWetness: 0.8
+  fogCloudy: 1.25
+  fogRain: 1.9
+  fogStorm: 1.7
+  greyCloudy: 0.25
+  greyRain: 0.7
+  greyStorm: 0.9
+  rainSun: 0.8
+  rainAmbient: 0.88
+  stormSun: 0.4
+  stormAmbient: 0.62
+  calmWind: 0.35
+  cloudyWind: 0.55
+  rainWind: 0.9
+  stormWind: 1.4
+  stormGust: 0.45
+  gustSeconds: {x: 3, y: 9}
+  stormGustSeconds: {x: 1.2, y: 3.5}
+  lightningSeconds: {x: 6, y: 16}
+  nearStrikeShare: 0.25
+  nearStrikeMeters: {x: 250, y: 700}
+  farStrikeMeters: {x: 1200, y: 3800}
+  lightningIntensity: 2.6
+  lightningColor: {r: 0.8, g: 0.86, b: 1, a: 1}
+  dropsPerIntensity: 1.3
+  rainWindSlant: 3

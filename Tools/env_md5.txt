@@ -1,0 +1,17 @@
+35ac01efd86cbc08165fe71454a2cbc5  Scripts/Editor/PrimalEnvironmentBuilder.Assets.cs
+b4d873bf4ba0a11bdda5d9449b8dbb4f  Scripts/Editor/PrimalEnvironmentBuilder.Story.cs
+259492edc11fd73301bb6a04453f19ac  Scripts/Editor/PrimalEnvironmentBuilder.Terrain.cs
+452a8ac5780088170025d4512ca0436c  Scripts/Editor/PrimalEnvironmentBuilder.Vegetation.cs
+cb53e1d7df9b8c92d56570de10509a5e  Scripts/Editor/PrimalEnvironmentBuilder.Volcano.cs
+01d808fc70ca046e9a73f290b8df5390  Scripts/Editor/PrimalEnvironmentBuilder.Water.cs
+4dd3744c0fb6c0e287621e7e8c9a1812  Scripts/Editor/PrimalEnvironmentBuilder.Wet.cs
+8916995c689b15798a6859e7759325d7  Scripts/Editor/PrimalEnvironmentBuilder.cs
+0390b368b6c711096508214d35ecdd7d  Scripts/Editor/PrimalWaterBuilder.cs
+59a7f15bcfc3fe3254f3d4392eb2e5ff  Scripts/World/EnvLocation.cs
+c82246acd1a05d1843d091d11a99ab70  Shaders/PF_WetSurface.shader
+7703896b1cf130fc32654a83335009e0  Shaders/PF_Waterfall.shader
+76ba74a3561e1b66324dd397f9f176e0  Shaders/PF_Lava.shader
+1b4de96f715f8cb743f2b333710c93a5  Shaders/PF_TerrainWet.shader
+3239eccb865c9b4963145ca3ba1fda14  Shaders/PF_TerrainWetAdd.shader
+8b802013ff45628d201d582cd00c78ea  Shaders/PF_TerrainWet.hlsl
+77a8d8a842aa07a3cf506bca8cd0e1c9  Shaders/PF_FoliageWind.shader

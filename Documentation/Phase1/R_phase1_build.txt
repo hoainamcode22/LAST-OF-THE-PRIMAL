@@ -1,0 +1,86 @@
+PrimalResourceBuilder.Phase1 2026-09-30 15:41 arg 'icons'
+model Assets/_Project/Prefabs/Resources/Items/PFB_ITEM_WreckScraps.prefab: 198 verts, 152 tris, 3 materials (M_ShipPlanks, M_SailCloth, M_Rope), size 0,47x0,10x0,38
+model Assets/_Project/Prefabs/Resources/Items/PFB_ITEM_WreckNails.prefab: 432 verts, 216 tris, 2 materials (M_IronHoop, M_ShipPlanks), size 0,27x0,04x0,25
+model Assets/_Project/Prefabs/Resources/Items/PFB_ITEM_Sailcloth.prefab: 302 verts, 460 tris, 1 materials (M_SailCloth), size 0,50x0,07x0,38
+model Assets/_Project/Prefabs/Resources/Models/MDL_NailedTimber.prefab: 192 verts, 96 tris, 3 materials (M_ShipBeam, M_ShipPlanks, M_IronHoop), size 1,30x0,30x0,60
+model Assets/_Project/Prefabs/Resources/Models/MDL_TornSail.prefab: 408 verts, 572 tris, 2 materials (M_ShipBeam, M_SailCloth), size 1,89x0,16x1,15
+item wreck_scraps kept (exists: Shipwreck Scraps)
+icon Assets/_Project/Art/Icons/ICON_WreckScraps.png rendered (14 % covered)
+icon Assets/_Project/Art/Icons/ICON_WreckScraps.png rendered (14 % covered)
+item wreck_nails kept (exists: Iron Nails)
+icon Assets/_Project/Art/Icons/ICON_WreckNails.png rendered (9 % covered)
+icon Assets/_Project/Art/Icons/ICON_WreckNails.png rendered (9 % covered)
+item sailcloth kept (exists: Sailcloth)
+icon Assets/_Project/Art/Icons/ICON_Sailcloth.png rendered (22 % covered)
+icon Assets/_Project/Art/Icons/ICON_Sailcloth.png rendered (22 % covered)
+ResourceDatabase: 23 resources, 6 tools + hands
+prefab Assets/_Project/Prefabs/Resources/Nodes/Resource_Stone_Small.prefab: stone_small, size 0,65x0,26x0,69, radius 0,29, solid
+prefab Assets/_Project/Prefabs/Resources/Nodes/Resource_Stone_Medium.prefab: stone_medium, size 0,80x0,62x0,75, radius 0,34, solid
+prefab Assets/_Project/Prefabs/Resources/Nodes/Resource_Stone_Medium_02.prefab: stone_medium, size 0,73x0,75x0,74, radius 0,33, solid
+prefab Assets/_Project/Prefabs/Resources/Nodes/Resource_Stone_Large.prefab: stone_large, size 1,71x1,12x1,19, radius 0,53, solid
+prefab Assets/_Project/Prefabs/Resources/Nodes/Resource_Wood_Branch.prefab: wood_branch, size 1,39x0,11x0,60, radius 0,27, trigger
+prefab Assets/_Project/Prefabs/Resources/Nodes/Resource_Wood_Branch_02.prefab: wood_branch, size 1,14x0,09x0,46, radius 0,27, trigger
+prefab Assets/_Project/Prefabs/Resources/Nodes/Resource_Wood_Driftwood.prefab: wood_driftwood, size 1,96x0,30x1,72, radius 0,77, solid
+prefab Assets/_Project/Prefabs/Resources/Nodes/Resource_Wood_SmallLog.prefab: wood_small_log, size 2,65x0,35x0,47, radius 0,30, solid
+prefab Assets/_Project/Prefabs/Resources/Nodes/Resource_Fiber_Plant.prefab: fiber_plant, size 1,10x1,12x1,15, radius 0,50, trigger
+prefab Assets/_Project/Prefabs/Resources/Nodes/Resource_Fiber_LongGrass.prefab: fiber_grass, size 1,31x1,43x1,30, radius 0,58, trigger
+prefab Assets/_Project/Prefabs/Resources/Nodes/Resource_Fiber_Fern.prefab: fiber_fern, size 1,78x0,51x1,81, radius 0,80, trigger
+prefab Assets/_Project/Prefabs/Resources/Nodes/Resource_Fiber_SmallBush.prefab: fiber_bush, size 1,13x0,51x0,99, radius 0,45, trigger
+prefab Assets/_Project/Prefabs/Resources/Nodes/Resource_Food_BerryBush.prefab: food_berry_bush, size 1,92x1,04x1,68, radius 0,75, trigger
+prefab Assets/_Project/Prefabs/Resources/Nodes/Resource_Food_FallenFruit.prefab: food_fallen_fruit, size 0,77x0,25x0,44, radius 0,20, trigger
+prefab Assets/_Project/Prefabs/Resources/Nodes/Resource_Food_EdiblePlant.prefab: food_edible_plant, size 0,25x0,20x0,21, radius 0,18, trigger
+prefab Assets/_Project/Prefabs/Resources/Nodes/Resource_Fish_Shoal.prefab: fish_shoal, size 0,54x0,12x0,58, radius 0,48, trigger
+prefab Assets/_Project/Prefabs/Resources/Nodes/Resource_Rare_Bones.prefab: rare_bones, size 0,50x0,05x0,54, radius 0,23, trigger
+prefab Assets/_Project/Prefabs/Resources/Nodes/Resource_Rare_Hide.prefab: rare_hide, size 0,50x0,00x0,40, radius 0,21, trigger
+prefab Assets/_Project/Prefabs/Resources/Nodes/Resource_Rare_WreckScraps.prefab: rare_wreck_scraps, size 0,81x0,10x0,59, radius 0,30, trigger
+prefab Assets/_Project/Prefabs/Resources/Nodes/Resource_Salvage_Planks.prefab: salvage_planks, size 1,15x0,29x1,50, radius 0,52, trigger
+prefab Assets/_Project/Prefabs/Resources/Nodes/Resource_Salvage_Nails.prefab: salvage_nails, size 1,30x0,30x0,60, radius 0,42, trigger
+prefab Assets/_Project/Prefabs/Resources/Nodes/Resource_Salvage_Sail.prefab: salvage_sail, size 1,89x0,16x1,15, radius 0,52, trigger
+recipe asset RCP_cloth_bandage: not created yet (SURV's PrimalSurvivalBuilder.Build creates it now that ITEM_wreck_scraps exists)
+recipe asset RCP_scrap_rope: not created yet (SURV's PrimalSurvivalBuilder.Build creates it now that ITEM_wreck_scraps exists)
+recipes in the ItemDatabase using shipwreck items: 0
+terrain (640.00, 80.00, 640.00) at (-320.00, -10.00, -320.00), layers TL_Sand,TL_Grass,TL_ForestFloor,TL_Rock,TL_Mud,TL_SandWet,TL_Moss,TL_DarkSoil,TL_Ash, trees 1479
+fresh water cells 4780 from 8 active bodies: ENV_River_Water 1483, ENV_WaterfallPool_Water 53, ENV_SpringStream_Water 56, ENV_Wetland_Water 1620, ENV_RiverMouth_Water 170, ENV_Spring_Water 9, ENV_LowerRiver_Water 515, ENV_Pond_Water 874
+locations (18): beach (0,0,1,8,205,0) r70, canyon (-136,0,23,4,-125,0) r36, cave (-18,0,18,4,-131,0) r15, deep_forest (168,0,8,1,20,0) r60, forest (-40,0,10,7,125,0) r60, fossil_bed (-128,4,23,5,-120,0) r10, herbivore_valley (6,0,9,2,-40,0) r85, meadow (-2,0,9,2,-28,0) r70, migration_view (-40,0,25,4,-92,0) r10, nest (-152,0,13,2,-28,0) r14, old_camp (122,0,12,2,-66,0) r12, predator_territory (-105,0,21,6,-76,0) r45, ridge (108,0,47,8,-208,0) r45, river (66,0,10,7,-45,0) r55, shipwreck (-45,0,-0,1,224,0) r25, volcano (-122,0,44,4,-216,0) r45, waterfall (93,5,19,4,-160,0) r24, wetland (102,0,0,4,172,0) r38
+sea level 0,00 m; fresh water cells 4780
+[Resources]: 487 nodes (7 fish shoals skipped): in water 0, moved to dry ground 0, no dry spot 0; snapped to the ground 0 (worst 0,00 m)
+World/Resources: 45 nodes (0 fish shoals skipped): in water 0, moved to dry ground 0, no dry spot 0; snapped to the ground 0 (worst 0,00 m)
+World/Rocks + World/Vegetation nodes standing in water: 0  switched off (the model stays as scenery)
+shipwreck 9 parts, bounds (-54,6,-6,1,205,7)..(-34,0,6,1,249,3), centre (-44,3,0,0,227,5), radius 21,8 m, ground -0,84
+   Resource_Salvage_Planks: 3 / 3
+   Resource_Salvage_Nails: 2 / 2
+   Resource_Salvage_Sail: 2 / 2
+   Resource_Rare_WreckScraps: 3 / 3
+shipwreck salvage: 10 nodes under [Resources]/Shipwreck
+   Resource_Salvage_Planks_00 (-57,2,0,7,220,1) (14,9 m, 2 wreck_scraps)
+   Resource_Salvage_Planks_01 (-43,4,1,5,211,9) (15,6 m, 2 wreck_scraps)
+   Resource_Salvage_Planks_02 (-48,0,1,4,214,1) (13,9 m, 3 wreck_scraps)
+   Resource_Salvage_Nails_00 (-55,2,0,8,219,6) (13,5 m, 2 wreck_nails)
+   Resource_Salvage_Nails_01 (-57,1,0,5,221,5) (14,1 m, 2 wreck_nails)
+   Resource_Salvage_Sail_00 (-53,3,1,2,216,5) (14,2 m, 1 sailcloth)
+   Resource_Salvage_Sail_01 (-46,0,1,3,214,4) (13,2 m, 1 sailcloth)
+   Resource_Rare_WreckScraps_00 (-31,1,0,4,219,3) (15,5 m, 2 wreck_scraps)
+   Resource_Rare_WreckScraps_01 (-50,8,1,3,215,1) (14,0 m, 1 wreck_scraps)
+   Resource_Rare_WreckScraps_02 (-50,8,1,4,213,9) (15,0 m, 2 wreck_scraps)
+recipe stone_axe: 2 stone + 1 wood + 1 rope
+recipe stone_pick: 2 stone + 2 wood + 1 rope
+recipe flint_knife: 1 stone + 1 bone + 1 fiber
+recipe campfire: 4 wood + 5 stone
+recipe rope: 3 fiber
+hand-gatherable within 60 m of the spawn (-20,0,1,5,211,0) (before top-up): berries 6 nodes / 29 units, fiber 8 nodes / 23 units, fruit 4 nodes / 7 units, sailcloth 2 nodes / 2 units, stone 11 nodes / 50 units, wood 11 nodes / 30 units, wreck_nails 2 nodes / 4 units, wreck_scraps 6 nodes / 12 units
+   stone: 50 units, need 20: enough
+   wood: 30 units, need 16: enough
+   fiber: 23 units, need 18: enough
+   bone: 0 units, need 1: adding clusters
+   no free centre for a beach cluster
+   + P1_01_bone_Forest at (-35,0,1,5,164,5) (49 m from the spawn): 1 nodes
+hand-gatherable within 60 m after the top-up (1 nodes added): berries 6 nodes / 29 units, bone 1 nodes / 2 units, fiber 8 nodes / 23 units, fruit 4 nodes / 7 units, sailcloth 2 nodes / 2 units, stone 11 nodes / 50 units, wood 11 nodes / 30 units, wreck_nails 2 nodes / 4 units, wreck_scraps 6 nodes / 12 units
+tool-gated nodes within 60 m (hands 0): stone_large 4
+nodes on top of each other (< 0.3 m) separated: 0
+node sets: [Resources] 487 (487 active), World/Resources 45 (45 active)
+World/Resources vs [Resources]: 0 within 1.5 m, 0 within 0.5 m (0 same item at the same spot)
+[Resources]: 0 pairs within 0.3 m of each other
+World/Resources: 0 pairs within 0.3 m of each other
+World/Resources kinds: wood_driftwood 10, stone_small 12, fiber_plant 14, food_berry_bush 9
+VERIFY 1435 active nodes: off the ground 0, in fresh water (not fish) 0, below sea level 0
+scene saved Assets/_Project/Scenes/Island_VerticalSlice.unity

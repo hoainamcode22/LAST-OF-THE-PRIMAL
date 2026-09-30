@@ -229,7 +229,7 @@ namespace PrimalFrontier.EditorTools
         public static string FixTreePlacement()
         {
             Log.Clear();
-            var holder = GameObject.Find("[Gameplay]")?.transform.Find("FruitTrees");
+            var holder = PrimalFrontier.Core.SceneRoots.Legacy("[Gameplay]/FruitTrees");   // World/Gameplay/Interactables/FruitTrees (HIER)
             var terrain = UnityEngine.Object.FindFirstObjectByType<Terrain>();
             if (!holder || !terrain) return "no [Gameplay]/FruitTrees or terrain";
             MoveOutOfWater(holder, terrain);
@@ -303,8 +303,8 @@ namespace PrimalFrontier.EditorTools
             var uiRoot = UnityEngine.Object.FindFirstObjectByType<UI.UIManager>()?.gameObject;
             if (uiRoot)
             {
-                bool newMap = !uiRoot.GetComponent<UI.Minimap>(), newTouch = !uiRoot.GetComponent<UI.MobileHUD>();
-                var mm0 = uiRoot.GetOrAdd<UI.Minimap>(); var th0 = uiRoot.GetOrAdd<UI.MobileHUD>();
+                bool newMap = !uiRoot.GetComponent<UI.Minimap>(), newTouch = UI.MobileHUD.Supported && !uiRoot.GetComponent<UI.MobileHUD>();   // touch: mobile builds only
+                var mm0 = uiRoot.GetOrAdd<UI.Minimap>(); var th0 = newTouch ? uiRoot.GetOrAdd<UI.MobileHUD>() : null;
                 if (!mm0.data) mm0.data = AssetDatabase.LoadAssetAtPath<UI.MinimapData>("Assets/_Project/Resources/MinimapData.asset");
                 if (newMap) mm0.BakeLayout();
                 if (newTouch) { th0.BakeLayout(); var tc = uiRoot.transform.Find("[Touch]"); if (tc) tc.gameObject.SetActive(false); }
@@ -377,9 +377,7 @@ namespace PrimalFrontier.EditorTools
         {
             var scene = EditorSceneManager.GetActiveScene();
             if (scene.path != Scene) scene = EditorSceneManager.OpenScene(Scene, OpenSceneMode.Single);
-            var gp = GameObject.Find("[Gameplay]");
-            Transform holder = gp ? gp.transform.Find("FruitTrees") : null;
-            if (!holder) { holder = new GameObject("FruitTrees").transform; if (gp) holder.SetParent(gp.transform, false); }
+            Transform holder = PrimalFrontier.Core.SceneRoots.Legacy("[Gameplay]/FruitTrees", true);   // World/Gameplay/Interactables/FruitTrees (HIER)
             var terrain = Terrain.activeTerrain ? Terrain.activeTerrain : UnityEngine.Object.FindFirstObjectByType<Terrain>();
             if (tree && holder.childCount == 0 && terrain)
             {

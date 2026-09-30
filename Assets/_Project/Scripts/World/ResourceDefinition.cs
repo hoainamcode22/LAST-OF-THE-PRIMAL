@@ -7,7 +7,7 @@ using PrimalFrontier.VFX;
 namespace PrimalFrontier.World
 {
     /// <summary>what a node gives; picks the tool efficiency row (stored as ints in the assets: append only)</summary>
-    public enum ResourceCategory { Stone, Wood, Fiber, Food, Fish }
+    public enum ResourceCategory { Stone, Wood, Fiber, Food, Fish, Rare }   // appended only (stored as ints): Rare = bones, hide, shipwreck scraps
     /// <summary>node size class (Small stones 2-4, Medium 4-8, Large 8-15; Huge = the big boulders)</summary>
     public enum ResourceSize { Small, Medium, Large, Huge }
     /// <summary>how an emptied node looks until it is back: Hide (piles, plants: gone with a puff), Rubble (shrinks and sinks),
@@ -74,6 +74,7 @@ namespace PrimalFrontier.World
                 case ResourceCategory.Stone: hitVfx = VfxId.StoneChips; hitVfx2 = VfxId.DustImpact; handSfx = SfxId.StoneGatherHand; toolSfx = SfxId.StoneHit; break;
                 case ResourceCategory.Wood: hitVfx = VfxId.WoodChips; hitVfx2 = VfxId.HitDust; handSfx = SfxId.BranchSnap; toolSfx = SfxId.WoodChop; break;
                 case ResourceCategory.Fish: hitVfx = VfxId.WaterSplash; hitVfx2 = VfxId.WaterDrops; handSfx = toolSfx = SfxId.WaterSplash; break;
+                case ResourceCategory.Rare: hitVfx = VfxId.HitDust; hitVfx2 = VfxId.None; handSfx = toolSfx = SfxId.Pickup; break;
                 default: hitVfx = VfxId.Leaves; hitVfx2 = VfxId.None; handSfx = toolSfx = SfxId.LeafRustle; break;
             }
         }

@@ -1,0 +1,116 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 76941958ba4abce45a96fc460769258c, type: 3}
+  m_Name: WildlifeConfig
+  m_EditorClassIdentifier: PrimalFrontier.Runtime::PrimalFrontier.AI.WildlifeConfig
+  minSpacing: 2.4
+  grazeSpread: 6
+  grazePerMember: 0.9
+  travelSpread: {x: 7, y: 16}
+  nightSpread: 0.55
+  reslotSeconds: {x: 25, y: 60}
+  speedSpread: {x: 0.86, y: 1.12}
+  idleSpread: {x: 0.7, y: 1.45}
+  catchUp: 1.4
+  catchUpSpeed: 1.7
+  anchorWait: 1.2
+  travelSpeed: 0.82
+  afternoonRestHours: 1.6
+  drinkSeconds: {x: 9, y: 16}
+  waterSearch: 220
+  comfortFactor: 0.62
+  toleranceSeconds: {x: 4, y: 10}
+  ignoreSeconds: {x: 18, y: 40}
+  lookUpEvery: {x: 4, y: 9}
+  approachSpeed: 1.1
+  alarmSpeed: 22
+  alarmDelay: {x: 0.05, y: 0.45}
+  predatorWatch: 38
+  predatorAvoid: 26
+  predatorFlee: 15
+  watchPreyChance: 0.35
+  watchPreyDistance: {x: 30, y: 42}
+  watchPreySeconds: {x: 10, y: 22}
+  testRushChance: 0.25
+  testRushSeconds: 2.6
+  carcassEatSeconds: {x: 25, y: 45}
+  migrationEveryDays: 2
+  migrationStartDelayHours: 0.25
+  migrationSpeed: 1
+  fordPause: 35
+  fordIndex: 6
+  viewDistance: 170
+  seenSeconds: 3
+  dustPerSecond: 3.5
+  dustScale: 1.6
+  rumbleDistance: 260
+  migrationCallEvery: {x: 5, y: 11}
+  callDistance: 240
+  birdFlushEvery: {x: 7, y: 14}
+  birdFlushRange: 22
+  sightedMembers: 3
+  sightedRange: 95
+  drawDistance: 48
+  capacity: 900
+  freshHours: 2
+  fadeHours: 10
+  rainWear: 3
+  printEveryStrides: 1
+  sparsePrintDistance: 120
+  flattenEvery: 7
+  droppingsHours: {x: 5, y: 12}
+  examineRange: 2.2
+  examinedRadius: 14
+  readForHours: 6
+  scratchesPerTerritory: 7
+  droppingsPerHerd: 4
+  seedPrintsPerCreature: 14
+  shakeDistance: 34
+  runStepBoost: 1.4
+  weatherCheckSeconds: 2
+  rainMinIntensity: 0.25
+  shelterIntensity: 0.6
+  heavyRainIntensity: 0.9
+  flyerLandRain: 0.92
+  rainGrazeTowardCover: 0.5
+  rainSpread: 0.75
+  stormSpread: 0.5
+  rainRoamMul: 0.6
+  stormRoamMul: 0.4
+  rainRestBias: 0.35
+  stormRestBias: 0.6
+  rainCallMul: 0.4
+  stormCallMul: 0.2
+  rainHuntMul: 0.5
+  heavyRainHuntMul: 0.25
+  rainPatrolMul: 0.8
+  heavyRainPatrolMul: 0.55
+  stormPatrolMul: 0.35
+  flyerLandSeconds: 6
+  flyerTakeoffDelay: {x: 4, y: 15}
+  flyerStartleAirSeconds: 25
+  huntCooldownMinutes: 12
+  huntFailCooldownMinutes: 6
+  huntFirstDelayMinutes: 8
+  huntCheckSeconds: 6
+  huntStartChance: 0.25
+  huntSearchRadius: 110
+  huntMinHerd: 3
+  huntLonerMin: 2
+  huntNearMinKillMul: 0.5
+  huntSafeStartRadius: 90
+  huntStalkSpeed: 0.75
+  huntStalkSeconds: 100
+  huntGiveUpDistance: 55
+  restSeconds: {x: 20, y: 45}
+  breatheAfterRun: 6
+  carcassHungerPerSecond: 0.02

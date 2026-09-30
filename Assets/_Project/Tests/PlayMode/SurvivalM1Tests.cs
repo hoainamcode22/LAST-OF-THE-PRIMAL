@@ -18,7 +18,7 @@ namespace PrimalFrontier.Tests
 {
     /// <summary>
     /// Survival milestone 1 (agent S2): campfire fuel from item data, cooking slots raw -> ready -> burned, taking food,
-    /// boiling a container moved onto the fire (salt -> clean, one charge lost), rain collector (only in rain, fills a
+    /// boiling salt water refused (the container stays salt in the pack), rain collector (only in rain, fills a
     /// container), campfire slots / collector water through ISaveableStructure and the real save file, and the content
     /// made by PrimalSurvivalBuilder. Short timings come from runtime item copies and a test SurvivalConfig.
     /// </summary>
@@ -190,31 +190,22 @@ namespace PrimalFrontier.Tests
             Assert.AreEqual(1, fire.CookingCount); Assert.AreEqual(3, inv.Count(raw));
         }
 
-        [UnityTest] public IEnumerator Boiling_Salt_Water_Gives_Clean_Water_Minus_A_Charge()
+        [Test] public void Boiling_Salt_Water_Is_Refused_And_Stays_Salt()
         {
-            SetBoil(WaterType.SaltWater, 0.4f);
+            SetBoil(WaterType.SaltWater, 0.4f);                  // even a config that would boil it: the code rule wins
             var gourd = MakeItem("t_gourd", i => { i.category = ItemCategory.Survival; i.maxStack = 1; i.waterCharges = 3; });
             var fuel = MakeItem("t_fuel3", i => i.fuelSeconds = 100f);
             var fire = NewFire(new Vector3(9, 0, 0)); var inv = NewPack();
             var st = new ItemStack(gourd, 1);
             Assert.AreEqual(3, WaterRules.Fill(st, WaterType.SaltWater));
             inv.SetSlot(0, st); inv.Add(fuel, 1);
-            Assert.IsFalse(fire.TryBoil(inv, 0), "a cold fire does not boil");
+            Assert.IsFalse(WaterRules.CanBoil(st), "salt water is never boiled");
             Assert.IsTrue(fire.TryLight(inv));
-            Assert.IsTrue(fire.TryBoil(inv, 0));
-            Assert.IsNull(inv.Get(0), "the container moved from the pack onto the fire");
-            Assert.AreNotSame(st, fire.WaterOn(0), "the fire owns its own stack (no reference into the inventory)");
-            Assert.IsTrue(fire.Boiling); Assert.AreEqual(0, fire.CookingCount, "water is not food");
-            yield return Until(() => fire.StateOf(0) == Campfire.CookState.Ready, 3f);
-            Assert.AreEqual(Campfire.CookState.Ready, fire.StateOf(0), "boiled");
-            Assert.IsFalse(fire.Boiling);
-            Assert.IsTrue(fire.TryTake(inv), "take the container back");
-            var back = inv.Slots.FirstOrDefault(s => s != null && s.item == gourd);
-            Assert.IsNotNull(back);
-            Assert.AreEqual(WaterType.CleanWater, WaterRules.TypeOf(back), "salt water boiled clean");
-            Assert.AreEqual(2, back.water, "salt boils down by one charge");
-            int idx = Array.IndexOf(inv.Slots, back);
-            Assert.IsFalse(fire.TryBoil(inv, idx), "clean water needs no boiling");
+            Assert.IsFalse(fire.TryBoil(inv, 0), "a lit fire refuses salt water (boiling does not remove salt)");
+            Assert.AreSame(st, inv.Get(0), "the container stays in the pack");
+            Assert.IsFalse(fire.Boiling); Assert.IsNull(fire.WaterOn(0), "nothing was put on the fire");
+            Assert.AreEqual(WaterType.SaltWater, WaterRules.TypeOf(st), "still salt water");
+            Assert.AreEqual(3, st.water, "no charge lost");
         }
 
         // ------------------------------------------------------------------ rain collector
@@ -343,7 +334,7 @@ namespace PrimalFrontier.Tests
             }
             Assert.AreEqual(1, Db.Item("leaf_cup").waterCharges, "leaf cup holds one drink");
             Assert.Greater(Db.Item("burnt_meat").hunger, 0f);
-            Assert.Greater(Db.Item("wood").fuelSeconds, 0f, "wood is fuel"); Assert.Greater(Db.Item("fiber").fuelSeconds, 0f, "fibre is fuel");
+            Assert.Greater(Db.Item("wood").fuelSeconds, 0f, "wood is fuel"); Assert.Greater(Db.Item("fiber").fuelSeconds, 0f, "fiber is fuel");
             var tent = Db.Item("tent").placePrefab; Assert.IsNotNull(tent, "tent prefab");
             var sh = tent.GetComponentInChildren<Shelter>(); Assert.IsNotNull(sh, "tent shelter"); Assert.AreEqual(2.8f, sh.coverRadius, 0.01f); Assert.AreEqual(6f, sh.warmth, 0.01f);
             Assert.IsNotNull(tent.GetComponentInChildren<Bedroll>(), "tent bed");

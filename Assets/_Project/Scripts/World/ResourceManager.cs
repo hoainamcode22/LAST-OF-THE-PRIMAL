@@ -9,8 +9,9 @@ namespace PrimalFrontier.World
     /// Runs every resource node from one place, so no node has an Update: respawn timers (checked twice a second),
     /// the regrowing look of emptied rocks / bushes near the player (distance activation, 80 m), fruit regrowth, the hit
     /// wobble of the few nodes that were just struck, a 16 m cell grid for "nodes near here" queries, and the
-    /// interaction highlight. Hidden nodes never pop back in right in front of the player: a due respawn waits until the
-    /// player is 18 m away or looking elsewhere. Created on demand in play mode ([ResourceManager]).
+    /// interaction highlight, and the fish cue (a ripple of drops and now and then a small fin splash on the water over
+    /// each shoal within 28 m of the player, pooled effects only). Hidden nodes never pop back in right in front of the
+    /// player: a due respawn waits until the player is 18 m away or looking elsewhere. Created on demand in play mode.
     /// </summary>
     [DefaultExecutionOrder(-40)]
     public partial class ResourceManager : MonoBehaviour
@@ -29,6 +30,11 @@ namespace PrimalFrontier.World
         static readonly List<ResourceNode> _depleted = new List<ResourceNode>(64);
         static readonly List<ResourceNode> _animating = new List<ResourceNode>(8);
         static readonly List<FruitCluster> _fruit = new List<FruitCluster>(16);
+        static readonly List<ResourceNode> _fish = new List<ResourceNode>(16);
+        static readonly Dictionary<ResourceNode, float> _nextCue = new Dictionary<ResourceNode, float>();
+        [Tooltip("fish shoals closer than this to the player show their cue (m)")] public float fishCueRadius = 28f;
+        /// <summary>fish cues played so far (tests)</summary>
+        public static int FishCues { get; private set; }
         static readonly Dictionary<Vector2Int, List<ResourceNode>> _grid = new Dictionary<Vector2Int, List<ResourceNode>>();
         const float Cell = 16f;
 
@@ -42,7 +48,7 @@ namespace PrimalFrontier.World
         float _nextTick; readonly System.Diagnostics.Stopwatch _sw = new System.Diagnostics.Stopwatch();
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        static void ResetStatics() { _inst = null; _nodes.Clear(); _depleted.Clear(); _animating.Clear(); _fruit.Clear(); _grid.Clear(); HoldToRepeat = true; AverageTickMs = 0f; }
+        static void ResetStatics() { _inst = null; _nodes.Clear(); _depleted.Clear(); _animating.Clear(); _fruit.Clear(); _fish.Clear(); _nextCue.Clear(); _grid.Clear(); HoldToRepeat = true; AverageTickMs = 0f; FishCues = 0; }
 
         public static void Ensure()
         {
@@ -75,11 +81,12 @@ namespace PrimalFrontier.World
             if (!_grid.TryGetValue(k, out var l)) _grid[k] = l = new List<ResourceNode>();
             l.Add(n);
             if (n.IsEmpty && !_depleted.Contains(n)) _depleted.Add(n);
+            if (n.Def.category == ResourceCategory.Fish && !_fish.Contains(n)) _fish.Add(n);
         }
 
         public static void Unregister(ResourceNode n)
         {
-            _nodes.Remove(n); _depleted.Remove(n); _animating.Remove(n);
+            _nodes.Remove(n); _depleted.Remove(n); _animating.Remove(n); _fish.Remove(n); _nextCue.Remove(n);
             if (n && _grid.TryGetValue(Key(n.transform.position), out var l)) l.Remove(n);
             else foreach (var kv in _grid) if (kv.Value.Remove(n)) break;
         }
@@ -157,6 +164,28 @@ namespace PrimalFrontier.World
             }
             foreach (var n in _due) { if (n.IsEmpty) n.Regrow(); else _depleted.Remove(n); }
             for (int i = _fruit.Count - 1; i >= 0; i--) { var f = _fruit[i]; if (!f) { _fruit.RemoveAt(i); continue; } f.Tick(now); }
+            if (pp.HasValue) FishCue(pp.Value);
+        }
+
+        /// <summary>a shoal near the player: every 1.4-3.2 s a ring of drops on the surface, one in three a small fin splash with a soft sound</summary>
+        void FishCue(Vector3 player)
+        {
+            float r2 = fishCueRadius * fishCueRadius, t = Time.time;
+            var fx = VFX.VfxPool.Instance; var sfx = Audio.SfxPlayer.Instance;
+            for (int i = _fish.Count - 1; i >= 0; i--)
+            {
+                var n = _fish[i];
+                if (!n) { _fish.RemoveAt(i); continue; }
+                if (n.IsEmpty) continue;
+                var d = n.transform.position - player; d.y = 0f;
+                if (d.sqrMagnitude > r2) continue;
+                if (_nextCue.TryGetValue(n, out var next) && t < next) continue;
+                _nextCue[n] = t + Random.Range(1.4f, 3.2f);
+                var at = n.transform.position + Vector3.up * Mathf.Max(0.05f, n.cueHeight) + new Vector3(Random.Range(-0.5f, 0.5f), 0f, Random.Range(-0.5f, 0.5f));
+                fx.Play(VFX.VfxId.WaterDrops, at, Vector3.up, null, 0.9f);
+                if (Random.value < 0.34f) { fx.Play(VFX.VfxId.WaterSplash, at, Vector3.up, null, 0.35f); sfx.Play(Audio.SfxId.WaterSplash, at, 0.22f); }
+                FishCues++;
+            }
         }
 
         static bool InView(Vector3 at, Vector3 player, Transform cam, float r2)

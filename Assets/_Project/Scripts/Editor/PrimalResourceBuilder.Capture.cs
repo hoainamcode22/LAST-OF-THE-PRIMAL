@@ -12,7 +12,7 @@ namespace PrimalFrontier.EditorTools
     /// <summary>
     /// Review captures of the resource pass (bridge: PrimalResourceBuilder.Capture "before" / "after"): edit-mode camera
     /// renders (Camera.Render, no play mode, no WaitForEndOfFrame) to Documentation/Screenshots/Resources/:
-    /// island map from above with a coloured dot per node (grey stone, orange wood, green fibre, red food), the start
+    /// island map from above with a coloured dot per node (grey stone, orange wood, green fibre, red food, blue fish, violet rare), the start
     /// beach from above with and without dots, and the player's eye view at the spawn. The dots are temporary objects,
     /// removed after the render; a scene that was saved before stays saved.
     /// </summary>
@@ -41,7 +41,7 @@ namespace PrimalFrontier.EditorTools
             {
                 if (mats.TryGetValue(c, out var m)) return m;
                 var sh = Shader.Find("Universal Render Pipeline/Unlit"); m = new Material(sh) { hideFlags = HideFlags.DontSave };
-                var col = c switch { ResourceCategory.Stone => new Color(0.85f, 0.85f, 0.9f), ResourceCategory.Wood => new Color(1f, 0.55f, 0.1f), ResourceCategory.Fiber => new Color(0.2f, 1f, 0.25f), ResourceCategory.Fish => new Color(0.2f, 0.6f, 1f), _ => new Color(1f, 0.15f, 0.2f) };
+                var col = c switch { ResourceCategory.Stone => new Color(0.85f, 0.85f, 0.9f), ResourceCategory.Wood => new Color(1f, 0.55f, 0.1f), ResourceCategory.Fiber => new Color(0.2f, 1f, 0.25f), ResourceCategory.Fish => new Color(0.2f, 0.6f, 1f), ResourceCategory.Rare => new Color(0.85f, 0.4f, 1f), _ => new Color(1f, 0.15f, 0.2f) };
                 m.SetColor("_BaseColor", col); mats[c] = m; return m;
             }
             void Dots(float size, float lift, Vector3 center, float radius)

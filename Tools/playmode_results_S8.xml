@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="3" result="Passed" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-09-29 12:02:17Z" end-time="2026-09-29 12:02:55Z" duration="37,3784305">
+  <test-suite type="TestSuite" id="1184" name="LAST OF THE PRIMAL" fullname="LAST OF THE PRIMAL" runstate="Runnable" testcasecount="151" result="Passed" start-time="2026-09-29 12:02:17Z" end-time="2026-09-29 12:02:55Z" duration="37.378431" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="PlayMode" />
+    </properties>
+    <test-suite type="Assembly" id="1178" name="PrimalFrontier.Tests.PlayMode.dll" fullname="E:/LAST OF THE PRIMAL/Library/ScriptAssemblies/PrimalFrontier.Tests.PlayMode.dll" runstate="Runnable" testcasecount="151" result="Passed" start-time="2026-09-29 12:02:17Z" end-time="2026-09-29 12:02:55Z" duration="37.249953" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="1708" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+        <property name="EditorOnly" value="False" />
+      </properties>
+      <test-suite type="TestSuite" id="1179" name="PrimalFrontier" fullname="PrimalFrontier" runstate="Runnable" testcasecount="151" result="Passed" start-time="2026-09-29 12:02:17Z" end-time="2026-09-29 12:02:55Z" duration="37.199799" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1180" name="Tests" fullname="PrimalFrontier.Tests" runstate="Runnable" testcasecount="151" result="Passed" start-time="2026-09-29 12:02:18Z" end-time="2026-09-29 12:02:55Z" duration="37.159714" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestFixture" id="1152" name="SurvivalPhase3IslandTests" fullname="PrimalFrontier.Tests.SurvivalPhase3IslandTests" classname="PrimalFrontier.Tests.SurvivalPhase3IslandTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-09-29 12:02:18Z" end-time="2026-09-29 12:02:55Z" duration="37.105120" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1153" name="Bandage_Use_Path_Stops_Bleeding_Shows_Icons_And_Hydration" fullname="PrimalFrontier.Tests.SurvivalPhase3IslandTests.Bandage_Use_Path_Stops_Bleeding_Shows_Icons_And_Hydration" methodname="Bandage_Use_Path_Stops_Bleeding_Shows_Icons_And_Hydration" classname="PrimalFrontier.Tests.SurvivalPhase3IslandTests" runstate="Runnable" seed="1690062735" result="Passed" start-time="2026-09-29 12:02:18Z" end-time="2026-09-29 12:02:37Z" duration="19.745386" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="Timeout" value="150000" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1155" name="Capture_Collector_Fire_And_Fish" fullname="PrimalFrontier.Tests.SurvivalPhase3IslandTests.Capture_Collector_Fire_And_Fish" methodname="Capture_Collector_Fire_And_Fish" classname="PrimalFrontier.Tests.SurvivalPhase3IslandTests" runstate="Runnable" seed="824796197" result="Passed" start-time="2026-09-29 12:02:37Z" end-time="2026-09-29 12:02:47Z" duration="9.557431" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="Timeout" value="150000" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[[S3 capture] collector surface heights: 2/6 0,098 m, 5/6 0,182 m (basin floor 0.03, rim 0.24)
+[S3 capture] fires: full Burning intensity 1,00, low LowFuel intensity 0,37
+]]></output>
+            </test-case>
+            <test-case id="1154" name="Save_Load_Keeps_Status_Food_Age_Fire_State_And_Sections" fullname="PrimalFrontier.Tests.SurvivalPhase3IslandTests.Save_Load_Keeps_Status_Food_Age_Fire_State_And_Sections" methodname="Save_Load_Keeps_Status_Food_Age_Fire_State_And_Sections" classname="PrimalFrontier.Tests.SurvivalPhase3IslandTests" runstate="Runnable" seed="234431527" result="Passed" start-time="2026-09-29 12:02:47Z" end-time="2026-09-29 12:02:55Z" duration="7.690307" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="Timeout" value="180000" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[[SaveSystem] save damaged (no version (not a save file)), trying the backup
+Saving results to: Documentation/Tests/playmode_results.xml
+]]></output>
+            </test-case>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

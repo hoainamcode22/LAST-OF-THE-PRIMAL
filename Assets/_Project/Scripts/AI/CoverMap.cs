@@ -92,6 +92,54 @@ namespace PrimalFrontier.AI
 
         public static Vector3 TreePosition(int i) { EnsureBuilt(); return _pos != null && i >= 0 && i < _pos.Length ? _pos[i] : Vector3.zero; }
 
+        /// <summary>the nearest standing tree within r of p, at least minDist away (grid lookup, no allocation); -1 = none</summary>
+        public static int NearestStandingTree(Vector3 p, float r, float minDist = 0f)
+        {
+            EnsureBuilt();
+            if (_pos == null || _pos.Length == 0) return -1;
+            int best = -1; float bestQ = r * r, min2 = minDist * minDist;
+            int x0 = Mathf.FloorToInt((p.x - r - _origin.x) / Cell), x1 = Mathf.FloorToInt((p.x + r - _origin.x) / Cell);
+            int z0 = Mathf.FloorToInt((p.z - r - _origin.z) / Cell), z1 = Mathf.FloorToInt((p.z + r - _origin.z) / Cell);
+            var cut = _harvest ? _harvest.Felled : null;
+            for (int z = Mathf.Max(0, z0); z <= Mathf.Min(_nz - 1, z1); z++)
+                for (int x = Mathf.Max(0, x0); x <= Mathf.Min(_nx - 1, x1); x++)
+                {
+                    int c = z * _nx + x;
+                    for (int k = _start[c]; k < _start[c + 1]; k++)
+                    {
+                        int i = _items[k]; var q = _pos[i];
+                        float dx = q.x - p.x, dz = q.z - p.z, d2 = dx * dx + dz * dz;
+                        if (d2 > bestQ || d2 < min2 || (cut != null && cut.ContainsKey(i))) continue;
+                        bestQ = d2; best = i;
+                    }
+                }
+            return best;
+        }
+
+        /// <summary>the i-th standing tree (in grid order) within r of p, for spreading things over a territory; -1 = fewer than i + 1</summary>
+        public static int StandingTreeAt(Vector3 p, float r, int nth)
+        {
+            EnsureBuilt();
+            if (_pos == null || _pos.Length == 0) return -1;
+            float r2 = r * r; int seen = 0;
+            int x0 = Mathf.FloorToInt((p.x - r - _origin.x) / Cell), x1 = Mathf.FloorToInt((p.x + r - _origin.x) / Cell);
+            int z0 = Mathf.FloorToInt((p.z - r - _origin.z) / Cell), z1 = Mathf.FloorToInt((p.z + r - _origin.z) / Cell);
+            var cut = _harvest ? _harvest.Felled : null;
+            for (int z = Mathf.Max(0, z0); z <= Mathf.Min(_nz - 1, z1); z++)
+                for (int x = Mathf.Max(0, x0); x <= Mathf.Min(_nx - 1, x1); x++)
+                {
+                    int c = z * _nx + x;
+                    for (int k = _start[c]; k < _start[c + 1]; k++)
+                    {
+                        int i = _items[k]; var q = _pos[i];
+                        float dx = q.x - p.x, dz = q.z - p.z;
+                        if (dx * dx + dz * dz > r2 || (cut != null && cut.ContainsKey(i))) continue;
+                        if (seen++ == nth) return i;
+                    }
+                }
+            return -1;
+        }
+
         /// <summary>bushes whose edge is within 'edge' m of p (the one the player is inside counts too)</summary>
         public static int BushesNear(Vector3 p, float edge)
         {

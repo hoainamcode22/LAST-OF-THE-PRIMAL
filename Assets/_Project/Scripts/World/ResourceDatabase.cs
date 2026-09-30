@@ -65,7 +65,7 @@ namespace PrimalFrontier.World
             {
                 new ToolEfficiency(ResourceCategory.Stone, 1, 1), new ToolEfficiency(ResourceCategory.Wood, 1, 1),
                 new ToolEfficiency(ResourceCategory.Fiber, 1, 2), new ToolEfficiency(ResourceCategory.Food, 1, 2),
-                new ToolEfficiency(ResourceCategory.Fish, 1, 1),
+                new ToolEfficiency(ResourceCategory.Fish, 1, 1), new ToolEfficiency(ResourceCategory.Rare, 1, 1),
             };
             return h;
         }

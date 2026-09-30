@@ -284,10 +284,10 @@ namespace PrimalFrontier.EditorTools
                                        new AnimationEvent { functionName = "OnAttackHit", time = hitAt }, new AnimationEvent { functionName = "OnAttackEnd", time = Mathf.Min(0.9f, hitAt + 0.2f) } };
                     L($"{name}: no events in the clip meta, default OnAttackStart / OnAttackActive / OnAttackHit ({hitAt:F2}) / OnAttackEnd used");
                 }
-                else if (DefaultGatherHitAt.TryGetValue(name, out float gatherAt))
+                else if (DefaultActionEvent.TryGetValue(name, out var dev))
                 {
-                    c.events = new[] { new AnimationEvent { functionName = gatherAt < 0f ? "OnUseItem" : "OnGatherHit", time = Mathf.Abs(gatherAt) } };
-                    L($"{name}: no events in the clip meta, default {c.events[0].functionName} at {Mathf.Abs(gatherAt):F2}");
+                    c.events = new[] { new AnimationEvent { functionName = dev.fn, time = dev.at } };
+                    L($"{name}: no events in the clip meta, default {dev.fn} at {dev.at:F2}");
                 }
                 else c.events = new AnimationEvent[0];
                 if (cm == null) { if (PhaseCClips.Contains(name)) L("new clip without meta (defaults): " + name); else F("clip without meta: " + name); }
@@ -447,7 +447,7 @@ namespace PrimalFrontier.EditorTools
             "Bow_Equip", "Bow_Idle", "Bow_Nock", "Bow_FullDraw", "Spear_Idle", "Spear_Recovery",
             // phase 3.5 (bare hands, new gathers, bandage)
             "BareHand_Idle", "BareHand_Punch_1", "BareHand_Punch_2", "BareHand_Punch_3", "BareHand_Heavy", "BareHand_HitReaction", "BareHand_Combo_End",
-            "Gather_Stone_Hand", "Gather_Branch", "Bandage_Use" };
+            "Gather_Stone_Hand", "Gather_Branch", "Bandage_Use", "Drink_Kneel" };
 
         /// <summary>new clips that loop when the manifest has no entry for them</summary>
         static readonly HashSet<string> LoopByDefault = new HashSet<string> { "Unarmed_Block", "BareHand_Idle", "Butcher", "Bow_Idle", "Spear_Idle", "Bow_FullDraw",
@@ -456,8 +456,11 @@ namespace PrimalFrontier.EditorTools
         /// <summary>default attack events for unarmed clips exported without events (fraction of the clip at the contact); the clip meta wins</summary>
         static readonly Dictionary<string, float> DefaultHitAt = new Dictionary<string, float> {
             { "BareHand_Punch_1", 0.33f }, { "BareHand_Punch_2", 0.33f }, { "BareHand_Punch_3", 0.38f }, { "BareHand_Heavy", 0.42f }, { "Kick", 0.42f } };
-        /// <summary>default gather contact (OnGatherHit) for new gather clips without events; negative = OnUseItem (bandage)</summary>
-        static readonly Dictionary<string, float> DefaultGatherHitAt = new Dictionary<string, float> { { "Gather_Stone_Hand", 0.5f }, { "Gather_Branch", 0.5f }, { "Bandage_Use", -0.6f } };
+        /// <summary>default event for new action clips exported without events (the events the placeholders already fire, so
+        /// the gameplay listeners stay the same when the real clip replaces the placeholder)</summary>
+        static readonly Dictionary<string, (string fn, float at)> DefaultActionEvent = new Dictionary<string, (string, float)> {
+            { "Gather_Stone_Hand", ("OnGatherHit", 0.5f) }, { "Gather_Branch", ("OnGatherHit", 0.5f) },
+            { "Bandage_Use", ("OnUseItem", 0.6f) }, { "Collect_Water", ("OnDrink", 0.6f) }, { "Drink_Kneel", ("OnDrink", 0.6f) } };
 
         /// <summary>
         /// phase 3.5: a state whose clip is not in the FBX yet plays an existing clip meanwhile, so the gameplay (ids, events,
@@ -500,7 +503,7 @@ namespace PrimalFrontier.EditorTools
                 ("VerticalVelocity", AnimatorControllerParameterType.Float), ("IsCrouching", AnimatorControllerParameterType.Bool),
                 ("IsAttacking", AnimatorControllerParameterType.Bool), ("Action", AnimatorControllerParameterType.Int),
                 ("HealthState", AnimatorControllerParameterType.Int), ("TurnSpeed", AnimatorControllerParameterType.Float),
-                ("IdleVariant", AnimatorControllerParameterType.Trigger),
+                ("IdleVariant", AnimatorControllerParameterType.Trigger), ("IdleMirror", AnimatorControllerParameterType.Bool),
                 // combat / aim locomotion (PlayerAnimationDriver) and weapon state (WeaponAnimatorBridge)
                 ("VelX", AnimatorControllerParameterType.Float), ("VelZ", AnimatorControllerParameterType.Float),
                 ("Strafe", AnimatorControllerParameterType.Bool), ("CombatMode", AnimatorControllerParameterType.Bool),
@@ -510,7 +513,9 @@ namespace PrimalFrontier.EditorTools
                 ("HurtLight", AnimatorControllerParameterType.Trigger),
                 // Locomotion state speed (Idle time-scaled to Walk's cycle), phase C start / stop / pivot selection
                 ("LocoRate", AnimatorControllerParameterType.Float), ("LocoIdleRate", AnimatorControllerParameterType.Float), ("UseLocoClips", AnimatorControllerParameterType.Bool),
-                ("LocoEvent", AnimatorControllerParameterType.Int), ("LocoMirror", AnimatorControllerParameterType.Bool) })
+                ("LocoEvent", AnimatorControllerParameterType.Int), ("LocoMirror", AnimatorControllerParameterType.Bool),
+                // knockout (Unconscious_Collapse, PlayerAnimationDriver.Collapse)
+                ("Collapse", AnimatorControllerParameterType.Trigger) })
                 ac.AddParameter(n, t);
             var p = ac.parameters;
             // Idle's rate inside the time-synced Locomotion tree: Idle is time-scaled to Walk's cycle, the state speed brings it back
@@ -539,6 +544,13 @@ namespace PrimalFrontier.EditorTools
             // idle life: the driver fires IdleVariant after standing still for a while
             var idleVar = sm.AddState("Idle_Variation"); idleVar.motion = Clip(clips, "Idle_Variation"); idleVar.iKOnFeet = true;
             var tiv = T(loco, idleVar, 0.4f); tiv.AddCondition(AnimatorConditionMode.If, 0, "IdleVariant"); tiv.AddCondition(AnimatorConditionMode.Less, 0.05f, "Speed");
+            tiv.AddCondition(AnimatorConditionMode.IfNot, 0, "IdleMirror");
+            // the same weight shift / look-around to the other side (mirrored): the driver picks a side at random each time
+            var idleVarM = sm.AddState("Idle_Variation_Mirror"); idleVarM.motion = idleVar.motion; idleVarM.mirror = true; idleVarM.iKOnFeet = true;
+            var tivm = T(loco, idleVarM, 0.4f); tivm.AddCondition(AnimatorConditionMode.If, 0, "IdleVariant"); tivm.AddCondition(AnimatorConditionMode.Less, 0.05f, "Speed");
+            tivm.AddCondition(AnimatorConditionMode.If, 0, "IdleMirror");
+            T(idleVarM, loco, 0.5f, true, 0.92f);
+            T(idleVarM, loco, 0.2f).AddCondition(AnimatorConditionMode.Greater, 0.1f, "Speed");
             T(idleVar, loco, 0.5f, true, 0.92f);
             T(idleVar, loco, 0.2f).AddCondition(AnimatorConditionMode.Greater, 0.1f, "Speed");
             var crouch = ac.CreateBlendTreeInController("Crouch", out var ct, 0);
@@ -581,7 +593,7 @@ namespace PrimalFrontier.EditorTools
                 T(s, loco, 0.15f, true, 0.85f);
                 locoExtra.Add(s);
             }
-            var grounded = new[] { loco, strafe, crouch, turn, idleVar }.Concat(locoExtra).ToArray();
+            var grounded = new[] { loco, strafe, crouch, turn, idleVar, idleVarM }.Concat(locoExtra).ToArray();
             // air: derived from IsGrounded + VerticalVelocity (no jump trigger needed)
             var jump = sm.AddState("Jump"); jump.motion = Clip(clips, "Jump");
             var fall = sm.AddState("Fall"); fall.motion = Clip(clips, "Fall");
@@ -602,9 +614,12 @@ namespace PrimalFrontier.EditorTools
                 (PA.UseItem, "Use_Item", false), (PA.Sleep, "Sleep", true), (PA.WakeUp, "Wake_Up", false), (PA.GetUp, "Get_Up", false) };
             if (Opt(clips, "Butcher")) actions.Add((PA.Butcher, "Butcher", true));
             // phase 3.5 actions (RES / SURV use the ids now): placeholder clips until the real ones are exported
-            var placeholders = new Dictionary<string, string> { { "Collect_Water", "Drink" }, { "Gather_Stone_Hand", "Gather_Plant" }, { "Gather_Branch", "Gather_Plant" }, { "Bandage_Use", "Use_Item" } };
+            // kneel at the water (Drink_Kneel, Collect_Water): the Crouch pose until CHAR's clips exist; PlayerInteraction then moves the
+            // hands (scoop / dip, to the mouth) and raises OnDrink itself (it recognises the Crouch placeholder)
+            var placeholders = new Dictionary<string, string> { { "Collect_Water", "Crouch" }, { "Drink_Kneel", "Crouch" }, { "Gather_Stone_Hand", "Gather_Plant" }, { "Gather_Branch", "Gather_Plant" }, { "Bandage_Use", "Use_Item" } };
             actions.Add((PA.CollectWater, "Collect_Water", false)); actions.Add((PA.GatherStoneHand, "Gather_Stone_Hand", true));
             actions.Add((PA.GatherBranch, "Gather_Branch", true)); actions.Add((PA.BandageUse, "Bandage_Use", false));
+            actions.Add((PA.DrinkKneel, "Drink_Kneel", false));
             // phase A timing until enter / exit clips exist: loops (squat / kneel work) blend in over 0.35 s and out over 0.45 s
             // (hips drop ~1.1 m/s instead of ~2); one-shots 0.3 s in, 0.3 s out. The driver keeps movement off for the first 60 %
             // of an exit and brakes the motor before an action starts.
@@ -636,9 +651,22 @@ namespace PrimalFrontier.EditorTools
                 else if (!loop) T(s, loco, special ? 0.25f : OneShotOut, true, 0.94f);
             }
             T(actionStates[PA.Sleep], actionStates[PA.GetUp], 0.4f).AddCondition(AnimatorConditionMode.NotEqual, PA.Sleep, "Action");
-            // opening: frozen first frame of Wake_Up (lying on the sand) until the intro sets Action = WakeUp
-            var uncon = sm.AddState("Unconscious"); uncon.motion = Clip(clips, "Wake_Up"); uncon.speed = 0f; uncon.tag = "Action";
+            // opening: lying on the sand until the intro sets Action = WakeUp. Real Unconscious loop (slow breathing, frame 0 =
+            // Wake_Up frame 0) when CHAR's clip exists; otherwise the frozen first frame of Wake_Up
+            var uncon = sm.AddState("Unconscious"); uncon.tag = "Action";
+            var unconClip = clips.FirstOrDefault(x => x.name == "Unconscious");
+            if (unconClip) { uncon.motion = unconClip; uncon.speed = 1f; }
+            else { uncon.motion = Clip(clips, "Wake_Up"); uncon.speed = 0f; L("placeholder clip for Unconscious: Wake_Up frame 0 (waiting for the clip)"); }
             T(uncon, actionStates[PA.WakeUp], 0.05f).AddCondition(AnimatorConditionMode.Equals, PA.WakeUp, "Action");
+            // knockout: Collapse (trigger, from any state) plays Unconscious_Collapse (faint from standing, ends exactly on
+            // Unconscious frame 0), then the Unconscious loop (PlayerAnimationDriver.Collapse)
+            if (Opt(clips, "Unconscious_Collapse") is AnimationClip collapseClip)
+            {
+                var col = sm.AddState("Unconscious_Collapse"); col.motion = collapseClip; col.tag = "Action";
+                var ac0 = sm.AddAnyStateTransition(col); ac0.duration = 0.15f; ac0.hasFixedDuration = true; ac0.canTransitionToSelf = false;
+                ac0.AddCondition(AnimatorConditionMode.If, 0, "Collapse");
+                T(col, uncon, 0.05f, true, 0.98f);
+            }
             // attacks: IsAttacking + Action id; clip speed x AttackSpeed (WeaponData.attackSpeed, default 1)
             var attackStates = new Dictionary<string, AnimatorState>();
             // bare hands (phase 3.5): BareHand_Punch_1 / 2 / 3 and BareHand_Heavy play placeholder clips until CHAR's clips are in the FBX

@@ -1,3 +1,9 @@
+// PC first (owner, 2026-09-30): the on-screen touch controls exist only in Android / iOS builds. On PC (and in the
+// editor with a PC target) the component does nothing, is never added by GameManager or the bakers, and WantTouch() is
+// false. The static label helpers stay compiled everywhere (tests use them).
+#if UNITY_ANDROID || UNITY_IOS
+#define PF_TOUCH
+#endif
 using System;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -19,8 +25,8 @@ namespace PrimalFrontier.UI
     /// attack at once. A bow keeps "hold ATTACK to draw, release to shoot".
     /// buttons under the vitals. Everything sits inside the device safe area (notches, rounded corners) and scales with
     /// the screen (16:9, 18:9, 19.5:9, tablets). It only writes PlayerInputReader.Virtual: gameplay never reads touch.
-    /// Shown automatically on touch devices; Settings > Touch controls forces it on / off. Layout lives in the scene
-    /// ([UI]/[Touch]) and can be moved by hand.
+    /// Mobile builds only (Android / iOS): shown automatically on touch devices. The PC game has no touch controls, no
+    /// [UI]/[Touch] canvas and no Settings toggle (see the file header).
     /// </summary>
     public class MobileHUD : MonoBehaviour, IBakeableUI
     {
@@ -39,8 +45,26 @@ namespace PrimalFrontier.UI
         PlayerInteraction _pi; InventorySystem _inv; PlayerClimb _climb;
         public bool Visible { get; private set; }
 
+        /// <summary>true only in mobile builds (Android / iOS targets): touch controls are not part of the PC game</summary>
+        public static bool Supported
+        {
+            get
+            {
+#if PF_TOUCH
+                return true;
+#else
+                return false;
+#endif
+            }
+        }
+
+#if PF_TOUCH
         void Awake() { Build(); }
         public void BakeLayout() { Build(); }
+#else
+        void Awake() { Visible = false; PlayerInputReader.Virtual.Active = false; enabled = false; }
+        public void BakeLayout() { }                   // PC: nothing is baked, the scene keeps no [Touch] canvas
+#endif
 
         void Build()
         {
@@ -172,14 +196,19 @@ namespace PrimalFrontier.UI
         // ------------------------------------------------------------------ per frame
         public static bool WantTouch()
         {
+#if !PF_TOUCH
+            return false;
+#else
             int mode = GameSettings.TouchControls;          // 0 auto, 1 on, 2 off
             if (mode == 1) return true;
             if (mode == 2) return false;
             return Application.isMobilePlatform || (UnityEngine.InputSystem.Touchscreen.current != null && UnityEngine.InputSystem.Mouse.current == null);
+#endif
         }
 
         void Update()
         {
+            if (!_canvas) return;                          // PC: never built
             var ui = UIManager.Instance;
             bool show = WantTouch() && (ui == null || ui.Current == UIScreen.None) && HUDManager.Instance && HUDManager.Instance.HudAlpha > 0.5f;
             if (show != Visible)
@@ -199,7 +228,7 @@ namespace PrimalFrontier.UI
             string prompt = _pi ? _pi.Prompt : null;
             bool use = prompt != null && (_pi.PromptEnabled || climbing);
             if (_interactBtn.activeSelf != use) _interactBtn.SetActive(use);
-            if (use && _interactLabel) _interactLabel.text = ContextLabel(prompt, _pi.Target is Climbable, climbing);
+            if (use && _interactLabel) _interactLabel.text = ContextLabel(prompt, _pi.Target, climbing);
             // build mode
             var bs = Building.BuildSystem.Instance; bool building = bs && bs.Active;
             if (_rotateBtn.activeSelf != building) { _rotateBtn.SetActive(building); _cancelBtn.SetActive(building); _dodgeBtn.SetActive(!building); }
@@ -232,6 +261,16 @@ namespace PrimalFrontier.UI
             PlayerInputReader.Virtual.AttackHeld = down && _holdMeansDraw;      // melee: no hold-for-heavy on touch (HEAVY button)
         }
 
+        /// <summary>
+        /// label for the target itself when it says what it is: a resource node is GATHER (stone, wood, fiber, fish) or
+        /// HARVEST (food: berries, fruit, edible plants), whatever its prompt verb; everything else goes by the prompt
+        /// </summary>
+        public static string ContextLabel(string prompt, Interactable target, bool climbing)
+        {
+            if (!climbing && target is ResourceNode rn && rn.Def != null) return rn.Def.category == ResourceCategory.Food ? "HARVEST" : "GATHER";
+            return ContextLabel(prompt, target is Climbable, climbing);
+        }
+
         /// <summary>label of the contextual touch button for an interaction prompt (GATHER / DRINK / FILL / HARVEST / CLIMB / PICK UP / USE)</summary>
         public static string ContextLabel(string prompt, bool targetIsClimbable, bool climbing)
         {
@@ -243,7 +282,7 @@ namespace PrimalFrontier.UI
             if (S("Fill")) return "FILL";
             if (S("Harvest") || S("Pick fruit") || S("Pick the") || S("Pick berries")) return "HARVEST";
             if (S("Pick up")) return "PICK UP";
-            if (S("Gather") || S("Chop") || S("Mine") || S("Cut") || S("Collect") || S("Break") || S("Butcher") || S("Pick")) return "GATHER";
+            if (S("Gather") || S("Chop") || S("Mine") || S("Cut") || S("Collect") || S("Break") || S("Butcher") || S("Pick") || S("Catch") || S("Fish")) return "GATHER";
             return "USE";
         }
 

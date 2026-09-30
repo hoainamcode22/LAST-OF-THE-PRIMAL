@@ -137,6 +137,7 @@ namespace PrimalFrontier.EditorTools
             });
             Add(VfxId.HitDust, 3, g => { Puff(g, "Dust", new Color(0.55f, 0.5f, 0.45f, 0.5f), 6, 0.1f, 0.25f, 0.6f, 0.8f); Chips(g, "Bits", _chip, stone, new Color(0.45f, 0.4f, 0.35f, 1), 4, 1.2f, 2.5f, 0.01f, 0.025f, 0.5f); });
             BuildPhase3(lib);
+            BuildPcPhase(lib);
             BuildBloodLibrary();
 
             BuildCampfire();
@@ -192,6 +193,48 @@ namespace PrimalFrontier.EditorTools
         }
 
         /// <summary>
+        /// PC phase: the missing footstep surfaces (wood: bark specks, grass: a few blade bits, no dust), construction dust
+        /// (BUILD: soft brown puff + fibre / bark bits that settle), blood drops that fall and hit the ground (bleeding),
+        /// water dripping off the chin / hands after drinking, and grit falling off a rock hold when it is grabbed.
+        /// Same world style as the rest: soft puffs, chips, drops; small counts; no glow.
+        /// </summary>
+        static void BuildPcPhase(VfxLibrary lib)
+        {
+            var bark = new Color(0.36f, 0.26f, 0.17f, 1f); var bark2 = new Color(0.48f, 0.37f, 0.25f, 1f);
+            var grass = new Color(0.34f, 0.46f, 0.2f, 1f); var grass2 = new Color(0.45f, 0.5f, 0.24f, 1f);
+            var earth = new Color(0.5f, 0.42f, 0.32f, 0.45f); var fibre = new Color(0.62f, 0.54f, 0.36f, 1f);
+            var blood = new Color(0.34f, 0.02f, 0.015f, 1f); var blood2 = new Color(0.45f, 0.04f, 0.03f, 1f);
+            var water = new Color(0.8f, 0.9f, 1f, 0.8f); var rock = new Color(0.55f, 0.54f, 0.5f, 1f); var rockDust = new Color(0.6f, 0.58f, 0.54f, 0.4f);
+            AddTo(lib, VfxId.FootWood, 6, g => { Chips(g, "Bark", _chip, bark, bark2, 3, 0.4f, 0.9f, 0.006f, 0.012f, 0.35f); Puff(g, "Dust", new Color(0.5f, 0.42f, 0.34f, 0.25f), 2, 0.04f, 0.08f, 0.4f, 0.25f, 1.8f); });
+            AddTo(lib, VfxId.FootGrass, 6, g =>
+            {
+                var ps = Chips(g, "Blades", _leaf, grass, grass2, 3, 0.4f, 0.9f, 0.012f, 0.025f, 0.45f);
+                var m = ps.main; m.gravityModifier = 0.4f;
+            });
+            AddTo(lib, VfxId.BuildDust, 3, g =>
+            {
+                Puff(g, "Dust", earth, 9, 0.18f, 0.4f, 1.4f, 0.7f, 2.8f);
+                Chips(g, "Bits", _chip, fibre, bark, 8, 0.8f, 2.0f, 0.012f, 0.03f, 0.8f);
+                var ps = Chips(g, "Leaves", _leaf, grass, fibre, 4, 0.3f, 0.9f, 0.025f, 0.05f, 1.6f);
+                var m = ps.main; m.gravityModifier = 0.15f; var n = ps.noise; n.enabled = true; n.strength = 0.4f; n.frequency = 1.2f;
+            });
+            AddTo(lib, VfxId.BloodDrip, 4, g =>
+            {
+                // a few heavy drops that fall and stop on the ground (collision): bleeding while walking leaves a trail feel
+                var ps = Drops(g, "Drops", blood, blood2, 3, 0.05f, 0.25f, 0.012f, 0.022f, 1.2f, 12f);
+                var m = ps.main; m.gravityModifier = 1f;
+                var c = ps.collision; c.enabled = true; c.type = ParticleSystemCollisionType.World; c.mode = ParticleSystemCollisionMode.Collision3D;
+                c.dampen = 1f; c.bounce = 0f; c.lifetimeLoss = 0.6f; c.quality = ParticleSystemCollisionQuality.Low; c.maxCollisionShapes = 2;
+            });
+            AddTo(lib, VfxId.DrinkDrips, 3, g =>
+            {
+                var ps = Drops(g, "Drips", water, water, 5, 0.05f, 0.3f, 0.006f, 0.012f, 0.6f, 10f);
+                var e = ps.emission; e.SetBursts(new[] { new ParticleSystem.Burst(0f, 2), new ParticleSystem.Burst(0.25f, 2), new ParticleSystem.Burst(0.55f, 1) });
+            });
+            AddTo(lib, VfxId.RockDust, 4, g => { Chips(g, "Grit", _chip, rock, new Color(0.45f, 0.43f, 0.4f, 1f), 5, 0.2f, 0.6f, 0.005f, 0.012f, 0.7f); Puff(g, "Dust", rockDust, 3, 0.05f, 0.12f, 0.8f, 0.2f, 2.2f); });
+        }
+
+        /// <summary>
         /// bridge: PrimalVfxBuilder.AppendPhase3 - builds only the phase 3 prefabs with the existing materials and adds them to
         /// Resources/VfxLibrary (the other effects, the campfire prefab and the blood library are left as they are)
         /// </summary>
@@ -209,8 +252,11 @@ namespace PrimalFrontier.EditorTools
             if (!lib) return "no VfxLibrary at " + libPath;
             int before = lib.entries.Count;
             BuildPhase3(lib);
+            BuildPcPhase(lib);
             EditorUtility.SetDirty(lib); AssetDatabase.SaveAssets();
-            return $"VfxLibrary {before} -> {lib.entries.Count} entries (PunchImpactSmall, PunchImpactHeavy, DustImpact, Heal, BoilBubbles)";
+            var missing = new List<string>();
+            foreach (VfxId id in Enum.GetValues(typeof(VfxId))) if (id != VfxId.None && !lib.entries.Exists(e => e.id == id && e.prefab)) missing.Add(id.ToString());
+            return $"VfxLibrary {before} -> {lib.entries.Count} entries (phase 3 + PC phase rebuilt); missing: {(missing.Count == 0 ? "none" : string.Join(", ", missing))}";
         }
 
         /// <summary>ground blood: four splat shapes and a pool, wet dark red (URP Lit transparent), Resources/BloodLibrary</summary>

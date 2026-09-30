@@ -1,0 +1,57 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a680d24947751ff46bfd489842d3f354, type: 3}
+  m_Name: MIS_opt_bandage
+  m_EditorClassIdentifier: PrimalFrontier.Runtime::PrimalFrontier.Story.MissionDefinition
+  id: opt_bandage
+  chapter: 1
+  order: 46
+  main: 0
+  endsChapter: 0
+  title: Tend the Wound
+  objective: Stop the bleeding with a bandage
+  lateObjective: 
+  clue: 
+  requires:
+  - wake
+  startMode: 0
+  startWhen:
+  - kind: 0
+    events: StatusApplied
+    ids: bleeding
+    check: 
+    count: 1
+    distinct: 0
+    radius: 0
+    hourFrom: 0
+    hourTo: 0
+  completeMode: 0
+  complete:
+  - kind: 0
+    events: ItemUsed
+    ids: bandage
+    check: 
+    count: 1
+    distinct: 0
+    radius: 0
+    hourFrom: 0
+    hourTo: 0
+  deadline: 0
+  deadlineHour: 18
+  marker: 0
+  markerId: 
+  markerAfterHours: 0
+  startLine: 
+  doneLine: 
+  lateLine: 
+  journalPage: 
+  startCue: 

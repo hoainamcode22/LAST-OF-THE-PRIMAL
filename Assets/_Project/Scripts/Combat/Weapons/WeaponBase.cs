@@ -54,7 +54,7 @@ namespace PrimalFrontier.Combat.Weapons
             if (inv == null || stack == null || stack.IsEmpty || !stack.item.HasDurability || amount <= 0f) return;
             if (ReferenceEquals(inv.ActiveStack, stack))
             {
-                if (inv.WearActive(amount)) Broke(stack.item.displayName);
+                inv.WearActive(amount);             // a break raises InventorySystem.ToolBroke: the one ToolBreak sound, puff and note (HUD)
                 return;
             }
             int slot = SlotOf(inv, stack);
@@ -67,7 +67,10 @@ namespace PrimalFrontier.Combat.Weapons
             Broke(name);
         }
 
-        /// <summary>a weapon / tool broke on a hit: the note, the snap sound and a little dust at the hand</summary>
+        /// <summary>
+        /// the stack broke outside the active slot (moved during the swing): WearActive / ToolBroke do not cover this path,
+        /// so the note, the snap sound and a little dust come from here (still one sound per break)
+        /// </summary>
         void Broke(string name)
         {
             PlayerInteraction.Notify(name + " broke!");

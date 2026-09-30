@@ -43,11 +43,20 @@ ModelImporter:
       that will be discarded.\n\nClip 'PLAYER_Survivor_Rig|Attack_Spear_Heavy' has
       import animation warnings that might lower retargeting quality:\nNote: Activate
       translation DOF on avatar to improve retargeting quality.\n\t'Thigh_L' has
-      scale animation that will be discarded.\n\nClip 'PLAYER_Survivor_Rig|Climb_End'
+      scale animation that will be discarded.\n\nClip 'PLAYER_Survivor_Rig|BareHand_Heavy'
+      has import animation warnings that might lower retargeting quality:\nNote:
+      Activate translation DOF on avatar to improve retargeting quality.\n\t'Thigh_L'
+      has scale animation that will be discarded.\n\nClip 'PLAYER_Survivor_Rig|BareHand_Heavy_Straight'
+      has import animation warnings that might lower retargeting quality:\nNote:
+      Activate translation DOF on avatar to improve retargeting quality.\n\t'Thigh_L'
+      has scale animation that will be discarded.\n\nClip 'PLAYER_Survivor_Rig|Climb_End'
+      has import animation warnings that might lower retargeting quality:\nNote:
+      Activate translation DOF on avatar to improve retargeting quality.\n\t'Thigh_L'
+      has scale animation that will be discarded.\n\nClip 'PLAYER_Survivor_Rig|Climb_Start'
       has import animation warnings that might lower retargeting quality:\nNote:
       Activate translation DOF on avatar to improve retargeting quality.\n\t'Thigh_L'
       has scale animation that will be discarded.\n\t'Thigh_R' has scale animation
-      that will be discarded.\n\nClip 'PLAYER_Survivor_Rig|Climb_Start' has import
+      that will be discarded.\n\nClip 'PLAYER_Survivor_Rig|Collect_Water' has import
       animation warnings that might lower retargeting quality:\nNote: Activate translation
       DOF on avatar to improve retargeting quality.\n\t'Thigh_L' has scale animation
       that will be discarded.\n\t'Thigh_R' has scale animation that will be discarded.\n\nClip
@@ -56,70 +65,97 @@ ModelImporter:
       retargeting quality.\n\t'Thigh_L' has scale animation that will be discarded.\n\t'Thigh_R'
       has scale animation that will be discarded.\n\nClip 'PLAYER_Survivor_Rig|Death'
       has import animation warnings that might lower retargeting quality:\nNote:
-      Activate translation DOF on avatar to improve retargeting quality.\n\t'Thigh_L'
+      Activate translation DOF on avatar to improve retargeting quality.\n\t'Thigh_R'
       has scale animation that will be discarded.\n\nClip 'PLAYER_Survivor_Rig|Dodge'
       has import animation warnings that might lower retargeting quality:\nNote:
       Activate translation DOF on avatar to improve retargeting quality.\n\t'Thigh_L'
       has scale animation that will be discarded.\n\t'Thigh_R' has scale animation
-      that will be discarded.\n\nClip 'PLAYER_Survivor_Rig|Get_Up' has import animation
-      warnings that might lower retargeting quality:\nNote: Activate translation
-      DOF on avatar to improve retargeting quality.\n\t'Thigh_L' has scale animation
-      that will be discarded.\n\nClip 'PLAYER_Survivor_Rig|Hurt_Heavy' has import
+      that will be discarded.\n\nClip 'PLAYER_Survivor_Rig|Drink_Kneel' has import
       animation warnings that might lower retargeting quality:\nNote: Activate translation
-      DOF on avatar to improve retargeting quality.\n\t'Thigh_R' has scale animation
-      that will be discarded.\n\nClip 'PLAYER_Survivor_Rig|Jump' has import animation
-      warnings that might lower retargeting quality:\nNote: Activate translation
       DOF on avatar to improve retargeting quality.\n\t'Thigh_L' has scale animation
       that will be discarded.\n\t'Thigh_R' has scale animation that will be discarded.\n\nClip
-      'PLAYER_Survivor_Rig|Knife_Attack' has import animation warnings that might
+      'PLAYER_Survivor_Rig|Gather_Enter' has import animation warnings that might
       lower retargeting quality:\nNote: Activate translation DOF on avatar to improve
-      retargeting quality.\n\t'Thigh_L' has scale animation that will be discarded.\n\t'Thigh_R'
-      has scale animation that will be discarded.\n\nClip 'PLAYER_Survivor_Rig|Land'
+      retargeting quality.\n\t'Thigh_R' has scale animation that will be discarded.\n\nClip
+      'PLAYER_Survivor_Rig|Gather_Exit' has import animation warnings that might
+      lower retargeting quality:\nNote: Activate translation DOF on avatar to improve
+      retargeting quality.\n\t'Thigh_L' has scale animation that will be discarded.\n\nClip
+      'PLAYER_Survivor_Rig|Hurt_Heavy' has import animation warnings that might lower
+      retargeting quality:\nNote: Activate translation DOF on avatar to improve retargeting
+      quality.\n\t'Thigh_R' has scale animation that will be discarded.\n\nClip 'PLAYER_Survivor_Rig|Jump'
       has import animation warnings that might lower retargeting quality:\nNote:
       Activate translation DOF on avatar to improve retargeting quality.\n\t'Thigh_L'
       has scale animation that will be discarded.\n\t'Thigh_R' has scale animation
-      that will be discarded.\n\nClip 'PLAYER_Survivor_Rig|Pickup' has import animation
+      that will be discarded.\n\nClip 'PLAYER_Survivor_Rig|Kick' has import animation
       warnings that might lower retargeting quality:\nNote: Activate translation
+      DOF on avatar to improve retargeting quality.\n\t'Thigh_R' has scale animation
+      that will be discarded.\n\nClip 'PLAYER_Survivor_Rig|Knife_Attack' has import
+      animation warnings that might lower retargeting quality:\nNote: Activate translation
       DOF on avatar to improve retargeting quality.\n\t'Thigh_L' has scale animation
       that will be discarded.\n\t'Thigh_R' has scale animation that will be discarded.\n\nClip
-      'PLAYER_Survivor_Rig|Run' has import animation warnings that might lower retargeting
+      'PLAYER_Survivor_Rig|Land' has import animation warnings that might lower retargeting
       quality:\nNote: Activate translation DOF on avatar to improve retargeting quality.\n\t'Thigh_L'
+      has scale animation that will be discarded.\n\t'Thigh_R' has scale animation
+      that will be discarded.\n\nClip 'PLAYER_Survivor_Rig|Ledge_Mantle' has import
+      animation warnings that might lower retargeting quality:\nNote: Activate translation
+      DOF on avatar to improve retargeting quality.\n\t'Thigh_L' has scale animation
+      that will be discarded.\n\t'Thigh_R' has scale animation that will be discarded.\n\nClip
+      'PLAYER_Survivor_Rig|Pickup' has import animation warnings that might lower
+      retargeting quality:\nNote: Activate translation DOF on avatar to improve retargeting
+      quality.\n\t'Thigh_L' has scale animation that will be discarded.\n\t'Thigh_R'
+      has scale animation that will be discarded.\n\nClip 'PLAYER_Survivor_Rig|Run'
+      has import animation warnings that might lower retargeting quality:\nNote:
+      Activate translation DOF on avatar to improve retargeting quality.\n\t'Thigh_L'
       has scale animation that will be discarded.\n\t'Thigh_R' has scale animation
       that will be discarded.\n\nClip 'PLAYER_Survivor_Rig|Run_Backward' has import
       animation warnings that might lower retargeting quality:\nNote: Activate translation
       DOF on avatar to improve retargeting quality.\n\t'Thigh_L' has scale animation
       that will be discarded.\n\t'Thigh_R' has scale animation that will be discarded.\n\nClip
-      'PLAYER_Survivor_Rig|Sprint' has import animation warnings that might lower
+      'PLAYER_Survivor_Rig|Run_Pivot_180' has import animation warnings that might
+      lower retargeting quality:\nNote: Activate translation DOF on avatar to improve
+      retargeting quality.\n\t'Thigh_R' has scale animation that will be discarded.\n\nClip
+      'PLAYER_Survivor_Rig|Run_Start' has import animation warnings that might lower
       retargeting quality:\nNote: Activate translation DOF on avatar to improve retargeting
-      quality.\n\t'Thigh_L' has scale animation that will be discarded.\n\t'Thigh_R'
-      has scale animation that will be discarded.\n\nClip 'PLAYER_Survivor_Rig|Strafe_Run_L'
+      quality.\n\t'Thigh_R' has scale animation that will be discarded.\n\nClip 'PLAYER_Survivor_Rig|Run_Stop'
       has import animation warnings that might lower retargeting quality:\nNote:
       Activate translation DOF on avatar to improve retargeting quality.\n\t'Thigh_L'
       has scale animation that will be discarded.\n\t'Thigh_R' has scale animation
-      that will be discarded.\n\nClip 'PLAYER_Survivor_Rig|Strafe_Run_R' has import
-      animation warnings that might lower retargeting quality:\nNote: Activate translation
+      that will be discarded.\n\nClip 'PLAYER_Survivor_Rig|Sprint' has import animation
+      warnings that might lower retargeting quality:\nNote: Activate translation
       DOF on avatar to improve retargeting quality.\n\t'Thigh_L' has scale animation
       that will be discarded.\n\t'Thigh_R' has scale animation that will be discarded.\n\nClip
-      'PLAYER_Survivor_Rig|Sword_Attack_1' has import animation warnings that might
+      'PLAYER_Survivor_Rig|Strafe_Run_L' has import animation warnings that might
       lower retargeting quality:\nNote: Activate translation DOF on avatar to improve
       retargeting quality.\n\t'Thigh_L' has scale animation that will be discarded.\n\t'Thigh_R'
-      has scale animation that will be discarded.\n\nClip 'PLAYER_Survivor_Rig|Sword_Attack_2'
+      has scale animation that will be discarded.\n\nClip 'PLAYER_Survivor_Rig|Strafe_Run_R'
       has import animation warnings that might lower retargeting quality:\nNote:
       Activate translation DOF on avatar to improve retargeting quality.\n\t'Thigh_L'
       has scale animation that will be discarded.\n\t'Thigh_R' has scale animation
-      that will be discarded.\n\nClip 'PLAYER_Survivor_Rig|Sword_Attack_3' has import
-      animation warnings that might lower retargeting quality:\nNote: Activate translation
-      DOF on avatar to improve retargeting quality.\n\t'Thigh_L' has scale animation
-      that will be discarded.\n\nClip 'PLAYER_Survivor_Rig|Sword_Heavy' has import
-      animation warnings that might lower retargeting quality:\nNote: Activate translation
-      DOF on avatar to improve retargeting quality.\n\t'Thigh_L' has scale animation
-      that will be discarded.\n\nClip 'PLAYER_Survivor_Rig|Throw_Spear' has import
+      that will be discarded.\n\nClip 'PLAYER_Survivor_Rig|Sword_Attack_1' has import
       animation warnings that might lower retargeting quality:\nNote: Activate translation
       DOF on avatar to improve retargeting quality.\n\t'Thigh_L' has scale animation
       that will be discarded.\n\t'Thigh_R' has scale animation that will be discarded.\n\nClip
-      'PLAYER_Survivor_Rig|Wake_Up' has import animation warnings that might lower
-      retargeting quality:\nNote: Activate translation DOF on avatar to improve retargeting
-      quality.\n\t'Thigh_L' has scale animation that will be discarded.\n"
+      'PLAYER_Survivor_Rig|Sword_Attack_2' has import animation warnings that might
+      lower retargeting quality:\nNote: Activate translation DOF on avatar to improve
+      retargeting quality.\n\t'Thigh_L' has scale animation that will be discarded.\n\t'Thigh_R'
+      has scale animation that will be discarded.\n\nClip 'PLAYER_Survivor_Rig|Sword_Attack_3'
+      has import animation warnings that might lower retargeting quality:\nNote:
+      Activate translation DOF on avatar to improve retargeting quality.\n\t'Thigh_L'
+      has scale animation that will be discarded.\n\nClip 'PLAYER_Survivor_Rig|Sword_Heavy'
+      has import animation warnings that might lower retargeting quality:\nNote:
+      Activate translation DOF on avatar to improve retargeting quality.\n\t'Thigh_L'
+      has scale animation that will be discarded.\n\nClip 'PLAYER_Survivor_Rig|Throw_Spear'
+      has import animation warnings that might lower retargeting quality:\nNote:
+      Activate translation DOF on avatar to improve retargeting quality.\n\t'Thigh_L'
+      has scale animation that will be discarded.\n\t'Thigh_R' has scale animation
+      that will be discarded.\n\nClip 'PLAYER_Survivor_Rig|Turn_180' has import animation
+      warnings that might lower retargeting quality:\nNote: Activate translation
+      DOF on avatar to improve retargeting quality.\n\t'Thigh_L' has scale animation
+      that will be discarded.\n\t'Thigh_R' has scale animation that will be discarded.\n\nClip
+      'PLAYER_Survivor_Rig|Unconscious_Collapse' has import animation warnings that
+      might lower retargeting quality:\nNote: Activate translation DOF on avatar
+      to improve retargeting quality.\n\t'Thigh_L' has scale animation that will
+      be discarded.\n\t'Thigh_R' has scale animation that will be discarded.\n"
     animationRetargetingWarnings: 
     animationDoRetargetingWarnings: 0
     importAnimatedCustomProperties: 0
@@ -245,6 +281,450 @@ ModelImporter:
       - time: 0.65217394
         functionName: OnAttackEnd
         data: spear_heavy
+        objectReferenceParameter: {instanceID: 0}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: Bandage_Use
+      takeName: PLAYER_Survivor_Rig|Bandage_Use
+      internalID: 2986050192211170563
+      firstFrame: 0
+      lastFrame: 58
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 0
+      loopBlend: 0
+      loopBlendOrientation: 1
+      loopBlendPositionY: 1
+      loopBlendPositionXZ: 1
+      keepOriginalOrientation: 1
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 1
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events:
+      - time: 0.7758621
+        functionName: OnUseItem
+        data: bandage
+        objectReferenceParameter: {instanceID: 0}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: BareHand_Block
+      takeName: PLAYER_Survivor_Rig|BareHand_Block
+      internalID: 9152735744229976986
+      firstFrame: 0
+      lastFrame: 40
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 1
+      loopBlend: 1
+      loopBlendOrientation: 1
+      loopBlendPositionY: 1
+      loopBlendPositionXZ: 1
+      keepOriginalOrientation: 1
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 1
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: BareHand_Combo_End
+      takeName: PLAYER_Survivor_Rig|BareHand_Combo_End
+      internalID: 4309540205770217522
+      firstFrame: 0
+      lastFrame: 24
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 0
+      loopBlend: 0
+      loopBlendOrientation: 1
+      loopBlendPositionY: 1
+      loopBlendPositionXZ: 1
+      keepOriginalOrientation: 1
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 1
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: BareHand_Heavy
+      takeName: PLAYER_Survivor_Rig|BareHand_Heavy
+      internalID: -5263192839246522357
+      firstFrame: 0
+      lastFrame: 30
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 0
+      loopBlend: 0
+      loopBlendOrientation: 1
+      loopBlendPositionY: 1
+      loopBlendPositionXZ: 1
+      keepOriginalOrientation: 1
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 1
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events:
+      - time: 0.2
+        functionName: OnAttackStart
+        data: heavy
+        objectReferenceParameter: {instanceID: 0}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      - time: 0.36666667
+        functionName: OnAttackActive
+        data: heavy
+        objectReferenceParameter: {instanceID: 0}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      - time: 0.4
+        functionName: OnAttackHit
+        data: heavy
+        objectReferenceParameter: {instanceID: 0}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      - time: 0.5
+        functionName: OnAttackEnd
+        data: heavy
+        objectReferenceParameter: {instanceID: 0}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: BareHand_Heavy_Straight
+      takeName: PLAYER_Survivor_Rig|BareHand_Heavy_Straight
+      internalID: 2209652258666480655
+      firstFrame: 0
+      lastFrame: 28
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 0
+      loopBlend: 0
+      loopBlendOrientation: 1
+      loopBlendPositionY: 1
+      loopBlendPositionXZ: 1
+      keepOriginalOrientation: 1
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 1
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events:
+      - time: 0.17857143
+        functionName: OnAttackStart
+        data: heavy
+        objectReferenceParameter: {instanceID: 0}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      - time: 0.32142857
+        functionName: OnAttackActive
+        data: heavy
+        objectReferenceParameter: {instanceID: 0}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      - time: 0.35714287
+        functionName: OnAttackHit
+        data: heavy
+        objectReferenceParameter: {instanceID: 0}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      - time: 0.4642857
+        functionName: OnAttackEnd
+        data: heavy
+        objectReferenceParameter: {instanceID: 0}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: BareHand_HitReaction
+      takeName: PLAYER_Survivor_Rig|BareHand_HitReaction
+      internalID: -8936993703245033304
+      firstFrame: 0
+      lastFrame: 18
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 0
+      loopBlend: 0
+      loopBlendOrientation: 1
+      loopBlendPositionY: 1
+      loopBlendPositionXZ: 1
+      keepOriginalOrientation: 1
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 1
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events:
+      - time: 0
+        functionName: OnHurt
+        data: bare
+        objectReferenceParameter: {instanceID: 0}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: BareHand_Idle
+      takeName: PLAYER_Survivor_Rig|BareHand_Idle
+      internalID: 8357950580052854932
+      firstFrame: 0
+      lastFrame: 60
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 1
+      loopBlend: 1
+      loopBlendOrientation: 1
+      loopBlendPositionY: 1
+      loopBlendPositionXZ: 1
+      keepOriginalOrientation: 1
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 1
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: BareHand_Punch_1
+      takeName: PLAYER_Survivor_Rig|BareHand_Punch_1
+      internalID: 3577502135042054869
+      firstFrame: 0
+      lastFrame: 14
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 0
+      loopBlend: 0
+      loopBlendOrientation: 1
+      loopBlendPositionY: 1
+      loopBlendPositionXZ: 1
+      keepOriginalOrientation: 1
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 1
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events:
+      - time: 0.071428575
+        functionName: OnAttackStart
+        data: jab
+        objectReferenceParameter: {instanceID: 0}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      - time: 0.2857143
+        functionName: OnAttackActive
+        data: jab
+        objectReferenceParameter: {instanceID: 0}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      - time: 0.35714287
+        functionName: OnAttackHit
+        data: jab
+        objectReferenceParameter: {instanceID: 0}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      - time: 0.5
+        functionName: OnAttackEnd
+        data: jab
+        objectReferenceParameter: {instanceID: 0}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: BareHand_Punch_2
+      takeName: PLAYER_Survivor_Rig|BareHand_Punch_2
+      internalID: 2475817384944758365
+      firstFrame: 0
+      lastFrame: 16
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 0
+      loopBlend: 0
+      loopBlendOrientation: 1
+      loopBlendPositionY: 1
+      loopBlendPositionXZ: 1
+      keepOriginalOrientation: 1
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 1
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events:
+      - time: 0.125
+        functionName: OnAttackStart
+        data: cross
+        objectReferenceParameter: {instanceID: 0}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      - time: 0.3125
+        functionName: OnAttackActive
+        data: cross
+        objectReferenceParameter: {instanceID: 0}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      - time: 0.375
+        functionName: OnAttackHit
+        data: cross
+        objectReferenceParameter: {instanceID: 0}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      - time: 0.5
+        functionName: OnAttackEnd
+        data: cross
+        objectReferenceParameter: {instanceID: 0}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: BareHand_Punch_3
+      takeName: PLAYER_Survivor_Rig|BareHand_Punch_3
+      internalID: -2577560835180924512
+      firstFrame: 0
+      lastFrame: 20
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 0
+      loopBlend: 0
+      loopBlendOrientation: 1
+      loopBlendPositionY: 1
+      loopBlendPositionXZ: 1
+      keepOriginalOrientation: 1
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 1
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events:
+      - time: 0.15
+        functionName: OnAttackStart
+        data: hook
+        objectReferenceParameter: {instanceID: 0}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      - time: 0.3
+        functionName: OnAttackActive
+        data: hook
+        objectReferenceParameter: {instanceID: 0}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      - time: 0.35
+        functionName: OnAttackHit
+        data: hook
+        objectReferenceParameter: {instanceID: 0}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      - time: 0.45
+        functionName: OnAttackEnd
+        data: hook
         objectReferenceParameter: {instanceID: 0}
         floatParameter: 0
         intParameter: 0
@@ -528,6 +1008,121 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
+      name: Climb_Rock_Down
+      takeName: PLAYER_Survivor_Rig|Climb_Rock_Down
+      internalID: -2819484050637921437
+      firstFrame: 0
+      lastFrame: 36
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 1
+      loopBlend: 1
+      loopBlendOrientation: 1
+      loopBlendPositionY: 1
+      loopBlendPositionXZ: 1
+      keepOriginalOrientation: 1
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 1
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events:
+      - time: 0
+        functionName: OnClimbStep
+        data: R
+        objectReferenceParameter: {instanceID: 0}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      - time: 0.5
+        functionName: OnClimbStep
+        data: L
+        objectReferenceParameter: {instanceID: 0}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: Climb_Rock_Idle
+      takeName: PLAYER_Survivor_Rig|Climb_Rock_Idle
+      internalID: -6728496461976825098
+      firstFrame: 0
+      lastFrame: 60
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 1
+      loopBlend: 1
+      loopBlendOrientation: 1
+      loopBlendPositionY: 1
+      loopBlendPositionXZ: 1
+      keepOriginalOrientation: 1
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 1
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: Climb_Rock_Up
+      takeName: PLAYER_Survivor_Rig|Climb_Rock_Up
+      internalID: -4691467340807760567
+      firstFrame: 0
+      lastFrame: 36
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 1
+      loopBlend: 1
+      loopBlendOrientation: 1
+      loopBlendPositionY: 1
+      loopBlendPositionXZ: 1
+      keepOriginalOrientation: 1
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 1
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events:
+      - time: 0
+        functionName: OnClimbStep
+        data: L
+        objectReferenceParameter: {instanceID: 0}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      - time: 0.5
+        functionName: OnClimbStep
+        data: R
+        objectReferenceParameter: {instanceID: 0}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
       name: Climb_Start
       takeName: PLAYER_Survivor_Rig|Climb_Start
       internalID: -4855565323800098454
@@ -598,6 +1193,49 @@ ModelImporter:
       - time: 0.75
         functionName: OnClimbStep
         data: L
+        objectReferenceParameter: {instanceID: 0}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: Collect_Water
+      takeName: PLAYER_Survivor_Rig|Collect_Water
+      internalID: 5315609797254320120
+      firstFrame: 0
+      lastFrame: 64
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 0
+      loopBlend: 0
+      loopBlendOrientation: 1
+      loopBlendPositionY: 1
+      loopBlendPositionXZ: 1
+      keepOriginalOrientation: 1
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 1
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events:
+      - time: 0.34375
+        functionName: OnScoop
+        data: fill
+        objectReferenceParameter: {instanceID: 0}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      - time: 0.53125
+        functionName: OnDrink
+        data: fill
         objectReferenceParameter: {instanceID: 0}
         floatParameter: 0
         intParameter: 0
@@ -837,6 +1475,85 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
+      name: Drink_Container
+      takeName: PLAYER_Survivor_Rig|Drink_Container
+      internalID: -998680520504474831
+      firstFrame: 0
+      lastFrame: 44
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 0
+      loopBlend: 0
+      loopBlendOrientation: 1
+      loopBlendPositionY: 1
+      loopBlendPositionXZ: 1
+      keepOriginalOrientation: 1
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 1
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events:
+      - time: 0.45454547
+        functionName: OnDrink
+        data: 
+        objectReferenceParameter: {instanceID: 0}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: Drink_Kneel
+      takeName: PLAYER_Survivor_Rig|Drink_Kneel
+      internalID: -3898269897058711373
+      firstFrame: 0
+      lastFrame: 72
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 0
+      loopBlend: 0
+      loopBlendOrientation: 1
+      loopBlendPositionY: 1
+      loopBlendPositionXZ: 1
+      keepOriginalOrientation: 1
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 1
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events:
+      - time: 0.375
+        functionName: OnScoop
+        data: kneel
+        objectReferenceParameter: {instanceID: 0}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      - time: 0.5555556
+        functionName: OnDrink
+        data: kneel
+        objectReferenceParameter: {instanceID: 0}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
       name: Eat
       takeName: PLAYER_Survivor_Rig|Eat
       internalID: -448361096463764977
@@ -861,14 +1578,14 @@ ModelImporter:
       bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
       curves: []
       events:
-      - time: 0.375
+      - time: 0.33333334
         functionName: OnEat
         data: 
         objectReferenceParameter: {instanceID: 0}
         floatParameter: 0
         intParameter: 0
         messageOptions: 0
-      - time: 0.625
+      - time: 0.7083333
         functionName: OnEat
         data: 
         objectReferenceParameter: {instanceID: 0}
@@ -909,6 +1626,100 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
+      name: Gather_Branch
+      takeName: PLAYER_Survivor_Rig|Gather_Branch
+      internalID: 8971899523035408547
+      firstFrame: 0
+      lastFrame: 40
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 1
+      loopBlend: 1
+      loopBlendOrientation: 1
+      loopBlendPositionY: 1
+      loopBlendPositionXZ: 1
+      keepOriginalOrientation: 1
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 1
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events:
+      - time: 0.4
+        functionName: OnGatherHit
+        data: Gather_Branch
+        objectReferenceParameter: {instanceID: 0}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: Gather_Enter
+      takeName: PLAYER_Survivor_Rig|Gather_Enter
+      internalID: 2114360459923532758
+      firstFrame: 0
+      lastFrame: 12
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 0
+      loopBlend: 0
+      loopBlendOrientation: 1
+      loopBlendPositionY: 1
+      loopBlendPositionXZ: 1
+      keepOriginalOrientation: 1
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 1
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: Gather_Exit
+      takeName: PLAYER_Survivor_Rig|Gather_Exit
+      internalID: 2750347941390048291
+      firstFrame: 0
+      lastFrame: 14
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 0
+      loopBlend: 0
+      loopBlendOrientation: 1
+      loopBlendPositionY: 1
+      loopBlendPositionXZ: 1
+      keepOriginalOrientation: 1
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 1
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
       name: Gather_Plant
       takeName: PLAYER_Survivor_Rig|Gather_Plant
       internalID: 4771543944962216179
@@ -933,7 +1744,7 @@ ModelImporter:
       bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
       curves: []
       events:
-      - time: 0.5416667
+      - time: 0.5
         functionName: OnGatherHit
         data: Gather_Plant
         objectReferenceParameter: {instanceID: 0}
@@ -972,6 +1783,42 @@ ModelImporter:
       - time: 0.5882353
         functionName: OnGatherHit
         data: Gather_Stone
+        objectReferenceParameter: {instanceID: 0}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: Gather_Stone_Hand
+      takeName: PLAYER_Survivor_Rig|Gather_Stone_Hand
+      internalID: -1183953384768848641
+      firstFrame: 0
+      lastFrame: 40
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 1
+      loopBlend: 1
+      loopBlendOrientation: 1
+      loopBlendPositionY: 1
+      loopBlendPositionXZ: 1
+      keepOriginalOrientation: 1
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 1
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events:
+      - time: 0.425
+        functionName: OnGatherHit
+        data: Gather_Stone_Hand
         objectReferenceParameter: {instanceID: 0}
         floatParameter: 0
         intParameter: 0
@@ -1284,6 +2131,70 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
+      name: Kick
+      takeName: PLAYER_Survivor_Rig|Kick
+      internalID: -8009700201650010595
+      firstFrame: 0
+      lastFrame: 26
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 0
+      loopBlend: 0
+      loopBlendOrientation: 1
+      loopBlendPositionY: 1
+      loopBlendPositionXZ: 1
+      keepOriginalOrientation: 1
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 1
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events:
+      - time: 0.1923077
+        functionName: OnAttackStart
+        data: kick
+        objectReferenceParameter: {instanceID: 0}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      - time: 0.3846154
+        functionName: OnAttackActive
+        data: kick
+        objectReferenceParameter: {instanceID: 0}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      - time: 0.46153846
+        functionName: OnAttackHit
+        data: kick
+        objectReferenceParameter: {instanceID: 0}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      - time: 0.5769231
+        functionName: OnAttackEnd
+        data: kick
+        objectReferenceParameter: {instanceID: 0}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      - time: 0.84615386
+        functionName: OnFootstep
+        data: R
+        objectReferenceParameter: {instanceID: 0}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
       name: Knife_Attack
       takeName: PLAYER_Survivor_Rig|Knife_Attack
       internalID: -7886179078963465270
@@ -1356,6 +2267,56 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
+      name: Ledge_Mantle
+      takeName: PLAYER_Survivor_Rig|Ledge_Mantle
+      internalID: -6007631359625941728
+      firstFrame: 0
+      lastFrame: 54
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 0
+      loopBlend: 0
+      loopBlendOrientation: 1
+      loopBlendPositionY: 1
+      loopBlendPositionXZ: 1
+      keepOriginalOrientation: 1
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 1
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events:
+      - time: 0.18518518
+        functionName: OnClimbGrab
+        data: lip
+        objectReferenceParameter: {instanceID: 0}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      - time: 0.5555556
+        functionName: OnClimbStep
+        data: L
+        objectReferenceParameter: {instanceID: 0}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      - time: 0.7037037
+        functionName: OnClimbStep
+        data: R
+        objectReferenceParameter: {instanceID: 0}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
       name: Pickup
       takeName: PLAYER_Survivor_Rig|Pickup
       internalID: 7157396054047080120
@@ -1396,7 +2357,7 @@ ModelImporter:
       takeName: PLAYER_Survivor_Rig|Run
       internalID: 5085548762316772143
       firstFrame: 0
-      lastFrame: 20
+      lastFrame: 22
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
@@ -1469,6 +2430,128 @@ ModelImporter:
       - time: 0.5
         functionName: OnFootstep
         data: R
+        objectReferenceParameter: {instanceID: 0}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: Run_Pivot_180
+      takeName: PLAYER_Survivor_Rig|Run_Pivot_180
+      internalID: 62902145951965988
+      firstFrame: 0
+      lastFrame: 20
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 0
+      loopBlend: 0
+      loopBlendOrientation: 1
+      loopBlendPositionY: 1
+      loopBlendPositionXZ: 1
+      keepOriginalOrientation: 1
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 1
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events:
+      - time: 0.35
+        functionName: OnFootstep
+        data: R
+        objectReferenceParameter: {instanceID: 0}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      - time: 0.95
+        functionName: OnFootstep
+        data: L
+        objectReferenceParameter: {instanceID: 0}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: Run_Start
+      takeName: PLAYER_Survivor_Rig|Run_Start
+      internalID: 6030912494781087392
+      firstFrame: 0
+      lastFrame: 14
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 0
+      loopBlend: 0
+      loopBlendOrientation: 1
+      loopBlendPositionY: 1
+      loopBlendPositionXZ: 1
+      keepOriginalOrientation: 1
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 1
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events:
+      - time: 0.85714287
+        functionName: OnFootstep
+        data: L
+        objectReferenceParameter: {instanceID: 0}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: Run_Stop
+      takeName: PLAYER_Survivor_Rig|Run_Stop
+      internalID: -6626199232389915141
+      firstFrame: 0
+      lastFrame: 26
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 0
+      loopBlend: 0
+      loopBlendOrientation: 1
+      loopBlendPositionY: 1
+      loopBlendPositionXZ: 1
+      keepOriginalOrientation: 1
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 1
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events:
+      - time: 0.30769232
+        functionName: OnFootstep
+        data: R
+        objectReferenceParameter: {instanceID: 0}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      - time: 0.7307692
+        functionName: OnFootstep
+        data: L
         objectReferenceParameter: {instanceID: 0}
         floatParameter: 0
         intParameter: 0
@@ -1568,7 +2651,7 @@ ModelImporter:
       takeName: PLAYER_Survivor_Rig|Sprint
       internalID: -1625556203353292975
       firstFrame: 0
-      lastFrame: 14
+      lastFrame: 18
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
@@ -2101,6 +3184,56 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
+      name: Turn_180
+      takeName: PLAYER_Survivor_Rig|Turn_180
+      internalID: -6462113517892803582
+      firstFrame: 0
+      lastFrame: 34
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 0
+      loopBlend: 0
+      loopBlendOrientation: 1
+      loopBlendPositionY: 1
+      loopBlendPositionXZ: 1
+      keepOriginalOrientation: 1
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 1
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events:
+      - time: 0.3529412
+        functionName: OnFootstep
+        data: L
+        objectReferenceParameter: {instanceID: 0}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      - time: 0.7058824
+        functionName: OnFootstep
+        data: R
+        objectReferenceParameter: {instanceID: 0}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      - time: 0.9117647
+        functionName: OnFootstep
+        data: L
+        objectReferenceParameter: {instanceID: 0}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
       name: Turn_Left
       takeName: PLAYER_Survivor_Rig|Turn_Left
       internalID: 3839114779382023556
@@ -2178,6 +3311,107 @@ ModelImporter:
       - time: 0.5
         functionName: OnFootstep
         data: R
+        objectReferenceParameter: {instanceID: 0}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: Unarmed_Block
+      takeName: PLAYER_Survivor_Rig|Unarmed_Block
+      internalID: -394215470655799331
+      firstFrame: 0
+      lastFrame: 40
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 1
+      loopBlend: 1
+      loopBlendOrientation: 1
+      loopBlendPositionY: 1
+      loopBlendPositionXZ: 1
+      keepOriginalOrientation: 1
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 1
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: Unconscious
+      takeName: PLAYER_Survivor_Rig|Unconscious
+      internalID: -2320916638466227
+      firstFrame: 0
+      lastFrame: 150
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 1
+      loopBlend: 1
+      loopBlendOrientation: 1
+      loopBlendPositionY: 1
+      loopBlendPositionXZ: 1
+      keepOriginalOrientation: 1
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 1
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: Unconscious_Collapse
+      takeName: PLAYER_Survivor_Rig|Unconscious_Collapse
+      internalID: 553746446927732681
+      firstFrame: 0
+      lastFrame: 56
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 0
+      loopBlend: 0
+      loopBlendOrientation: 1
+      loopBlendPositionY: 1
+      loopBlendPositionXZ: 1
+      keepOriginalOrientation: 1
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 1
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events:
+      - time: 0.375
+        functionName: OnBodyFall
+        data: sit
+        objectReferenceParameter: {instanceID: 0}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      - time: 0.60714287
+        functionName: OnBodyFall
+        data: 
         objectReferenceParameter: {instanceID: 0}
         floatParameter: 0
         intParameter: 0
@@ -2277,7 +3511,7 @@ ModelImporter:
       takeName: PLAYER_Survivor_Rig|Walk
       internalID: 2029365598669517555
       firstFrame: 0
-      lastFrame: 30
+      lastFrame: 32
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
@@ -2434,6 +3668,78 @@ ModelImporter:
         intParameter: 0
         messageOptions: 0
       - time: 0.5
+        functionName: OnFootstep
+        data: R
+        objectReferenceParameter: {instanceID: 0}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: Walk_Start
+      takeName: PLAYER_Survivor_Rig|Walk_Start
+      internalID: -6340641192520487351
+      firstFrame: 0
+      lastFrame: 18
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 0
+      loopBlend: 0
+      loopBlendOrientation: 1
+      loopBlendPositionY: 1
+      loopBlendPositionXZ: 1
+      keepOriginalOrientation: 1
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 1
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events:
+      - time: 0.8888889
+        functionName: OnFootstep
+        data: L
+        objectReferenceParameter: {instanceID: 0}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: Walk_Stop
+      takeName: PLAYER_Survivor_Rig|Walk_Stop
+      internalID: 3318231542277021685
+      firstFrame: 0
+      lastFrame: 22
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 0
+      loopBlend: 0
+      loopBlendOrientation: 1
+      loopBlendPositionY: 1
+      loopBlendPositionXZ: 1
+      keepOriginalOrientation: 1
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 1
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events:
+      - time: 0.6363636
         functionName: OnFootstep
         data: R
         objectReferenceParameter: {instanceID: 0}
@@ -2925,307 +4231,307 @@ ModelImporter:
     - name: PLAYER_Survivor_LOD0
       parentName: 
       position: {x: 0, y: 0, z: 0}
-      rotation: {x: 0.000000053385076, y: 0.7071068, z: -0.70710677, w: 0.00000005338508}
+      rotation: {x: -5.0055696e-15, y: 0.7071068, z: -0.7071068, w: 0.000000061817246}
       scale: {x: 1, y: 1, z: 1}
     - name: PLAYER_Survivor_LOD1
       parentName: 
       position: {x: 0, y: 0, z: 0}
-      rotation: {x: 0.000000053385076, y: 0.7071068, z: -0.70710677, w: 0.00000005338508}
+      rotation: {x: -5.0055696e-15, y: 0.7071068, z: -0.7071068, w: 0.000000061817246}
       scale: {x: 1, y: 1, z: 1}
     - name: PLAYER_Survivor_LOD2
       parentName: 
       position: {x: 0, y: 0, z: 0}
-      rotation: {x: 0.000000053385076, y: 0.7071068, z: -0.70710677, w: 0.00000005338508}
+      rotation: {x: -5.0055696e-15, y: 0.7071068, z: -0.7071068, w: 0.000000061817246}
       scale: {x: 1, y: 1, z: 1}
     - name: PLAYER_Survivor_Rig
       parentName: 
       position: {x: 0, y: 0, z: 0}
-      rotation: {x: 0.00000009415696, y: 0.7071068, z: -0.7071067, w: 0.00000009415697}
+      rotation: {x: -0.00000003090862, y: -0.7071068, z: 0.7071068, w: -0.00000003090862}
       scale: {x: 1, y: 1, z: 1}
     - name: Root
       parentName: 
       position: {x: 0, y: 0, z: 0}
-      rotation: {x: -0, y: -0, z: 1, w: 0.00000005766014}
+      rotation: {x: 0.000000043711395, y: 0.000000059604645, z: -1, w: 2.1175824e-22}
       scale: {x: 1, y: 1, z: 1}
     - name: Pelvis
       parentName: 
-      position: {x: 1.687539e-14, y: -0.013035119, z: -1.0003399}
-      rotation: {x: -0.000000057673585, y: 0.6453226, z: -0.7639101, w: 0.000000048720477}
+      position: {x: 7.1054274e-15, y: -0.013034642, z: -1.0003402}
+      rotation: {x: -0.000000057673613, y: 0.64532274, z: -0.76391006, w: 0.000000048720505}
       scale: {x: 1, y: 1.0000004, z: 1}
     - name: Spine
       parentName: 
-      position: {x: -2.6645353e-15, y: 0.09900222, z: -0.000000007450581}
-      rotation: {x: -0.08131519, y: 0.00000004502658, z: 0.000000008604747, w: 0.9966885}
+      position: {x: 6.4392935e-15, y: 0.099002235, z: 0.000000014901161}
+      rotation: {x: -0.08131524, y: 0.000000045026603, z: 0.00000000860475, w: 0.9966885}
       scale: {x: 1, y: 1, z: 1}
     - name: Spine_Upper
       parentName: 
-      position: {x: 3.7747583e-15, y: 0.12954171, z: -0.00000008940697}
-      rotation: {x: 0.07358278, y: -0.0000000029901979, z: -0.0000000046829416, w: 0.9972891}
+      position: {x: 2.4424907e-15, y: 0.12954174, z: -0.000000048428774}
+      rotation: {x: 0.0735829, y: -0.0000000029901908, z: -0.000000004682937, w: 0.9972892}
       scale: {x: 1.0000001, y: 0.99999994, z: 1.0000001}
     - name: Chest
       parentName: 
-      position: {x: 7.1054265e-15, y: 0.14577945, z: 0.00000013038515}
-      rotation: {x: -0.21675846, y: -0.00000000861697, z: 0.000000016358092, w: 0.9762253}
+      position: {x: 2.4424904e-15, y: 0.14577942, z: 0.00000012665986}
+      rotation: {x: -0.21675856, y: -0.000000008616988, z: 0.00000001635809, w: 0.9762253}
       scale: {x: 1, y: 1, z: 0.99999994}
     - name: Clavicle_L
       parentName: 
-      position: {x: 0.023819985, y: 0.15447018, z: -0.035320938}
-      rotation: {x: -0.10424737, y: -0.093886875, z: 0.7513186, w: -0.6448551}
+      position: {x: 0.023819998, y: 0.15447046, z: -0.03532095}
+      rotation: {x: -0.10424739, y: -0.093886845, z: 0.7513185, w: -0.64485526}
       scale: {x: 0.99999976, y: 0.9999998, z: 0.99999994}
     - name: UpperArm_L
       parentName: 
-      position: {x: 0.0000003222377, y: 0.19973548, z: 0.00000009313227}
-      rotation: {x: -0.017986175, y: 0.0021098475, z: 0.07346674, w: 0.99713326}
+      position: {x: 0.00000058300805, y: 0.19973564, z: 0.00000008475036}
+      rotation: {x: -0.017986381, y: 0.00210972, z: 0.07346639, w: 0.99713326}
       scale: {x: 1, y: 1, z: 1}
     - name: LowerArm_L
       parentName: 
-      position: {x: -0.00000014901161, y: 0.27424544, z: -0.00000009778887}
-      rotation: {x: -0.00000019744036, y: -0.0003817869, z: 0.00000029256623, w: 1}
+      position: {x: -0.00000025331974, y: 0.27424556, z: 0.00000007916242}
+      rotation: {x: -0.0000002756713, y: -0.00038175506, z: 0.0000009022619, w: 1}
       scale: {x: 1, y: 0.99999994, z: 0.9999999}
     - name: Hand_L
       parentName: 
-      position: {x: 0.000000037718564, y: 0.27949482, z: 0.00000010430814}
-      rotation: {x: -0.00000012285057, y: 0.69493526, z: 0.0000005515911, w: -0.71907246}
+      position: {x: -0.0000000547152, y: 0.279495, z: 0.000000040978197}
+      rotation: {x: 0.0000004414418, y: 0.69493526, z: 0.0000014371742, w: -0.7190723}
       scale: {x: 1.0000001, y: 1.0000001, z: 1}
     - name: Index_01_L
       parentName: 
-      position: {x: -0.02976714, y: 0.1183881, z: -0.005029347}
-      rotation: {x: -0.13562419, y: -0.010082391, z: 0.07344779, w: 0.98798275}
+      position: {x: -0.029767012, y: 0.118388295, z: -0.005029425}
+      rotation: {x: -0.13562424, y: -0.010082539, z: 0.07344772, w: 0.98798275}
       scale: {x: 1, y: 1, z: 0.9999999}
     - name: Index_02_L
       parentName: 
-      position: {x: 0.0000000088475645, y: 0.029690297, z: -0.00000021699819}
-      rotation: {x: -0.1044545, y: 0.008411521, z: -0.02121242, w: 0.9942679}
+      position: {x: -0.000000070780516, y: 0.029690286, z: -0.00000018998983}
+      rotation: {x: -0.10445451, y: 0.008411549, z: -0.021212438, w: 0.9942678}
       scale: {x: 0.99999994, y: 1.0000001, z: 1}
     - name: Index_03_L
       parentName: 
-      position: {x: -0.000000015250409, y: 0.026603865, z: 0.00000006100163}
-      rotation: {x: -0.061811127, y: -0.00003463681, z: 0.000057443496, w: 0.99808794}
+      position: {x: -0.0000000125728565, y: 0.02660399, z: 0.00000002561137}
+      rotation: {x: -0.061811216, y: -0.00003468617, z: 0.000057377838, w: 0.99808794}
       scale: {x: 1, y: 1.0000001, z: 1.0000001}
     - name: Middle_01_L
       parentName: 
-      position: {x: -0.00000005308538, y: 0.11762741, z: 0.00000009872019}
-      rotation: {x: -0.1643089, y: 0.011734039, z: -0.07025928, w: 0.9838337}
+      position: {x: -0.00000013085081, y: 0.11762744, z: 0.00000013876706}
+      rotation: {x: -0.16430901, y: 0.011733825, z: -0.070259325, w: 0.98383355}
       scale: {x: 1, y: 1, z: 0.99999994}
     - name: Middle_02_L
       parentName: 
-      position: {x: -0.00000011175871, y: 0.038634706, z: 0.00000005494804}
-      rotation: {x: -0.053460967, y: -0.011951673, z: 0.029538402, w: 0.9980615}
+      position: {x: 0.00000007590279, y: 0.038634993, z: -0.00000003445894}
+      rotation: {x: -0.05346108, y: -0.011951611, z: 0.0295385, w: 0.9980614}
       scale: {x: 0.99999994, y: 1, z: 1.0000001}
     - name: Middle_03_L
       parentName: 
-      position: {x: 0.00000006507617, y: 0.031368986, z: -0.000000031199303}
-      rotation: {x: -0.06389392, y: 0.008514803, z: -0.015514944, w: 0.9977998}
+      position: {x: -0.00000008929056, y: 0.031368576, z: -0.000000072643154}
+      rotation: {x: -0.063893825, y: 0.008514906, z: -0.015515096, w: 0.99779975}
       scale: {x: 1, y: 1.0000001, z: 1}
     - name: Pinky_01_L
       parentName: 
-      position: {x: 0.043463565, y: 0.09980435, z: -0.00502925}
-      rotation: {x: 0.1829656, y: -0.04112151, z: 0.21539034, w: -0.9583526}
+      position: {x: 0.043463524, y: 0.09980437, z: -0.0050292574}
+      rotation: {x: 0.18296558, y: -0.041121412, z: 0.2153905, w: -0.95835257}
       scale: {x: 0.99999994, y: 1.0000001, z: 1}
     - name: Pinky_02_L
       parentName: 
-      position: {x: 0.000000013038518, y: 0.024469314, z: -0.00000028219074}
-      rotation: {x: -0.08275785, y: -0.0108136, z: 0.021816723, w: 0.9962722}
+      position: {x: 0.00000008381904, y: 0.024469435, z: -0.00000017695129}
+      rotation: {x: -0.08275788, y: -0.010813775, z: 0.021816883, w: 0.9962722}
       scale: {x: 0.99999994, y: 1.0000001, z: 1.0000002}
     - name: Pinky_03_L
       parentName: 
-      position: {x: -0.000000032829124, y: 0.0178134, z: -0.00000017485577}
-      rotation: {x: 0.005347341, y: 0.005963843, z: -0.010001484, w: 0.999918}
+      position: {x: -0.000000079220634, y: 0.0178133, z: -0.00000028358767}
+      rotation: {x: 0.005347399, y: 0.005964095, z: -0.010001475, w: 0.999918}
       scale: {x: 0.9999998, y: 1.0000001, z: 1.0000001}
     - name: Ring_01_L
       parentName: 
-      position: {x: 0.0222763, y: 0.110812336, z: 0.00058754906}
-      rotation: {x: 0.14526826, y: -0.023544576, z: 0.15824594, w: -0.9763714}
+      position: {x: 0.022276385, y: 0.1108125, z: 0.0005875486}
+      rotation: {x: 0.14526834, y: -0.023544451, z: 0.15824601, w: -0.9763713}
       scale: {x: 0.99999994, y: 1, z: 1}
     - name: Ring_02_L
       parentName: 
-      position: {x: -0.0000000037252907, y: 0.034030482, z: 0.000000011175871}
-      rotation: {x: -0.063727036, y: -0.014178675, z: 0.037757896, w: 0.9971521}
+      position: {x: 0.000000036321584, y: 0.034030344, z: -0.00000011827797}
+      rotation: {x: -0.06372692, y: -0.01417867, z: 0.037757862, w: 0.99715203}
       scale: {x: 1, y: 0.99999994, z: 1}
     - name: Ring_03_L
       parentName: 
-      position: {x: 0.000000017229468, y: 0.028432649, z: 0.00000020349398}
-      rotation: {x: -0.059622876, y: 0.018796608, z: -0.03586372, w: 0.9973995}
+      position: {x: -0.000000052619725, y: 0.028432619, z: 0.0000002218876}
+      rotation: {x: -0.05962287, y: 0.018796593, z: -0.03586369, w: 0.99739945}
       scale: {x: 0.99999994, y: 0.9999999, z: 0.99999994}
     - name: Thumb_01_L
       parentName: 
-      position: {x: -0.027884893, y: 0.04310535, z: -0.0041101463}
-      rotation: {x: -0.3145537, y: -0.1805606, z: 0.46393606, w: 0.8082185}
+      position: {x: -0.027884912, y: 0.043105274, z: -0.004110221}
+      rotation: {x: -0.31455368, y: -0.18056077, z: 0.4639359, w: 0.8082186}
       scale: {x: 0.99999994, y: 0.99999994, z: 1}
     - name: Thumb_02_L
       parentName: 
-      position: {x: -0.00000018719587, y: 0.03516383, z: -0.00000027939677}
-      rotation: {x: 0.11266391, y: 0.114977166, z: -0.1586369, w: 0.974126}
+      position: {x: -0.00000015925617, y: 0.035163898, z: -0.000000055879354}
+      rotation: {x: 0.112663895, y: 0.114977494, z: -0.15863676, w: 0.97412604}
       scale: {x: 1, y: 1, z: 1}
     - name: Thumb_03_L
       parentName: 
-      position: {x: 0.00000006984919, y: 0.041796107, z: 0.00000015366822}
-      rotation: {x: -0.030012943, y: 0.085197374, z: -0.14134148, w: 0.9858312}
+      position: {x: 0.000000011175871, y: 0.041795947, z: 0.00000007636845}
+      rotation: {x: -0.030013047, y: 0.08519716, z: -0.14134145, w: 0.9858312}
       scale: {x: 1.0000001, y: 1.0000001, z: 0.99999994}
     - name: Weapon_L
       parentName: 
-      position: {x: 0.000000018160788, y: 0.064695194, z: -0.030000003}
-      rotation: {x: -0.0000000875443, y: 0.00000011920926, z: 0.614013, w: 0.7892959}
+      position: {x: -0.000000004190951, y: 0.06469514, z: -0.029999997}
+      rotation: {x: -0.00000011548396, y: 0.00000011920925, z: 0.614013, w: 0.78929585}
       scale: {x: 0.9999999, y: 1, z: 1}
     - name: LowerArmTwist_L
       parentName: 
-      position: {x: 0.00000006542541, y: 0.13974757, z: 0.00000017322601}
-      rotation: {x: 0.000000029802319, y: 0.00000009880749, z: -0.00000008120332, w: 1}
-      scale: {x: 0.9999999, y: 0.9999998, z: 0.99999994}
+      position: {x: 0.000000026309863, y: 0.13974765, z: -0.0000000055879363}
+      rotation: {x: 0.00000003725289, y: 0.000000088388305, z: 0.000000007852575, w: 1}
+      scale: {x: 1.0000001, y: 0.9999999, z: 1.0000001}
     - name: Clavicle_R
       parentName: 
-      position: {x: -0.023819994, y: 0.15447018, z: -0.035320938}
-      rotation: {x: 0.10424738, y: -0.09388667, z: 0.7513186, w: 0.6448552}
+      position: {x: -0.023820007, y: 0.15447046, z: -0.03532095}
+      rotation: {x: 0.10424746, y: -0.09388688, z: 0.7513185, w: 0.64485514}
       scale: {x: 0.9999998, y: 0.9999998, z: 0.99999994}
     - name: UpperArm_R
       parentName: 
-      position: {x: -0.000000094994924, y: 0.19973542, z: -0.00000008102507}
-      rotation: {x: -0.017986152, y: -0.0021098698, z: -0.07346734, w: 0.99713326}
+      position: {x: -0.00000026263302, y: 0.19973554, z: 0.00000010337682}
+      rotation: {x: -0.017986026, y: -0.0021097723, z: -0.07346699, w: 0.99713326}
       scale: {x: 1, y: 0.9999999, z: 1}
     - name: LowerArm_R
       parentName: 
-      position: {x: -0.00000016391277, y: 0.27424562, z: 0.000000081025064}
-      rotation: {x: 0.00000024028114, y: 0.0003819172, z: 0.0000005137443, w: 1}
+      position: {x: -0.00000010430813, y: 0.2742456, z: -0.000000029802322}
+      rotation: {x: -0.00000011920922, y: 0.00038161094, z: 0.00000026474282, w: 1}
       scale: {x: 1, y: 0.99999994, z: 1.0000001}
     - name: Hand_R
       parentName: 
-      position: {x: 0.00000018835999, y: 0.27949527, z: -0.000000055879347}
-      rotation: {x: -0.0000005043262, y: 0.69493544, z: 0.0000008343146, w: 0.7190722}
+      position: {x: 0.0000001671724, y: 0.27949515, z: 0.00000001862645}
+      rotation: {x: -0.00000057466343, y: 0.6949353, z: -0.0000009077513, w: 0.7190722}
       scale: {x: 1.0000002, y: 1.0000001, z: 1.0000001}
     - name: Index_01_R
       parentName: 
-      position: {x: 0.029766884, y: 0.11838778, z: -0.005029354}
-      rotation: {x: -0.13562416, y: 0.010082331, z: -0.07344751, w: 0.98798275}
+      position: {x: 0.029766848, y: 0.11838799, z: -0.005029544}
+      rotation: {x: -0.1356241, y: 0.010082567, z: -0.073447585, w: 0.98798275}
       scale: {x: 1, y: 1, z: 1}
     - name: Index_02_R
       parentName: 
-      position: {x: 0.00000007497147, y: 0.029690623, z: -0.00000025425106}
-      rotation: {x: -0.1044547, y: -0.0084115425, z: 0.021212235, w: 0.9942678}
+      position: {x: 0.000000014901161, y: 0.029690554, z: -0.00000021420419}
+      rotation: {x: -0.10445479, y: -0.008411585, z: 0.021212252, w: 0.9942679}
       scale: {x: 0.99999994, y: 1, z: 1}
     - name: Index_03_R
       parentName: 
-      position: {x: -0.0000000637956, y: 0.026603749, z: 0.00000014994293}
-      rotation: {x: -0.061811008, y: 0.00003469921, z: -0.000057387035, w: 0.9980879}
+      position: {x: -0.0000000569271, y: 0.026603855, z: 0.0000001094304}
+      rotation: {x: -0.061810903, y: 0.000034647976, z: -0.00005742043, w: 0.9980879}
       scale: {x: 1, y: 1, z: 1.0000001}
     - name: Middle_01_R
       parentName: 
-      position: {x: 0.00000001583248, y: 0.117627226, z: 0.00000026449558}
-      rotation: {x: -0.16430885, y: -0.011733915, z: 0.070259415, w: 0.9838336}
+      position: {x: -0.00000023562455, y: 0.11762743, z: 0.00000003352761}
+      rotation: {x: -0.16430879, y: -0.011733768, z: 0.070259325, w: 0.9838337}
       scale: {x: 0.99999994, y: 1.0000001, z: 1.0000001}
     - name: Middle_02_R
       parentName: 
-      position: {x: -0.00000015459956, y: 0.03863488, z: -0.00000014249234}
-      rotation: {x: -0.053460915, y: 0.011951451, z: -0.029538544, w: 0.9980614}
+      position: {x: 0.000000010244549, y: 0.038634837, z: -0.000000066123896}
+      rotation: {x: -0.05346096, y: 0.011951562, z: -0.02953847, w: 0.9980614}
       scale: {x: 1, y: 1.0000001, z: 1}
     - name: Middle_03_R
       parentName: 
-      position: {x: 0.000000059837475, y: 0.031368937, z: -0.00000018812716}
-      rotation: {x: -0.06389392, y: -0.008514564, z: 0.01551514, w: 0.9977998}
+      position: {x: 0.000000040396117, y: 0.03136888, z: -0.00000017671846}
+      rotation: {x: -0.06389396, y: -0.008514717, z: 0.0155150015, w: 0.99779975}
       scale: {x: 0.99999994, y: 1.0000001, z: 1}
     - name: Pinky_01_R
       parentName: 
-      position: {x: -0.043463577, y: 0.099803865, z: -0.005029596}
-      rotation: {x: -0.18296556, y: -0.041121796, z: 0.2153906, w: 0.95835245}
+      position: {x: -0.043463822, y: 0.099804215, z: -0.0050298623}
+      rotation: {x: -0.18296546, y: -0.04112144, z: 0.21539052, w: 0.9583525}
       scale: {x: 0.99999994, y: 1.0000001, z: 1}
     - name: Pinky_02_R
       parentName: 
-      position: {x: -0.000000008381904, y: 0.024469703, z: 0.00000017462298}
-      rotation: {x: -0.08275791, y: 0.01081379, z: -0.021816872, w: 0.99627215}
+      position: {x: 0.00000008475036, y: 0.024469517, z: 0.00000018114224}
+      rotation: {x: -0.0827579, y: 0.010813797, z: -0.021816911, w: 0.99627215}
       scale: {x: 0.99999994, y: 1, z: 1}
     - name: Pinky_03_R
       parentName: 
-      position: {x: -0.000000020023437, y: 0.017813269, z: -0.0000001527369}
-      rotation: {x: 0.005347407, y: -0.00596392, z: 0.010001514, w: 0.9999179}
+      position: {x: -0.000000024680052, y: 0.017813336, z: -0.00000016950071}
+      rotation: {x: 0.005347422, y: -0.0059639476, z: 0.010001548, w: 0.9999179}
       scale: {x: 0.99999994, y: 1, z: 0.99999994}
     - name: Ring_01_R
       parentName: 
-      position: {x: -0.022276439, y: 0.11081206, z: 0.00058734784}
-      rotation: {x: -0.14526808, y: -0.023544634, z: 0.15824604, w: 0.97637135}
+      position: {x: -0.022276536, y: 0.110812336, z: 0.0005872747}
+      rotation: {x: -0.14526807, y: -0.023544451, z: 0.15824601, w: 0.9763714}
       scale: {x: 1.0000001, y: 1, z: 1}
     - name: Ring_02_R
       parentName: 
-      position: {x: -0.00000007543712, y: 0.034030497, z: 0.0000001816079}
-      rotation: {x: -0.063727014, y: 0.0141786365, z: -0.03775799, w: 0.99715203}
+      position: {x: -0.00000006053596, y: 0.03403035, z: 0.00000013131648}
+      rotation: {x: -0.06372701, y: 0.014178825, z: -0.037757885, w: 0.99715203}
       scale: {x: 1, y: 1.0000001, z: 1.0000001}
     - name: Ring_03_R
       parentName: 
-      position: {x: 0.000000002561137, y: 0.028432699, z: 0.000000058440484}
-      rotation: {x: -0.059622914, y: -0.018796455, z: 0.03586392, w: 0.9973995}
+      position: {x: -0.00000003213063, y: 0.028432846, z: 0.000000080326565}
+      rotation: {x: -0.059622966, y: -0.018796649, z: 0.035863712, w: 0.9973995}
       scale: {x: 0.99999994, y: 0.9999999, z: 0.99999994}
     - name: Thumb_01_R
       parentName: 
-      position: {x: 0.027884854, y: 0.043104768, z: -0.0041101496}
-      rotation: {x: -0.31455368, y: 0.18056056, z: -0.4639358, w: 0.80821866}
+      position: {x: 0.02788483, y: 0.04310491, z: -0.0041102353}
+      rotation: {x: -0.31455365, y: 0.18056056, z: -0.4639358, w: 0.8082187}
       scale: {x: 1, y: 1, z: 1}
     - name: Thumb_02_R
       parentName: 
-      position: {x: -0.00000023376197, y: 0.035163708, z: -0.00000004749745}
-      rotation: {x: 0.11266388, y: -0.11497742, z: 0.15863656, w: 0.974126}
+      position: {x: -0.00000021792948, y: 0.035163715, z: -0.00000010617077}
+      rotation: {x: 0.11266377, y: -0.11497735, z: 0.15863664, w: 0.9741261}
       scale: {x: 0.9999999, y: 1, z: 0.9999999}
     - name: Thumb_03_R
       parentName: 
-      position: {x: -0.000000016763808, y: 0.041796114, z: -0.0000000046566133}
-      rotation: {x: -0.030013137, y: -0.08519721, z: 0.14134157, w: 0.98583126}
+      position: {x: -0.00000003166497, y: 0.04179618, z: -0.0000000055879363}
+      rotation: {x: -0.030013122, y: -0.08519723, z: 0.1413414, w: 0.9858312}
       scale: {x: 1, y: 0.9999999, z: 0.9999999}
     - name: Weapon_R
       parentName: 
-      position: {x: -0.00000011175868, y: 0.06469475, z: -0.02999993}
-      rotation: {x: 0.000000052154054, y: -0.00000029802317, z: -0.61401296, w: 0.789296}
+      position: {x: -0.000000105705084, y: 0.06469486, z: -0.030000124}
+      rotation: {x: -0.000000039115534, y: -0.00000008940694, z: -0.6140131, w: 0.78929585}
       scale: {x: 1, y: 1, z: 1}
     - name: LowerArmTwist_R
       parentName: 
-      position: {x: 0.0000003098976, y: 0.13974766, z: -0.000000024214383}
-      rotation: {x: 0.0000000372529, y: -0.00000010110669, z: 0.000000020667356, w: 1}
+      position: {x: 0.00000027031638, y: 0.13974753, z: 0.00000001862645}
+      rotation: {x: 0.00000006705521, y: -0.00000011463996, z: 0.00000028987046, w: 1}
       scale: {x: 0.9999997, y: 0.99999976, z: 1}
     - name: Neck
       parentName: 
-      position: {x: 3.996803e-15, y: 0.14943092, z: -0.00000017881396}
-      rotation: {x: -0.018149525, y: 0.000000008825397, z: 0.0000000013696827, w: 0.9998354}
+      position: {x: -3.0198066e-14, y: 0.14943117, z: -0.00000018626454}
+      rotation: {x: -0.018149478, y: 0.000000008825394, z: 0.0000000013696856, w: 0.9998353}
       scale: {x: 0.99999994, y: 1, z: 0.9999999}
     - name: Head
       parentName: 
-      position: {x: -1.1546321e-14, y: 0.18250582, z: -0.000000004190952}
-      rotation: {x: 0.15975897, y: 0.00000003289205, z: -0.000000005323168, w: 0.9871561}
+      position: {x: -1.0602631e-14, y: 0.18250586, z: -0.00000002747402}
+      rotation: {x: 0.15975891, y: 0.000000032892054, z: -0.0000000053231752, w: 0.98715603}
       scale: {x: 0.99999994, y: 1, z: 0.99999994}
     - name: Thigh_L
       parentName: 
-      position: {x: 0.11358, y: 0.000024569677, z: -0.005658689}
-      rotation: {x: -0.000549758, y: 0.044551883, z: 0.99899715, w: 0.0044226157}
+      position: {x: 0.113580056, y: 0.000024569212, z: -0.005658702}
+      rotation: {x: -0.00054975785, y: 0.044551846, z: 0.9989972, w: 0.0044226157}
       scale: {x: 1.0000095, y: 1.000002, z: 1.0000048}
     - name: Calf_L
       parentName: 
-      position: {x: 0.00000003725255, y: 0.4529207, z: 0.00000003725273}
-      rotation: {x: 0.057283323, y: -0.00022083902, z: 0.010291268, w: 0.99830496}
+      position: {x: 0.000000028405069, y: 0.45292103, z: 0.00000015273618}
+      rotation: {x: 0.057283327, y: -0.00022083946, z: 0.010291267, w: 0.9983049}
       scale: {x: 1, y: 1.0000001, z: 1}
     - name: Foot_L
       parentName: 
-      position: {x: 0.00000002142042, y: 0.47410148, z: -0.0000001937151}
-      rotation: {x: -0.59815025, y: 0.019835457, z: 0.0066357693, w: 0.80111104}
+      position: {x: 0.000000023283064, y: 0.47410175, z: -0.00000010803342}
+      rotation: {x: -0.5981503, y: 0.01983546, z: 0.00663577, w: 0.801111}
       scale: {x: 1, y: 1.0000001, z: 1}
     - name: Toe_L
       parentName: 
-      position: {x: 0.0000006663613, y: 0.1595478, z: -0.0000014305115}
-      rotation: {x: -0.0715509, y: -0.009760486, z: -0.037900697, w: 0.9966688}
+      position: {x: 0.0000006663613, y: 0.1595479, z: -0.0000013560057}
+      rotation: {x: -0.07155083, y: -0.009760489, z: -0.0379007, w: 0.9966689}
       scale: {x: 1, y: 1, z: 1}
     - name: Thigh_R
       parentName: 
-      position: {x: -0.11358, y: 0.000024555242, z: -0.0056587392}
-      rotation: {x: 0.0005500039, y: 0.044551883, z: 0.99899715, w: -0.0044226223}
+      position: {x: -0.11358006, y: 0.000024569212, z: -0.0056586675}
+      rotation: {x: 0.0005500043, y: 0.044551846, z: 0.9989972, w: -0.0044226213}
       scale: {x: 1.0000007, y: 1.0000021, z: 1.0000135}
     - name: Calf_R
       parentName: 
-      position: {x: -0.000000049825726, y: 0.45292076, z: 0.000000044702883}
-      rotation: {x: 0.057283323, y: 0.00022093407, z: -0.0102912765, w: 0.99830496}
+      position: {x: -0.00000005681064, y: 0.45292106, z: 0.00000014155913}
+      rotation: {x: 0.057283327, y: 0.00022093579, z: -0.010291276, w: 0.9983049}
       scale: {x: 0.9999999, y: 1, z: 1}
     - name: Foot_R
       parentName: 
-      position: {x: 0.000000097788885, y: 0.4741013, z: -0.0000005811453}
-      rotation: {x: -0.5981503, y: -0.019835455, z: -0.0066357693, w: 0.801111}
+      position: {x: 0.0000001024455, y: 0.4741016, z: -0.0000005699694}
+      rotation: {x: -0.5981503, y: -0.019835455, z: -0.006635768, w: 0.8011109}
       scale: {x: 0.9999998, y: 1, z: 0.99999994}
     - name: Toe_R
       parentName: 
-      position: {x: -0.0000005606563, y: 0.15954667, z: -0.0000009536744}
-      rotation: {x: -0.07155093, y: 0.009760475, z: 0.037900686, w: 0.9966689}
+      position: {x: -0.00000056112196, y: 0.15954679, z: -0.0000008046628}
+      rotation: {x: -0.07155083, y: 0.00976048, z: 0.03790069, w: 0.9966689}
       scale: {x: 1.0000001, y: 1, z: 0.9999999}
     armTwist: 1
     foreArmTwist: 0

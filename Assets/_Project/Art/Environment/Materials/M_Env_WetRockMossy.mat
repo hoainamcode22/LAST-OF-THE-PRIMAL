@@ -1,0 +1,66 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: M_Env_WetRockMossy
+  m_Shader: {fileID: 4800000, guid: c99f363e717c3764f89e9e14e68aba6a, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 1
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _BaseMap:
+        m_Texture: {fileID: 2800000, guid: 09e114af29e305446b686ecf8e9a48e8, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _BumpMap:
+        m_Texture: {fileID: 2800000, guid: 90b44ebcc2f0de24db9a87883151c7e7, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MetallicGlossMap:
+        m_Texture: {fileID: 2800000, guid: 0376d9ec3ff9a1c4283bbaef25b4e115, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MossMap:
+        m_Texture: {fileID: 2800000, guid: a09e78314b9d7004cbbe8a7c7ecb8c95, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _OcclusionMap:
+        m_Texture: {fileID: 2800000, guid: 0376d9ec3ff9a1c4283bbaef25b4e115, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _AlphaClip: 0
+    - _BaseWetness: 0.85
+    - _BumpScale: 1
+    - _ColorVariation: 0.12
+    - _Cull: 2
+    - _Cutoff: 0.5
+    - _Metallic: 0
+    - _MossAmount: 0.62
+    - _MossTiling: 2.2
+    - _OcclusionStrength: 0.8
+    - _Porosity: 0.45
+    - _Smoothness: 1
+    - _WetResponse: 1
+    - _WetSmoothness: 0.7
+    m_Colors:
+    - _BaseColor: {r: 0.82, g: 0.82, b: 0.8, a: 1}
+    - _MossColor: {r: 1, g: 1, b: 1, a: 1}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1

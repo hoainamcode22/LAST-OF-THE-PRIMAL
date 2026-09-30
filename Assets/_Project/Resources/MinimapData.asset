@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 0}
   m_Name: MinimapData
   m_EditorClassIdentifier: PrimalFrontier.Runtime:PrimalFrontier.UI:MinimapData
-  map: {fileID: 2800000, guid: 7076d375631be1549b048557b86d5375, type: 3}
+  map: {fileID: 2800000, guid: a0c5a7e600880e345bda523116f69901, type: 3}
   worldMin: {x: -320, y: -320}
   worldSize: 640

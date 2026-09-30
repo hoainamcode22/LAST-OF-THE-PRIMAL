@@ -15,6 +15,9 @@ namespace PrimalFrontier.Items
         /// <summary>GameClock time the food in this stack was made (count-weighted average when stacks merge). Only items with
         /// ItemDefinition.spoilHours &gt; 0 use it (Survival/Spoilage); saved as an age so it survives the clock being restored.</summary>
         public double madeAt;
+        /// <summary>GameClock time until which the water in this container is Hot (just boiled / heated); at or before now = Cold.
+        /// Rules and the cooling time: Survival/WaterRules + SurvivalConfig.hotWaterCoolSeconds. Saved as seconds left (old saves: cold).</summary>
+        public double hotUntil;
         /// <summary>compatibility view of <see cref="waterType"/>: pond / stream water that was not boiled</summary>
         public bool dirty
         {
@@ -40,7 +43,7 @@ namespace PrimalFrontier.Items
         }
         public bool IsEmpty => item == null || count <= 0;
         public float Weight => IsEmpty ? 0f : item.weight * count;
-        public ItemStack Clone() => new ItemStack(item, count) { durability = durability, water = water, waterType = waterType, madeAt = madeAt };
+        public ItemStack Clone() => new ItemStack(item, count) { durability = durability, water = water, waterType = waterType, madeAt = madeAt, hotUntil = hotUntil };
         public bool CanMergeWith(ItemStack o) => o != null && !IsEmpty && !o.IsEmpty && o.item == item && item.maxStack > 1;
     }
 }

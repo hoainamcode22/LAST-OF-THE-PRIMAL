@@ -78,7 +78,11 @@ namespace PrimalFrontier.Player
                     if (HotFood) { var s = Fx.Play(VfxId.Steam, Bone(HumanBodyBones.RightHand, Mouth), Quaternion.identity, _anim ? _anim.GetBoneTransform(HumanBodyBones.RightHand) : null, 0.6f); HotFood = false; }
                     break;
                 case "OnDrink":
-                    Fx.Play(VfxId.WaterSplash, HandsMid - Vector3.up * 0.05f, Vector3.up, null, 0.6f); Fx.Play(VfxId.WaterDrops, Mouth, Vector3.down);
+                    // "kneel": the drink program already splashes at the water surface, only the mouth drips and the swallow here;
+                    // "fill": the container is filled, nothing is drunk (the fill sound and splash come from the program); plain: container to the mouth
+                    if (param == "fill") break;
+                    if (param != "kneel") Fx.Play(VfxId.WaterSplash, HandsMid - Vector3.up * 0.05f, Vector3.up, null, 0.6f);
+                    Fx.Play(VfxId.WaterDrops, Mouth, Vector3.down);
                     Sfx.Play(SfxId.Drink, Mouth, 0.8f); break;
                 case "OnAttackHit": case "OnThrowRelease": Sfx.Play(SfxId.SpearWhoosh, HandsMid, 0.8f); break;
                 case "OnBowDrawStart": Sfx.Play(SfxId.BowDraw, HandsMid, 0.7f); break;
@@ -99,8 +103,8 @@ namespace PrimalFrontier.Player
             LastFootSurface = s;
             float speedK = Mathf.Clamp01(_motor.PlanarSpeed / 6f);
             float quiet = _motor.IsCrouching ? 0.35f : 1f;
-            VfxId fx = s switch { Surface.Sand => VfxId.FootSand, Surface.Mud => VfxId.FootMud, Surface.Rock => VfxId.FootRock, Surface.Water => VfxId.WaterDrops, Surface.Wood => VfxId.None, _ => VfxId.FootDirt };
-            SfxId sfx = s switch { Surface.Sand => SfxId.FootSand, Surface.Mud => SfxId.FootMud, Surface.Rock => SfxId.FootRock, Surface.Water => SfxId.FootWater, Surface.Wood => SfxId.FootRock, _ => SfxId.FootDirt };
+            VfxId fx = s switch { Surface.Sand => VfxId.FootSand, Surface.Mud => VfxId.FootMud, Surface.Rock => VfxId.FootRock, Surface.Water => VfxId.WaterDrops, Surface.Wood => VfxId.FootWood, Surface.Grass => VfxId.FootGrass, _ => VfxId.FootDirt };
+            SfxId sfx = s switch { Surface.Sand => SfxId.FootSand, Surface.Mud => SfxId.FootMud, Surface.Rock => SfxId.FootRock, Surface.Water => SfxId.FootWater, Surface.Wood => SfxId.FootWood, Surface.Grass => SfxId.FootGrass, _ => SfxId.FootDirt };
             if (fx != VfxId.None && (speedK > 0.35f || s == Surface.Sand || s == Surface.Mud)) Fx.Play(fx, p, Vector3.up, null, 0.6f + 0.6f * speedK);
             Sfx.Play(sfx, p, (0.45f + 0.55f * speedK) * quiet * vol);
         }

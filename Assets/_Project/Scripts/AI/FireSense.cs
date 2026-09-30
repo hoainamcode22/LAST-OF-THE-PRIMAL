@@ -5,23 +5,21 @@ using PrimalFrontier.World;
 namespace PrimalFrontier.AI
 {
     /// <summary>
-    /// What wildlife reads from campfires (read only). The one place that talks to the Campfire API, so SURV's read API
-    /// (Fuel01 / Intensity01 / State / Sheltered) swaps in here alone. Allocation free (Campfire.All is a List).
+    /// What wildlife reads from campfires (read only), through SURV's Campfire read API: IsLit, State, FuelIntensity01
+    /// (fuel + lighting ramp, weather excluded: each species applies its own rainMultiplier), Sheltered, RainedOn.
+    /// The one place that talks to Campfire. Allocation free (Campfire.All is a List).
     /// </summary>
     public static class FireSense
     {
-        /// <summary>fuel seconds that count as a full-strength fire (interim until Campfire.Intensity01 exists)</summary>
-        public const float FullFuelSeconds = 300f;
-
-        /// <summary>0 (out) .. 1 (strong)</summary>
+        /// <summary>0 (out / unlit / extinguished) .. 1 (strong): Campfire.FuelIntensity01 (low fuel and the lighting ramp lower it)</summary>
         public static float Intensity01(Campfire c)
         {
-            if (!c || !c.IsLit) return 0f;
-            return Mathf.Clamp01(c.Fuel / Mathf.Min(FullFuelSeconds, c.MaxFuel));
+            if (!c || !c.IsLit || c.State == Campfire.FireState.Unlit || c.State == Campfire.FireState.Extinguished) return 0f;
+            return Mathf.Clamp01(c.FuelIntensity01);
         }
 
-        public static bool Sheltered(Campfire c) => c && Shelter.Covers(c.transform.position + Vector3.up * 0.5f);
-        public static bool RainedOn(Campfire c) { var w = WeatherManager.Instance; return c && w && w.RainingAt(c.transform.position + Vector3.up * 0.5f); }
+        public static bool Sheltered(Campfire c) => c && c.Sheltered;
+        public static bool RainedOn(Campfire c) => c && c.RainedOn;
 
         /// <summary>fear radius of one species around one lit fire (0 = no fear); night 0..1</summary>
         public static float FearRadius(in FireFearProfile f, Campfire c, float night)

@@ -1,0 +1,56 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5f3f67f885fbfda40a2cc2d19904f423, type: 3}
+  m_Name: STR_doorway
+  m_EditorClassIdentifier: PrimalFrontier.Runtime::PrimalFrontier.Building.StructureDefinition
+  id: doorway
+  displayName: Doorway Wall
+  description: A wall with an opening and a woven door on a fibre hinge. Open and
+    close it; a closed hut keeps the warmth in.
+  category: 3
+  prefab: {fileID: 799709898658065639, guid: 4e59da33f981f3548808c9dfaa7494c8, type: 3}
+  item: {fileID: 11400000, guid: e15df761d124e654182455632d6b6d9e, type: 2}
+  recipe: {fileID: 11400000, guid: 787fe989db62a294e94a8c37e6710a5a, type: 2}
+  cost: []
+  sockets:
+  - kind: 4
+    localPosition: {x: 0, y: 2.4, z: -1.5}
+    localYaw: 0
+  - kind: 4
+    localPosition: {x: 0, y: 2.4, z: 1.5}
+    localYaw: 0
+  - kind: 8
+    localPosition: {x: 3, y: 0, z: 0}
+    localYaw: 0
+  - kind: 8
+    localPosition: {x: -3, y: 0, z: 0}
+    localYaw: 0
+  - kind: 8
+    localPosition: {x: 1.5, y: 0, z: -1.5}
+    localYaw: 90
+  - kind: 8
+    localPosition: {x: -1.5, y: 0, z: -1.5}
+    localYaw: -90
+  snapsTo: 9
+  support: 1
+  minWallsBelow: 2
+  allowFree: 1
+  snapRadius: 1.6
+  snapYawStep: 180
+  footprintCenter: {x: 0, y: 1.25, z: 0}
+  footprintSize: {x: 2.55, y: 2.3000002, z: 0.22}
+  maxSlope: 30
+  groundTolerance: 0.8
+  buildHits: 2
+  dustScale: 1
+  leafy: 1
+  wooden: 1

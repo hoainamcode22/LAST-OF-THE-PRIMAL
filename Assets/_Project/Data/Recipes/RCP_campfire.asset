@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: RCP_campfire
   m_EditorClassIdentifier: PrimalFrontier.Runtime::PrimalFrontier.Items.RecipeDefinition
   id: campfire
-  category: 4
+  category: 7
   output: {fileID: 11400000, guid: 5028ce74d6d6caf459de233cc461db5f, type: 2}
   outputCount: 1
   ingredients:
@@ -25,3 +25,5 @@ MonoBehaviour:
   station: 0
   knownAtStart: 1
   hint: 
+  requirements: []
+  extraResults: []

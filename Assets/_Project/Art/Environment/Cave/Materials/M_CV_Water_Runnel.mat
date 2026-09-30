@@ -1,0 +1,86 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: M_CV_Water_Runnel
+  m_Shader: {fileID: 4800000, guid: 0439247e8cba679478e5416a12fdbf7b, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 1
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _FlowMap:
+        m_Texture: {fileID: 2800000, guid: d907c1146ac9de04f9aeacb934a56aa2, type: 2}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _FoamTex:
+        m_Texture: {fileID: 2800000, guid: de7492286c1d2e0418a2e7074228dae7, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _RainRippleTex:
+        m_Texture: {fileID: 2800000, guid: b3226debb0831e44e95192f06daa32dd, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _RippleNormal:
+        m_Texture: {fileID: 2800000, guid: a4a3a11f4267623468ce8bb13c022a5d, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _StreakTex:
+        m_Texture: {fileID: 2800000, guid: 978b58c84026406408d6da8c85c94011, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _WaveNormal:
+        m_Texture: {fileID: 2800000, guid: 866f6dcf407a2f34789d42e2c3c41fa1, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _BankFoam: 0.5
+    - _BankFoamWidth: 0.3
+    - _BankRange: 3
+    - _CausticsStrength: 0.15
+    - _CausticsTiling: 1.8
+    - _DepthRange: 2
+    - _EdgeSoftness: 0.08
+    - _FlowCycle: 2
+    - _FlowSpeed: 1
+    - _FresnelPower: 5
+    - _Opacity: 1.1
+    - _RainStrength: 0
+    - _RainTiling: 1.6
+    - _RapidsFoam: 0.45
+    - _ReflectionStrength: 0.85
+    - _RefractionStrength: 0.035
+    - _RippleStrength: 0.12
+    - _RippleTiling: 1.4
+    - _SSRStrength: 1
+    - _ShallowFoam: 0.35
+    - _Smoothness: 0.94
+    - _SpecStrength: 0.35
+    - _StreakStrength: 0.32
+    - _StreakTiling: 2.3
+    - _Stretch: 4
+    - _WaveStrength: 0.03
+    - _WaveTiling: 7
+    - _WindDrift: 0.02
+    m_Colors:
+    - _AbsorbColor: {r: 0.9, g: 0.34, b: 0.27, a: 0}
+    - _FlowMapRect: {r: 39.405876, g: -182.53409, b: 0.32418367, a: 0.22420801}
+    - _FoamColor: {r: 0.93, g: 0.95, b: 0.94, a: 1}
+    - _ScatterColor: {r: 0.059999965, g: 0.11999995, b: 0.10999996, a: 1}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1

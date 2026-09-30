@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using PrimalFrontier.Animation;
@@ -182,6 +183,97 @@ namespace PrimalFrontier.EditorTools
             }
             finally { Object.DestroyImmediate(tmp); }
             return sb.ToString();
+        }
+
+        /// <summary>
+        /// wave 2a (U): read-only snapshot of the player import for before / after diffs. Writes
+        /// Library/PrimalBridge/U_import_&lt;arg&gt;.txt: controller states -> clip (every layer), the resolved component list and
+        /// every object reference of PFB_Player, PFB_Player_Survivor and the scene player, missing scripts / references, and the
+        /// FBX clip events vs the anim json (frames). Returns the counts.
+        /// </summary>
+        [PrimalBridgeCommand]
+        public static string PlayerImportCheck(string arg)
+        {
+            var sb = new StringBuilder(); int missScripts = 0, missRefs = 0, nullMotions = 0, evMismatch = 0;
+            const string cp = "Assets/Art/Characters/Player/Animations/PlayerAnimator.controller";
+            var ac = AssetDatabase.LoadAssetAtPath<UnityEditor.Animations.AnimatorController>(cp);
+            int states = 0;
+            if (ac)
+            {
+                sb.AppendLine($"## controller {cp} layers {ac.layers.Length} params {ac.parameters.Length}");
+                sb.AppendLine("params: " + string.Join(", ", ac.parameters.Select(x => x.name + ":" + x.type)));
+                foreach (var layer in ac.layers)
+                    foreach (var cs in layer.stateMachine.states)
+                    {
+                        var st = cs.state; states++;
+                        string m = st.motion is UnityEditor.Animations.BlendTree bt ? "BlendTree(" + string.Join(" ", bt.children.Select(c => c.motion ? c.motion.name : "NULL")) + ")"
+                                 : st.motion ? st.motion.name : "NULL";
+                        if (!st.motion && st.name != "Empty") nullMotions++;
+                        sb.AppendLine($"state {layer.name}/{st.name} -> {m} speed {st.speed:0.##} tag {st.tag} out {st.transitions.Length}");
+                    }
+            }
+            else sb.AppendLine("## controller MISSING");
+            var roots = new List<(string label, GameObject go)> {
+                ("PFB_Player", AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Project/Prefabs/Player/PFB_Player.prefab")),
+                ("PFB_Player_Survivor", AssetDatabase.LoadAssetAtPath<GameObject>(PlayerPrefab)) };
+            var sceneMotor = Object.FindFirstObjectByType<PrimalFrontier.Player.PlayerMotor>(FindObjectsInactive.Include);
+            if (sceneMotor) roots.Add(("scene", sceneMotor.gameObject));
+            foreach (var (label, go) in roots)
+            {
+                if (!go) { sb.AppendLine($"## {label}: MISSING"); continue; }
+                var all = go.GetComponentsInChildren<Transform>(true);
+                sb.AppendLine($"## {label}: {all.Length} transforms");
+                foreach (var t in all)
+                {
+                    string path = t == go.transform ? go.name : AnimationUtility.CalculateTransformPath(t, go.transform);
+                    var comps = t.GetComponents<Component>();
+                    var names = new List<string>();
+                    foreach (var c in comps)
+                    {
+                        if (c == null) { missScripts++; names.Add("MISSING_SCRIPT"); continue; }
+                        if (c is Transform) continue;
+                        string extra = c is CharacterController cc ? $"(h {cc.height:0.###} r {cc.radius:0.###} c {cc.center})"
+                                     : c is CapsuleCollider cap ? $"(h {cap.height:0.###} r {cap.radius:0.###} c {cap.center} trig {cap.isTrigger})"
+                                     : c is SphereCollider sph ? $"(r {sph.radius:0.###} c {sph.center} trig {sph.isTrigger})"
+                                     : c is BoxCollider box ? $"(s {box.size} c {box.center} trig {box.isTrigger})" : "";
+                        names.Add(c.GetType().Name + extra);
+                        var so = new SerializedObject(c); var it = so.GetIterator();
+                        for (bool enter = true; it.Next(enter); enter = false)
+                        {
+                            if (it.propertyType != SerializedPropertyType.ObjectReference) continue;
+                            if (it.propertyPath == "m_Script" || it.propertyPath == "m_GameObject" || it.propertyPath.StartsWith("m_PrefabInstance") || it.propertyPath.StartsWith("m_CorrespondingSourceObject") || it.propertyPath.StartsWith("m_PrefabAsset")) continue;
+                            var v = it.objectReferenceValue;
+                            if (v == null && it.objectReferenceInstanceIDValue != 0) { missRefs++; sb.AppendLine($"  MISSING_REF {path} {c.GetType().Name}.{it.propertyPath}"); }
+                            else if (v != null) sb.AppendLine($"  ref {path} {c.GetType().Name}.{it.propertyPath} -> {v.name} ({v.GetType().Name})");
+                        }
+                    }
+                    if (names.Count > 0) sb.AppendLine($"obj {path}: {string.Join(", ", names)}");
+                }
+            }
+            // FBX clip events vs the anim json
+            var metaFile = "Assets/Art/Characters/Player/Animations/PLAYER_Survivor_anim.json";
+            var meta = System.IO.File.Exists(metaFile) ? JsonUtility.FromJson<PrimalCharacterBuilder.AnimMeta>(System.IO.File.ReadAllText(metaFile)) : null;
+            var metaBy = meta?.clips?.ToDictionary(c => c.name, c => c) ?? new Dictionary<string, PrimalCharacterBuilder.ClipMeta>();
+            var clips = AssetDatabase.LoadAllAssetsAtPath(PlayerModel).OfType<AnimationClip>().Where(c => !c.name.StartsWith("__preview")).OrderBy(c => c.name).ToList();
+            sb.AppendLine($"## FBX clips {clips.Count} (json {metaBy.Count})");
+            foreach (var c in clips)
+            {
+                var ev = AnimationUtility.GetAnimationEvents(c);
+                string evs = string.Join(" ", ev.Select(e => $"{e.functionName}@{Mathf.RoundToInt(e.time * c.frameRate)}{(string.IsNullOrEmpty(e.stringParameter) ? "" : "(" + e.stringParameter + ")")}"));
+                string chk = "";
+                if (metaBy.TryGetValue(c.name, out var cm))
+                {
+                    var want = (cm.events ?? new PrimalCharacterBuilder.ClipEvent[0]).Select(e => $"{e.function}@{e.frame}").OrderBy(x => x).ToArray();
+                    var got = ev.Select(e => $"{e.functionName}@{Mathf.RoundToInt(e.time / Mathf.Max(1e-4f, c.length) * cm.frames)}").OrderBy(x => x).ToArray();
+                    if (!want.SequenceEqual(got)) { evMismatch++; chk = $" EVENT_MISMATCH want [{string.Join(" ", want)}]"; }
+                    if (cm.loop != AnimationUtility.GetAnimationClipSettings(c).loopTime) chk += " LOOP_MISMATCH";
+                }
+                else chk = " NO_META";
+                sb.AppendLine($"clip {c.name} {Mathf.RoundToInt(c.length * c.frameRate)}f loop {AnimationUtility.GetAnimationClipSettings(c).loopTime} ev [{evs}]{chk}");
+            }
+            string file = $"Library/PrimalBridge/U_import_{(string.IsNullOrEmpty(arg) ? "now" : arg)}.txt";
+            System.IO.File.WriteAllText(file, sb.ToString());
+            return $"{file}: controller states {states} (null motions {nullMotions}), missing scripts {missScripts}, missing refs {missRefs}, FBX clips {clips.Count}, event mismatches {evMismatch}";
         }
 
         static string Val(SerializedProperty p) => p.propertyType switch

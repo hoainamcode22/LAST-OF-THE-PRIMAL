@@ -1,0 +1,438 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
+using UnityEditor;
+using UnityEditor.SceneManagement;
+using UnityEngine;
+using UnityEngine.UI;
+using PrimalFrontier.Core;
+using PrimalFrontier.Items;
+using PrimalFrontier.Story;
+using PrimalFrontier.World;
+
+namespace PrimalFrontier.EditorTools
+{
+    /// <summary>
+    /// Phase 2 content, added to what exists (never replaces hand edits): the Wild Fruit item, the flint knife as a
+    /// melee weapon, the climbable fruit tree and fruit bunch prefabs (from Tools/BlenderPipeline pf_phase2_assets.py),
+    /// four fruit trees placed on the island under [Gameplay]/FruitTrees, and journal pages for fruit, boiled water and
+    /// stomach sickness. Safe to run again: whatever already exists is kept.
+    /// </summary>
+    public static class PrimalPhase2Builder
+    {
+        const string Scene = "Assets/_Project/Scenes/Island_VerticalSlice.unity";
+        const string Mats = "Assets/_Project/Art/Materials", Icons = "Assets/_Project/Art/Icons";
+        const string TreeFbx = "Assets/_Project/Art/Models/Vegetation/ENV_FruitTree_01.fbx", BunchFbx = "Assets/_Project/Art/Models/Props/PROP_FruitBunch.fbx";
+        const string TreePrefab = "Assets/_Project/Prefabs/Environment/PFB_ENV_FruitTree_01.prefab", BunchPrefab = "Assets/_Project/Prefabs/Resources/PFB_PROP_FruitBunch.prefab";
+        static readonly StringBuilder Log = new StringBuilder();
+        static void L(string s) { Log.AppendLine(s); Debug.Log("[PrimalPhase2] " + s); }
+
+        [Serializable] class TreeMeta { public float height; public float[] climb_start, climb_end; public float trunk_radius; public float[][] fruits; }
+        [Serializable] class TreeMetaRaw { public float height; public float[] climb_start; public float[] climb_end; public float trunk_radius; public List<Vec> fruits; }
+        [Serializable] class Vec { public float[] v; }
+
+        [MenuItem("Primal Frontier/Scene/Add Phase 2 Content (fruit trees, items)", priority = 20)]
+        public static void Menu() { Build(); EditorUtility.DisplayDialog("Primal Frontier", Log.ToString(), "OK"); }
+
+        [PrimalBridgeCommand]
+        public static string Build()
+        {
+            Log.Clear();
+            AssetDatabase.Refresh();
+            var fruitMat = Mat("M_Fruit", new Color(0.9f, 0.42f, 0.08f), 0.45f);
+            var stemMat = Mat("M_FruitStem", new Color(0.28f, 0.2f, 0.1f), 0.1f);
+            var bunch = BuildBunch(fruitMat, stemMat);
+            var fruit = BuildItems(bunch);
+            var tree = BuildTree(bunch, fruit);
+            FixTreeLod();
+            PlaceInScene(tree);
+            BakeMinimap();
+            MigrateHudLayout();
+            AssetDatabase.SaveAssets();
+            return Log.ToString();
+        }
+
+        // ------------------------------------------------------------------ assets
+        static Material Mat(string name, Color c, float smooth)
+        {
+            string p = $"{Mats}/{name}.mat";
+            var m = AssetDatabase.LoadAssetAtPath<Material>(p);
+            if (m) return m;
+            m = new Material(Shader.Find("Universal Render Pipeline/Lit")) { name = name, enableInstancing = true };
+            m.SetColor("_BaseColor", c); m.SetFloat("_Smoothness", smooth);
+            AssetDatabase.CreateAsset(m, p); L("material " + name);
+            return m;
+        }
+
+        static void AssignMats(GameObject go)
+        {
+            foreach (var r in go.GetComponentsInChildren<Renderer>(true))
+            {
+                var ms = r.sharedMaterials;
+                for (int i = 0; i < ms.Length; i++)
+                {
+                    string n = ms[i] ? ms[i].name.Replace(" (Instance)", "") : "";
+                    var found = AssetDatabase.LoadAssetAtPath<Material>($"{Mats}/{n}.mat");
+                    if (found) ms[i] = found;
+                }
+                r.sharedMaterials = ms;
+                r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.On;
+            }
+        }
+
+        static GameObject BuildBunch(Material fruit, Material stem)
+        {
+            var existing = AssetDatabase.LoadAssetAtPath<GameObject>(BunchPrefab);
+            if (existing) return existing;
+            var model = AssetDatabase.LoadAssetAtPath<GameObject>(BunchFbx);
+            if (!model) { L("MISSING " + BunchFbx + " (run pf_phase2_assets.build_all in Blender)"); return null; }
+            var inst = (GameObject)PrefabUtility.InstantiatePrefab(model);
+            try
+            {
+                AssignMats(inst);
+                foreach (var r in inst.GetComponentsInChildren<Renderer>()) r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                Directory.CreateDirectory(Path.GetDirectoryName(BunchPrefab));
+                var p = PrefabUtility.SaveAsPrefabAsset(inst, BunchPrefab); L("prefab " + BunchPrefab); return p;
+            }
+            finally { UnityEngine.Object.DestroyImmediate(inst); }
+        }
+
+        static ItemDefinition BuildItems(GameObject bunch)
+        {
+            var db = AssetDatabase.LoadAssetAtPath<ItemDatabase>("Assets/_Project/Resources/ItemDatabase.asset");
+            // icon as sprite
+            string iconPath = $"{Icons}/ICON_Fruit.png";
+            var ti = AssetImporter.GetAtPath(iconPath) as TextureImporter;
+            if (ti != null && ti.textureType != TextureImporterType.Sprite)
+            { ti.textureType = TextureImporterType.Sprite; ti.spriteImportMode = SpriteImportMode.Single; ti.mipmapEnabled = false; ti.alphaIsTransparency = true; ti.SaveAndReimport(); }
+            string p = "Assets/_Project/Data/Items/ITEM_fruit.asset";
+            var it = AssetDatabase.LoadAssetAtPath<ItemDefinition>(p);
+            if (!it)
+            {
+                it = ScriptableObject.CreateInstance<ItemDefinition>();
+                it.id = "fruit"; it.displayName = "Wild Fruit"; it.category = ItemCategory.Food; it.maxStack = 20; it.weight = 0.2f;
+                it.description = "Sweet orange fruit from the crown of a tall fern-palm. Food and a little water. You have to climb for it.";
+                it.hunger = 16f; it.thirst = 8f; it.stamina = 5f;
+                AssetDatabase.CreateAsset(it, p); L("item fruit");
+            }
+            if (!it.icon) it.icon = AssetDatabase.LoadAssetAtPath<Sprite>(iconPath);
+            if (!it.worldPrefab && bunch) it.worldPrefab = bunch;
+            EditorUtility.SetDirty(it);
+            if (db && !db.items.Contains(it)) { db.items.Add(it); EditorUtility.SetDirty(db); L("fruit added to ItemDatabase"); }
+            var knife = AssetDatabase.LoadAssetAtPath<ItemDefinition>("Assets/_Project/Data/Items/ITEM_flint_knife.asset");
+            if (knife && knife.weapon == WeaponKind.None)
+            {
+                knife.weapon = WeaponKind.Knife; if (knife.heavyDamage <= 0f) knife.heavyDamage = 14f; EditorUtility.SetDirty(knife);
+                L("flint knife is now a melee weapon (Knife_Attack)");
+            }
+            return it;
+        }
+
+        static TreeMetaRaw LoadMeta()
+        {
+            var ta = AssetDatabase.LoadAssetAtPath<TextAsset>("Assets/_Project/Data/World/fruit_tree.json");
+            if (!ta) return null;
+            // JsonUtility cannot read nested arrays: parse the numbers by hand
+            var m = new TreeMetaRaw { fruits = new List<Vec>() };
+            string s = ta.text;
+            float[] Arr(string key)
+            {
+                int i = s.IndexOf("\"" + key + "\""); if (i < 0) return null;
+                int a = s.IndexOf('[', i), b = s.IndexOf(']', a);
+                return s.Substring(a + 1, b - a - 1).Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(x => float.Parse(x.Trim(), System.Globalization.CultureInfo.InvariantCulture)).ToArray();
+            }
+            float Num(string key)
+            {
+                int i = s.IndexOf("\"" + key + "\""); int c = s.IndexOf(':', i); int e = s.IndexOfAny(new[] { ',', '\n', '}' }, c + 1);
+                return float.Parse(s.Substring(c + 1, e - c - 1).Trim(), System.Globalization.CultureInfo.InvariantCulture);
+            }
+            m.height = Num("height"); m.trunk_radius = Num("trunk_radius"); m.climb_start = Arr("climb_start"); m.climb_end = Arr("climb_end");
+            int fi = s.IndexOf("\"fruits\""); int open = s.IndexOf('[', fi);
+            int k = open + 1;
+            while (true)
+            {
+                int a = s.IndexOf('[', k); int close = s.IndexOf(']', k);
+                if (a < 0 || close < a) break;
+                int b = s.IndexOf(']', a);
+                m.fruits.Add(new Vec { v = s.Substring(a + 1, b - a - 1).Split(',').Select(x => float.Parse(x.Trim(), System.Globalization.CultureInfo.InvariantCulture)).ToArray() });
+                k = b + 1;
+            }
+            return m;
+        }
+
+        static Vector3 U(float[] b) => BlenderSpace.ToUnityPosition(b[0], b[1], b[2]);
+
+        static GameObject BuildTree(GameObject bunch, ItemDefinition fruit)
+        {
+            var existing = AssetDatabase.LoadAssetAtPath<GameObject>(TreePrefab);
+            if (existing) return existing;
+            var model = AssetDatabase.LoadAssetAtPath<GameObject>(TreeFbx);
+            var meta = LoadMeta();
+            if (!model || meta == null) { L("MISSING fruit tree model or Data/World/fruit_tree.json"); return null; }
+            var root = new GameObject("PFB_ENV_FruitTree_01");
+            try
+            {
+                var m = (GameObject)PrefabUtility.InstantiatePrefab(model, root.transform); m.name = "Model";
+                AssignMats(m);
+                // LOD group from the *_LOD0 / *_LOD1 children (the model importer may already have made one)
+                var r0 = m.GetComponentsInChildren<Renderer>().Where(r => r.name.Contains("LOD0")).ToArray();
+                var r1 = m.GetComponentsInChildren<Renderer>().Where(r => r.name.Contains("LOD1")).ToArray();
+                if (r0.Length > 0 && r1.Length > 0 && !m.GetComponentInChildren<LODGroup>())
+                {
+                    var lg = root.AddComponent<LODGroup>();
+                    lg.SetLODs(new[] { new LOD(0.18f, r0), new LOD(0.015f, r1) }); lg.RecalculateBounds();
+                }
+                var col = root.AddComponent<CapsuleCollider>(); col.radius = meta.trunk_radius + 0.05f; col.height = meta.height; col.center = new Vector3(0, meta.height * 0.5f, 0);
+                var c = root.AddComponent<Climbable>(); c.displayName = "fruit tree"; c.trunkRadius = meta.trunk_radius;
+                var s = new GameObject("ClimbStart").transform; s.SetParent(root.transform, false); s.localPosition = U(meta.climb_start);
+                var e = new GameObject("ClimbEnd").transform; e.SetParent(root.transform, false); e.localPosition = U(meta.climb_end);
+                c.climbStart = s; c.climbEnd = e;
+                for (int i = 0; i < meta.fruits.Count; i++)
+                {
+                    var f = new GameObject("Fruit_" + i).transform; f.SetParent(root.transform, false); f.localPosition = U(meta.fruits[i].v);
+                    var fc = f.gameObject.AddComponent<FruitCluster>(); fc.item = fruit; fc.amount = 3; fc.regrowHours = 30f;
+                    if (bunch) { var b = (GameObject)PrefabUtility.InstantiatePrefab(bunch, f); b.transform.localPosition = new Vector3(0, 0.12f, 0); b.transform.localScale = Vector3.one * 1.6f; b.transform.localRotation = Quaternion.Euler(0, i * 97f, 0); }
+                }
+                Directory.CreateDirectory(Path.GetDirectoryName(TreePrefab));
+                var p = PrefabUtility.SaveAsPrefabAsset(root, TreePrefab); L("prefab " + TreePrefab); return p;
+            }
+            finally { UnityEngine.Object.DestroyImmediate(root); }
+        }
+
+        /// <summary>one LOD group per tree: the one the model importer made from the _LOD0 / _LOD1 names, with our distances</summary>
+        [PrimalBridgeCommand]
+        public static string FixTreeLod()
+        {
+            if (!AssetDatabase.LoadAssetAtPath<GameObject>(TreePrefab)) return "no tree prefab";
+            var root = PrefabUtility.LoadPrefabContents(TreePrefab);
+            try
+            {
+                var own = root.GetComponent<LODGroup>();
+                var inner = root.GetComponentsInChildren<LODGroup>(true).FirstOrDefault(g => g.gameObject != root);
+                if (!inner) { L("tree LOD: kept the prefab's own LOD group"); return Log.ToString(); }
+                if (own) UnityEngine.Object.DestroyImmediate(own);
+                var lods = inner.GetLODs();
+                float[] t = lods.Length >= 3 ? new[] { 0.25f, 0.06f, 0.012f } : new[] { 0.18f, 0.015f };
+                for (int i = 0; i < lods.Length; i++) lods[i].screenRelativeTransitionHeight = t[Mathf.Min(i, t.Length - 1)] / (1 + Mathf.Max(0, i - t.Length + 1));
+                inner.SetLODs(lods); inner.RecalculateBounds(); inner.fadeMode = LODFadeMode.None;
+                PrefabUtility.SaveAsPrefabAsset(root, TreePrefab);
+                L($"tree LOD: one LOD group ({lods.Length} levels){(own ? ", duplicate removed" : "")}");
+            }
+            finally { PrefabUtility.UnloadPrefabContents(root); }
+            return Log.ToString();
+        }
+
+        // ------------------------------------------------------------------ minimap picture (baked once, no run-time camera)
+        [PrimalBridgeCommand]
+        public static string FixTreePlacement()
+        {
+            Log.Clear();
+            var holder = GameObject.Find("[Gameplay]")?.transform.Find("FruitTrees");
+            var terrain = UnityEngine.Object.FindFirstObjectByType<Terrain>();
+            if (!holder || !terrain) return "no [Gameplay]/FruitTrees or terrain";
+            MoveOutOfWater(holder, terrain);
+            EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene()); EditorSceneManager.SaveScene(EditorSceneManager.GetActiveScene());
+            return Log.ToString();
+        }
+
+        [PrimalBridgeCommand]
+        public static string BakeMinimap()
+        {
+            var scene = EditorSceneManager.GetActiveScene();
+            if (scene.path != Scene) scene = EditorSceneManager.OpenScene(Scene, OpenSceneMode.Single);
+            var terrain = UnityEngine.Object.FindFirstObjectByType<Terrain>();
+            if (!terrain) { L("minimap: no terrain"); return Log.ToString(); }
+            var size = terrain.terrainData.size; var tp = terrain.transform.position;
+            var go = new GameObject("_MinimapCam"); var cam = go.AddComponent<Camera>();
+            const int Res = 1024;
+            var rt = new RenderTexture(Res, Res, 24, RenderTextureFormat.ARGB32) { antiAliasing = 4 };
+            bool fog = RenderSettings.fog; RenderSettings.fog = false;          // a map is seen from above: no haze
+            try
+            {
+                cam.orthographic = true; cam.orthographicSize = size.x * 0.5f; cam.aspect = 1f;
+                cam.transform.position = new Vector3(tp.x + size.x * 0.5f, tp.y + 400f, tp.z + size.z * 0.5f);
+                cam.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
+                cam.nearClipPlane = 1f; cam.farClipPlane = 800f;
+                cam.clearFlags = CameraClearFlags.SolidColor; cam.backgroundColor = new Color(0.12f, 0.3f, 0.42f);
+                int ui = LayerMask.NameToLayer("UI"), pl = LayerMask.NameToLayer("Player");
+                cam.cullingMask = ~((ui >= 0 ? 1 << ui : 0) | (pl >= 0 ? 1 << pl : 0));
+                cam.targetTexture = rt; cam.Render();
+                var prev = RenderTexture.active; RenderTexture.active = rt;
+                var tex = new Texture2D(Res, Res, TextureFormat.RGB24, false); tex.ReadPixels(new Rect(0, 0, Res, Res), 0, 0); tex.Apply();
+                RenderTexture.active = prev;
+                // map look: a little lighter and warmer, soft vignette to the sea colour at the edges
+                var px = tex.GetPixels();
+                for (int i = 0; i < px.Length; i++)
+                {
+                    int x = i % Res, y = i / Res; float dx = (x - Res * 0.5f) / (Res * 0.5f), dy = (y - Res * 0.5f) / (Res * 0.5f);
+                    var c = px[i]; float g = (c.r + c.g + c.b) / 3f;
+                    c = new Color(Mathf.Clamp01(g + (c.r - g) * 1.35f), Mathf.Clamp01(g + (c.g - g) * 1.35f), Mathf.Clamp01(g + (c.b - g) * 1.35f), 1f);   // saturation
+                    c = new Color(Mathf.Clamp01((c.r - 0.5f) * 1.15f + 0.53f), Mathf.Clamp01((c.g - 0.5f) * 1.15f + 0.53f), Mathf.Clamp01((c.b - 0.5f) * 1.15f + 0.52f), 1f); // contrast
+                    float v = Mathf.Clamp01((Mathf.Sqrt(dx * dx + dy * dy) - 0.85f) / 0.3f);
+                    px[i] = Color.Lerp(c, new Color(0.1f, 0.25f, 0.35f), v * 0.6f);
+                }
+                tex.SetPixels(px); tex.Apply();
+                Directory.CreateDirectory("Assets/_Project/Art/UI");
+                const string png = "Assets/_Project/Art/UI/T_MinimapIsland.png";
+                File.WriteAllBytes(png, tex.EncodeToPNG()); UnityEngine.Object.DestroyImmediate(tex);
+                AssetDatabase.ImportAsset(png, ImportAssetOptions.ForceUpdate);
+                var ti = (TextureImporter)AssetImporter.GetAtPath(png);
+                ti.textureType = TextureImporterType.Default; ti.mipmapEnabled = false; ti.wrapMode = TextureWrapMode.Clamp; ti.maxTextureSize = 1024;
+                var ps = ti.GetPlatformTextureSettings("Android"); ps.overridden = true; ps.maxTextureSize = 1024; ps.format = TextureImporterFormat.ASTC_6x6; ti.SetPlatformTextureSettings(ps);
+                ti.SaveAndReimport();
+                const string dataPath = "Assets/_Project/Resources/MinimapData.asset";
+                var data = AssetDatabase.LoadAssetAtPath<UI.MinimapData>(dataPath);
+                if (!data) { data = ScriptableObject.CreateInstance<UI.MinimapData>(); AssetDatabase.CreateAsset(data, dataPath); }
+                data.map = AssetDatabase.LoadAssetAtPath<Texture2D>(png); data.worldMin = new Vector2(tp.x, tp.z); data.worldSize = size.x;
+                EditorUtility.SetDirty(data);
+                var mm = UnityEngine.Object.FindFirstObjectByType<UI.Minimap>(); if (mm) { mm.data = data; EditorUtility.SetDirty(mm); }
+                L($"minimap picture baked ({Res}px, {size.x:0} m)");
+            }
+            finally { RenderSettings.fog = fog; cam.targetTexture = null; UnityEngine.Object.DestroyImmediate(go); rt.Release(); UnityEngine.Object.DestroyImmediate(rt); }
+            return Log.ToString();
+        }
+
+        /// <summary>once: the compass moves to the top centre so the minimap can take the top-right corner</summary>
+        static void MigrateHudLayout()
+        {
+            var hud = GameObject.Find("[UI]")?.transform.Find("[HUD]");
+            if (!hud) { L("HUD layout: no [UI]/[HUD] in the scene (bake the scene first)"); return; }
+            // minimap + touch controls live on [UI] like the other screens (their layout is written into the scene)
+            var uiRoot = UnityEngine.Object.FindFirstObjectByType<UI.UIManager>()?.gameObject;
+            if (uiRoot)
+            {
+                bool newMap = !uiRoot.GetComponent<UI.Minimap>(), newTouch = UI.MobileHUD.Supported && !uiRoot.GetComponent<UI.MobileHUD>();   // touch: mobile builds only
+                var mm0 = uiRoot.GetOrAdd<UI.Minimap>(); var th0 = newTouch ? uiRoot.GetOrAdd<UI.MobileHUD>() : null;
+                if (!mm0.data) mm0.data = AssetDatabase.LoadAssetAtPath<UI.MinimapData>("Assets/_Project/Resources/MinimapData.asset");
+                if (newMap) mm0.BakeLayout();
+                if (newTouch) { th0.BakeLayout(); var tc = uiRoot.transform.Find("[Touch]"); if (tc) tc.gameObject.SetActive(false); }
+                if (newMap || newTouch) { EditorUtility.SetDirty(uiRoot); L("minimap and touch controls added to [UI]"); }
+            }
+            var compass = hud.Find("Compass") as RectTransform;
+            if (compass == null || compass.anchorMin != new Vector2(1, 1))
+            {
+                L("HUD layout: already arranged");
+                EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene()); EditorSceneManager.SaveScene(EditorSceneManager.GetActiveScene());
+                return;
+            }
+            void Place(string n, Vector2 anchor, Vector2 pivot, Vector2 pos)
+            {
+                var r = hud.Find(n) as RectTransform; if (!r) return;
+                r.anchorMin = r.anchorMax = anchor; r.pivot = pivot; r.anchoredPosition = pos; EditorUtility.SetDirty(r);
+            }
+            Place("Compass", new Vector2(0.5f, 1), new Vector2(0.5f, 1), new Vector2(0, -20));
+            Place("Clock", new Vector2(0.5f, 1), new Vector2(0.5f, 1), new Vector2(0, -68));
+            var clock = hud.Find("Clock")?.GetComponent<Text>(); if (clock) clock.alignment = TextAnchor.UpperCenter;
+            Place("Objective", new Vector2(1, 1), new Vector2(1, 1), new Vector2(-24, -272));
+            EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
+            EditorSceneManager.SaveScene(EditorSceneManager.GetActiveScene());
+            L("HUD layout: compass to the top centre, objective under the minimap, touch controls added");
+        }
+
+        // ------------------------------------------------------------------ scene
+        static readonly string[] WaterNames = { "ENV_Pond_Water", "ENV_Stream_Water" };
+
+        /// <summary>inside (or right at the edge of) the pond / stream surface</summary>
+        static bool IsWet(Vector3 p)
+        {
+            foreach (var n in WaterNames)
+            {
+                var w = GameObject.Find(n); if (!w) continue;
+                foreach (var r in w.GetComponentsInChildren<Renderer>())
+                {
+                    var b = r.bounds; b.Expand(new Vector3(5f, 0f, 5f));
+                    if (p.x > b.min.x && p.x < b.max.x && p.z > b.min.z && p.z < b.max.z && p.y < b.max.y + 1.0f) return true;
+                }
+            }
+            return false;
+        }
+
+        /// <summary>trees placed before the water check (or moved by hand into the water) step out onto dry, flat ground</summary>
+        static void MoveOutOfWater(Transform holder, Terrain terrain)
+        {
+            var td = terrain.terrainData; var tp = terrain.transform.position;
+            foreach (Transform t in holder)
+            {
+                if (!IsWet(t.position)) continue;
+                Vector3 from = t.position; bool moved = false;
+                for (float d = 8f; d <= 40f && !moved; d += 4f)
+                    for (int a = 0; a < 12 && !moved; a++)
+                    {
+                        var p = from + Quaternion.Euler(0, a * 30f, 0) * Vector3.forward * d;
+                        p.y = terrain.SampleHeight(p) + tp.y;
+                        var n = td.GetInterpolatedNormal((p.x - tp.x) / td.size.x, (p.z - tp.z) / td.size.z);
+                        if (p.y < 1f || Vector3.Angle(n, Vector3.up) > 18f || IsWet(p)) continue;
+                        if (Physics.CheckSphere(p + Vector3.up * 1.2f, 0.8f, ~0, QueryTriggerInteraction.Ignore)) continue;
+                        bool crowded = false; foreach (Transform o in holder) if (o != t && (o.position - p).sqrMagnitude < 36f) crowded = true;
+                        if (crowded) continue;
+                        t.position = p; moved = true; EditorUtility.SetDirty(t);
+                    }
+                L(moved ? $"{t.name} moved out of the water ({Vector3.Distance(from, t.position):0} m)" : $"{t.name} is in the water and no dry spot was found nearby: move it by hand");
+            }
+        }
+
+        static void PlaceInScene(GameObject tree)
+        {
+            var scene = EditorSceneManager.GetActiveScene();
+            if (scene.path != Scene) scene = EditorSceneManager.OpenScene(Scene, OpenSceneMode.Single);
+            var gp = GameObject.Find("[Gameplay]");
+            Transform holder = gp ? gp.transform.Find("FruitTrees") : null;
+            if (!holder) { holder = new GameObject("FruitTrees").transform; if (gp) holder.SetParent(gp.transform, false); }
+            var terrain = Terrain.activeTerrain ? Terrain.activeTerrain : UnityEngine.Object.FindFirstObjectByType<Terrain>();
+            if (tree && holder.childCount == 0 && terrain)
+            {
+                // near camp, the meadow edge, the berry area and the pond: places the player passes on day one
+                var spots = new List<Vector3>();
+                void Near(string marker, float dist, float angle)
+                {
+                    var mk = GameObject.Find(marker); if (!mk) return;
+                    for (int tries = 0; tries < 12; tries++)
+                    {
+                        var p = mk.transform.position + Quaternion.Euler(0, angle + tries * 30f, 0) * Vector3.forward * dist;
+                        float h = terrain.SampleHeight(p) + terrain.transform.position.y;
+                        var n = terrain.terrainData.GetInterpolatedNormal((p.x - terrain.transform.position.x) / terrain.terrainData.size.x, (p.z - terrain.transform.position.z) / terrain.terrainData.size.z);
+                        if (h < 1.0f || Vector3.Angle(n, Vector3.up) > 18f) continue;          // not in the sea, not on a slope
+                        p.y = h;
+                        if (Physics.CheckSphere(p + Vector3.up * 1.2f, 0.8f, ~0, QueryTriggerInteraction.Ignore)) continue;   // clear of rocks / props
+                        if (IsWet(p)) continue;                                                                             // not in the pond / stream
+                        if (spots.Any(q => (q - p).sqrMagnitude < 36f)) continue;
+                        spots.Add(p); return;
+                    }
+                }
+                Near("ZONE_Camp", 11f, 40f); Near("ZONE_Meadow", 26f, 200f); Near("RESAREA_Berries", 9f, 120f); Near("ZONE_Pond", 13f, 300f);
+                int k = 0;
+                foreach (var p in spots)
+                {
+                    var t = (GameObject)PrefabUtility.InstantiatePrefab(tree, holder);
+                    t.name = "FruitTree_" + (++k); t.transform.SetPositionAndRotation(p, Quaternion.Euler(0, k * 83f, 0));
+                    var cl = t.GetComponent<Climbable>(); if (cl) cl.SaveId = "fruittree_" + k;
+                }
+                L($"placed {spots.Count} fruit trees under [Gameplay]/FruitTrees");
+            }
+            else L($"fruit trees kept ({holder.childCount} under {holder.name})");
+            if (terrain) MoveOutOfWater(holder, terrain);
+
+            // journal pages for the new discoveries (added if missing)
+            var j = UnityEngine.Object.FindFirstObjectByType<JournalSystem>();
+            if (j)
+            {
+                int added = 0;
+                void Page(string id, JournalCategory cat, string title, GameEventType t, string tid, string sketch, string text)
+                {
+                    if (j.entries.Any(e => e.id == id)) return;
+                    j.entries.Add(new JournalSystem.Entry { id = id, category = cat, title = title, trigger = t, triggerId = tid, sketch = sketch, text = text }); added++;
+                }
+                Page("fruit", JournalCategory.Survival, "Fruit in the Crowns", GameEventType.FruitHarvested, "", "meadow",
+                     "Some of the tall fern-palms carry orange fruit right under the leaves. The trunks are rough enough to climb. Sweet, and it quenches a little thirst.");
+                Page("boiled_water", JournalCategory.Survival, "Boiled Water", GameEventType.WaterBoiled, "", "water",
+                     "Pond water looks clean but it is not. Heated over the fire until it bubbles, it sits easy in the stomach. Always boil before drinking.");
+                Page("stomach_sick", JournalCategory.Survival, "Sick", GameEventType.GotSick, "", "rocks",
+                     "My stomach cramps and I am weak and thirsty. Bad water or raw meat. Rest, drink boiled water, and it will pass.");
+                if (added > 0) { EditorUtility.SetDirty(j); L($"journal pages added: {added}"); }
+            }
+            EditorSceneManager.MarkSceneDirty(scene); EditorSceneManager.SaveScene(scene);
+        }
+    }
+}

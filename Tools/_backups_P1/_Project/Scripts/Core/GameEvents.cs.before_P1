@@ -1,0 +1,88 @@
+using System;
+using UnityEngine;
+
+namespace PrimalFrontier.Core
+{
+    public enum GameEventType
+    {
+        None,
+        // player
+        Looked, Moved, Sprinted, Jumped, Crouched,
+        // items
+        ItemAdded, ItemRemoved, ItemCrafted, ItemEquipped, ItemDropped,
+        Ate, Drank, WaterFilled, TriedSaltWater,
+        // world
+        ResourceGathered, LootOpened, ZoneEntered, Discovery, FootprintFound,
+        StructurePlaced, FireLit, FireOut, FoodCooked,
+        // menus
+        MenuOpened,
+        // time / story
+        Slept, NightStarted, DayStarted, DayCompleted, WeatherChanged,
+        CreatureSighted, PredatorWarning, TutorialStep, ObjectiveChanged, JournalUnlocked,
+        // combat
+        CreatureHit, CreatureKilled, PlayerDied, PlayerRespawned,
+        GameSaved, GameLoaded,
+        // phase 2 (appended: stored as ints in journal pages)
+        PlayerDodged, ClimbStarted, FruitHarvested, WaterBoiled, GotSick, VolcanoRumble,
+        // hunting (appended)
+        CarcassButchered,
+        // survival milestone 1 (appended)
+        FoodBurned, WaterCollected, WaterEmptied, NeedTierChanged, FuelAdded, FoodTaken,
+        // perception (appended, AI): a creature starts to notice the player (id species, amount AwarenessLevel); a predator follows a food smell (position = source)
+        PlayerNoticed, ScentInvestigated,
+        // survival phase 3 (appended, SURV): a treatment item was used (id item; not Ate); a status effect started / ended (id effect);
+        // a food stack in the pack went off (id item, amount FoodStage); a tool / weapon broke in the inventory wear path (id item);
+        // a campfire changed FireState (id structure item, amount state); rain put a fire out (id structure item)
+        ItemUsed, StatusApplied, StatusEnded, FoodSpoiled, ToolBroken, FireStateChanged, FireDoused,
+        // resources (appended, RES): a terrain tree fell (id wood item, position the tree); a node was emptied (id resource definition, position the node)
+        TreeFelled, ResourceDepleted,
+        // combat (appended, U): a missed arrow / thrown spear came to rest (id = projectile item id, or "arrow" / "spear" without one;
+        // amount = loudness, 1 arrow / 2 spear; position = where it lies). AI hears it as a distraction noise.
+        ProjectileLanded,
+        // world (appended, WORLD): the day moved into a new TimeManager.Phase (id = phase name "Dawn".."Night", amount = (int)phase);
+        // a heat / smoke hazard level changed where the player is (id = hazard id, e.g. "volcano", "lava"; amount = level
+        // 0 safe, 1 warm, 2 hot, 3 dangerous; position = player)
+        DayPhaseChanged, HazardWarning,
+        // story (appended, STORY): a mission started / was completed (id mission id, amount chapter); a chapter began (id chapter
+        // name, amount chapter number); the survivor watched a creature do something (id "behaviour:species", e.g. "herd:triceratops",
+        // "eating:velociraptor"; position = the creature); the belongings left where the player died were picked up (amount = stacks)
+        MissionStarted, MissionCompleted, ChapterStarted, CreatureObserved, BelongingsRecovered,
+        // wildlife (appended, AI): the player saw a herd (id species, amount members in view; once per herd per game day); a herd set
+        // off on its migration (id species, amount 1 outward / 2 back, position = start); the player watched the moving migration herd
+        // from within view distance (id species, once per migration); the player examined a track sign (id species, amount 1 herbivore
+        // sign / 2 predator sign, position = the sign)
+        HerdSighted, MigrationStarted, MigrationSeen, TracksFound,
+    }
+
+    /// <summary>One gameplay fact ("added 3 wood", "entered cave", "lit a fire"). Tutorial, journal, audio and UI listen.</summary>
+    public struct GameEvent
+    {
+        public GameEventType type;
+        public string id;          // item / zone / recipe / creature id
+        public int amount;
+        public Vector3 position;
+        public override string ToString() => $"{type}({id} x{amount})";
+    }
+
+    /// <summary>Static event hub so systems never hold references to each other just to notify.</summary>
+    public static class GameEvents
+    {
+        public static event Action<GameEvent> Raised;
+        public static int RaisedCount { get; private set; }
+
+        public static void Raise(GameEventType type, string id = null, int amount = 1, Vector3 position = default)
+        {
+            RaisedCount++;
+            var e = new GameEvent { type = type, id = id, amount = amount, position = position };
+            var h = Raised;
+            if (h == null) return;
+            foreach (Action<GameEvent> d in h.GetInvocationList())
+            {
+                try { d(e); } catch (Exception ex) { Debug.LogException(ex); }    // one bad listener must not break the others
+            }
+        }
+
+        /// <summary>tests / new game: drop every listener that belonged to a destroyed scene</summary>
+        public static void ClearAll() { Raised = null; RaisedCount = 0; }
+    }
+}

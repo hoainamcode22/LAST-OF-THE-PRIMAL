@@ -1,0 +1,643 @@
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Text;
+using UnityEditor;
+using UnityEngine;
+using UnityEngine.Rendering.Universal;
+using PrimalFrontier.Building;
+using PrimalFrontier.Items;
+using PrimalFrontier.World;
+
+namespace PrimalFrontier.EditorTools
+{
+    /// <summary>
+    /// Primitive shelter building content (BUILD agent, PC phase; directive 14-15, 27-29). Added to what exists, never
+    /// replacing a hand edit; safe to run again:
+    /// - materials Art/Building/Materials/M_BuildWood (bark from M_Bark when it exists), M_BuildAtlas (T_Building atlas,
+    ///   alpha clipped), M_BuildStone (from M_Rock); atlas import settings;
+    /// - prefabs Prefabs/Building/BLD_{Foundation, Wall, Doorway, Roof, LeanTo} from Art/Models/Building/BLD_*.fbx
+    ///   (Blender: Tools/BlenderPipeline/build_pieces.py) or, until an FBX exists, from stand-in meshes made in code
+    ///   (PieceMeshes; child "Model_Pending": the next run swaps in the FBX); colliders, LODGroup, StructurePiece, the door
+    ///   (DoorPiece on the hinge), the roof's disabled Enclosure Shelter, the lean-to's Shelter;
+    /// - items foundation, wall, doorway, roof, leaf_shelter (Structure, placePrefab = the piece; icons rendered from the
+    ///   prefab into Art/Icons/ICON_BLD_*.png, the shelter icon until then);
+    /// - Resources/Structures/STR_&lt;id&gt; definitions (sockets, support, footprint: StructureDefinition.ApplyStandard);
+    /// - recipes foundation, wall, doorway, roof (learned with wood / fibre), leaf_shelter (known at start); cap 40.
+    /// Args: "rebuild" rebuilds the prefabs, "icons" re-renders the icons, "reset" rewrites the definitions' geometry.
+    /// Bridge: PrimalBuildingBuilder.Build, .Inspect, .Icons. Logs to Documentation/PCPhase/Build/building_build.md.
+    /// The scene is not touched (no scene save needed).
+    /// </summary>
+    public static class PrimalBuildingBuilder
+    {
+        const string ItemsDir = "Assets/_Project/Data/Items", RecipesDir = "Assets/_Project/Data/Recipes", DbPath = "Assets/_Project/Resources/ItemDatabase.asset";
+        const string ArtDir = "Assets/_Project/Art/Building", MatDir = ArtDir + "/Materials", TexDir = ArtDir + "/Textures", MeshDir = ArtDir + "/Placeholder";
+        const string ModelDir = "Assets/_Project/Art/Models/Building", PrefabDir = "Assets/_Project/Prefabs/Building", DefDir = "Assets/_Project/Resources/Structures";
+        const string IconDir = "Assets/_Project/Art/Icons", LogDir = "Documentation/PCPhase/Build";
+        const string PendingName = "Model_Pending", ModelName = "Model";
+        const int MaxRecipes = 40;
+
+        static readonly StringBuilder Log = new StringBuilder();
+        static void L(string s) { Log.AppendLine(s); Debug.Log("[PrimalBuilding] " + s); }
+        static void W(string s) { Log.AppendLine("WARNING: " + s); Debug.LogWarning("[PrimalBuilding] " + s); }
+        static string F(float v) => v.ToString("0.##", CultureInfo.InvariantCulture);
+        static ItemDatabase _db;
+        static Material[] _mats;
+
+        /// <summary>the five pieces: id, file / prefab name, display name, category</summary>
+        static readonly (string id, string file, string name, StructureCategory cat)[] Pieces =
+        {
+            ("leaf_shelter", "LeanTo", "Leaf Shelter", StructureCategory.Shelter),
+            ("foundation", "Foundation", "Log Foundation", StructureCategory.Foundation),
+            ("wall", "Wall", "Woven Wall", StructureCategory.Wall),
+            ("doorway", "Doorway", "Doorway Wall", StructureCategory.Doorway),
+            ("roof", "Roof", "Thatch Roof", StructureCategory.Roof),
+        };
+
+        [MenuItem("Primal Frontier/Tools/Build Building Content (PC)")]
+        static void Menu() => EditorUtility.DisplayDialog("Primal Frontier", Build(""), "OK");
+
+        [PrimalBridgeCommand]
+        public static string Build(string arg)
+        {
+            Log.Clear();
+            arg ??= "";
+            bool rebuild = arg.IndexOf("rebuild", StringComparison.OrdinalIgnoreCase) >= 0;
+            bool icons = arg.IndexOf("icons", StringComparison.OrdinalIgnoreCase) >= 0;
+            bool reset = arg.IndexOf("reset", StringComparison.OrdinalIgnoreCase) >= 0;
+            foreach (var d in new[] { ItemsDir, RecipesDir, MatDir, TexDir, MeshDir, ModelDir, PrefabDir, DefDir, IconDir, LogDir }) Directory.CreateDirectory(d);
+            AssetDatabase.Refresh();
+            _db = AssetDatabase.LoadAssetAtPath<ItemDatabase>(DbPath);
+            if (!_db) { W("no ItemDatabase at " + DbPath + " (build the gameplay data first)"); return Log.ToString(); }
+            if (_db.items == null) _db.items = new List<ItemDefinition>();
+            if (_db.recipes == null) _db.recipes = new List<RecipeDefinition>();
+            int items0 = _db.items.Count, recipes0 = _db.recipes.Count;
+            try
+            {
+                Textures();
+                _mats = Materials();
+                var prefabs = Prefabs(rebuild);
+                var items = Items(prefabs, icons);
+                var defs = Definitions(prefabs, items, reset);
+                Recipes(defs);
+                Report();
+            }
+            catch (Exception e) { W("failed: " + e); }
+            finally
+            {
+                EditorUtility.SetDirty(_db);
+                AssetDatabase.SaveAssets();
+                StructureDefinition.Reload();
+                File.WriteAllText(Path.Combine(LogDir, "building_build.md"), "# PrimalBuildingBuilder.Build " + DateTime.Now.ToString("s") + "\n\n" + Log);
+            }
+            L($"Database: {_db.items.Count} items (+{_db.items.Count - items0}), {_db.recipes.Count} recipes (+{_db.recipes.Count - recipes0})");
+            return Log.ToString();
+        }
+
+        /// <summary>bridge: re-render the five icons from the prefabs</summary>
+        [PrimalBridgeCommand]
+        public static string Icons(string arg) => Build("icons");
+
+        // ------------------------------------------------------------------ lookup
+        static ItemDefinition Find(string id)
+        {
+            foreach (var i in _db.items) if (i && i.id == id) return i;
+            return AssetDatabase.LoadAssetAtPath<ItemDefinition>($"{ItemsDir}/ITEM_{id}.asset");
+        }
+
+        static void AddItem(ItemDefinition it)
+        {
+            if (!it || _db.items.Contains(it)) return;
+            if (_db.items.Any(x => x && x.id == it.id)) { W($"database already has another item with id {it.id}: kept that one"); return; }
+            _db.items.Add(it); L("  + database item " + it.id);
+        }
+
+        static void AddRecipe(RecipeDefinition rc)
+        {
+            if (!rc || _db.recipes.Contains(rc)) return;
+            if (_db.recipes.Any(x => x && x.id == rc.id)) { W($"database already has another recipe with id {rc.id}: kept that one"); return; }
+            if (_db.recipes.Count >= MaxRecipes) { W($"recipe {rc.id} not added: the database already has {_db.recipes.Count} recipes (cap {MaxRecipes})"); return; }
+            _db.recipes.Add(rc); L("  + database recipe " + rc.id);
+        }
+
+        static Sprite LoadIcon(string file)
+        {
+            string p = $"{IconDir}/{file}.png";
+            var ti = AssetImporter.GetAtPath(p) as TextureImporter;
+            if (ti == null) return null;
+            if (ti.textureType != TextureImporterType.Sprite || ti.spriteImportMode != SpriteImportMode.Single)
+            {
+                ti.textureType = TextureImporterType.Sprite; ti.spriteImportMode = SpriteImportMode.Single; ti.mipmapEnabled = false; ti.alphaIsTransparency = true;
+                ti.SaveAndReimport(); L($"icon {file}.png imported as a Sprite");
+            }
+            return AssetDatabase.LoadAssetAtPath<Sprite>(p);
+        }
+
+        // ------------------------------------------------------------------ textures + materials
+        static void Textures()
+        {
+            foreach (var (suffix, kind) in new[] { ("D", 0), ("N", 1), ("M", 2) })
+            {
+                string p = $"{TexDir}/T_Building_{suffix}.png";
+                var ti = AssetImporter.GetAtPath(p) as TextureImporter;
+                if (ti == null) { L($"texture T_Building_{suffix}.png pending ({TexDir})"); continue; }
+                bool dirty = false;
+                if (ti.maxTextureSize != 2048) { ti.maxTextureSize = 2048; dirty = true; }
+                if (!ti.mipmapEnabled) { ti.mipmapEnabled = true; dirty = true; }
+                if (ti.wrapMode != TextureWrapMode.Repeat) { ti.wrapMode = TextureWrapMode.Repeat; dirty = true; }
+                if (ti.anisoLevel < 4) { ti.anisoLevel = 4; dirty = true; }
+                if (kind == 1)
+                {
+                    if (ti.textureType != TextureImporterType.NormalMap) { ti.textureType = TextureImporterType.NormalMap; dirty = true; }
+                    if (ti.sRGBTexture) { ti.sRGBTexture = false; dirty = true; }
+                }
+                else
+                {
+                    if (ti.textureType != TextureImporterType.Default) { ti.textureType = TextureImporterType.Default; dirty = true; }
+                    bool srgb = kind == 0;
+                    if (ti.sRGBTexture != srgb) { ti.sRGBTexture = srgb; dirty = true; }
+                    if (ti.alphaSource != TextureImporterAlphaSource.FromInput) { ti.alphaSource = TextureImporterAlphaSource.FromInput; dirty = true; }
+                    if (kind == 0)
+                    {
+                        if (!ti.alphaIsTransparency) { ti.alphaIsTransparency = true; dirty = true; }
+                        if (!ti.mipMapsPreserveCoverage) { ti.mipMapsPreserveCoverage = true; ti.alphaTestReferenceValue = 0.5f; dirty = true; }
+                    }
+                }
+                if (dirty) { ti.SaveAndReimport(); L($"texture T_Building_{suffix}.png import settings set (2048, {(kind == 1 ? "normal map" : kind == 0 ? "sRGB cutout" : "linear mask")})"); }
+                else L($"texture T_Building_{suffix}.png kept");
+            }
+        }
+
+        static Texture2D Tex(string suffix) => AssetDatabase.LoadAssetAtPath<Texture2D>($"{TexDir}/T_Building_{suffix}.png");
+
+        /// <summary>the three shared materials (created once; texture slots filled when they are empty and the texture exists)</summary>
+        static Material[] Materials()
+        {
+            var lit = Shader.Find("Universal Render Pipeline/Lit");
+            if (!lit) W("URP Lit shader not found: materials get the default shader");
+            Material Mat(string name, Color color, float smooth, Action<Material> cfg)
+            {
+                string p = $"{MatDir}/{name}.mat";
+                var m = AssetDatabase.LoadAssetAtPath<Material>(p);
+                bool created = false;
+                if (!m)
+                {
+                    m = lit ? new Material(lit) : new Material(Shader.Find("Standard"));
+                    m.name = name; m.enableInstancing = true;
+                    m.SetColor("_BaseColor", color); m.SetFloat("_Smoothness", smooth);
+                    AssetDatabase.CreateAsset(m, p); created = true;
+                }
+                cfg?.Invoke(m);
+                EditorUtility.SetDirty(m);
+                L($"material {name} {(created ? "created" : "kept")}");
+                return m;
+            }
+            var wood = Mat("M_BuildWood", new Color(0.40f, 0.29f, 0.18f), 0.25f, m => CopyTextures(m, "M_Bark", "M_Wood", "M_Driftwood"));
+            var atlas = Mat("M_BuildAtlas", new Color(0.62f, 0.52f, 0.34f), 0.2f, m =>
+            {
+                if (m.HasProperty("_AlphaClip") && m.GetFloat("_AlphaClip") < 0.5f)
+                {
+                    m.SetFloat("_AlphaClip", 1f); m.SetFloat("_Cutoff", 0.45f); m.EnableKeyword("_ALPHATEST_ON");
+                    m.SetFloat("_Cull", 0f);                                             // fronds and thatch fringes are seen from both sides
+                    m.renderQueue = (int)UnityEngine.Rendering.RenderQueue.AlphaTest;
+                }
+                var d = Tex("D"); var n = Tex("N"); var mk = Tex("M");
+                if (d && m.HasProperty("_BaseMap") && !m.GetTexture("_BaseMap")) { m.SetTexture("_BaseMap", d); m.SetColor("_BaseColor", Color.white); L("  M_BuildAtlas: T_Building_D"); }
+                if (n && m.HasProperty("_BumpMap") && !m.GetTexture("_BumpMap")) { m.SetTexture("_BumpMap", n); m.EnableKeyword("_NORMALMAP"); m.SetFloat("_BumpScale", 1f); L("  M_BuildAtlas: T_Building_N"); }
+                if (mk && m.HasProperty("_MetallicGlossMap") && !m.GetTexture("_MetallicGlossMap"))
+                {
+                    m.SetTexture("_MetallicGlossMap", mk); m.EnableKeyword("_METALLICSPECGLOSSMAP"); m.SetFloat("_Smoothness", 1f);
+                    if (m.HasProperty("_OcclusionMap")) { m.SetTexture("_OcclusionMap", mk); m.EnableKeyword("_OCCLUSIONMAP"); }
+                    L("  M_BuildAtlas: T_Building_M (mask + occlusion)");
+                }
+                if (!d) L("  M_BuildAtlas: T_Building_D pending (plain colour)");
+            });
+            var stone = Mat("M_BuildStone", new Color(0.45f, 0.44f, 0.40f), 0.15f, m => CopyTextures(m, "M_Rock", "M_Stone"));
+            return new[] { wood, atlas, stone };
+        }
+
+        /// <summary>fills empty texture slots of m from the first project material found by name (Art/Materials or Art/Environment/Materials)</summary>
+        static void CopyTextures(Material m, params string[] names)
+        {
+            if (m.HasProperty("_BaseMap") && m.GetTexture("_BaseMap")) return;
+            foreach (var n in names)
+            {
+                var src = AssetDatabase.LoadAssetAtPath<Material>($"Assets/_Project/Art/Materials/{n}.mat") ?? AssetDatabase.LoadAssetAtPath<Material>($"Assets/_Project/Art/Environment/Materials/{n}.mat");
+                if (!src) continue;
+                Texture Get(params string[] props) { foreach (var p in props) if (src.HasProperty(p) && src.GetTexture(p)) return src.GetTexture(p); return null; }
+                var d = Get("_BaseMap", "_MainTex"); if (!d) continue;
+                m.SetTexture("_BaseMap", d); m.SetColor("_BaseColor", Color.white);
+                var nm = Get("_BumpMap"); if (nm) { m.SetTexture("_BumpMap", nm); m.EnableKeyword("_NORMALMAP"); }
+                if (src.HasProperty("_BaseMap")) m.SetTextureScale("_BaseMap", src.GetTextureScale("_BaseMap"));
+                L($"  {m.name}: textures from {n}");
+                return;
+            }
+            L($"  {m.name}: no source material found ({string.Join(" / ", names)}): plain colour");
+        }
+
+        // ------------------------------------------------------------------ prefabs
+        static GameObject LoadModel(string file) => AssetDatabase.LoadAssetAtPath<GameObject>($"{ModelDir}/BLD_{file}.fbx");
+
+        /// <summary>FBX materials (named like ours) -> Art/Building/Materials</summary>
+        static void RemapModel(string file)
+        {
+            string fbx = $"{ModelDir}/BLD_{file}.fbx";
+            var mi = AssetImporter.GetAtPath(fbx) as ModelImporter; if (mi == null) return;
+            var map = mi.GetExternalObjectMap(); int n = 0;
+            foreach (var m in AssetDatabase.LoadAllAssetsAtPath(fbx).OfType<Material>())
+            {
+                var id = new AssetImporter.SourceAssetIdentifier(typeof(Material), m.name);
+                if (map.ContainsKey(id)) continue;
+                var target = AssetDatabase.LoadAssetAtPath<Material>($"{MatDir}/{m.name}.mat") ?? AssetDatabase.LoadAssetAtPath<Material>($"Assets/_Project/Art/Materials/{m.name}.mat");
+                if (!target) { W($"BLD_{file}.fbx: no material asset for {m.name}"); continue; }
+                mi.AddRemap(id, target); n++;
+            }
+            if (n > 0) { mi.SaveAndReimport(); L($"BLD_{file}.fbx: {n} material(s) remapped"); }
+        }
+
+        static Mesh PlaceholderMesh(StructureCategory cat, int lod, string file, bool door)
+        {
+            string p = $"{MeshDir}/BLD_{file}{(door ? "_Door" : "")}_LOD{lod}.asset";
+            var m = AssetDatabase.LoadAssetAtPath<Mesh>(p);
+            if (m) return m;
+            m = door ? PieceMeshes.Door(lod) : PieceMeshes.Piece(cat, lod);
+            AssetDatabase.CreateAsset(m, p);
+            return m;
+        }
+
+        /// <summary>LODGroups for renderers named X_LOD0 / X_LOD1 that have none yet (per parent)</summary>
+        static void EnsureLodGroups(GameObject root)
+        {
+            var referenced = new HashSet<Renderer>();
+            foreach (var lg in root.GetComponentsInChildren<LODGroup>(true))
+                foreach (var lod in lg.GetLODs()) foreach (var r in lod.renderers) if (r) referenced.Add(r);
+            var groups = new Dictionary<Transform, List<Renderer>>();
+            foreach (var r in root.GetComponentsInChildren<Renderer>(true))
+            {
+                int k = r.name.LastIndexOf("_LOD", StringComparison.Ordinal);
+                if (k < 0 || referenced.Contains(r)) continue;
+                var parent = r.transform.parent ? r.transform.parent : root.transform;
+                if (!groups.TryGetValue(parent, out var list)) groups[parent] = list = new List<Renderer>();
+                list.Add(r);
+            }
+            foreach (var kv in groups)
+            {
+                if (kv.Key.GetComponent<LODGroup>()) continue;
+                var byLevel = kv.Value.GroupBy(r => int.Parse(r.name.Substring(r.name.LastIndexOf("_LOD", StringComparison.Ordinal) + 4))).OrderBy(g => g.Key).ToList();
+                if (byLevel.Count < 2) continue;
+                var lg = kv.Key.gameObject.AddComponent<LODGroup>();
+                var lods = new LOD[byLevel.Count];
+                for (int i = 0; i < byLevel.Count; i++) lods[i] = new LOD(i == byLevel.Count - 1 ? 0.04f : Mathf.Lerp(0.35f, 0.1f, i / (float)Mathf.Max(1, byLevel.Count - 1)), byLevel[i].ToArray());
+                lg.SetLODs(lods); lg.RecalculateBounds();
+                L($"  {root.name}: LODGroup on {kv.Key.name} ({byLevel.Count} levels)");
+            }
+        }
+
+        static BoxCollider Box(GameObject go, Vector3 center, Vector3 size) { var bc = go.AddComponent<BoxCollider>(); bc.center = center; bc.size = size; return bc; }
+        static Transform FindDeep(Transform t, string name)
+        {
+            for (int i = 0; i < t.childCount; i++) { var c = t.GetChild(i); if (c.name == name) return c; var d = FindDeep(c, name); if (d) return d; }
+            return null;
+        }
+
+        static Dictionary<string, GameObject> Prefabs(bool rebuild)
+        {
+            var result = new Dictionary<string, GameObject>();
+            foreach (var (id, file, name, cat) in Pieces)
+            {
+                string path = $"{PrefabDir}/BLD_{file}.prefab";
+                var existing = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+                var real = LoadModel(file);
+                if (real) { RemapModel(file); real = LoadModel(file); }
+                if (existing && !rebuild)
+                {
+                    bool pending = existing.transform.Find(PendingName) != null;
+                    if (!pending) { L($"prefab BLD_{file} kept"); result[id] = existing; continue; }
+                    if (!real) { L($"prefab BLD_{file} kept (stand-in mesh; {ModelDir}/BLD_{file}.fbx pending)"); result[id] = existing; continue; }
+                    L($"prefab BLD_{file}: BLD_{file}.fbx arrived, rebuilding with it");
+                }
+                var root = new GameObject("BLD_" + file);
+                try
+                {
+                    GameObject vis;
+                    if (real)
+                    {
+                        vis = (GameObject)PrefabUtility.InstantiatePrefab(real, root.transform);
+                        vis.transform.localPosition = Vector3.zero; vis.transform.localRotation = Quaternion.identity; vis.transform.localScale = Vector3.one;
+                        vis.name = ModelName;
+                    }
+                    else
+                    {
+                        vis = new GameObject(PendingName); vis.transform.SetParent(root.transform, false);
+                        for (int l = 0; l < 2; l++)
+                        {
+                            var go = new GameObject($"{file}_LOD{l}"); go.transform.SetParent(vis.transform, false);
+                            go.AddComponent<MeshFilter>().sharedMesh = PlaceholderMesh(cat, l, file, false);
+                            go.AddComponent<MeshRenderer>().sharedMaterials = _mats;
+                        }
+                        if (cat == StructureCategory.Doorway)
+                        {
+                            var hinge = new GameObject("Door"); hinge.transform.SetParent(vis.transform, false); hinge.transform.localPosition = new Vector3(-0.5f, 0f, 0f);
+                            for (int l = 0; l < 2; l++)
+                            {
+                                var go = new GameObject($"Door_LOD{l}"); go.transform.SetParent(hinge.transform, false);
+                                go.AddComponent<MeshFilter>().sharedMesh = PlaceholderMesh(cat, l, file, true);
+                                go.AddComponent<MeshRenderer>().sharedMaterials = _mats;
+                            }
+                        }
+                    }
+                    EnsureLodGroups(root);
+                    Components(root, vis, cat, file);
+                    var saved = PrefabUtility.SaveAsPrefabAsset(root, path);
+                    var b = Bounds(vis);
+                    L($"prefab BLD_{file} {(existing ? "rebuilt" : "created")}: model {(real ? $"BLD_{file}.fbx" : "stand-in meshes (FBX pending)")}, size {F(b.size.x)} x {F(b.size.y)} x {F(b.size.z)} m, {saved.GetComponentsInChildren<Collider>(true).Length} colliders");
+                    result[id] = saved;
+                }
+                finally { UnityEngine.Object.DestroyImmediate(root); }
+            }
+            return result;
+        }
+
+        static Bounds Bounds(GameObject g)
+        {
+            var rs = g.GetComponentsInChildren<Renderer>(true);
+            if (rs.Length == 0) return new Bounds(Vector3.zero, Vector3.zero);
+            var b = rs[0].bounds; foreach (var r in rs) b.Encapsulate(r.bounds); return b;
+        }
+
+        /// <summary>colliders and gameplay components of one piece</summary>
+        static void Components(GameObject root, GameObject vis, StructureCategory cat, string file)
+        {
+            const float Cell = StructureDefinition.Cell, H = StructureDefinition.WallHeight, Top = StructureDefinition.FoundationTop, T = StructureDefinition.WallThickness;
+            root.AddComponent<StructurePiece>();
+            switch (cat)
+            {
+                case StructureCategory.Foundation:
+                    Box(root, new Vector3(0, Top * 0.5f - 0.05f, 0), new Vector3(Cell, Top + 0.1f, Cell));
+                    break;
+                case StructureCategory.Wall:
+                    Box(root, new Vector3(0, H * 0.5f, 0), new Vector3(Cell, H, T));
+                    break;
+                case StructureCategory.Doorway:
+                    {
+                        float side = (Cell * 0.5f - 0.55f);
+                        Box(root, new Vector3(-(0.55f + side * 0.5f), H * 0.5f, 0), new Vector3(side, H, T));
+                        Box(root, new Vector3(0.55f + side * 0.5f, H * 0.5f, 0), new Vector3(side, H, T));
+                        Box(root, new Vector3(0, (2.0f + H) * 0.5f, 0), new Vector3(1.2f, H - 2.0f, T));
+                        var hinge = FindDeep(vis.transform, "Door");
+                        if (!hinge) { W("BLD_Doorway: no \"Door\" hinge object in the model: the doorway has no door"); break; }
+                        var dp = hinge.gameObject.AddComponent<DoorPiece>();
+                        dp.openAngle = 105f;
+                        var dc = hinge.gameObject.AddComponent<BoxCollider>(); dc.center = new Vector3(0.45f, 0.97f, 0f); dc.size = new Vector3(0.9f, 1.9f, 0.08f);
+                        break;
+                    }
+                case StructureCategory.Roof:
+                    {
+                        // whole roof volume (rain, arrows, the ghost overlap of a second roof); the player never reaches it
+                        Box(root, new Vector3(0, 0.55f, 0), new Vector3(Cell + 0.3f, 1.3f, Cell + 0.4f));
+                        var enc = new GameObject(BuildingEnclosure.ChildName); enc.transform.SetParent(root.transform, false);
+                        enc.transform.localPosition = new Vector3(0, -H, 0);
+                        var sh = enc.AddComponent<Shelter>();
+                        sh.coverBox = new Vector3(Cell * 0.5f + 0.35f, 0f, Cell * 0.5f + 0.35f); sh.coverHeight = H + 1.4f; sh.coverBelow = 0.6f;
+                        sh.restDistance = 1.0f; sh.bedInsideCounts = true; sh.warmth = 4f; sh.enabled = false;
+                        break;
+                    }
+                default:
+                    {
+                        // lean-to: open front at +Z, sloped back; a tilted box for the roof, two front poles
+                        var back = new GameObject("RoofCollider"); back.transform.SetParent(root.transform, false);
+                        back.transform.localPosition = new Vector3(0, 0.9f, -0.35f); back.transform.localRotation = Quaternion.Euler(-44f, 0, 0);
+                        var bc = back.AddComponent<BoxCollider>(); bc.size = new Vector3(2.8f, 0.14f, 2.5f);
+                        Box(root, new Vector3(-1.3f, 0.9f, 0.55f), new Vector3(0.16f, 1.8f, 0.16f));
+                        Box(root, new Vector3(1.3f, 0.9f, 0.55f), new Vector3(0.16f, 1.8f, 0.16f));
+                        var sh = root.AddComponent<Shelter>();
+                        sh.coverRadius = 1.7f; sh.coverHeight = 2.0f; sh.warmth = 4f; sh.restDistance = 1.2f;
+                        break;
+                    }
+            }
+        }
+
+        // ------------------------------------------------------------------ items + icons
+        static Dictionary<string, ItemDefinition> Items(Dictionary<string, GameObject> prefabs, bool renderIcons)
+        {
+            var r = new Dictionary<string, ItemDefinition>();
+            var shelter = Find("shelter");
+            var data = new Dictionary<string, (float weight, int stack, string desc)>
+            {
+                ["leaf_shelter"] = (8f, 1, "Poles leaned on a ridge pole and roofed with broad fronds, lashed with fibre. Cheap, quick, keeps the rain off. Rest under it to save."),
+                ["foundation"] = (14f, 1, "Logs laid over bearers on flat stones: a dry, level floor three paces wide. Walls stand on its edges, more floors join its sides."),
+                ["wall"] = (8f, 2, "Poles set upright with withies woven between them and leaves tucked in the weave. Stands on a foundation edge or on the ground; a roof rests on top."),
+                ["doorway"] = (9f, 1, "A wall with an opening and a woven door on a fibre hinge. Open and close it; a closed hut keeps the warmth in."),
+                ["roof"] = (9f, 1, "A ridge pole, rafters and a thick thatch of reeds and fronds over one floor. Needs two walls under it; with them it makes the hut a shelter."),
+            };
+            foreach (var (id, file, name, cat) in Pieces)
+            {
+                string p = $"{ItemsDir}/ITEM_{id}.asset";
+                var it = AssetDatabase.LoadAssetAtPath<ItemDefinition>(p);
+                bool created = false;
+                if (!it)
+                {
+                    var d = data[id];
+                    it = ScriptableObject.CreateInstance<ItemDefinition>();
+                    it.id = id; it.displayName = name; it.category = ItemCategory.Structure; it.weight = d.weight; it.maxStack = d.stack; it.description = d.desc;
+                    it.placeRadius = cat == StructureCategory.Shelter ? 1.4f : 1.5f;
+                    AssetDatabase.CreateAsset(it, p); created = true;
+                    L($"item {id} created");
+                }
+                else L($"item {id} kept");
+                bool dirty = created;
+                if (prefabs.TryGetValue(id, out var prefab) && prefab)
+                {
+                    if (!it.placePrefab || it.placePrefab.name == prefab.name) { if (it.placePrefab != prefab) { it.placePrefab = prefab; dirty = true; L($"  {id}: placePrefab = {prefab.name}"); } }
+                    else L($"  {id}: placePrefab kept ({it.placePrefab.name}, set by hand)");
+                }
+                // world model of the dropped bundle: borrow the wood pickup look
+                var wood = Find("wood");
+                if (!it.worldPrefab && wood && wood.worldPrefab) { it.worldPrefab = wood.worldPrefab; it.worldEuler = wood.worldEuler; dirty = true; }
+                // icon: rendered from the prefab (own file), the shelter icon while none exists
+                string iconFile = "ICON_BLD_" + file;
+                var icon = LoadIcon(iconFile);
+                bool borrowed = !it.icon || (shelter && it.icon == shelter.icon);
+                if ((!icon || renderIcons) && prefab)
+                {
+                    if (RenderIcon(prefab, cat, $"{IconDir}/{iconFile}.png")) { AssetDatabase.ImportAsset($"{IconDir}/{iconFile}.png"); icon = LoadIcon(iconFile); }
+                }
+                if (icon && (borrowed || renderIcons || it.icon != icon) && (borrowed || it.icon == null || it.icon.name == iconFile)) { it.icon = icon; dirty = true; L($"  {id}: icon {iconFile}.png"); }
+                else if (!it.icon && shelter && shelter.icon) { it.icon = shelter.icon; dirty = true; L($"  {id}: icon pending, using the shelter icon"); }
+                if (dirty) EditorUtility.SetDirty(it);
+                if (!it.icon) W($"item {id} has no icon (SurvivalLoopTests: every item needs one)");
+                AddItem(it);
+                r[id] = it;
+            }
+            return r;
+        }
+
+        /// <summary>renders the prefab alone (far above the scene, own camera and light, no post) into a 256 px transparent PNG</summary>
+        static bool RenderIcon(GameObject prefab, StructureCategory cat, string path)
+        {
+            const int S = 256;
+            GameObject inst = null, camGo = null, lightGo = null; RenderTexture rt = null; Texture2D tex = null;
+            bool fog = RenderSettings.fog;
+            try
+            {
+                var at = new Vector3(0, 900f, 0);
+                inst = (GameObject)PrefabUtility.InstantiatePrefab(prefab); inst.transform.position = at; inst.hideFlags = HideFlags.HideAndDontSave;
+                foreach (var lg in inst.GetComponentsInChildren<LODGroup>(true)) lg.ForceLOD(0);
+                var b = Bounds(inst); if (b.size.sqrMagnitude < 1e-4f) b = new Bounds(at + Vector3.up, Vector3.one);
+                camGo = new GameObject("_IconCam") { hideFlags = HideFlags.HideAndDontSave };
+                var cam = camGo.AddComponent<Camera>(); cam.enabled = false; cam.orthographic = true;
+                cam.clearFlags = CameraClearFlags.SolidColor; cam.backgroundColor = new Color(0, 0, 0, 0); cam.allowHDR = false; cam.allowMSAA = true;
+                var extra = camGo.AddComponent<UniversalAdditionalCameraData>(); extra.renderPostProcessing = false; extra.renderShadows = true; extra.antialiasing = AntialiasingMode.None;
+                var dir = (Quaternion.Euler(28f, cat == StructureCategory.Roof ? 40f : -35f, 0) * Vector3.forward);
+                cam.transform.position = b.center - dir * (b.size.magnitude * 1.5f + 2f); cam.transform.rotation = Quaternion.LookRotation(dir);
+                float ext = 0f; foreach (var c in Corners(b)) { var v = cam.transform.InverseTransformPoint(c); ext = Mathf.Max(ext, Mathf.Abs(v.x), Mathf.Abs(v.y)); }
+                cam.orthographicSize = ext * 1.08f + 0.05f; cam.nearClipPlane = 0.05f; cam.farClipPlane = b.size.magnitude * 4f + 10f;
+                lightGo = new GameObject("_IconSun") { hideFlags = HideFlags.HideAndDontSave };
+                var light = lightGo.AddComponent<Light>(); light.type = LightType.Directional; light.intensity = 1.6f; light.color = new Color(1f, 0.95f, 0.85f); light.shadows = LightShadows.Soft;
+                lightGo.transform.rotation = Quaternion.Euler(48f, -25f, 0);
+                RenderSettings.fog = false;
+                rt = new RenderTexture(S, S, 24, RenderTextureFormat.ARGB32) { antiAliasing = 8 };
+                tex = new Texture2D(S, S, TextureFormat.RGBA32, false);
+                bool asyncWas = ShaderUtil.allowAsyncCompilation; ShaderUtil.allowAsyncCompilation = false;
+                try { cam.targetTexture = rt; cam.Render(); cam.Render(); }
+                finally { ShaderUtil.allowAsyncCompilation = asyncWas; }
+                var prev = RenderTexture.active; RenderTexture.active = rt;
+                tex.ReadPixels(new Rect(0, 0, S, S), 0, 0); tex.Apply();
+                RenderTexture.active = prev; cam.targetTexture = null;
+                // the URP colour target may leave alpha at 1 on covered pixels only; make sure the empty background is clear
+                var px = tex.GetPixels32(); int opaque = 0;
+                for (int i = 0; i < px.Length; i++) { if (px[i].a > 8) opaque++; }
+                if (opaque < 50) { W($"icon {Path.GetFileName(path)}: render came out empty, kept the old icon"); return false; }
+                File.WriteAllBytes(path, tex.EncodeToPNG());
+                L($"icon {Path.GetFileName(path)} rendered ({opaque * 100 / px.Length} % covered)");
+                return true;
+            }
+            catch (Exception e) { W($"icon {Path.GetFileName(path)}: render failed ({e.Message})"); return false; }
+            finally
+            {
+                RenderSettings.fog = fog;
+                if (inst) UnityEngine.Object.DestroyImmediate(inst);
+                if (camGo) UnityEngine.Object.DestroyImmediate(camGo);
+                if (lightGo) UnityEngine.Object.DestroyImmediate(lightGo);
+                if (rt) UnityEngine.Object.DestroyImmediate(rt);
+                if (tex) UnityEngine.Object.DestroyImmediate(tex);
+            }
+        }
+
+        static IEnumerable<Vector3> Corners(Bounds b)
+        {
+            for (int i = 0; i < 8; i++) yield return new Vector3((i & 1) == 0 ? b.min.x : b.max.x, (i & 2) == 0 ? b.min.y : b.max.y, (i & 4) == 0 ? b.min.z : b.max.z);
+        }
+
+        // ------------------------------------------------------------------ definitions + recipes
+        static Dictionary<string, StructureDefinition> Definitions(Dictionary<string, GameObject> prefabs, Dictionary<string, ItemDefinition> items, bool reset)
+        {
+            var r = new Dictionary<string, StructureDefinition>();
+            foreach (var (id, file, name, cat) in Pieces)
+            {
+                string p = $"{DefDir}/STR_{id}.asset";
+                var d = AssetDatabase.LoadAssetAtPath<StructureDefinition>(p);
+                bool created = false;
+                if (!d)
+                {
+                    d = ScriptableObject.CreateInstance<StructureDefinition>();
+                    d.id = id; d.displayName = name; d.ApplyStandard(cat);
+                    AssetDatabase.CreateAsset(d, p); created = true;
+                    L($"definition {id} created ({cat}, {d.sockets.Length} sockets, snaps to {d.snapsTo}, support {d.support})");
+                }
+                else if (reset) { d.ApplyStandard(cat); L($"definition {id}: geometry reset to the standard {cat}"); }
+                else L($"definition {id} kept");
+                bool dirty = created || reset;
+                if (prefabs.TryGetValue(id, out var pf) && pf)
+                {
+                    if (d.prefab != pf) { d.prefab = pf; dirty = true; }
+                    var sp = pf.GetComponent<StructurePiece>();
+                    if (sp && sp.definition != d) { sp.definition = d; EditorUtility.SetDirty(pf); L($"  prefab {pf.name}: StructurePiece.definition = {id}"); }
+                }
+                if (items.TryGetValue(id, out var it) && it && d.item != it) { d.item = it; dirty = true; }
+                if (string.IsNullOrEmpty(d.description) && it) { d.description = it.description; dirty = true; }
+                if (dirty) EditorUtility.SetDirty(d);
+                r[id] = d;
+            }
+            return r;
+        }
+
+        static RecipeDefinition Recipe(string id, int secs, bool known, string hint, params (string item, int n)[] ing)
+        {
+            string p = $"{RecipesDir}/RCP_{id}.asset";
+            var rc = AssetDatabase.LoadAssetAtPath<RecipeDefinition>(p);
+            if (rc) { L($"recipe {id} kept"); AddRecipe(rc); return rc; }
+            var outItem = Find(id);
+            if (!outItem) { W($"recipe {id} skipped: output item {id} missing"); return null; }
+            var list = new List<Ingredient>();
+            foreach (var (item, n) in ing)
+            {
+                var it = Find(item);
+                if (!it) { W($"recipe {id} skipped: ingredient {item} missing"); return null; }
+                list.Add(new Ingredient(it, n));
+            }
+            rc = ScriptableObject.CreateInstance<RecipeDefinition>();
+            rc.id = id; rc.category = RecipeCategory.Structures; rc.output = outItem; rc.outputCount = 1; rc.craftSeconds = secs; rc.station = CraftStation.None;
+            rc.knownAtStart = known; rc.hint = hint; rc.ingredients = list.ToArray();
+            rc.requirements = Array.Empty<CraftingRequirement>(); rc.extraResults = Array.Empty<CraftingResult>();
+            AssetDatabase.CreateAsset(rc, p);
+            L($"recipe {id} created ({string.Join(" + ", list.Select(x => x.count + " " + x.item.id))} -> {id}, {(known ? "known at start" : "learned with its materials")})");
+            AddRecipe(rc);
+            return rc;
+        }
+
+        static void Recipes(Dictionary<string, StructureDefinition> defs)
+        {
+            var made = new Dictionary<string, RecipeDefinition>
+            {
+                ["leaf_shelter"] = Recipe("leaf_shelter", 6, true, "Poles and fronds: the first roof over your head.", ("wood", 5), ("fiber", 8)),
+                ["foundation"] = Recipe("foundation", 8, false, "Logs on stones make a dry floor.", ("wood", 8), ("stone", 4), ("fiber", 4)),
+                ["wall"] = Recipe("wall", 6, false, "Withies woven between poles.", ("wood", 6), ("fiber", 6)),
+                ["doorway"] = Recipe("doorway", 7, false, "A wall with a woven door.", ("wood", 7), ("fiber", 8)),
+                ["roof"] = Recipe("roof", 8, false, "Thatch over rafters; needs two walls.", ("wood", 5), ("fiber", 12)),
+            };
+            foreach (var kv in made)
+            {
+                if (!kv.Value || !defs.TryGetValue(kv.Key, out var d) || !d) continue;
+                if (d.recipe != kv.Value) { d.recipe = kv.Value; EditorUtility.SetDirty(d); }
+            }
+        }
+
+        static void Report()
+        {
+            var ids = _db.recipes.Where(r => r).Select(r => r.id).ToList();
+            L($"recipes ({ids.Count} of {MaxRecipes}): {string.Join(", ", ids)}");
+            var outputs = new HashSet<string>(_db.recipes.Where(r => r && r.output).Select(r => r.output.id));
+            foreach (var (id, file, name, cat) in Pieces)
+                L($"  piece {id}: recipe {(outputs.Contains(id) ? "present" : "MISSING")}, prefab {(AssetDatabase.LoadAssetAtPath<GameObject>($"{PrefabDir}/BLD_{file}.prefab") ? "ok" : "MISSING")}, model {(LoadModel(file) ? "FBX" : "stand-in")}, definition {(AssetDatabase.LoadAssetAtPath<StructureDefinition>($"{DefDir}/STR_{id}.asset") ? "ok" : "MISSING")}");
+            if (ids.Count > MaxRecipes) W($"{ids.Count} recipes: over the cap of {MaxRecipes}");
+        }
+
+        /// <summary>bridge: what the building content looks like in the project (no changes)</summary>
+        [PrimalBridgeCommand]
+        public static string Inspect(string arg)
+        {
+            var sb = new StringBuilder();
+            var db = AssetDatabase.LoadAssetAtPath<ItemDatabase>(DbPath);
+            if (db) sb.AppendLine($"items {db.items.Count}, recipes {db.recipes.Count}: {string.Join(", ", db.recipes.Where(r => r).Select(r => r.id))}");
+            foreach (var (id, file, name, cat) in Pieces)
+            {
+                var it = db ? db.Item(id) : null; var rc = db ? db.Recipe(id) : null;
+                var d = AssetDatabase.LoadAssetAtPath<StructureDefinition>($"{DefDir}/STR_{id}.asset");
+                var pf = AssetDatabase.LoadAssetAtPath<GameObject>($"{PrefabDir}/BLD_{file}.prefab");
+                sb.AppendLine($"  {id}: item {(it ? "ok" : "MISSING")} icon {(it && it.icon ? it.icon.name : "-")} placePrefab {(it && it.placePrefab ? it.placePrefab.name : "-")}; recipe {(rc ? string.Join("+", rc.ingredients.Select(i => i.count + " " + (i.item ? i.item.id : "?"))) + (rc.knownAtStart ? " (start)" : " (learned)") : "MISSING")}; " +
+                              $"definition {(d ? $"{d.category} {d.sockets.Length} sockets snaps {d.snapsTo} support {d.support} min walls {d.minWallsBelow}" : "MISSING")}; " +
+                              $"prefab {(pf ? $"{(pf.transform.Find(PendingName) ? "stand-in" : "FBX")} model, {pf.GetComponentsInChildren<Collider>(true).Length} colliders, LODGroups {pf.GetComponentsInChildren<LODGroup>(true).Length}, StructurePiece {(pf.GetComponent<StructurePiece>() ? "yes" : "NO")}, Shelter {(pf.GetComponentInChildren<Shelter>(true) ? "yes" : "no")}, Door {(pf.GetComponentInChildren<DoorPiece>(true) ? "yes" : "no")}" : "MISSING")}");
+            }
+            foreach (var m in PieceMeshes.MaterialNames)
+            {
+                var mat = AssetDatabase.LoadAssetAtPath<Material>($"{MatDir}/{m}.mat");
+                sb.AppendLine(mat ? $"  {m}: {mat.shader.name}, base map {(mat.HasProperty("_BaseMap") && mat.GetTexture("_BaseMap") ? mat.GetTexture("_BaseMap").name : "none")}" : $"  {m}: MISSING");
+            }
+            foreach (var s in new[] { "D", "N", "M" }) sb.AppendLine($"  T_Building_{s}: {(Tex(s) ? Tex(s).width + " px" : "MISSING")}");
+            return sb.ToString();
+        }
+    }
+}

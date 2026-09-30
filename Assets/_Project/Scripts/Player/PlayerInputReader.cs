@@ -44,7 +44,7 @@ namespace PrimalFrontier.Player
         public bool CancelPressed { get; private set; }         // right mouse / Esc in build mode
         public bool DodgePressed { get; private set; }
 
-        /// <summary>on-screen controls (MobileHUD) write here; merged with keyboard / gamepad every frame</summary>
+        /// <summary>on-screen controls (MobileHUD, mobile builds only) write here; merged with keyboard / gamepad every frame. On PC Active stays false, so nothing is merged.</summary>
         public static class Virtual
         {
             public static bool Active;                          // touch HUD is showing

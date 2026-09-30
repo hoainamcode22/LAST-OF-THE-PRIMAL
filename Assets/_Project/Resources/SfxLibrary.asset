@@ -378,3 +378,52 @@ MonoBehaviour:
     volume: 0.6
     pitchJitter: 0.1
     maxDistance: 12
+  - id: 51
+    clips:
+    - {fileID: 8300000, guid: a4752441c6d1bf94fafd2d9b8f579fb7, type: 3}
+    - {fileID: 8300000, guid: 73fbfd0b6acb24b458533ae20568ec20, type: 3}
+    - {fileID: 8300000, guid: d7d9d1c384de2fb4c9af4603409adce5, type: 3}
+    - {fileID: 8300000, guid: d742797674210d54eb9ce4fc1b300159, type: 3}
+    volume: 0.45
+    pitchJitter: 0.08
+    maxDistance: 12
+  - id: 52
+    clips:
+    - {fileID: 8300000, guid: d9731ebf1fc414a42b8811a37af8b485, type: 3}
+    - {fileID: 8300000, guid: 38bc472dcd48e3d42ae0b950dce90a15, type: 3}
+    - {fileID: 8300000, guid: 6ad7f030182a6b045b31e0f934372b0b, type: 3}
+    - {fileID: 8300000, guid: 577c51986d162a8418cbe62844f2a713, type: 3}
+    volume: 0.4
+    pitchJitter: 0.1
+    maxDistance: 10
+  - id: 53
+    clips:
+    - {fileID: 8300000, guid: 00782a86c7eeb5d4686e99dc4ed45703, type: 3}
+    - {fileID: 8300000, guid: 0f94d65cbbf2239499fa326696d2dafd, type: 3}
+    - {fileID: 8300000, guid: 1b351737f37621c47bb01466dff26557, type: 3}
+    volume: 0.4
+    pitchJitter: 0.08
+    maxDistance: 5
+  - id: 54
+    clips:
+    - {fileID: 8300000, guid: cf9891fd91034e249a868083ee14fc22, type: 3}
+    - {fileID: 8300000, guid: f06c0b0b49402c44ca4a736e354f9b16, type: 3}
+    volume: 0.55
+    pitchJitter: 0.08
+    maxDistance: 10
+  - id: 55
+    clips:
+    - {fileID: 8300000, guid: de7fd83f3f602b44d8baa2b308fe23d6, type: 3}
+    - {fileID: 8300000, guid: b569aeb3b0433574e92f417fbc6c89b0, type: 3}
+    - {fileID: 8300000, guid: 7aa5731de4461c142900c9b0eccb0e1c, type: 3}
+    volume: 0.55
+    pitchJitter: 0.1
+    maxDistance: 10
+  - id: 56
+    clips:
+    - {fileID: 8300000, guid: f6f2aa2da32567d47b495fddbc28d0a2, type: 3}
+    - {fileID: 8300000, guid: ad0d32e1f7a5f6b458282e7e44fde1eb, type: 3}
+    - {fileID: 8300000, guid: 0b248d1551dad0f47ae57682035b4df3, type: 3}
+    volume: 0.45
+    pitchJitter: 0.1
+    maxDistance: 10

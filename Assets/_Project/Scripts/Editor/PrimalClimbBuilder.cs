@@ -1,0 +1,326 @@
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using UnityEditor;
+using UnityEditor.SceneManagement;
+using UnityEngine;
+using PrimalFrontier.Player;
+using PrimalFrontier.World;
+
+namespace PrimalFrontier.EditorTools
+{
+    /// <summary>
+    /// Climb spots (agent U, Phase 1): low ledges (1.5-2.3 m, pulled over in one move) and short rock faces (3-6 m, climbed
+    /// with W / S) on the existing rocks and cliffs (World/Rocks, World/Cliffs, rock faces at the waterfall) near the start
+    /// beach, the cliffs and the waterfall route. For every rock it casts rays from 12 directions: the face must be steep,
+    /// continuous and face the climber, the base must be dry ground (terrain height sampling + physics, above sea level,
+    /// not in a water source), the top must have flat ground to stand on, and Climbable.Validate must pass. The best spot
+    /// per rock is kept, then 6-10 spots are chosen spread out (at least 12 m apart), closest to the points of interest.
+    /// Output: [Gameplay]/Climbables/Climb_NN_(Ledge|RockFace)_(rock) each with a Climb_Ledge / Climb_RockFace child
+    /// (Climbable + ClimbStart / ClimbEnd / ClimbExit). Idempotent: its own children are rebuilt on every run.
+    /// Bridge: PrimalClimbBuilder.Survey, PrimalClimbBuilder.Build ("dry" = report the spots, change nothing).
+    /// </summary>
+    public static class PrimalClimbBuilder
+    {
+        const float LedgeMin = 1.5f, LedgeMax = 2.3f, FaceMin = 3f, FaceMax = 6f;
+        const float MaxPoiDistance = 150f, MinSpacing = 12f;
+        const int MaxLedges = 4, MaxFaces = 6, MaxTotal = 10, PerPoi = 2;
+
+        class Spot
+        {
+            public Transform host; public ClimbKind kind; public Vector3 bottom, lip, exit, into; public float width, height, score; public string poi;
+        }
+
+        // ------------------------------------------------------------------ survey (read-only)
+        [PrimalBridgeCommand]
+        public static string Survey()
+        {
+            var sb = new StringBuilder();
+            var scene = EditorSceneManager.GetActiveScene();
+            _pois = null; _sea = null;
+            sb.AppendLine($"scene {scene.path} dirty={scene.isDirty}");
+            sb.AppendLine("roots: " + string.Join(", ", scene.GetRootGameObjects().Select(r => r.name)));
+            foreach (var (n, p) in Pois()) sb.AppendLine($"poi {n} {V(p)}");
+            var ocean = Object.FindFirstObjectByType<OceanShore>(FindObjectsInactive.Include);
+            sb.AppendLine($"sea level {(ocean ? ocean.seaLevel : 0f):F2}; terrains {Terrain.activeTerrains.Length}");
+            foreach (var t in Terrain.activeTerrains) sb.AppendLine($"  terrain {t.name} at {V(t.transform.position)} size {V(t.terrainData.size)}");
+            foreach (var c in Object.FindObjectsByType<Climbable>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+                sb.AppendLine($"climbable {c.kind} {Path(c.transform)} bottom {V(c.Bottom)} h {c.Length:F1}");
+            int listed = 0, skipped = 0;
+            foreach (var h in Hosts().OrderBy(t => NearestPoi(t.position, out _)))
+            {
+                if (listed >= 150) { skipped++; continue; }
+                var b = BoundsOf(h); int cols = h.GetComponentsInChildren<Collider>().Count(c => !c.isTrigger && c.enabled);
+                if (b.size.y < 1.2f) continue;
+                listed++;
+                sb.AppendLine($"host {Path(h)} c {V(b.center)} size {V(b.size)} cols {cols} dPoi {NearestPoi(b.center, out var pn):F0} ({pn})");
+            }
+            sb.AppendLine($"hosts total {Hosts().Count()}, listed {listed}, not listed {skipped}");
+            return sb.ToString();
+        }
+
+        // ------------------------------------------------------------------ build
+        [PrimalBridgeCommand]
+        public static string Build(string arg)
+        {
+            if (EditorApplication.isPlaying) return "refused: Play mode";
+            bool dry = arg == "dry";
+            var sb = new StringBuilder();
+            var scene = EditorSceneManager.GetActiveScene();
+            _pois = null; _sea = null;
+            sb.AppendLine($"scene {scene.path}{(dry ? " (dry run)" : "")}");
+            Physics.SyncTransforms();
+            var parent = dry ? null : Parent(scene, sb);
+            // earlier runs: remove our own spots first (scene data made by this builder), so a rebuild is clean
+            if (parent) for (int i = parent.childCount - 1; i >= 0; i--) if (parent.GetChild(i).name.StartsWith("Climb_")) Object.DestroyImmediate(parent.GetChild(i).gameObject);
+            Physics.SyncTransforms();
+
+            var existing = Object.FindObjectsByType<Climbable>(FindObjectsInactive.Include, FindObjectsSortMode.None).Where(c => c.IsFace).Select(c => c.Bottom).ToList();
+            int hosts = 0, tried = 0; var reject = new Dictionary<string, int>();
+            var best = new List<Spot>();
+            foreach (var h in Hosts())
+            {
+                var b = BoundsOf(h);
+                if (b.size.y < LedgeMin - 0.2f) continue;
+                if (NearestPoi(b.center, out _) > MaxPoiDistance + b.extents.magnitude) continue;
+                var cols = h.GetComponentsInChildren<Collider>().Where(c => !c.isTrigger && c.enabled).ToArray();
+                if (cols.Length == 0) { Count(reject, "no collider"); continue; }
+                hosts++;
+                Spot top = null;
+                for (int k = 0; k < 12; k++)
+                {
+                    tried++;
+                    float a = k * 30f * Mathf.Deg2Rad;
+                    var s = TrySpot(h, b, cols, new Vector3(Mathf.Sin(a), 0f, Mathf.Cos(a)), out string why);
+                    if (s == null) { Count(reject, why); continue; }
+                    if (existing.Any(e => (e - s.bottom).sqrMagnitude < 9f)) { Count(reject, "existing climbable"); continue; }
+                    if (top == null || s.score < top.score) top = s;
+                }
+                if (top != null) best.Add(top);
+            }
+            sb.AppendLine($"hosts checked {hosts}, directions tried {tried}, valid rocks {best.Count}");
+            sb.AppendLine("rejections: " + string.Join(", ", reject.OrderByDescending(r => r.Value).Select(r => $"{r.Key} {r.Value}")));
+
+            // choose: closest first, spread out, a mix of ledges and faces
+            var chosen = new List<Spot>();
+            // first the two best spots per point of interest (start beach, cliffs, waterfall), then the rest by distance
+            var order = best.GroupBy(x => x.poi.Substring(x.poi.IndexOf(" from ") + 6)).SelectMany(g => g.OrderBy(x => x.score).Take(PerPoi)).OrderBy(x => x.score)
+                            .Concat(best.OrderBy(x => x.score)).Distinct().ToList();
+            foreach (var s in order)
+            {
+                if (chosen.Count >= MaxTotal) break;
+                int nk = chosen.Count(c => c.kind == s.kind);
+                if (s.kind == ClimbKind.Ledge ? nk >= MaxLedges : nk >= MaxFaces) continue;
+                if (chosen.Any(c => (c.bottom - s.bottom).sqrMagnitude < MinSpacing * MinSpacing)) continue;
+                chosen.Add(s);
+            }
+            sb.AppendLine($"chosen {chosen.Count}: ledges {chosen.Count(c => c.kind == ClimbKind.Ledge)}, rock faces {chosen.Count(c => c.kind == ClimbKind.RockFace)}");
+
+            int n = 0, bad = 0;
+            foreach (var s in chosen)
+            {
+                n++;
+                string label = $"Climb_{n:00}_{s.kind}_{Short(s.host.name)}";
+                string line = $"{label}: {s.kind} h {s.height:F2} m, width {s.width:F1}, bottom {V(s.bottom)}, lip {V(s.lip)}, exit {V(s.exit)}, facing {Yaw(s.into):F0} deg, on {Path(s.host)}, {s.poi}";
+                if (dry) { sb.AppendLine(line); continue; }
+                var go = new GameObject(label);
+                go.transform.SetParent(parent, false);
+                go.transform.position = s.bottom + s.into * 0.8f;          // CreateOn falls back to host - base for a vertical face
+                var c = Climbable.CreateOn(go, s.kind, s.bottom, s.lip, s.exit, s.width, s.kind == ClimbKind.Ledge ? "rock ledge" : "rock face");
+                c.transform.rotation = Quaternion.LookRotation(s.into, Vector3.up);
+                // rotating the Climb_ empty moved its point children: put them back at the measured spots
+                c.climbStart.position = s.bottom; c.climbEnd.position = s.lip; if (c.climbExit) c.climbExit.position = s.exit;
+                c.SaveId = label;
+                string v = c.Validate();
+                if (v != null) { bad++; sb.AppendLine(line + $"  VALIDATE FAILED: {v} (removed)"); Object.DestroyImmediate(go); continue; }
+                EditorUtility.SetDirty(c);
+                sb.AppendLine(line);
+            }
+            if (!dry)
+            {
+                sb.AppendLine($"placed {n - bad} climbables under {Path(parent)} ({bad} failed validation)");
+                EditorSceneManager.MarkSceneDirty(scene);
+                sb.AppendLine(EditorSceneManager.SaveScene(scene) ? "scene saved" : "SAVE FAILED");
+            }
+            return sb.ToString();
+        }
+
+        // ------------------------------------------------------------------ one direction on one rock
+        static Spot TrySpot(Transform host, Bounds b, Collider[] cols, Vector3 d, out string why)
+        {
+            why = null;
+            float R = Mathf.Max(b.extents.x, b.extents.z) + 3f;
+            Vector3 o = b.center - d * R;
+            float g0 = GroundY(o, host, out var gn0);
+            if (float.IsNaN(g0)) { why = "no ground"; return null; }
+            // the face: horizontal ray at knee height toward the rock
+            Vector3 from = new Vector3(o.x, g0 + 0.6f, o.z);
+            if (!Hit(cols, from, d, R * 2f, out var h0)) { why = "no face"; return null; }
+            Vector3 nFlat = h0.normal; nFlat.y = 0f;
+            if (nFlat.sqrMagnitude < 0.05f || Vector3.Angle(nFlat.normalized, -d) > 40f) { why = "face not toward climber"; return null; }
+            // base: dry ground just in front of the face
+            Vector3 foot = h0.point - d * 0.45f;
+            float gy = GroundY(foot, host, out var gn);
+            if (float.IsNaN(gy) || gn.y < 0.8f) { why = "base ground steep"; return null; }
+            if (gy < SeaLevel() + 0.4f || InWater(foot)) { why = "base in water"; return null; }
+            // knee-height hit again from the base (the ground may differ from the probe point)
+            if (!Hit(cols, new Vector3(foot.x, gy + 0.4f, foot.z), d, 2f, out h0)) { why = "no face at base"; return null; }
+            Vector3 bottom = new Vector3(h0.point.x, gy, h0.point.z) - d * 0.05f;
+            // climb the face in 0.25 m steps: it must be continuous and steep (no big overhang, no slope under ~55 deg)
+            Vector3 last = h0.point; float y = gy + 0.4f, edgeY = y;
+            while (y < gy + FaceMax + 1f)
+            {
+                y += 0.25f;
+                Vector3 f2 = new Vector3(foot.x, y, foot.z) - d * 1.0f;
+                if (!Hit(cols, f2, d, 3.5f, out var hi)) break;
+                float run = Vector3.Dot(hi.point - last, d);
+                if (run > 0.55f) break;                                          // the rock steps back: that was the edge
+                if (run < -0.35f) { why = "overhang"; return null; }
+                last = hi.point; edgeY = y;
+            }
+            // top surface just behind the edge (rays down on the rock itself)
+            Vector3 lipXZ = last + d * 0.25f;
+            if (!HitDown(cols, lipXZ, b.max.y + 2f, out var ht)) { why = "no top"; return null; }
+            float lipY = ht.point.y;
+            if (lipY < edgeY - 0.4f) lipY = Mathf.Max(lipY, edgeY);
+            float height = lipY - gy;
+            ClimbKind kind;
+            if (height >= LedgeMin && height <= LedgeMax) kind = ClimbKind.Ledge;
+            else if (height >= FaceMin && height <= FaceMax) kind = ClimbKind.RockFace;
+            else { why = height < FaceMin && height > LedgeMax ? "height between ledge and face" : "height out of range"; return null; }
+            float horiz = Vector3.Dot(new Vector3(last.x, 0, last.z) - new Vector3(bottom.x, 0, bottom.z), d);
+            if (horiz > height * 0.7f) { why = "face too sloped"; return null; }
+            // standing room on top: flat ground 0.8 m past the lip, about at the lip's height
+            Vector3 exitXZ = lipXZ + d * 0.8f;
+            if (!Physics.Raycast(new Vector3(exitXZ.x, lipY + 2f, exitXZ.z), Vector3.down, out var he, 4f, ~0, QueryTriggerInteraction.Ignore)) { why = "no top ground"; return null; }
+            if (he.normal.y < 0.72f || Mathf.Abs(he.point.y - lipY) > 0.5f) { why = "top not flat"; return null; }
+            // face width: side rays at mid height
+            float mid = gy + Mathf.Min(height * 0.5f, 1.2f), width = 0f;
+            foreach (float w in new[] { 1.6f, 1.2f, 0.9f })
+            {
+                Vector3 r = Vector3.Cross(Vector3.up, d) * (w * 0.5f);
+                Vector3 c0 = new Vector3(foot.x, mid, foot.z) - d * 1f;
+                if (Hit(cols, c0 + r, d, 3f, out var hr) && Hit(cols, c0 - r, d, 3f, out var hl)
+                    && Mathf.Abs(Vector3.Dot(hr.point - h0.point, d)) < 0.6f && Mathf.Abs(Vector3.Dot(hl.point - h0.point, d)) < 0.6f) { width = w; break; }
+            }
+            if (width == 0f) { why = "face too narrow"; return null; }
+            Vector3 lip = new Vector3(lipXZ.x, lipY, lipXZ.z);
+            // rooms: in front of the base and on top (the same checks as Climbable.Validate)
+            Vector3 s = bottom - d * 0.5f;
+            if (Physics.CheckCapsule(s + Vector3.up * 0.4f, s + Vector3.up * 1.5f, 0.28f, ~0, QueryTriggerInteraction.Ignore)) { why = "blocked in front"; return null; }
+            if (Physics.CheckCapsule(he.point + Vector3.up * 0.4f, he.point + Vector3.up * 1.5f, 0.3f, ~0, QueryTriggerInteraction.Ignore)) { why = "no room on top"; return null; }
+            float dist = NearestPoi(bottom, out string poi);
+            if (dist > MaxPoiDistance) { why = "far from the route"; return null; }
+            return new Spot { host = host, kind = kind, bottom = bottom, lip = lip, exit = he.point, into = d, width = width, height = height, score = dist, poi = $"{dist:F0} m from {poi}" };
+        }
+
+        // ------------------------------------------------------------------ helpers
+        static IEnumerable<Transform> Hosts()
+        {
+            var world = EditorSceneManager.GetActiveScene().GetRootGameObjects().FirstOrDefault(r => r.name == "World");
+            if (!world) yield break;
+            foreach (var g in new[] { "Cliffs", "Rocks" })
+            {
+                var grp = PrimalFrontier.Core.SceneRoots.Legacy("World/" + g); if (!grp) continue;   // World/Environment/Terrain/<g> (HIER)
+                foreach (Transform t in grp) if (t.gameObject.activeInHierarchy) yield return t;
+            }
+            // rock pieces framing the waterfall (the environment builder's RockFace group), wherever it sits under World
+            foreach (var rf in world.GetComponentsInChildren<Transform>(false).Where(x => x.name == "RockFace" && x.parent && x.parent.name != "Rocks"))
+                foreach (Transform c in rf) yield return c;
+        }
+
+        static List<(string, Vector3)> _pois;
+        static List<(string, Vector3)> Pois()
+        {
+            var l = new List<(string, Vector3)>();
+            var pm = Object.FindFirstObjectByType<PlayerMotor>(FindObjectsInactive.Include);
+            if (pm) l.Add(("player start", pm.transform.position));
+            var all = EditorSceneManager.GetActiveScene().GetRootGameObjects().SelectMany(r => r.GetComponentsInChildren<Transform>(true));
+            var fall = all.FirstOrDefault(t => t.name == "WaterfallSheet");
+            if (fall) l.Add(("waterfall", BoundsOf(fall).center));
+            var cliffs = PrimalFrontier.Core.SceneRoots.Legacy("World/Cliffs");
+            if (cliffs && pm)
+            {
+                // the cliff piece nearest the start (the start area's cliffs)
+                var near = cliffs.Cast<Transform>().OrderBy(t => (t.position - pm.transform.position).sqrMagnitude).FirstOrDefault();
+                if (near) l.Add(("cliffs near the start", near.position));
+            }
+            _pois = l; return l;
+        }
+
+        static float NearestPoi(Vector3 p, out string name)
+        {
+            var l = _pois ?? Pois(); name = "none"; float best = float.MaxValue;
+            foreach (var (n, q) in l) { var d = new Vector2(p.x - q.x, p.z - q.z).magnitude; if (d < best) { best = d; name = n; } }
+            return best;
+        }
+
+        static Transform Parent(UnityEngine.SceneManagement.Scene scene, StringBuilder sb)
+        {
+            _pois = null;
+            var t = PrimalFrontier.Core.SceneRoots.Legacy("[Gameplay]/Climbables");     // World/Gameplay/Interactables/Climbables (HIER)
+            if (!t) { t = PrimalFrontier.Core.SceneRoots.Legacy("[Gameplay]/Climbables", true); sb.AppendLine("created " + PrimalFrontier.Core.SceneRoots.PathOf(t)); }
+            return t;
+        }
+
+        static bool Hit(Collider[] cols, Vector3 from, Vector3 dir, float len, out RaycastHit best)
+        {
+            best = default; bool any = false; var ray = new Ray(from, dir);
+            foreach (var c in cols) if (c.Raycast(ray, out var h, len) && (!any || h.distance < best.distance)) { best = h; any = true; }
+            return any;
+        }
+
+        static bool HitDown(Collider[] cols, Vector3 xz, float fromY, out RaycastHit best) =>
+            Hit(cols, new Vector3(xz.x, fromY, xz.z), Vector3.down, fromY - xz.y + 12f, out best);
+
+        /// <summary>ground under p ignoring the host rock: the terrain height (sampled) or a physics surface, whichever is higher</summary>
+        static float GroundY(Vector3 p, Transform host, out Vector3 normal)
+        {
+            normal = Vector3.up; float y = float.NaN;
+            foreach (var t in Terrain.activeTerrains)
+            {
+                var tp = t.transform.position; var sz = t.terrainData.size;
+                if (p.x < tp.x || p.z < tp.z || p.x > tp.x + sz.x || p.z > tp.z + sz.z) continue;
+                y = t.SampleHeight(p) + tp.y;
+                normal = t.terrainData.GetInterpolatedNormal((p.x - tp.x) / sz.x, (p.z - tp.z) / sz.z);
+            }
+            float top = float.IsNaN(y) ? p.y + 30f : y + 30f;
+            foreach (var h in Physics.RaycastAll(new Vector3(p.x, top, p.z), Vector3.down, 60f, ~0, QueryTriggerInteraction.Ignore).OrderBy(x => x.distance))
+            {
+                if (h.collider.transform.IsChildOf(host) || h.collider is TerrainCollider) continue;
+                if (h.collider.GetComponentInParent<PlayerMotor>()) continue;
+                if (float.IsNaN(y) || h.point.y > y + 0.05f) { y = h.point.y; normal = h.normal; }
+                break;
+            }
+            return y;
+        }
+
+        static float? _sea;
+        static float SeaLevel()
+        {
+            if (_sea == null) { var o = Object.FindFirstObjectByType<OceanShore>(FindObjectsInactive.Include); _sea = o ? o.seaLevel : 0f; }
+            return _sea.Value;
+        }
+
+        static bool InWater(Vector3 p)
+        {
+            foreach (var w in Object.FindObjectsByType<WaterSource>(FindObjectsSortMode.None))
+                foreach (var c in w.GetComponentsInChildren<Collider>())
+                { var bb = c.bounds; bb.Expand(1f); if (bb.Contains(p) || bb.Contains(p + Vector3.up * 0.5f)) return true; }
+            return false;
+        }
+
+        static Bounds BoundsOf(Transform t)
+        {
+            var rs = t.GetComponentsInChildren<Renderer>();
+            if (rs.Length == 0) return new Bounds(t.position, Vector3.zero);
+            var b = rs[0].bounds; foreach (var r in rs) b.Encapsulate(r.bounds); return b;
+        }
+
+        static void Count(Dictionary<string, int> d, string k) { k ??= "?"; d[k] = d.TryGetValue(k, out var v) ? v + 1 : 1; }
+        static string Short(string n) { n = n.Replace("PFB_ENV_", "").Replace(" ", ""); int i = n.IndexOf('('); if (i > 0) n = n.Substring(0, i); return n; }
+        static float Yaw(Vector3 d) => Mathf.Repeat(Mathf.Atan2(d.x, d.z) * Mathf.Rad2Deg, 360f);
+        static string V(Vector3 v) => $"({v.x:F1}, {v.y:F1}, {v.z:F1})";
+        static string Path(Transform t) { if (!t) return "-"; string s = t.name; while (t.parent) { t = t.parent; s = t.name + "/" + s; } return s; }
+    }
+}

@@ -22,7 +22,7 @@ MonoBehaviour:
   weight: 0.1
   worldPrefab: {fileID: 919132149155446097, guid: ddbed601ad69dfb42b5af3f9b6ed3e32, type: 3}
   worldEuler: {x: 0, y: 0, z: 0}
-  handPrefab: {fileID: 0}
+  handPrefab: {fileID: 8878215526878334437, guid: beebb658904e949459b2d43d15c09e97, type: 3}
   gripPosition: {x: 0, y: 0, z: 0}
   gripEuler: {x: 0, y: 0, z: 0}
   hunger: 0
@@ -48,4 +48,7 @@ MonoBehaviour:
   fuelSeconds: 0
   burnSeconds: 0
   burntResult: {fileID: 0}
+  spoilHours: 0
+  cures: []
+  healOverTime: 0
   weaponData: {fileID: 0}

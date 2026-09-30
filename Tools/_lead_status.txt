@@ -1,0 +1,837 @@
+ M Assets/Art/Characters/Player/Animations/PlayerAnimator.controller
+ D Assets/Resources/PerformanceTestRunInfo.json
+ D Assets/Resources/PerformanceTestRunInfo.json.meta
+ D Assets/Resources/PerformanceTestRunSettings.json
+ D Assets/Resources/PerformanceTestRunSettings.json.meta
+M  Assets/_Project/Art/Characters/Creatures/M_CreatureEye_Ankylosaurus.mat
+M  Assets/_Project/Art/Characters/Creatures/M_CreatureEye_Carnotaurus.mat
+M  Assets/_Project/Art/Characters/Creatures/M_CreatureEye_Parasaurolophus.mat
+M  Assets/_Project/Art/Characters/Creatures/M_CreatureEye_Pteranodon.mat
+M  Assets/_Project/Art/Characters/Creatures/M_CreatureEye_Spinosaurus.mat
+M  Assets/_Project/Art/Characters/Creatures/M_CreatureEye_Velociraptor.mat
+M  Assets/_Project/Art/Materials/M_FootprintMud.mat
+M  Assets/_Project/Art/Materials/M_LogBook.mat
+M  Assets/_Project/Art/Materials/M_Rain.mat
+M  Assets/_Project/Art/Materials/M_Tools.mat
+ M Assets/_Project/Audio/Ambience/AMB_Fire_Loop.wav.meta
+ M Assets/_Project/Audio/Ambience/AMB_Forest_Loop.wav.meta
+ M Assets/_Project/Audio/Ambience/AMB_Night_Loop.wav.meta
+ M Assets/_Project/Audio/Ambience/AMB_Ocean_Loop.wav.meta
+ M Assets/_Project/Audio/Ambience/AMB_Rain_Loop.wav.meta
+ M Assets/_Project/Audio/Ambience/AMB_Storm_Loop.wav.meta
+ M Assets/_Project/Audio/Ambience/AMB_Wind_Loop.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_ArrowImpact_1.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_ArrowImpact_2.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_BowDraw_1.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_BowRelease_1.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_BowRelease_2.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_BreathIn_1.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_BreathOut_1.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_BreathOut_2.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_Build_1.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_Build_2.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_Build_3.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_CraftKnap_1.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_CraftKnap_2.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_CraftKnap_3.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_Craft_1.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_Craft_2.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_Craft_3.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_Death_1.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_DinoStepHeavy_1.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_DinoStepHeavy_2.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_DinoStep_1.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_DinoStep_2.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_DinoStep_3.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_Drink_1.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_Drink_2.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_Eat_1.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_Eat_2.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_Eat_3.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_FireExtinguish_1.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_FireIgnite_1.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_FootDirt_1.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_FootDirt_2.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_FootDirt_3.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_FootDirt_4.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_FootMud_1.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_FootMud_2.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_FootMud_3.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_FootRock_1.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_FootRock_2.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_FootRock_3.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_FootRock_4.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_FootSand_1.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_FootSand_2.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_FootSand_3.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_FootSand_4.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_FootWater_1.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_FootWater_2.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_FootWater_3.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_HitFlesh_1.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_HitFlesh_2.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_HitFlesh_3.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_HitHeavy_1.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_HitHeavy_2.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_HurtGrunt_1.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_HurtGrunt_2.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_HurtGrunt_3.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_Land_1.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_Land_2.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_LeafRustle_1.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_LeafRustle_2.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_LeafRustle_3.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_Pickup_1.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_Pickup_2.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_RoarDistant_01.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_RoarDistant_02.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_ShipCreak_1.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_ShipCreak_2.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_Sizzle_1.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_SpearImpact_1.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_SpearImpact_2.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_SpearWhoosh_1.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_SpearWhoosh_2.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_SpearWhoosh_3.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_StoneHit_1.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_StoneHit_2.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_StoneHit_3.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_StoneHit_4.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_Thunder_1.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_Thunder_2.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_UiClick_1.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_UiObjective_1.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_UiRecipe_1.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_WaterSplash_1.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_WaterSplash_2.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_WoodBreak_1.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_WoodChop_1.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_WoodChop_2.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_WoodChop_3.wav.meta
+ M Assets/_Project/Audio/SFX/SFX_WoodChop_4.wav.meta
+ M Assets/_Project/Data/Dinosaurs/DINO_Ankylosaurus.asset
+ M Assets/_Project/Data/Dinosaurs/DINO_Apex.asset
+ M Assets/_Project/Data/Dinosaurs/DINO_Carnotaurus.asset
+ M Assets/_Project/Data/Dinosaurs/DINO_Mosasaurus.asset
+ M Assets/_Project/Data/Dinosaurs/DINO_Parasaurolophus.asset
+ M Assets/_Project/Data/Dinosaurs/DINO_Pteranodon.asset
+ M Assets/_Project/Data/Dinosaurs/DINO_Spinosaurus.asset
+ M Assets/_Project/Data/Dinosaurs/DINO_Triceratops.asset
+ M Assets/_Project/Data/Dinosaurs/DINO_Velociraptor.asset
+ M Assets/_Project/Data/Items/ITEM_bandage.asset
+ M Assets/_Project/Data/Items/ITEM_berries.asset
+ M Assets/_Project/Data/Items/ITEM_burnt_meat.asset
+ M Assets/_Project/Data/Items/ITEM_cooked_meat.asset
+ M Assets/_Project/Data/Items/ITEM_fruit.asset
+ M Assets/_Project/Data/Items/ITEM_fruit_mash.asset
+ M Assets/_Project/Data/Items/ITEM_raw_meat.asset
+ M Assets/_Project/Resources/ItemDatabase.asset
+ M Assets/_Project/Resources/SfxLibrary.asset
+ M Assets/_Project/Resources/VfxLibrary.asset
+ M Assets/_Project/Scenes/Island_VerticalSlice.unity
+ M Assets/_Project/Scripts/AI/AmbientCreature.cs
+ M Assets/_Project/Scripts/AI/DinoLife.cs
+ M Assets/_Project/Scripts/AI/DinosaurController.cs
+ M Assets/_Project/Scripts/AI/DinosaurDefinition.cs
+ M Assets/_Project/Scripts/AI/DinosaurSpawner.cs
+ M Assets/_Project/Scripts/Animation/AnimParams.cs
+ M Assets/_Project/Scripts/Animation/CharacterAnimationEvents.cs
+ M Assets/_Project/Scripts/Audio/SfxPlayer.cs
+ M Assets/_Project/Scripts/Combat/IDamageable.cs
+ M Assets/_Project/Scripts/Combat/Weapons/IWeapon.cs
+ M Assets/_Project/Scripts/Combat/Weapons/MeleeWeapon.cs
+ M Assets/_Project/Scripts/Combat/Weapons/WeaponBase.cs
+ M Assets/_Project/Scripts/Combat/Weapons/WeaponController.cs
+ M Assets/_Project/Scripts/Combat/Weapons/WeaponData.cs
+ M Assets/_Project/Scripts/Combat/Weapons/WeaponHitbox.cs
+ M Assets/_Project/Scripts/Core/GameEvents.cs
+ M Assets/_Project/Scripts/Core/GameManager.cs
+ M Assets/_Project/Scripts/Core/GameSettings.cs
+ M Assets/_Project/Scripts/Core/SaveData.cs
+ M Assets/_Project/Scripts/Core/SaveSystem.cs
+ M Assets/_Project/Scripts/Core/WeatherManager.cs
+ M Assets/_Project/Scripts/Editor/PrimalAudioBuilder.cs
+ M Assets/_Project/Scripts/Editor/PrimalCharacterBuilder.cs
+ M Assets/_Project/Scripts/Editor/PrimalSurvivalBuilder.cs
+ M Assets/_Project/Scripts/Editor/PrimalVfxBuilder.cs
+ M Assets/_Project/Scripts/Items/CraftingSystem.cs
+ M Assets/_Project/Scripts/Items/InventorySystem.cs
+ M Assets/_Project/Scripts/Items/ItemDefinition.cs
+ M Assets/_Project/Scripts/Items/ItemStack.cs
+ M Assets/_Project/Scripts/Player/PlayerAnimationDriver.cs
+ M Assets/_Project/Scripts/Player/PlayerCombat.cs
+ M Assets/_Project/Scripts/Player/PlayerFeedback.cs
+ M Assets/_Project/Scripts/Player/PlayerHealth.cs
+ M Assets/_Project/Scripts/Player/PlayerInputReader.cs
+ M Assets/_Project/Scripts/Player/PlayerInteraction.cs
+ M Assets/_Project/Scripts/Player/PlayerState.cs
+ M Assets/_Project/Scripts/Survival/PlayerSurvival.cs
+ M Assets/_Project/Scripts/Survival/SurvivalConfig.cs
+ M Assets/_Project/Scripts/Survival/SurvivalEnvironment.cs
+ M Assets/_Project/Scripts/Survival/WaterRules.cs
+ M Assets/_Project/Scripts/UI/ContextHints.cs
+ M Assets/_Project/Scripts/UI/ControlsPanel.cs
+ M Assets/_Project/Scripts/UI/HUDManager.cs
+ M Assets/_Project/Scripts/UI/InventoryUI.cs
+ M Assets/_Project/Scripts/UI/MobileHUD.cs
+ M Assets/_Project/Scripts/UI/SettingsPanel.cs
+ M Assets/_Project/Scripts/UI/SlotView.cs
+ M Assets/_Project/Scripts/VFX/CampfireFx.cs
+ M Assets/_Project/Scripts/VFX/VfxPool.cs
+ M Assets/_Project/Scripts/World/BushInteraction.cs
+ M Assets/_Project/Scripts/World/Campfire.cs
+ M Assets/_Project/Scripts/World/Carcass.cs
+ M Assets/_Project/Scripts/World/FruitCluster.cs
+ M Assets/_Project/Scripts/World/OceanShore.cs
+ M Assets/_Project/Scripts/World/RainCollector.cs
+ M Assets/_Project/Scripts/World/ResourceNode.cs
+ M Assets/_Project/Scripts/World/TreeHarvest.cs
+ M Assets/_Project/Scripts/World/WaterSource.cs
+ M Documentation/CharacterTests/Player_clips.png
+ M Documentation/CharacterTests/Player_test.md
+ M Documentation/Performance_Island.md
+ M Documentation/Phase3/WAVE1_OWNERSHIP.md
+ M ProjectSettings/ProjectSettings.asset
+M  ProjectSettings/QualitySettings.asset
+M  ProjectSettings/URPProjectSettings.asset
+ M Tools/Audio/sfx_synth.py
+?? Assets/InitTestScene20aaba58-6189-44fb-8ee2-4c1b9abb0584.unity
+?? Assets/InitTestScene20aaba58-6189-44fb-8ee2-4c1b9abb0584.unity.meta
+?? Assets/_Project/Art/Icons/ICON_Bandage.png
+?? Assets/_Project/Art/Icons/ICON_Bandage.png.meta
+?? Assets/_Project/Art/Icons/ICON_BurntFish.png
+?? Assets/_Project/Art/Icons/ICON_BurntFish.png.meta
+?? Assets/_Project/Art/Icons/ICON_CookedFish.png
+?? Assets/_Project/Art/Icons/ICON_CookedFish.png.meta
+?? Assets/_Project/Art/Icons/ICON_EdiblePlant.png
+?? Assets/_Project/Art/Icons/ICON_EdiblePlant.png.meta
+?? Assets/_Project/Art/Icons/ICON_RawFish.png
+?? Assets/_Project/Art/Icons/ICON_RawFish.png.meta
+?? Assets/_Project/Art/Materials/M_Berry_Unripe.mat
+?? Assets/_Project/Art/Materials/M_Berry_Unripe.mat.meta
+?? Assets/_Project/Art/Materials/M_Foliage_DryGrass.mat
+?? Assets/_Project/Art/Materials/M_Foliage_DryGrass.mat.meta
+?? Assets/_Project/Art/Models/Generated/MESH_BerryCluster.asset
+?? Assets/_Project/Art/Models/Generated/MESH_BerryCluster.asset.meta
+?? Assets/_Project/Art/Models/Props/ITEM_Bandage.fbx
+?? Assets/_Project/Art/Models/Props/ITEM_Bandage.fbx.meta
+?? Assets/_Project/Art/Models/Props/ITEM_BurntFish.fbx
+?? Assets/_Project/Art/Models/Props/ITEM_BurntFish.fbx.meta
+?? Assets/_Project/Art/Models/Props/ITEM_CookedFish.fbx
+?? Assets/_Project/Art/Models/Props/ITEM_CookedFish.fbx.meta
+?? Assets/_Project/Art/Models/Props/ITEM_EdiblePlant.fbx
+?? Assets/_Project/Art/Models/Props/ITEM_EdiblePlant.fbx.meta
+?? Assets/_Project/Art/Models/Props/ITEM_RawFish.fbx
+?? Assets/_Project/Art/Models/Props/ITEM_RawFish.fbx.meta
+?? Assets/_Project/Art/Models/Resources/RES_Branch_01.fbx
+?? Assets/_Project/Art/Models/Resources/RES_Branch_01.fbx.meta
+?? Assets/_Project/Art/Models/Resources/RES_Branch_02.fbx
+?? Assets/_Project/Art/Models/Resources/RES_Branch_02.fbx.meta
+?? Assets/_Project/Audio/SFX/SFX_BandageWrap_1.wav
+?? Assets/_Project/Audio/SFX/SFX_BandageWrap_1.wav.meta
+?? Assets/_Project/Audio/SFX/SFX_BandageWrap_2.wav
+?? Assets/_Project/Audio/SFX/SFX_BandageWrap_2.wav.meta
+?? Assets/_Project/Audio/SFX/SFX_BranchSnap_1.wav
+?? Assets/_Project/Audio/SFX/SFX_BranchSnap_1.wav.meta
+?? Assets/_Project/Audio/SFX/SFX_BranchSnap_2.wav
+?? Assets/_Project/Audio/SFX/SFX_BranchSnap_2.wav.meta
+?? Assets/_Project/Audio/SFX/SFX_BranchSnap_3.wav
+?? Assets/_Project/Audio/SFX/SFX_BranchSnap_3.wav.meta
+?? Assets/_Project/Audio/SFX/SFX_FireHiss_1.wav
+?? Assets/_Project/Audio/SFX/SFX_FireHiss_1.wav.meta
+?? Assets/_Project/Audio/SFX/SFX_FireHiss_2.wav
+?? Assets/_Project/Audio/SFX/SFX_FireHiss_2.wav.meta
+?? Assets/_Project/Audio/SFX/SFX_PlayerGrunt_1.wav
+?? Assets/_Project/Audio/SFX/SFX_PlayerGrunt_1.wav.meta
+?? Assets/_Project/Audio/SFX/SFX_PlayerGrunt_2.wav
+?? Assets/_Project/Audio/SFX/SFX_PlayerGrunt_2.wav.meta
+?? Assets/_Project/Audio/SFX/SFX_PlayerGrunt_3.wav
+?? Assets/_Project/Audio/SFX/SFX_PlayerGrunt_3.wav.meta
+?? Assets/_Project/Audio/SFX/SFX_PunchHeavyHit_1.wav
+?? Assets/_Project/Audio/SFX/SFX_PunchHeavyHit_1.wav.meta
+?? Assets/_Project/Audio/SFX/SFX_PunchHeavyHit_2.wav
+?? Assets/_Project/Audio/SFX/SFX_PunchHeavyHit_2.wav.meta
+?? Assets/_Project/Audio/SFX/SFX_PunchHit_1.wav
+?? Assets/_Project/Audio/SFX/SFX_PunchHit_1.wav.meta
+?? Assets/_Project/Audio/SFX/SFX_PunchHit_2.wav
+?? Assets/_Project/Audio/SFX/SFX_PunchHit_2.wav.meta
+?? Assets/_Project/Audio/SFX/SFX_PunchHit_3.wav
+?? Assets/_Project/Audio/SFX/SFX_PunchHit_3.wav.meta
+?? Assets/_Project/Audio/SFX/SFX_PunchWhoosh_1.wav
+?? Assets/_Project/Audio/SFX/SFX_PunchWhoosh_1.wav.meta
+?? Assets/_Project/Audio/SFX/SFX_PunchWhoosh_2.wav
+?? Assets/_Project/Audio/SFX/SFX_PunchWhoosh_2.wav.meta
+?? Assets/_Project/Audio/SFX/SFX_PunchWhoosh_3.wav
+?? Assets/_Project/Audio/SFX/SFX_PunchWhoosh_3.wav.meta
+?? Assets/_Project/Audio/SFX/SFX_StoneGatherHand_1.wav
+?? Assets/_Project/Audio/SFX/SFX_StoneGatherHand_1.wav.meta
+?? Assets/_Project/Audio/SFX/SFX_StoneGatherHand_2.wav
+?? Assets/_Project/Audio/SFX/SFX_StoneGatherHand_2.wav.meta
+?? Assets/_Project/Audio/SFX/SFX_StoneGatherHand_3.wav
+?? Assets/_Project/Audio/SFX/SFX_StoneGatherHand_3.wav.meta
+?? Assets/_Project/Audio/SFX/SFX_ToolBreak_1.wav
+?? Assets/_Project/Audio/SFX/SFX_ToolBreak_1.wav.meta
+?? Assets/_Project/Audio/SFX/SFX_ToolBreak_2.wav
+?? Assets/_Project/Audio/SFX/SFX_ToolBreak_2.wav.meta
+?? Assets/_Project/Audio/SFX/SFX_WaterBoil_1.wav
+?? Assets/_Project/Audio/SFX/SFX_WaterBoil_1.wav.meta
+?? Assets/_Project/Audio/SFX/SFX_WaterFill_1.wav
+?? Assets/_Project/Audio/SFX/SFX_WaterFill_1.wav.meta
+?? Assets/_Project/Audio/SFX/SFX_WaterFill_2.wav
+?? Assets/_Project/Audio/SFX/SFX_WaterFill_2.wav.meta
+?? Assets/_Project/Data/Items/ITEM_burnt_fish.asset
+?? Assets/_Project/Data/Items/ITEM_burnt_fish.asset.meta
+?? Assets/_Project/Data/Items/ITEM_cooked_fish.asset
+?? Assets/_Project/Data/Items/ITEM_cooked_fish.asset.meta
+?? Assets/_Project/Data/Items/ITEM_edible_plant.asset
+?? Assets/_Project/Data/Items/ITEM_edible_plant.asset.meta
+?? Assets/_Project/Data/Items/ITEM_raw_fish.asset
+?? Assets/_Project/Data/Items/ITEM_raw_fish.asset.meta
+?? Assets/_Project/Data/Resources.meta
+?? Assets/_Project/Data/Resources/RES_fiber_bush.asset
+?? Assets/_Project/Data/Resources/RES_fiber_bush.asset.meta
+?? Assets/_Project/Data/Resources/RES_fiber_fern.asset
+?? Assets/_Project/Data/Resources/RES_fiber_fern.asset.meta
+?? Assets/_Project/Data/Resources/RES_fiber_grass.asset
+?? Assets/_Project/Data/Resources/RES_fiber_grass.asset.meta
+?? Assets/_Project/Data/Resources/RES_fiber_plant.asset
+?? Assets/_Project/Data/Resources/RES_fiber_plant.asset.meta
+?? Assets/_Project/Data/Resources/RES_fish_shoal.asset
+?? Assets/_Project/Data/Resources/RES_fish_shoal.asset.meta
+?? Assets/_Project/Data/Resources/RES_food_berry_bush.asset
+?? Assets/_Project/Data/Resources/RES_food_berry_bush.asset.meta
+?? Assets/_Project/Data/Resources/RES_food_edible_plant.asset
+?? Assets/_Project/Data/Resources/RES_food_edible_plant.asset.meta
+?? Assets/_Project/Data/Resources/RES_food_fallen_fruit.asset
+?? Assets/_Project/Data/Resources/RES_food_fallen_fruit.asset.meta
+?? Assets/_Project/Data/Resources/RES_stone_boulder.asset
+?? Assets/_Project/Data/Resources/RES_stone_boulder.asset.meta
+?? Assets/_Project/Data/Resources/RES_stone_large.asset
+?? Assets/_Project/Data/Resources/RES_stone_large.asset.meta
+?? Assets/_Project/Data/Resources/RES_stone_medium.asset
+?? Assets/_Project/Data/Resources/RES_stone_medium.asset.meta
+?? Assets/_Project/Data/Resources/RES_stone_small.asset
+?? Assets/_Project/Data/Resources/RES_stone_small.asset.meta
+?? Assets/_Project/Data/Resources/RES_wood_branch.asset
+?? Assets/_Project/Data/Resources/RES_wood_branch.asset.meta
+?? Assets/_Project/Data/Resources/RES_wood_deadwood.asset
+?? Assets/_Project/Data/Resources/RES_wood_deadwood.asset.meta
+?? Assets/_Project/Data/Resources/RES_wood_driftwood.asset
+?? Assets/_Project/Data/Resources/RES_wood_driftwood.asset.meta
+?? Assets/_Project/Data/Resources/RES_wood_small_log.asset
+?? Assets/_Project/Data/Resources/RES_wood_small_log.asset.meta
+?? Assets/_Project/Data/Resources/RES_wood_tree.asset
+?? Assets/_Project/Data/Resources/RES_wood_tree.asset.meta
+?? Assets/_Project/Data/Resources/TOOL_butcher_knife.asset
+?? Assets/_Project/Data/Resources/TOOL_butcher_knife.asset.meta
+?? Assets/_Project/Data/Resources/TOOL_flint_knife.asset
+?? Assets/_Project/Data/Resources/TOOL_flint_knife.asset.meta
+?? Assets/_Project/Data/Resources/TOOL_hand_stone.asset
+?? Assets/_Project/Data/Resources/TOOL_hand_stone.asset.meta
+?? Assets/_Project/Data/Resources/TOOL_hands.asset
+?? Assets/_Project/Data/Resources/TOOL_hands.asset.meta
+?? Assets/_Project/Data/Resources/TOOL_stone_axe.asset
+?? Assets/_Project/Data/Resources/TOOL_stone_axe.asset.meta
+?? Assets/_Project/Data/Resources/TOOL_stone_hammer.asset
+?? Assets/_Project/Data/Resources/TOOL_stone_hammer.asset.meta
+?? Assets/_Project/Data/Resources/TOOL_stone_pick.asset
+?? Assets/_Project/Data/Resources/TOOL_stone_pick.asset.meta
+?? Assets/_Project/Prefabs/Resources/Nodes.meta
+?? Assets/_Project/Prefabs/Resources/Nodes/Resource_Fiber_Fern.prefab
+?? Assets/_Project/Prefabs/Resources/Nodes/Resource_Fiber_Fern.prefab.meta
+?? Assets/_Project/Prefabs/Resources/Nodes/Resource_Fiber_LongGrass.prefab
+?? Assets/_Project/Prefabs/Resources/Nodes/Resource_Fiber_LongGrass.prefab.meta
+?? Assets/_Project/Prefabs/Resources/Nodes/Resource_Fiber_Plant.prefab
+?? Assets/_Project/Prefabs/Resources/Nodes/Resource_Fiber_Plant.prefab.meta
+?? Assets/_Project/Prefabs/Resources/Nodes/Resource_Fiber_SmallBush.prefab
+?? Assets/_Project/Prefabs/Resources/Nodes/Resource_Fiber_SmallBush.prefab.meta
+?? Assets/_Project/Prefabs/Resources/Nodes/Resource_Fish_Shoal.prefab
+?? Assets/_Project/Prefabs/Resources/Nodes/Resource_Fish_Shoal.prefab.meta
+?? Assets/_Project/Prefabs/Resources/Nodes/Resource_Food_BerryBush.prefab
+?? Assets/_Project/Prefabs/Resources/Nodes/Resource_Food_BerryBush.prefab.meta
+?? Assets/_Project/Prefabs/Resources/Nodes/Resource_Food_EdiblePlant.prefab
+?? Assets/_Project/Prefabs/Resources/Nodes/Resource_Food_EdiblePlant.prefab.meta
+?? Assets/_Project/Prefabs/Resources/Nodes/Resource_Food_FallenFruit.prefab
+?? Assets/_Project/Prefabs/Resources/Nodes/Resource_Food_FallenFruit.prefab.meta
+?? Assets/_Project/Prefabs/Resources/Nodes/Resource_Stone_Large.prefab
+?? Assets/_Project/Prefabs/Resources/Nodes/Resource_Stone_Large.prefab.meta
+?? Assets/_Project/Prefabs/Resources/Nodes/Resource_Stone_Medium.prefab
+?? Assets/_Project/Prefabs/Resources/Nodes/Resource_Stone_Medium.prefab.meta
+?? Assets/_Project/Prefabs/Resources/Nodes/Resource_Stone_Medium_02.prefab
+?? Assets/_Project/Prefabs/Resources/Nodes/Resource_Stone_Medium_02.prefab.meta
+?? Assets/_Project/Prefabs/Resources/Nodes/Resource_Stone_Small.prefab
+?? Assets/_Project/Prefabs/Resources/Nodes/Resource_Stone_Small.prefab.meta
+?? Assets/_Project/Prefabs/Resources/Nodes/Resource_Wood_Branch.prefab
+?? Assets/_Project/Prefabs/Resources/Nodes/Resource_Wood_Branch.prefab.meta
+?? Assets/_Project/Prefabs/Resources/Nodes/Resource_Wood_Branch_02.prefab
+?? Assets/_Project/Prefabs/Resources/Nodes/Resource_Wood_Branch_02.prefab.meta
+?? Assets/_Project/Prefabs/Resources/Nodes/Resource_Wood_Driftwood.prefab
+?? Assets/_Project/Prefabs/Resources/Nodes/Resource_Wood_Driftwood.prefab.meta
+?? Assets/_Project/Prefabs/Resources/Nodes/Resource_Wood_SmallLog.prefab
+?? Assets/_Project/Prefabs/Resources/Nodes/Resource_Wood_SmallLog.prefab.meta
+?? Assets/_Project/Resources/Combat.meta
+?? Assets/_Project/Resources/Combat/WPN_bare_hands.asset
+?? Assets/_Project/Resources/Combat/WPN_bare_hands.asset.meta
+?? Assets/_Project/Resources/PerceptionConfig.asset
+?? Assets/_Project/Resources/PerceptionConfig.asset.meta
+?? Assets/_Project/Resources/ResourceDatabase.asset
+?? Assets/_Project/Resources/ResourceDatabase.asset.meta
+?? Assets/_Project/Resources/StatusEffects.meta
+?? Assets/_Project/Resources/StatusEffects/SE_arm_injury.asset
+?? Assets/_Project/Resources/StatusEffects/SE_arm_injury.asset.meta
+?? Assets/_Project/Resources/StatusEffects/SE_bleeding.asset
+?? Assets/_Project/Resources/StatusEffects/SE_bleeding.asset.meta
+?? Assets/_Project/Resources/StatusEffects/SE_cold.asset
+?? Assets/_Project/Resources/StatusEffects/SE_cold.asset.meta
+?? Assets/_Project/Resources/StatusEffects/SE_leg_injury.asset
+?? Assets/_Project/Resources/StatusEffects/SE_leg_injury.asset.meta
+?? Assets/_Project/Resources/StatusEffects/SE_recovering.asset
+?? Assets/_Project/Resources/StatusEffects/SE_recovering.asset.meta
+?? Assets/_Project/Resources/StatusEffects/SE_sickness.asset
+?? Assets/_Project/Resources/StatusEffects/SE_sickness.asset.meta
+?? Assets/_Project/Resources/StatusEffects/SE_wet.asset
+?? Assets/_Project/Resources/StatusEffects/SE_wet.asset.meta
+?? Assets/_Project/Resources/UI/icon_status_arm_injury.png
+?? Assets/_Project/Resources/UI/icon_status_arm_injury.png.meta
+?? Assets/_Project/Resources/UI/icon_status_bleeding.png
+?? Assets/_Project/Resources/UI/icon_status_bleeding.png.meta
+?? Assets/_Project/Resources/UI/icon_status_cold.png
+?? Assets/_Project/Resources/UI/icon_status_cold.png.meta
+?? Assets/_Project/Resources/UI/icon_status_leg_injury.png
+?? Assets/_Project/Resources/UI/icon_status_leg_injury.png.meta
+?? Assets/_Project/Resources/UI/icon_status_recovering.png
+?? Assets/_Project/Resources/UI/icon_status_recovering.png.meta
+?? Assets/_Project/Resources/UI/icon_status_sickness.png
+?? Assets/_Project/Resources/UI/icon_status_sickness.png.meta
+?? Assets/_Project/Resources/UI/icon_status_wet.png
+?? Assets/_Project/Resources/UI/icon_status_wet.png.meta
+?? Assets/_Project/Scripts/AI/CoverMap.cs
+?? Assets/_Project/Scripts/AI/CoverMap.cs.meta
+?? Assets/_Project/Scripts/AI/CreatureSave.cs
+?? Assets/_Project/Scripts/AI/CreatureSave.cs.meta
+?? Assets/_Project/Scripts/AI/DinoSenses.cs
+?? Assets/_Project/Scripts/AI/DinoSenses.cs.meta
+?? Assets/_Project/Scripts/AI/DrinkSpots.cs
+?? Assets/_Project/Scripts/AI/DrinkSpots.cs.meta
+?? Assets/_Project/Scripts/AI/FireSense.cs
+?? Assets/_Project/Scripts/AI/FireSense.cs.meta
+?? Assets/_Project/Scripts/AI/PerceptionConfig.cs
+?? Assets/_Project/Scripts/AI/PerceptionConfig.cs.meta
+?? Assets/_Project/Scripts/Core/ISaveSection.cs
+?? Assets/_Project/Scripts/Core/ISaveSection.cs.meta
+?? Assets/_Project/Scripts/Core/Stimuli.cs
+?? Assets/_Project/Scripts/Core/Stimuli.cs.meta
+?? Assets/_Project/Scripts/Editor/PrimalCharacterBuilder.Combat.cs
+?? Assets/_Project/Scripts/Editor/PrimalCharacterBuilder.Combat.cs.meta
+?? Assets/_Project/Scripts/Editor/PrimalPerceptionBuilder.cs
+?? Assets/_Project/Scripts/Editor/PrimalPerceptionBuilder.cs.meta
+?? Assets/_Project/Scripts/Editor/PrimalResourceBuilder.Capture.cs
+?? Assets/_Project/Scripts/Editor/PrimalResourceBuilder.Capture.cs.meta
+?? Assets/_Project/Scripts/Editor/PrimalResourceBuilder.Data.cs
+?? Assets/_Project/Scripts/Editor/PrimalResourceBuilder.Data.cs.meta
+?? Assets/_Project/Scripts/Editor/PrimalResourceBuilder.World.cs
+?? Assets/_Project/Scripts/Editor/PrimalResourceBuilder.World.cs.meta
+?? Assets/_Project/Scripts/Editor/PrimalResourceBuilder.cs
+?? Assets/_Project/Scripts/Editor/PrimalResourceBuilder.cs.meta
+?? Assets/_Project/Scripts/Player/PlayerSignature.cs
+?? Assets/_Project/Scripts/Player/PlayerSignature.cs.meta
+?? Assets/_Project/Scripts/Survival/PlayerStatusEffects.cs
+?? Assets/_Project/Scripts/Survival/PlayerStatusEffects.cs.meta
+?? Assets/_Project/Scripts/Survival/Spoilage.cs
+?? Assets/_Project/Scripts/Survival/Spoilage.cs.meta
+?? Assets/_Project/Scripts/Survival/StatusEffectDefinition.cs
+?? Assets/_Project/Scripts/Survival/StatusEffectDefinition.cs.meta
+?? Assets/_Project/Scripts/Survival/SurvivalItemUse.cs
+?? Assets/_Project/Scripts/Survival/SurvivalItemUse.cs.meta
+?? Assets/_Project/Scripts/UI/PerceptionIndicator.cs
+?? Assets/_Project/Scripts/UI/PerceptionIndicator.cs.meta
+?? Assets/_Project/Scripts/World/GatherToolDefinition.cs
+?? Assets/_Project/Scripts/World/GatherToolDefinition.cs.meta
+?? Assets/_Project/Scripts/World/GatheringSystem.cs
+?? Assets/_Project/Scripts/World/GatheringSystem.cs.meta
+?? Assets/_Project/Scripts/World/InteractionHighlight.cs
+?? Assets/_Project/Scripts/World/InteractionHighlight.cs.meta
+?? Assets/_Project/Scripts/World/ResourceDatabase.cs
+?? Assets/_Project/Scripts/World/ResourceDatabase.cs.meta
+?? Assets/_Project/Scripts/World/ResourceDefinition.cs
+?? Assets/_Project/Scripts/World/ResourceDefinition.cs.meta
+?? Assets/_Project/Scripts/World/ResourceManager.cs
+?? Assets/_Project/Scripts/World/ResourceManager.cs.meta
+?? Assets/_Project/Scripts/World/ResourceSaveSection.cs
+?? Assets/_Project/Scripts/World/ResourceSaveSection.cs.meta
+?? Assets/_Project/Tests/PlayMode/BareHandCombatTests.cs
+?? Assets/_Project/Tests/PlayMode/BareHandCombatTests.cs.meta
+?? Assets/_Project/Tests/PlayMode/PerceptionIslandTests.cs
+?? Assets/_Project/Tests/PlayMode/PerceptionIslandTests.cs.meta
+?? Assets/_Project/Tests/PlayMode/PerceptionTests.cs
+?? Assets/_Project/Tests/PlayMode/PerceptionTests.cs.meta
+?? Assets/_Project/Tests/PlayMode/ResourceIslandTests.cs
+?? Assets/_Project/Tests/PlayMode/ResourceIslandTests.cs.meta
+?? Assets/_Project/Tests/PlayMode/ResourceTests.cs
+?? Assets/_Project/Tests/PlayMode/ResourceTests.cs.meta
+?? Assets/_Project/Tests/PlayMode/SurvivalHitchTests.cs
+?? Assets/_Project/Tests/PlayMode/SurvivalHitchTests.cs.meta
+?? Assets/_Project/Tests/PlayMode/SurvivalPhase3IslandTests.cs
+?? Assets/_Project/Tests/PlayMode/SurvivalPhase3IslandTests.cs.meta
+?? Assets/_Project/Tests/PlayMode/SurvivalPhase3Tests.cs
+?? Assets/_Project/Tests/PlayMode/SurvivalPhase3Tests.cs.meta
+?? Assets/_Project/VFX/Prefabs/VFX_BoilBubbles.prefab
+?? Assets/_Project/VFX/Prefabs/VFX_BoilBubbles.prefab.meta
+?? Assets/_Project/VFX/Prefabs/VFX_DustImpact.prefab
+?? Assets/_Project/VFX/Prefabs/VFX_DustImpact.prefab.meta
+?? Assets/_Project/VFX/Prefabs/VFX_Heal.prefab
+?? Assets/_Project/VFX/Prefabs/VFX_Heal.prefab.meta
+?? Assets/_Project/VFX/Prefabs/VFX_PunchImpactHeavy.prefab
+?? Assets/_Project/VFX/Prefabs/VFX_PunchImpactHeavy.prefab.meta
+?? Assets/_Project/VFX/Prefabs/VFX_PunchImpactSmall.prefab
+?? Assets/_Project/VFX/Prefabs/VFX_PunchImpactSmall.prefab.meta
+?? Documentation/Phase3/DIRECTIVE_PHASE3.md
+?? Documentation/Phase3/DIRECTIVE_PHASE35.md
+?? Documentation/Resources/resource_build.txt
+?? Documentation/Resources/scene_audit_before.txt
+?? Documentation/Screenshots/Resources/after_island_map.png
+?? Documentation/Screenshots/Resources/after_player_view.png
+?? Documentation/Screenshots/Resources/after_start_area.png
+?? Documentation/Screenshots/Resources/after_start_area_dots.png
+?? Documentation/Screenshots/Resources/before_island_map.png
+?? Documentation/Screenshots/Resources/before_player_view.png
+?? Documentation/Screenshots/Resources/before_start_area.png
+?? Documentation/Screenshots/Resources/before_start_area_dots.png
+?? Documentation/Screenshots/Review/armtwist_Gather_Plant_0600ms_driver_back.png
+?? Documentation/Screenshots/Review/armtwist_Gather_Plant_0600ms_driver_closeL_back.png
+?? Documentation/Screenshots/Review/armtwist_Gather_Plant_0600ms_driver_closeL_front.png
+?? Documentation/Screenshots/Review/armtwist_Gather_Plant_0600ms_driver_closeL_out.png
+?? Documentation/Screenshots/Review/armtwist_Gather_Plant_0600ms_driver_closeR_front.png
+?? Documentation/Screenshots/Review/armtwist_Gather_Plant_0600ms_driver_closeR_out.png
+?? Documentation/Screenshots/Review/armtwist_Gather_Plant_0600ms_driver_front.png
+?? Documentation/Screenshots/Review/armtwist_Gather_Plant_0600ms_driver_left.png
+?? Documentation/Screenshots/Review/armtwist_Gather_Plant_0600ms_nodriver_back.png
+?? Documentation/Screenshots/Review/armtwist_Gather_Plant_0600ms_nodriver_closeL_back.png
+?? Documentation/Screenshots/Review/armtwist_Gather_Plant_0600ms_nodriver_closeL_front.png
+?? Documentation/Screenshots/Review/armtwist_Gather_Plant_0600ms_nodriver_closeL_out.png
+?? Documentation/Screenshots/Review/armtwist_Gather_Plant_0600ms_nodriver_closeR_front.png
+?? Documentation/Screenshots/Review/armtwist_Gather_Plant_0600ms_nodriver_closeR_out.png
+?? Documentation/Screenshots/Review/armtwist_Gather_Plant_0600ms_nodriver_front.png
+?? Documentation/Screenshots/Review/armtwist_Gather_Plant_0600ms_nodriver_left.png
+?? Documentation/Screenshots/Review/armtwist_Idle_0000ms_driver_back.png
+?? Documentation/Screenshots/Review/armtwist_Idle_0000ms_driver_closeL_back.png
+?? Documentation/Screenshots/Review/armtwist_Idle_0000ms_driver_closeL_front.png
+?? Documentation/Screenshots/Review/armtwist_Idle_0000ms_driver_closeL_out.png
+?? Documentation/Screenshots/Review/armtwist_Idle_0000ms_driver_closeR_front.png
+?? Documentation/Screenshots/Review/armtwist_Idle_0000ms_driver_closeR_out.png
+?? Documentation/Screenshots/Review/armtwist_Idle_0000ms_driver_front.png
+?? Documentation/Screenshots/Review/armtwist_Idle_0000ms_driver_left.png
+?? Documentation/Screenshots/Review/armtwist_Idle_0000ms_nodriver_back.png
+?? Documentation/Screenshots/Review/armtwist_Idle_0000ms_nodriver_closeL_back.png
+?? Documentation/Screenshots/Review/armtwist_Idle_0000ms_nodriver_closeL_front.png
+?? Documentation/Screenshots/Review/armtwist_Idle_0000ms_nodriver_closeL_out.png
+?? Documentation/Screenshots/Review/armtwist_Idle_0000ms_nodriver_closeR_front.png
+?? Documentation/Screenshots/Review/armtwist_Idle_0000ms_nodriver_closeR_out.png
+?? Documentation/Screenshots/Review/armtwist_Idle_0000ms_nodriver_front.png
+?? Documentation/Screenshots/Review/armtwist_Idle_0000ms_nodriver_left.png
+?? Documentation/Screenshots/Review/armtwist_Run_0155ms_driver_back.png
+?? Documentation/Screenshots/Review/armtwist_Run_0155ms_driver_front.png
+?? Documentation/Screenshots/Review/armtwist_Run_0155ms_driver_left.png
+?? Documentation/Screenshots/Review/armtwist_Run_0155ms_nodriver_back.png
+?? Documentation/Screenshots/Review/armtwist_Run_0155ms_nodriver_front.png
+?? Documentation/Screenshots/Review/armtwist_Run_0155ms_nodriver_left.png
+?? Documentation/Screenshots/Review/armtwist_Run_0160ms_driver_back.png
+?? Documentation/Screenshots/Review/armtwist_Run_0160ms_driver_closeL_back.png
+?? Documentation/Screenshots/Review/armtwist_Run_0160ms_driver_closeL_front.png
+?? Documentation/Screenshots/Review/armtwist_Run_0160ms_driver_closeL_out.png
+?? Documentation/Screenshots/Review/armtwist_Run_0160ms_driver_closeR_front.png
+?? Documentation/Screenshots/Review/armtwist_Run_0160ms_driver_closeR_out.png
+?? Documentation/Screenshots/Review/armtwist_Run_0160ms_driver_front.png
+?? Documentation/Screenshots/Review/armtwist_Run_0160ms_driver_left.png
+?? Documentation/Screenshots/Review/armtwist_Run_0160ms_nodriver_back.png
+?? Documentation/Screenshots/Review/armtwist_Run_0160ms_nodriver_closeL_back.png
+?? Documentation/Screenshots/Review/armtwist_Run_0160ms_nodriver_closeL_front.png
+?? Documentation/Screenshots/Review/armtwist_Run_0160ms_nodriver_closeL_out.png
+?? Documentation/Screenshots/Review/armtwist_Run_0160ms_nodriver_closeR_front.png
+?? Documentation/Screenshots/Review/armtwist_Run_0160ms_nodriver_closeR_out.png
+?? Documentation/Screenshots/Review/armtwist_Run_0160ms_nodriver_front.png
+?? Documentation/Screenshots/Review/armtwist_Run_0160ms_nodriver_left.png
+?? Documentation/Screenshots/Review/armtwist_Run_0172ms_driver_back.png
+?? Documentation/Screenshots/Review/armtwist_Run_0172ms_driver_closeL_back.png
+?? Documentation/Screenshots/Review/armtwist_Run_0172ms_driver_closeL_front.png
+?? Documentation/Screenshots/Review/armtwist_Run_0172ms_driver_closeL_out.png
+?? Documentation/Screenshots/Review/armtwist_Run_0172ms_driver_closeR_front.png
+?? Documentation/Screenshots/Review/armtwist_Run_0172ms_driver_closeR_out.png
+?? Documentation/Screenshots/Review/armtwist_Run_0172ms_driver_front.png
+?? Documentation/Screenshots/Review/armtwist_Run_0172ms_driver_left.png
+?? Documentation/Screenshots/Review/armtwist_Run_0172ms_nodriver_back.png
+?? Documentation/Screenshots/Review/armtwist_Run_0172ms_nodriver_closeL_back.png
+?? Documentation/Screenshots/Review/armtwist_Run_0172ms_nodriver_closeL_front.png
+?? Documentation/Screenshots/Review/armtwist_Run_0172ms_nodriver_closeL_out.png
+?? Documentation/Screenshots/Review/armtwist_Run_0172ms_nodriver_closeR_front.png
+?? Documentation/Screenshots/Review/armtwist_Run_0172ms_nodriver_closeR_out.png
+?? Documentation/Screenshots/Review/armtwist_Run_0172ms_nodriver_front.png
+?? Documentation/Screenshots/Review/armtwist_Run_0172ms_nodriver_left.png
+?? Documentation/Screenshots/Review/armtwist_Run_0180ms_driver_back.png
+?? Documentation/Screenshots/Review/armtwist_Run_0180ms_driver_front.png
+?? Documentation/Screenshots/Review/armtwist_Run_0180ms_driver_left.png
+?? Documentation/Screenshots/Review/armtwist_Run_0180ms_nodriver_back.png
+?? Documentation/Screenshots/Review/armtwist_Run_0180ms_nodriver_front.png
+?? Documentation/Screenshots/Review/armtwist_Run_0180ms_nodriver_left.png
+?? Documentation/Screenshots/Review/armtwist_Run_0485ms_driver_back.png
+?? Documentation/Screenshots/Review/armtwist_Run_0485ms_driver_front.png
+?? Documentation/Screenshots/Review/armtwist_Run_0485ms_driver_left.png
+?? Documentation/Screenshots/Review/armtwist_Run_0485ms_nodriver_back.png
+?? Documentation/Screenshots/Review/armtwist_Run_0485ms_nodriver_front.png
+?? Documentation/Screenshots/Review/armtwist_Run_0485ms_nodriver_left.png
+?? Documentation/Screenshots/Review/armtwist_Run_0510ms_driver_back.png
+?? Documentation/Screenshots/Review/armtwist_Run_0510ms_driver_front.png
+?? Documentation/Screenshots/Review/armtwist_Run_0510ms_driver_left.png
+?? Documentation/Screenshots/Review/armtwist_Run_0510ms_nodriver_back.png
+?? Documentation/Screenshots/Review/armtwist_Run_0510ms_nodriver_front.png
+?? Documentation/Screenshots/Review/armtwist_Run_0510ms_nodriver_left.png
+?? Documentation/Screenshots/Review/armtwist_Walk_0250ms_driver_back.png
+?? Documentation/Screenshots/Review/armtwist_Walk_0250ms_driver_front.png
+?? Documentation/Screenshots/Review/armtwist_Walk_0250ms_driver_left.png
+?? Documentation/Screenshots/Review/armtwist_Walk_0250ms_nodriver_back.png
+?? Documentation/Screenshots/Review/armtwist_Walk_0250ms_nodriver_front.png
+?? Documentation/Screenshots/Review/armtwist_Walk_0250ms_nodriver_left.png
+?? Documentation/Screenshots/Review/armtwist_Walk_0270ms_driver_back.png
+?? Documentation/Screenshots/Review/armtwist_Walk_0270ms_driver_front.png
+?? Documentation/Screenshots/Review/armtwist_Walk_0270ms_driver_left.png
+?? Documentation/Screenshots/Review/armtwist_Walk_0270ms_nodriver_back.png
+?? Documentation/Screenshots/Review/armtwist_Walk_0270ms_nodriver_front.png
+?? Documentation/Screenshots/Review/armtwist_Walk_0270ms_nodriver_left.png
+?? Documentation/Screenshots/Review/armtwist_bind_driver_back.png
+?? Documentation/Screenshots/Review/armtwist_bind_driver_closeL_back.png
+?? Documentation/Screenshots/Review/armtwist_bind_driver_closeL_front.png
+?? Documentation/Screenshots/Review/armtwist_bind_driver_closeL_out.png
+?? Documentation/Screenshots/Review/armtwist_bind_driver_closeR_front.png
+?? Documentation/Screenshots/Review/armtwist_bind_driver_closeR_out.png
+?? Documentation/Screenshots/Review/armtwist_bind_driver_front.png
+?? Documentation/Screenshots/Review/armtwist_bind_driver_left.png
+?? Documentation/Screenshots/Review/armtwist_bind_nodriver_back.png
+?? Documentation/Screenshots/Review/armtwist_bind_nodriver_closeL_back.png
+?? Documentation/Screenshots/Review/armtwist_bind_nodriver_closeL_front.png
+?? Documentation/Screenshots/Review/armtwist_bind_nodriver_closeL_out.png
+?? Documentation/Screenshots/Review/armtwist_bind_nodriver_closeR_front.png
+?? Documentation/Screenshots/Review/armtwist_bind_nodriver_closeR_out.png
+?? Documentation/Screenshots/Review/armtwist_bind_nodriver_front.png
+?? Documentation/Screenshots/Review/armtwist_bind_nodriver_left.png
+?? Documentation/Screenshots/Review/armtwist_bind_rt_driver_back.png
+?? Documentation/Screenshots/Review/armtwist_bind_rt_driver_closeL_back.png
+?? Documentation/Screenshots/Review/armtwist_bind_rt_driver_closeL_front.png
+?? Documentation/Screenshots/Review/armtwist_bind_rt_driver_closeL_out.png
+?? Documentation/Screenshots/Review/armtwist_bind_rt_driver_closeR_front.png
+?? Documentation/Screenshots/Review/armtwist_bind_rt_driver_closeR_out.png
+?? Documentation/Screenshots/Review/armtwist_bind_rt_driver_front.png
+?? Documentation/Screenshots/Review/armtwist_bind_rt_driver_left.png
+?? Documentation/Screenshots/Review/armtwist_bind_rt_nodriver_back.png
+?? Documentation/Screenshots/Review/armtwist_bind_rt_nodriver_closeL_back.png
+?? Documentation/Screenshots/Review/armtwist_bind_rt_nodriver_closeL_front.png
+?? Documentation/Screenshots/Review/armtwist_bind_rt_nodriver_closeL_out.png
+?? Documentation/Screenshots/Review/armtwist_bind_rt_nodriver_closeR_front.png
+?? Documentation/Screenshots/Review/armtwist_bind_rt_nodriver_closeR_out.png
+?? Documentation/Screenshots/Review/armtwist_bind_rt_nodriver_front.png
+?? Documentation/Screenshots/Review/armtwist_bind_rt_nodriver_left.png
+?? Documentation/Screenshots/Review/armtwist_tpose_driver_back.png
+?? Documentation/Screenshots/Review/armtwist_tpose_driver_closeL_back.png
+?? Documentation/Screenshots/Review/armtwist_tpose_driver_closeL_front.png
+?? Documentation/Screenshots/Review/armtwist_tpose_driver_closeL_out.png
+?? Documentation/Screenshots/Review/armtwist_tpose_driver_closeR_front.png
+?? Documentation/Screenshots/Review/armtwist_tpose_driver_closeR_out.png
+?? Documentation/Screenshots/Review/armtwist_tpose_driver_front.png
+?? Documentation/Screenshots/Review/armtwist_tpose_driver_left.png
+?? Documentation/Screenshots/Review/armtwist_tpose_nodriver_back.png
+?? Documentation/Screenshots/Review/armtwist_tpose_nodriver_closeL_back.png
+?? Documentation/Screenshots/Review/armtwist_tpose_nodriver_closeL_front.png
+?? Documentation/Screenshots/Review/armtwist_tpose_nodriver_closeL_out.png
+?? Documentation/Screenshots/Review/armtwist_tpose_nodriver_closeR_front.png
+?? Documentation/Screenshots/Review/armtwist_tpose_nodriver_closeR_out.png
+?? Documentation/Screenshots/Review/armtwist_tpose_nodriver_front.png
+?? Documentation/Screenshots/Review/armtwist_tpose_nodriver_left.png
+?? Documentation/Screenshots/Review/th_01.png
+?? Documentation/Screenshots/Review/th_05.png
+?? Documentation/Screenshots/Review/th_20.png
+?? Documentation/Screenshots/Review/th_33.png
+?? Documentation/Screenshots/Review/th_40.png
+?? Documentation/Screenshots/Survival/phase3_fire_full_vs_low_fish.png
+?? Documentation/Screenshots/Survival/phase3_hud_status.png
+?? Documentation/Screenshots/Survival/phase3_rain_collector_2of6_5of6.png
+?? Documentation/Screenshots/Water/beach_close_0_prime.png
+?? Documentation/Screenshots/Water/beach_close_0_settle.png
+?? Documentation/Screenshots/Water/beach_close_0_v2.png
+?? Documentation/Screenshots/Water/beach_close_0_v3.png
+?? Documentation/Screenshots/Water/beach_close_0_v4full.png
+?? Documentation/Screenshots/Water/beach_close_0_v5.png
+?? Documentation/Screenshots/Water/beach_close_0_v6.png
+?? Documentation/Screenshots/Water/beach_close_0_v6b.png
+?? Documentation/Screenshots/Water/beach_close_0_v7.png
+?? Documentation/Screenshots/Water/beach_close_0_v8.png
+?? Documentation/Screenshots/Water/beach_close_1_prime.png
+?? Documentation/Screenshots/Water/beach_close_1_settle.png
+?? Documentation/Screenshots/Water/beach_close_1_v2.png
+?? Documentation/Screenshots/Water/beach_close_1_v3.png
+?? Documentation/Screenshots/Water/beach_close_1_v4full.png
+?? Documentation/Screenshots/Water/beach_close_1_v5.png
+?? Documentation/Screenshots/Water/beach_close_1_v6.png
+?? Documentation/Screenshots/Water/beach_close_1_v6b.png
+?? Documentation/Screenshots/Water/beach_close_1_v7.png
+?? Documentation/Screenshots/Water/beach_close_1_v8.png
+?? Documentation/Screenshots/Water/beach_close_2_prime.png
+?? Documentation/Screenshots/Water/beach_close_2_settle.png
+?? Documentation/Screenshots/Water/beach_close_2_v2.png
+?? Documentation/Screenshots/Water/beach_close_2_v3.png
+?? Documentation/Screenshots/Water/beach_close_2_v4full.png
+?? Documentation/Screenshots/Water/beach_close_2_v5.png
+?? Documentation/Screenshots/Water/beach_close_2_v6.png
+?? Documentation/Screenshots/Water/beach_close_2_v6b.png
+?? Documentation/Screenshots/Water/beach_close_2_v7.png
+?? Documentation/Screenshots/Water/beach_close_2_v8.png
+?? Documentation/Screenshots/Water/beach_low_prime.png
+?? Documentation/Screenshots/Water/beach_low_settle.png
+?? Documentation/Screenshots/Water/beach_low_v2.png
+?? Documentation/Screenshots/Water/beach_low_v3.png
+?? Documentation/Screenshots/Water/beach_low_v4full.png
+?? Documentation/Screenshots/Water/beach_low_v5.png
+?? Documentation/Screenshots/Water/beach_low_v6.png
+?? Documentation/Screenshots/Water/beach_low_v6b.png
+?? Documentation/Screenshots/Water/beach_low_v7.png
+?? Documentation/Screenshots/Water/beach_low_v8.png
+?? Documentation/Screenshots/Water/beach_wide_prime.png
+?? Documentation/Screenshots/Water/beach_wide_settle.png
+?? Documentation/Screenshots/Water/beach_wide_v2.png
+?? Documentation/Screenshots/Water/beach_wide_v3.png
+?? Documentation/Screenshots/Water/beach_wide_v4full.png
+?? Documentation/Screenshots/Water/beach_wide_v5.png
+?? Documentation/Screenshots/Water/beach_wide_v6.png
+?? Documentation/Screenshots/Water/beach_wide_v6b.png
+?? Documentation/Screenshots/Water/beach_wide_v7.png
+?? Documentation/Screenshots/Water/beach_wide_v8.png
+?? Documentation/Screenshots/Water/pond_afterbuild.png
+?? Documentation/Screenshots/Water/pond_dbg1.png
+?? Documentation/Screenshots/Water/pond_dbg2.png
+?? Documentation/Screenshots/Water/pond_dbg3.png
+?? Documentation/Screenshots/Water/pond_prime.png
+?? Documentation/Screenshots/Water/pond_rain_afterbuild.png
+?? Documentation/Screenshots/Water/pond_rain_dbg1.png
+?? Documentation/Screenshots/Water/pond_rain_dbg2.png
+?? Documentation/Screenshots/Water/pond_rain_dbg3.png
+?? Documentation/Screenshots/Water/pond_rain_prime.png
+?? Documentation/Screenshots/Water/pond_rain_rep1.png
+?? Documentation/Screenshots/Water/pond_rain_rep2.png
+?? Documentation/Screenshots/Water/pond_rain_rep3d1.png
+?? Documentation/Screenshots/Water/pond_rain_settle.png
+?? Documentation/Screenshots/Water/pond_rain_v2.png
+?? Documentation/Screenshots/Water/pond_rain_v2d2.png
+?? Documentation/Screenshots/Water/pond_rain_v2d5.png
+?? Documentation/Screenshots/Water/pond_rain_v3.png
+?? Documentation/Screenshots/Water/pond_rain_v3d3.png
+?? Documentation/Screenshots/Water/pond_rain_v3d4.png
+?? Documentation/Screenshots/Water/pond_rain_v4.png
+?? Documentation/Screenshots/Water/pond_rain_v4d6.png
+?? Documentation/Screenshots/Water/pond_rain_v4d7.png
+?? Documentation/Screenshots/Water/pond_rain_v4d8.png
+?? Documentation/Screenshots/Water/pond_rain_v4full.png
+?? Documentation/Screenshots/Water/pond_rain_v5.png
+?? Documentation/Screenshots/Water/pond_rain_v6.png
+?? Documentation/Screenshots/Water/pond_rain_v6b.png
+?? Documentation/Screenshots/Water/pond_rain_v7.png
+?? Documentation/Screenshots/Water/pond_rain_v7b.png
+?? Documentation/Screenshots/Water/pond_rain_v8.png
+?? Documentation/Screenshots/Water/pond_rain_v9.png
+?? Documentation/Screenshots/Water/pond_rep1.png
+?? Documentation/Screenshots/Water/pond_rep2.png
+?? Documentation/Screenshots/Water/pond_rep3d1.png
+?? Documentation/Screenshots/Water/pond_settle.png
+?? Documentation/Screenshots/Water/pond_v2.png
+?? Documentation/Screenshots/Water/pond_v2d2.png
+?? Documentation/Screenshots/Water/pond_v2d5.png
+?? Documentation/Screenshots/Water/pond_v3.png
+?? Documentation/Screenshots/Water/pond_v3d3.png
+?? Documentation/Screenshots/Water/pond_v3d4.png
+?? Documentation/Screenshots/Water/pond_v4.png
+?? Documentation/Screenshots/Water/pond_v4d6.png
+?? Documentation/Screenshots/Water/pond_v4d7.png
+?? Documentation/Screenshots/Water/pond_v4d8.png
+?? Documentation/Screenshots/Water/pond_v4full.png
+?? Documentation/Screenshots/Water/pond_v5.png
+?? Documentation/Screenshots/Water/pond_v6.png
+?? Documentation/Screenshots/Water/pond_v6b.png
+?? Documentation/Screenshots/Water/pond_v7.png
+?? Documentation/Screenshots/Water/pond_v7b.png
+?? Documentation/Screenshots/Water/pond_v8.png
+?? Documentation/Screenshots/Water/pond_v9.png
+?? Documentation/Screenshots/Water/stream_downstream_dbg1.png
+?? Documentation/Screenshots/Water/stream_downstream_dbg2.png
+?? Documentation/Screenshots/Water/stream_downstream_dbg3.png
+?? Documentation/Screenshots/Water/stream_downstream_prime.png
+?? Documentation/Screenshots/Water/stream_downstream_settle.png
+?? Documentation/Screenshots/Water/stream_downstream_v2.png
+?? Documentation/Screenshots/Water/stream_downstream_v2d2.png
+?? Documentation/Screenshots/Water/stream_downstream_v2d5.png
+?? Documentation/Screenshots/Water/stream_downstream_v3.png
+?? Documentation/Screenshots/Water/stream_downstream_v3d4.png
+?? Documentation/Screenshots/Water/stream_downstream_v4full.png
+?? Documentation/Screenshots/Water/stream_downstream_v5.png
+?? Documentation/Screenshots/Water/stream_downstream_v5dt.png
+?? Documentation/Screenshots/Water/stream_downstream_v6.png
+?? Documentation/Screenshots/Water/stream_downstream_v6b.png
+?? Documentation/Screenshots/Water/stream_downstream_v6d4.png
+?? Documentation/Screenshots/Water/stream_downstream_v7.png
+?? Documentation/Screenshots/Water/stream_downstream_v7b.png
+?? Documentation/Screenshots/Water/stream_downstream_v7d4.png
+?? Documentation/Screenshots/Water/stream_downstream_v8.png
+?? Documentation/Screenshots/Water/stream_downstream_v8dt.png
+?? Documentation/Screenshots/Water/stream_downstream_v9.png
+?? Documentation/Screenshots/Water/stream_downstream_v9dt.png
+?? Documentation/Screenshots/Water/stream_rapids_dbg1.png
+?? Documentation/Screenshots/Water/stream_rapids_dbg2.png
+?? Documentation/Screenshots/Water/stream_rapids_dbg3.png
+?? Documentation/Screenshots/Water/stream_rapids_prime.png
+?? Documentation/Screenshots/Water/stream_rapids_settle.png
+?? Documentation/Screenshots/Water/stream_rapids_v2.png
+?? Documentation/Screenshots/Water/stream_rapids_v2d2.png
+?? Documentation/Screenshots/Water/stream_rapids_v2d5.png
+?? Documentation/Screenshots/Water/stream_rapids_v3.png
+?? Documentation/Screenshots/Water/stream_rapids_v3d4.png
+?? Documentation/Screenshots/Water/stream_rapids_v4full.png
+?? Documentation/Screenshots/Water/stream_rapids_v5.png
+?? Documentation/Screenshots/Water/stream_rapids_v5dt.png
+?? Documentation/Screenshots/Water/stream_rapids_v6.png
+?? Documentation/Screenshots/Water/stream_rapids_v6b.png
+?? Documentation/Screenshots/Water/stream_rapids_v6d4.png
+?? Documentation/Screenshots/Water/stream_rapids_v7.png
+?? Documentation/Screenshots/Water/stream_rapids_v7b.png
+?? Documentation/Screenshots/Water/stream_rapids_v7d4.png
+?? Documentation/Screenshots/Water/stream_rapids_v8.png
+?? Documentation/Screenshots/Water/stream_rapids_v8dt.png
+?? Documentation/Screenshots/Water/stream_rapids_v9.png
+?? Documentation/Screenshots/Water/stream_rapids_v9dt.png
+?? Documentation/Tests/playmode_results.xml
+?? Documentation/Tests/playmode_tests_R13.txt
+?? Documentation/Tests/playmode_tests_R14.txt
+?? Tools/Audio/sfx_synth.py.before_phase3
+?? Tools/BlenderPipeline/res_models/RES_Branches.blend
+?? Tools/BlenderPipeline/res_models/preview_branches.png
+?? Tools/BlenderPipeline/res_models/res_models.py
+?? Tools/BlenderPipeline/res_models/res_preview.py
+?? Tools/PLAYER_Survivor.fbx.meta.before_A1
+?? Tools/PlayerAnimator.controller.before_A1
+?? Tools/S_art/ICON_Bandage.png
+?? Tools/S_art/ICON_BurntFish.png
+?? Tools/S_art/ICON_CookedFish.png
+?? Tools/S_art/ICON_EdiblePlant.png
+?? Tools/S_art/ICON_RawFish.png
+?? Tools/S_art/ITEM_Bandage.fbx
+?? Tools/S_art/ITEM_BurntFish.fbx
+?? Tools/S_art/ITEM_CookedFish.fbx
+?? Tools/S_art/ITEM_EdiblePlant.fbx
+?? Tools/S_art/ITEM_RawFish.fbx
+?? Tools/S_pc_md5.txt
+?? Tools/playmode_results_R13.xml
+?? Tools/playmode_results_R13_full_after_S4.xml
+?? Tools/playmode_results_R14.xml
+?? Tools/playmode_results_S10.xml
+?? Tools/playmode_results_S5.xml
+?? Tools/playmode_results_S6.xml
+?? Tools/playmode_results_S7.xml
+?? Tools/playmode_results_S8.xml
+?? Tools/playmode_results_U30.xml
+?? Tools/playmode_results_U45.xml
+?? Tools/playmode_results_U49.xml

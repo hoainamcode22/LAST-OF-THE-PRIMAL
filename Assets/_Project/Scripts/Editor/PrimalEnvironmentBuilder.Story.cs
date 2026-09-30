@@ -1,0 +1,275 @@
+using System.Collections.Generic;
+using System.Linq;
+using UnityEditor;
+using UnityEngine;
+using UnityEngine.Rendering;
+using PrimalFrontier.Core;
+using PrimalFrontier.World;
+
+namespace PrimalFrontier.EditorTools
+{
+    /// <summary>
+    /// Environmental storytelling (directive 46): the kill site (large skeleton, scattered bones), snapped trees, a claw-marked
+    /// snag, a dried blood trail and a line of giant three-toed prints along the predator path; a ground nest with eggs; bones
+    /// in the canyon wall; the OLD HUMAN CAMP (burnt fire ring, collapsed lean-to, tally marks, a worn stone tool); by the
+    /// spring a boulder raked by a big predator's claws (PROP_PC_ClawRock), beside the cave an earlier castaway's knife
+    /// tallies with a scrap of sailcloth (PROP_PC_CastawayMarks); no ancient people (Phase 1: the old PROP_PC_Petroglyph is
+    /// never placed and any instance found in the scene is switched off); wreck remains along the beach; examine spots for
+    /// the knoll view and the spring.
+    /// Every prop that can be looked at carries an Examinable with a stable id (discoveryId = SaveId = id, neutral
+    /// displayName, empty thought: STORY writes the texts; ids in LOCATIONS.md). Rebuilt each run under
+    /// World/Environment/Storytelling (deterministic, same ids).
+    /// </summary>
+    public static partial class PrimalEnvironmentBuilder
+    {
+        [PrimalBridgeCommand]
+        public static string Story(string arg)
+        {
+            Begin("Story " + arg);
+            if (!IslandOpen(out var scene, out bool wasDirty)) return End("Story");
+            if (!FindTerrain() || LoadFeatures() == null) { W("no terrain or features"); return End("Story"); }
+            var M = EnvMaterials();
+            var P = new Dictionary<string, GameObject>();
+            void Pf(string n, float[] lods, ColKind col, float cr = 0.3f, float ch = 3f) { var p = MakePrefab(n, lods, col, null, true, cr, ch); if (p) P[n] = p; }
+            Pf("PROP_PC_Skeleton", new[] { 0.2f, 0.07f, 0.012f }, ColKind.None);
+            Pf("PROP_PC_Bones", null, ColKind.None);
+            Pf("PROP_PC_Nest", new[] { 0.25f, 0.08f, 0.015f }, ColKind.None);
+            Pf("PROP_PC_FossilSlab", new[] { 0.3f, 0.1f, 0.02f }, ColKind.Mesh);
+            Pf("PROP_PC_BrokenTree_A", new[] { 0.3f, 0.09f, 0.015f }, ColKind.Mesh);
+            Pf("PROP_PC_BrokenTree_B", new[] { 0.3f, 0.09f, 0.015f }, ColKind.Mesh);
+            Pf("PROP_PC_ClawSnag", new[] { 0.3f, 0.09f, 0.015f }, ColKind.Capsule, 0.5f, 4.5f);
+            Pf("PROP_PC_FireRing", new[] { 0.2f, 0.06f, 0.012f }, ColKind.None);
+            Pf("PROP_PC_LeanTo", new[] { 0.25f, 0.08f, 0.012f }, ColKind.None);
+            Pf("PROP_PC_TallyStone", new[] { 0.3f, 0.1f, 0.015f }, ColKind.Mesh);
+            Pf("PROP_PC_StoneTool", null, ColKind.None);
+            Pf("PROP_PC_ClawRock", new[] { 0.3f, 0.1f, 0.015f }, ColKind.Mesh);
+            Pf("PROP_PC_CastawayMarks", new[] { 0.3f, 0.1f, 0.015f }, ColKind.Mesh);
+            Pf("PROP_PC_WreckPlanks", null, ColKind.None);
+            L($"story prefabs: {P.Count}");
+            var root = EnvGroup(scene, "Storytelling"); ClearChildren(root); _hints.Clear();
+            var pr = _features.props;
+            int ex = 0;
+            GameObject Put(string pf, Vector3 p, float yaw, float scale, string name, Transform parent, float sink = 0.05f, bool align = true)
+            {
+                if (!P.TryGetValue(pf, out var prefab)) return null;
+                var go = (GameObject)PrefabUtility.InstantiatePrefab(prefab, parent); go.name = name;
+                var g = Ground(p); var rot = Quaternion.Euler(0, yaw, 0);
+                if (align) rot = Quaternion.FromToRotation(Vector3.up, Vector3.Lerp(Vector3.up, GroundNormal(g), 0.7f)) * rot;
+                go.transform.SetPositionAndRotation(g + Vector3.down * sink, rot); go.transform.localScale = Vector3.one * scale;
+                GameObjectUtility.SetStaticEditorFlags(go, StaticEditorFlags.OccludeeStatic);
+                return go;
+            }
+            void Exam(GameObject go, string id, string display, string verb = "Examine", float range = 3f, Vector3? at = null)
+            {
+                if (!go) return;
+                var e = Comp<Examinable>(go);
+                e.discoveryId = id; e.SaveId = id; e.displayName = "Something";   // name + thought come from STORY's texts; 'display' is only a hint for them
+                e.verb = verb; e.range = range; e.eventType = GameEventType.Discovery; e.once = true;
+                if (at.HasValue) go.transform.position = at.Value;
+                _hints[id] = display + " @ " + go.transform.position.ToString("F1");
+                ex++;
+            }
+            GameObject Spot(string name, Vector3 p, Transform parent) { var go = new GameObject(name); go.transform.SetParent(parent, false); go.transform.position = Ground(p) + Vector3.up * 0.4f; return go; }
+
+            // ---- kill site + predator path
+            var kill = Child(root, "KillSite");
+            var path = Pts(_features.predatorPath);
+            var skel = V3(pr.skeleton);
+            float skelYaw = path.Count > 1 ? Quaternion.LookRotation(path[path.Count - 1] - path[0]).eulerAngles.y + 70f : 30f;
+            Exam(Put("PROP_PC_Skeleton", skel, skelYaw, 1.0f, "GiantSkeleton", kill, 0.35f), "env_giant_skeleton", "huge bones", range: 7f);
+            var bonesA = Put("PROP_PC_Bones", skel + new Vector3(6.5f, 0, 3f), 40f, 1f, "Bones_0", kill, 0.04f);
+            Exam(bonesA, "env_scattered_bones", "scattered bones");
+            if (path.Count >= 5) { Put("PROP_PC_Bones", path[2] + new Vector3(2f, 0, 1.5f), 120f, 0.9f, "Bones_1", kill, 0.04f); Put("PROP_PC_Bones", path[4] + new Vector3(-2.5f, 0, 1f), 250f, 0.8f, "Bones_2", kill, 0.04f); }
+            var trail = Child(root, "PredatorPath");
+            GameObject firstBroken = null;
+            for (int i = 1; i < path.Count - 1; i += 1)
+            {
+                var dir = (path[i + 1] - path[i - 1]); dir.y = 0; dir.Normalize(); var side = new Vector3(-dir.z, 0, dir.x);
+                if (i % 2 == 1)
+                {
+                    var bt = Put(i % 4 == 1 ? "PROP_PC_BrokenTree_A" : "PROP_PC_BrokenTree_B", path[i] + side * (4f + Rand01(i, 1) * 2f) * (i % 3 == 0 ? -1 : 1), Rand01(i, 2) * 360f, 0.9f + Rand01(i, 3) * 0.3f, $"BrokenTree_{i}", trail, 0.2f, false);
+                    if (!firstBroken) firstBroken = bt;
+                }
+            }
+            Exam(firstBroken, "env_broken_trees", "snapped trees", range: 4.5f);
+            if (path.Count > 4)
+            {
+                var d = path[4] - path[3]; d.y = 0; d.Normalize(); var side = new Vector3(-d.z, 0, d.x);
+                var sp = path[3] + side * 5.5f;
+                // the gouges are on the model's -z side (Blender +y): turn that side toward the path
+                var snag = Put("PROP_PC_ClawSnag", sp, Quaternion.LookRotation(side).eulerAngles.y, 1f, "ClawSnag", trail, 0.3f, false);
+                Exam(snag, "env_claw_marks", "deep scratches", range: 3.5f);
+            }
+            // blood trail: dried stains along the path toward the skeleton
+            var blood = Child(root, "BloodTrail"); GameObject firstBlood = null;
+            var bloodPts = new List<Vector3>(); if (path.Count > 2) { bloodPts.AddRange(path.Skip(1)); bloodPts.Add(skel); }
+            int nb = 0;
+            for (int i = 0; i + 1 < bloodPts.Count; i++)
+                for (float t = 0; t < 1f; t += 0.34f)
+                {
+                    var p = Vector3.Lerp(bloodPts[i], bloodPts[i + 1], t) + new Vector3(Rand01(i, (int)(t * 10)) - 0.5f, 0, Rand01((int)(t * 10), i) - 0.5f) * 1.6f;
+                    var go = Decal(blood, $"Stain_{nb}", Ground(p), 0.5f + Rand01(nb, 5) * 0.8f, Rand01(nb, 6) * 360f, M["M_Env_BloodDried"]); nb++;
+                    if (!firstBlood) firstBlood = go;
+                }
+            Exam(firstBlood, "env_blood_trail", "dark stains");
+            // theropod trail: big three-toed prints (the scene's own footprint mesh + M_FootprintMud)
+            var fpRoot = GameObject.Find("GiantFootprints"); var fp = fpRoot ? fpRoot.transform.Find("Footprint_0") : null;
+            var fpMesh = fp ? fp.GetComponent<MeshFilter>()?.sharedMesh : null;
+            var mud = AssetDatabase.LoadAssetAtPath<Material>("Assets/_Project/Art/Materials/M_FootprintMud.mat");
+            if (fpMesh && mud && path.Count > 2)
+            {
+                var prints = Child(root, "TheropodTrail"); int k = 0; GameObject firstPrint = null;
+                float s = 0f, stride = 2.8f; float total = 0f; for (int i = 0; i + 1 < path.Count; i++) total += Vector3.Distance(path[i], path[i + 1]);
+                for (float at = 4f; at < total - 4f && k < 22; at += stride)
+                {
+                    // point at arc 'at'
+                    float acc = 0f; Vector3 p = path[0], dir = Vector3.forward;
+                    for (int i = 0; i + 1 < path.Count; i++) { float seg = Vector3.Distance(path[i], path[i + 1]); if (acc + seg >= at) { p = Vector3.Lerp(path[i], path[i + 1], (at - acc) / seg); dir = (path[i + 1] - path[i]); break; } acc += seg; }
+                    dir.y = 0; dir.Normalize(); var side = new Vector3(-dir.z, 0, dir.x) * ((k % 2 == 0) ? 0.8f : -0.8f);
+                    var g = Ground(p + side); var n = GroundNormal(g);
+                    var go = new GameObject($"Print_{k}"); go.transform.SetParent(prints, false);
+                    go.transform.SetPositionAndRotation(g + n * 0.02f, Quaternion.FromToRotation(Vector3.up, n) * Quaternion.LookRotation(dir));
+                    go.transform.localScale = Vector3.one * 1.15f;
+                    go.AddComponent<MeshFilter>().sharedMesh = fpMesh; var r = go.AddComponent<MeshRenderer>(); r.sharedMaterial = mud; r.shadowCastingMode = ShadowCastingMode.Off;
+                    if (!firstPrint) firstPrint = go; k++; s += stride;
+                }
+                Exam(firstPrint, "env_theropod_trail", "giant tracks", range: 3.5f);
+                L($"theropod trail: {k} prints along the predator path");
+            }
+            else W("no GiantFootprints/Footprint_0 mesh or M_FootprintMud: theropod trail skipped");
+
+            // ---- nest
+            Exam(Put("PROP_PC_Nest", V3(pr.nest), 20f, 1f, "Nest", Child(root, "Nest"), 0.12f), "env_nest_eggs", "a nest", range: 4f);
+            // ---- fossil bed in the canyon wall
+            var fos = V3(pr.fossilBed); var can = Pts(_features.canyon != null ? _features.canyon.points : null);
+            if (can.Count > 2)
+            {
+                int ci = 0; float best = 1e9f; for (int i = 0; i < can.Count; i++) { float d = (new Vector2(can[i].x - fos.x, can[i].z - fos.z)).sqrMagnitude; if (d < best) { best = d; ci = i; } }
+                var centre = can[ci]; var toWall = fos - centre; toWall.y = 0; if (toWall.sqrMagnitude < 0.5f) { var t = can[Mathf.Min(ci + 1, can.Count - 1)] - can[Mathf.Max(ci - 1, 0)]; toWall = new Vector3(-t.z, 0, t.x); }
+                toWall.Normalize();
+                Vector3 wall = centre;
+                for (float d = 1f; d < 12f; d += 0.5f) { var q = centre + toWall * d; if (GroundY(q) - GroundY(centre) > 2.5f) { wall = centre + toWall * (d - 0.8f); break; } }
+                // the bones are on the model's -z side (Blender +y): face the canyon
+                var slab = Put("PROP_PC_FossilSlab", wall, Quaternion.LookRotation(toWall).eulerAngles.y, 1.0f, "FossilSlab", Child(root, "FossilBed"), 0.6f, false);
+                Exam(slab, "env_fossil_bed", "bones in the rock", range: 4f);
+            }
+            // ---- old human camp
+            var camp = Child(root, "OldCamp"); var cc = V3(pr.oldCamp);
+            Exam(Put("PROP_PC_FireRing", cc, 0f, 1f, "FireRing", camp, 0.02f), "env_old_camp_firering", "old fire ring");
+            Exam(Put("PROP_PC_LeanTo", cc + new Vector3(-3.4f, 0, 0.8f), 75f, 1f, "CollapsedShelter", camp, 0.02f), "env_old_camp_shelter", "collapsed shelter", range: 3.5f);
+            var toFire = -new Vector3(3.6f, 0, -1.2f).normalized;
+            Exam(Put("PROP_PC_TallyStone", cc + new Vector3(3.6f, 0, -1.2f), Quaternion.LookRotation(toFire).eulerAngles.y, 1f, "TallyStone", camp, 0.25f, false), "env_old_camp_tally", "scratched marks", range: 3.5f);
+            Exam(Put("PROP_PC_StoneTool", cc + new Vector3(0.95f, 0, 0.55f), 33f, 1.1f, "StoneTool", camp, 0.0f), "env_old_camp_tool", "shaped stone", "Examine", 2f);
+            // ---- natural / castaway marks (ids kept for saves and missions): claw-raked boulder by the spring, a castaway's
+            //      knife tallies + sailcloth scrap beside the cave mouth. Both models carry their marks on the -y (Unity +z) face.
+            var spring = V3(pr.spring);
+            Vector3 SpotAround(Vector3 c0, float r0, float r1, Vector3 prefer)
+            {
+                Vector3 bestP = c0 + prefer * r0; float bestS = -1e9f;
+                for (int k = 0; k < 16; k++) for (float r = r0; r <= r1; r += 0.5f)
+                {
+                    var dir = Quaternion.Euler(0, k * 22.5f, 0) * Vector3.forward; var q = c0 + dir * r;
+                    float sc = Vector3.Dot(dir, prefer) * 2f - Mathf.Abs(Slope(q) - 18f) * 0.05f;
+                    if (sc > bestS) { bestS = sc; bestP = q; }
+                }
+                return bestP;
+            }
+            var uphill = -Vector3.ProjectOnPlane(GroundNormal(spring), Vector3.up); if (uphill.sqrMagnitude < 1e-4f) uphill = Vector3.back; uphill = uphill.normalized;
+            var pp = SpotAround(spring, 4f, 6f, uphill);
+            var toSpring = spring - pp; toSpring.y = 0; toSpring.Normalize();
+            Exam(Put("PROP_PC_ClawRock", pp, Quaternion.LookRotation(toSpring).eulerAngles.y, 0.9f, "ClawRock_Spring", Child(root, "Markings"), 0.3f, false), "env_markings_ridge", "deep claw gouges in the rock", range: 3.5f);
+            var caveP = LocPos("cave");
+            if (caveP != Vector3.zero)
+            {
+                // beside the mouth: a few metres to the side of the cave, the tallies facing down the slope (the way in)
+                var nrm = Vector3.zero; for (int k = 0; k < 8; k++) nrm += GroundNormal(caveP + Quaternion.Euler(0, k * 45f, 0) * Vector3.forward * 6f);
+                var down = Vector3.ProjectOnPlane(nrm, Vector3.up); down = down.sqrMagnitude > 1e-3f ? down.normalized : Vector3.forward;
+                var cp = caveP + Vector3.Cross(Vector3.up, down) * 6.5f + down * 2f;
+                Exam(Put("PROP_PC_CastawayMarks", cp, Quaternion.LookRotation(down).eulerAngles.y, 1.0f, "CastawayMarks_Cave", Child(root, "Markings"), 0.22f, false), "env_markings_cave", "knife tally marks, a scrap of sailcloth", range: 3.5f);
+            }
+            // ---- wreck remains along the beach, both sides of the wreck
+            var wreckP = LocPos("shipwreck"); var wr = Child(root, "WreckRemains"); GameObject firstWreck = null; int nw = 0;
+            if (wreckP != Vector3.zero)
+            {
+                var w0 = wreckP;
+                var extraPf = new[] { "Assets/_Project/Prefabs/Props/PFB_PROP_Ship_Debris.prefab", "Assets/_Project/Prefabs/Props/PFB_PROP_Ship_Crate_Broken.prefab" }.Select(AssetDatabase.LoadAssetAtPath<GameObject>).Where(x => x).ToArray();
+                for (int k = 0; k < 10; k++)
+                {
+                    float along = (k % 2 == 0 ? 1 : -1) * (22f + k * 9f);
+                    // walk inland from the sea at this x to dry sand above the wave sheet (1.35-2.2 m)
+                    Vector3 q = new Vector3(w0.x + along, 0, w0.z + 8f); bool ok = false;
+                    for (float dz = 0; dz < 40f; dz += 1f) { var r = q + new Vector3(0, 0, -dz); float y = GroundY(r); if (y > 1.35f && y < 2.2f && SandAt(r) > 0.5f) { q = r; ok = true; break; } }
+                    if (!ok) continue;
+                    GameObject go;
+                    if (k % 3 == 2 && extraPf.Length > 0) { go = (GameObject)PrefabUtility.InstantiatePrefab(extraPf[k % extraPf.Length], wr); go.transform.SetPositionAndRotation(Ground(q) + Vector3.down * 0.08f, Quaternion.Euler(0, Rand01(k, 7) * 360f, 0)); }
+                    else go = Put("PROP_PC_WreckPlanks", q, Rand01(k, 8) * 360f, 0.9f + Rand01(k, 9) * 0.3f, $"WreckPlanks_{k}", wr, 0.06f);
+                    if (go && !firstWreck && k % 3 != 2) firstWreck = go; nw++;
+                }
+            }
+            Exam(firstWreck, "env_wreck_remains", "wreck pieces");
+            // ---- examine spots without a prop
+            var spots = Child(root, "Spots");
+            Exam(Spot("KnollView", V3(pr.knollTop), spots), "env_view_knoll", "the view", "Look at", 4f);
+            Exam(Spot("Spring", spring, spots), "env_spring", "clear water", "Look at", 3f);
+            // ---- no petroglyphs anywhere: switch off (never delete) any instance of the old carved panel
+            int oldGlyphs = 0;
+            foreach (var t in scene.GetRootGameObjects().SelectMany(g => g.GetComponentsInChildren<Transform>(true)))
+            {
+                var src = PrefabUtility.GetCorrespondingObjectFromOriginalSource(t.gameObject);
+                bool glyph = (src && src.name == "PROP_PC_Petroglyph") || t.name.StartsWith("PROP_PC_Petroglyph") || t.name.StartsWith("Markings_Ridge") || t.name.StartsWith("Markings_Cave");
+                if (glyph && t.gameObject.activeSelf) { t.gameObject.SetActive(false); oldGlyphs++; W("old carved panel switched off: " + PathOf(t)); }
+            }
+            L($"storytelling: kill site, predator path, {nb} blood stains, nest, fossil bed, old camp (4), claw rock by the spring + castaway marks by the cave, {nw} wreck pieces; {ex} Examinables (ids in LOCATIONS.md); old petroglyph instances switched off: {oldGlyphs}");
+            foreach (var h in _hints) L($"  {h.Key}: {h.Value}");
+            AssetDatabase.SaveAssets();
+            SaveScene(scene, wasDirty);
+            return End("Story");
+        }
+
+        /// <summary>Sand + wet sand weight of the terrain splat at p (layers 0 and 5 of the v2 layer set)</summary>
+        static float SandAt(Vector3 p)
+        {
+            var td = _terrain.terrainData; var tp = _terrain.transform.position;
+            int x = Mathf.Clamp(Mathf.RoundToInt((p.x - tp.x) / td.size.x * (td.alphamapWidth - 1)), 0, td.alphamapWidth - 1);
+            int z = Mathf.Clamp(Mathf.RoundToInt((p.z - tp.z) / td.size.z * (td.alphamapHeight - 1)), 0, td.alphamapHeight - 1);
+            var a = td.GetAlphamaps(x, z, 1, 1);
+            float s = 0f; int n = a.GetLength(2); if (n > 0) s += a[0, 0, 0]; if (n > 5) s += a[0, 0, 5];
+            return s;
+        }
+
+        static readonly Dictionary<string, string> _hints = new Dictionary<string, string>();
+        static Vector3 LocPos(string id)
+        {
+            if (_features?.locations != null) foreach (var l in _features.locations) if (l.id == id) return V3(l.pos);
+            return Vector3.zero;
+        }
+
+        /// <summary>a flat quad lying on the ground (no collider, no shadow)</summary>
+        static GameObject Decal(Transform parent, string name, Vector3 at, float size, float yaw, Material m)
+        {
+            var mesh = QuadMesh();
+            var go = new GameObject(name); go.transform.SetParent(parent, false);
+            var n = GroundNormal(at);
+            go.transform.SetPositionAndRotation(at + n * 0.025f, Quaternion.FromToRotation(Vector3.up, n) * Quaternion.Euler(0, yaw, 0));
+            go.transform.localScale = new Vector3(size, 1f, size * (0.7f + Rand01((int)(yaw * 10), 3) * 0.6f));
+            go.AddComponent<MeshFilter>().sharedMesh = mesh;
+            var r = go.AddComponent<MeshRenderer>(); r.sharedMaterial = m; r.shadowCastingMode = ShadowCastingMode.Off;
+            return go;
+        }
+
+        static Mesh _quad;
+        static Mesh QuadMesh()
+        {
+            if (_quad) return _quad;
+            string path = $"{MeshDir}/ME_Env_DecalQuad.asset";
+            _quad = AssetDatabase.LoadAssetAtPath<Mesh>(path);
+            if (_quad) return _quad;
+            var m = new Mesh { name = "ME_Env_DecalQuad" };
+            m.vertices = new[] { new Vector3(-0.5f, 0, -0.5f), new Vector3(0.5f, 0, -0.5f), new Vector3(0.5f, 0, 0.5f), new Vector3(-0.5f, 0, 0.5f) };
+            m.uv = new[] { new Vector2(0, 0), new Vector2(1, 0), new Vector2(1, 1), new Vector2(0, 1) };
+            m.triangles = new[] { 0, 2, 1, 0, 3, 2 }; m.RecalculateNormals(); m.RecalculateTangents(); m.RecalculateBounds();
+            EnsureFolder(MeshDir); AssetDatabase.CreateAsset(m, path); _quad = m;
+            return m;
+        }
+    }
+}

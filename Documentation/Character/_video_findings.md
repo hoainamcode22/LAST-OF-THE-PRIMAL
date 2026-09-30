@@ -1,7 +1,7 @@
 # Video findings (Lead, owner's recording 2026-09-28 19:19, 1916x828, 30 fps, ~27 s of gameplay)
 
-Frame sheets (10 fps crops around the character): , ,
-, , ; 2 fps overview .
+Frame sheets (10 fps crops around the character): `Documentation/Screenshots/Character/video_run1.jpg`, `video_turn.jpg`,
+`video_gather.jpg`, `video_getup.jpg`, `video_run2.jpg`; 2 fps overview `video_overview_1.jpg` to `video_overview_4.jpg`.
 Owner's words: "nhân vật khá khựng, cánh tay thì xoay xoay" (character is jerky / stiff, the arms keep twisting).
 No weapon in hand during the whole clip (unarmed locomotion + gathering).
 

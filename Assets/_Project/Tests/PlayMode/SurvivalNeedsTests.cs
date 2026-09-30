@@ -363,7 +363,7 @@ namespace PrimalFrontier.Tests
                 yield return Act(pi, () => pi.UseActiveConsumable(), () => st.water < before);
                 Assert.AreEqual(before - 1, st.water, "one drink");
                 Assert.Less(sv.Thirst, 50f, "salt water makes thirst worse");
-                StringAssert.Contains("Boil it first", msg, "salt water warning");
+                StringAssert.Contains("does not remove the salt", msg, "salt water warning");
             }
             finally { PlayerInteraction.Message -= mh; }
 

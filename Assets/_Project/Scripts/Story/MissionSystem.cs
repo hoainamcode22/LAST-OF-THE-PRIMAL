@@ -1,0 +1,628 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
+using PrimalFrontier.Core;
+using PrimalFrontier.Items;
+using PrimalFrontier.World;
+
+namespace PrimalFrontier.Story
+{
+    public enum MissionStatus { Locked, Active, Done }
+
+    /// <summary>
+    /// Runs the chapters and missions (MissionDefinition data): listens to GameEvents, polls the state rules twice a second,
+    /// starts missions whose requirements are done, completes them, moves the chapter on, keeps soft deadlines ("before
+    /// sunset": a reminder, then the late objective, never a failure) and works out the one objective shown on screen (the
+    /// lowest active main mission of the current chapter, else an earlier one, else an optional one) and its marker (only for
+    /// missions that need a direction). Saved as the "missions" section; saves from before the mission system are
+    /// migrated from the old tutorial step, the journal and the visited places. No per-frame allocation.
+    /// </summary>
+    [DefaultExecutionOrder(-40)]
+    public class MissionSystem : MonoBehaviour, ISaveSection
+    {
+        public static MissionSystem Instance { get; private set; }
+        [Tooltip("missions to run; empty = the assets in Resources/Story/Missions, else the built-in catalog")]
+        public List<MissionDefinition> missions = new List<MissionDefinition>();
+        [Tooltip("seconds between checks of the state rules (checks, hours, distances)")] [Min(0.1f)] public float pollSeconds = 0.5f;
+        [Tooltip("in-game hours before a soft deadline when the objective reminds the player")] [Min(0)] public float warnHours = 1.5f;
+        [Tooltip("seconds after the chapter ends before the new chapter card shows (lets the dawn banner finish)")] public float chapterCardDelay = 5f;
+
+        public class State
+        {
+            public MissionDefinition def;
+            public MissionStatus status;
+            public int[] counts; public HashSet<string>[] seen; public bool[] latch;
+            public double startedClock; public int startedDay, deadlineDay = -1;
+            public bool warned, late;
+            public bool Active => status == MissionStatus.Active;
+            public bool Done => status == MissionStatus.Done;
+        }
+
+        readonly List<State> _states = new List<State>();
+        readonly Dictionary<string, State> _byId = new Dictionary<string, State>(StringComparer.Ordinal);
+        readonly HashSet<string> _visited = new HashSet<string>(StringComparer.Ordinal);
+        readonly Dictionary<string, Vector3> _places = new Dictionary<string, Vector3>(StringComparer.Ordinal);
+        float _placesAt = -99f;
+        float _nextPoll; bool _silent, _restoredThisLoad, _dirty;
+        InventorySystem _inv; Transform _invOwner;
+        Vector3? _marker;
+
+        public const string SectionId = "missions";
+        public string SectionKey => SectionId;
+        /// <summary>current chapter (1-4); 0 = the story has not begun (title, intro)</summary>
+        public int Chapter { get; private set; }
+        public bool Begun => Chapter > 0;
+        /// <summary>every main mission of the last chapter is done: free play, the island stays open</summary>
+        public bool Finished { get; private set; }
+        public string ChapterName => MissionCatalog.ChapterName(Chapter);
+        public IReadOnlyList<State> States => _states;
+        /// <summary>the mission shown as the current objective (null = none)</summary>
+        public State Focused { get; private set; }
+        /// <summary>bumped whenever the shown objective, its text, progress, deadline state or the chapter changes</summary>
+        public int Version { get; private set; }
+        /// <summary>the focused mission's direction (compass / map), when it has one and it is due; null = none</summary>
+        public Vector3? MarkerTarget => _marker;
+        public event Action<MissionDefinition> MissionStarted, MissionCompleted;
+        public event Action<int> ChapterBegan;
+
+        // ------------------------------------------------------------------ lifecycle
+        void Awake()
+        {
+            Instance = this;
+            var defs = missions.Where(m => m).ToList();
+            if (defs.Count == 0) defs = Resources.LoadAll<MissionDefinition>("Story/Missions").Where(m => m).ToList();
+            if (defs.Count == 0) defs = MissionCatalog.Build();
+            SetDefinitions(defs);
+        }
+        void OnEnable() { GameEvents.Raised -= OnEvent; GameEvents.Raised += OnEvent; SaveSystem.RegisterSection(this); }
+        void OnDisable() { GameEvents.Raised -= OnEvent; SaveSystem.UnregisterSection(this); }
+        void OnDestroy() { if (Instance == this) Instance = null; }
+
+        /// <summary>replace the missions (tests, tools); the story goes back to "not begun"</summary>
+        public void SetDefinitions(IEnumerable<MissionDefinition> defs)
+        {
+            _states.Clear(); _byId.Clear();
+            foreach (var d in defs.Where(d => d && !string.IsNullOrEmpty(d.id)).OrderBy(d => d.chapter).ThenBy(d => d.order))
+            {
+                if (_byId.ContainsKey(d.id)) { Debug.LogWarning("[Missions] duplicate id " + d.id + " (second one ignored)"); continue; }
+                int n = d.complete != null ? d.complete.Count : 0, k = d.startWhen != null ? d.startWhen.Count : 0;
+                var s = new State { def = d, counts = new int[n], seen = new HashSet<string>[n], latch = new bool[k] };
+                for (int i = 0; i < n; i++) s.seen[i] = new HashSet<string>(StringComparer.Ordinal);
+                _states.Add(s); _byId[d.id] = s;
+            }
+            ResetAll();
+        }
+
+        /// <summary>new game / title: nothing started</summary>
+        public void ResetAll()
+        {
+            Chapter = 0; Finished = false; Focused = null; _marker = null; _visited.Clear(); _restoredThisLoad = false;
+            foreach (var s in _states) Clear(s);
+            StopAllCoroutines();
+            Bump();
+        }
+        static void Clear(State s)
+        {
+            s.status = MissionStatus.Locked; s.startedClock = 0; s.startedDay = 0; s.deadlineDay = -1; s.warned = s.late = false;
+            for (int i = 0; i < s.counts.Length; i++) { s.counts[i] = 0; s.seen[i].Clear(); }
+            for (int i = 0; i < s.latch.Length; i++) s.latch[i] = false;
+        }
+
+        /// <summary>the story begins (after the intro of a new game): chapter one, first missions</summary>
+        public void Begin()
+        {
+            if (Begun) return;
+            Chapter = 1;
+            SyncVisited();
+            Evaluate();
+            Bump();
+            GameEvents.Raise(GameEventType.ChapterStarted, MissionCatalog.ChapterName(1), 1);
+        }
+
+        public State Get(string id) => id != null && _byId.TryGetValue(id, out var s) ? s : null;
+        public bool IsDone(string id) { var s = Get(id); return s != null && s.Done; }
+        public bool IsActive(string id) { var s = Get(id); return s != null && s.Active; }
+
+        /// <summary>debug / tests / migration: mark a mission done without its lines (requirements are not checked)</summary>
+        public void ForceComplete(string id, bool silent = true)
+        {
+            var s = Get(id); if (s == null || s.Done) return;
+            if (!Begun) Chapter = Mathf.Max(1, s.def.chapter);
+            bool was = _silent; _silent = silent;
+            try { if (!s.Active) StartMission(s); CompleteMission(s); Evaluate(); }
+            finally { _silent = was; }
+        }
+
+        // ------------------------------------------------------------------ events
+        void OnEvent(GameEvent e)
+        {
+            if (e.type == GameEventType.GameLoaded) { OnLoaded(); return; }
+            if (e.type == GameEventType.ZoneEntered && !string.IsNullOrEmpty(e.id)) _visited.Add(StoryIds.Location(e.id));
+            if (!Begun) return;
+            bool hit = e.type == GameEventType.ZoneEntered;
+            for (int si = 0; si < _states.Count; si++)
+            {
+                var s = _states[si];
+                if (s.status == MissionStatus.Active)
+                {
+                    var list = s.def.complete;
+                    for (int i = 0; i < list.Count; i++)
+                    {
+                        var c = list[i]; if (c == null || c.kind != ConditionKind.Event || !EventMatches(c, e)) continue;
+                        if (c.distinct) { if (s.seen[i].Add(IdKey(e))) s.counts[i] = s.seen[i].Count; }
+                        else s.counts[i]++;
+                        hit = true;
+                    }
+                }
+                else if (s.status == MissionStatus.Locked && s.def.startWhen != null)
+                {
+                    var list = s.def.startWhen;
+                    for (int i = 0; i < list.Count; i++)
+                    {
+                        var c = list[i]; if (c == null || c.kind != ConditionKind.Event || s.latch[i] || !EventMatches(c, e)) continue;
+                        s.latch[i] = true; hit = true;
+                    }
+                }
+            }
+            if (hit) _dirty = true;
+        }
+
+        static string IdKey(GameEvent e) =>
+            e.type == GameEventType.Discovery || e.type == GameEventType.FootprintFound ? StoryIds.Discovery(e.id) ?? "" :
+            e.type == GameEventType.ZoneEntered ? StoryIds.Location(e.id) ?? "" : e.id ?? "";
+
+        public static bool EventMatches(MissionCondition c, GameEvent e)
+        {
+            if (!StoryIds.EventIs(e.type, c.events)) return false;
+            if (string.IsNullOrEmpty(c.ids)) return true;
+            switch (e.type)
+            {
+                case GameEventType.ZoneEntered: return StoryIds.LocationMatches(e.id, c.ids);
+                case GameEventType.Discovery:
+                case GameEventType.FootprintFound: return StoryIds.Matches(StoryIds.Discovery(e.id), c.ids) || StoryIds.Matches(e.id, c.ids);
+                default: return StoryIds.Matches(e.id, c.ids);
+            }
+        }
+
+        void Update()
+        {
+            if (!Begun) return;
+            if (_dirty || Time.time >= _nextPoll)
+            {
+                _dirty = false; _nextPoll = Time.time + pollSeconds;
+                Evaluate();
+                UpdateDeadlines();
+                UpdateMarker();
+            }
+        }
+
+        /// <summary>tests / tools: run the rules now instead of at the next poll</summary>
+        public void EvaluateNow() { if (!Begun) return; _dirty = false; Evaluate(); UpdateDeadlines(); UpdateMarker(); }
+
+        // ------------------------------------------------------------------ rules
+        void Evaluate()
+        {
+            if (!Begun) return;
+            bool changed = false;
+            for (int pass = 0; pass < 6; pass++)
+            {
+                bool step = false;
+                for (int i = 0; i < _states.Count; i++)
+                {
+                    var s = _states[i];
+                    if (s.status == MissionStatus.Locked && CanStart(s)) { StartMission(s); step = true; }
+                    if (s.status == MissionStatus.Active && IsComplete(s)) { CompleteMission(s); step = true; }
+                }
+                if (!step) break;
+                changed = true;
+            }
+            var f = PickFocus();
+            if (changed || f != Focused) { Focused = f; UpdateMarker(); Bump(); }
+        }
+
+        bool CanStart(State s)
+        {
+            var d = s.def;
+            if (d.chapter > Chapter || !Available(d)) return false;
+            if (d.requires != null) foreach (var r in d.requires) if (!string.IsNullOrEmpty(r) && !IsDone(r)) return false;
+            if (d.startWhen == null || d.startWhen.Count == 0) return true;
+            return Match(s, d.startWhen, d.startMode, true);
+        }
+
+        bool IsComplete(State s) => s.def.complete != null && s.def.complete.Count > 0 && Match(s, s.def.complete, s.def.completeMode, false);
+
+        bool Match(State s, List<MissionCondition> list, MatchMode mode, bool start)
+        {
+            bool any = false, all = true;
+            for (int i = 0; i < list.Count; i++)
+            {
+                var c = list[i]; if (c == null) continue;
+                bool ok = Satisfied(s, i, c, start);
+                any |= ok; all &= ok;
+                if (mode == MatchMode.Any && ok) return true;
+                if (mode == MatchMode.All && !ok) return false;
+            }
+            return mode == MatchMode.Any ? any : all;
+        }
+
+        bool Satisfied(State s, int i, MissionCondition c, bool start)
+        {
+            switch (c.kind)
+            {
+                case ConditionKind.Event: return start ? s.latch[i] : s.counts[i] >= Mathf.Max(1, c.count);
+                case ConditionKind.Location:
+                    foreach (var id in StoryIds.Split(c.ids)) if (_visited.Contains(StoryIds.Location(id))) return true;
+                    return false;
+                case ConditionKind.NearLocation:
+                {
+                    var p = PlayerLocator.Position; if (!p.HasValue) return false;
+                    foreach (var id in StoryIds.Split(c.ids))
+                        if (TryLocation(id, out var at) && Flat(p.Value - at) <= Mathf.Max(1f, c.radius)) return true;
+                    return false;
+                }
+                case ConditionKind.Check: return Check(c);
+                case ConditionKind.Hour: return InHours(c.hourFrom, c.hourTo);
+                case ConditionKind.MissionDone:
+                    foreach (var id in StoryIds.Split(c.ids)) if (!IsDone(id)) return false;
+                    return true;
+            }
+            return false;
+        }
+
+        /// <summary>a mission that only waits for events this build does not have (another system not in yet) never starts</summary>
+        static bool Available(MissionDefinition d)
+        {
+            if (d.complete == null || d.complete.Count == 0) return false;
+            foreach (var c in d.complete)
+            {
+                if (c == null) continue;
+                if (c.kind != ConditionKind.Event) return true;
+                if (StoryIds.Events(c.events).Count > 0) return true;
+            }
+            return false;
+        }
+
+        static float Flat(Vector3 v) { v.y = 0f; return v.magnitude; }
+        static bool InHours(float from, float to)
+        {
+            var tm = TimeManager.Instance; if (!tm) return false;
+            float h = tm.hour;
+            return from <= to ? h >= from && h < to : h >= from || h < to;
+        }
+
+        /// <summary>named state rules (MissionCondition.check)</summary>
+        public bool Check(MissionCondition c)
+        {
+            var p = PlayerLocator.Position;
+            var tm = TimeManager.Instance;
+            switch (c.check)
+            {
+                case "shelter_exists": for (int i = 0; i < Shelter.All.Count; i++) if (Shelter.All[i]) return true; return false;
+                case "near_fresh_water": return p.HasValue && WaterSource.IsNearFresh(p.Value, c.radius > 0f ? c.radius : 3f);
+                case "fire_lit": foreach (var f in Campfire.All) if (f && f.IsLit) return true; return false;
+                case "at_camp": return p.HasValue && CampDistance(p.Value) <= (c.radius > 0f ? c.radius : 15f);
+                case "far_from_camp": { if (!p.HasValue) return false; float d = CampDistance(p.Value); return d < float.MaxValue && d > (c.radius > 0f ? c.radius : 150f); }
+                case "prepared": return Prepared();
+                case "has_item": return HasItem(c.ids);
+                case "creatures_known": return JournalSystem.Instance && JournalSystem.Instance.CreaturesKnown >= Mathf.Max(1, c.count);
+                case "discoveries": return JournalSystem.Instance && JournalSystem.Instance.CountUnlocked(JournalCategory.Discoveries) >= Mathf.Max(1, c.count);
+                case "night": return tm && tm.IsNight;
+                case "dusk": return tm && (tm.IsNight || tm.hour >= tm.sunsetHour - 1.5f);
+                case "day": return tm && tm.day >= Mathf.Max(1, c.count);
+            }
+            return false;
+        }
+
+        /// <summary>progress number for a count rule (shown as "(2/5)"), -1 = none</summary>
+        int Progress(State s, out int of)
+        {
+            of = 0;
+            var list = s.def.complete; if (list == null || list.Count != 1) return -1;
+            var c = list[0]; if (c == null || c.count <= 1) return -1;
+            of = c.count;
+            switch (c.kind)
+            {
+                case ConditionKind.Event: return Mathf.Min(s.counts[0], c.count);
+                case ConditionKind.Check:
+                    var j = JournalSystem.Instance; if (!j) return -1;
+                    if (c.check == "creatures_known") return Mathf.Min(j.CreaturesKnown, c.count);
+                    if (c.check == "discoveries") return Mathf.Min(j.CountUnlocked(JournalCategory.Discoveries), c.count);
+                    return -1;
+            }
+            return -1;
+        }
+
+        InventorySystem Inv()
+        {
+            var pl = PlayerLocator.Player;
+            if (pl != _invOwner) { _invOwner = pl; _inv = pl ? pl.GetComponent<InventorySystem>() : null; }
+            return _inv;
+        }
+        bool HasItem(string ids)
+        {
+            var inv = Inv(); if (!inv || inv.Slots == null) return false;
+            for (int i = 0; i < inv.Slots.Length; i++) { var st = inv.Slots[i]; if (!st.IsEmptyOrNull() && StoryIds.Matches(st.item.id, ids)) return true; }
+            return false;
+        }
+        bool Prepared()
+        {
+            var inv = Inv(); if (!inv || inv.Slots == null) return false;
+            bool food = false, water = false, weapon = false;
+            for (int i = 0; i < inv.Slots.Length; i++)
+            {
+                var st = inv.Slots[i]; if (st.IsEmptyOrNull()) continue; var it = st.item;
+                if (it.IsWaterContainer) { if (st.water > 0 && st.waterType != WaterType.SaltWater) water = true; continue; }
+                if (it.IsFood && !it.IsMedical) food = true;
+                if (it.weapon != WeaponKind.None || it.category == ItemCategory.Weapon) weapon = true;
+            }
+            return food && water && weapon;
+        }
+
+        /// <summary>metres to the nearest camp (placed fire or shelter); MaxValue = no camp</summary>
+        public static float CampDistance(Vector3 p) => NearestCamp(p, out var at) ? Flat(at - p) : float.MaxValue;
+        public static bool NearestCamp(Vector3 p, out Vector3 at)
+        {
+            float best = float.MaxValue; at = default;
+            foreach (var c in Campfire.All) { if (!c) continue; float d = (c.transform.position - p).sqrMagnitude; if (d < best) { best = d; at = c.transform.position; } }
+            for (int i = 0; i < Shelter.All.Count; i++) { var s = Shelter.All[i]; if (!s) continue; float d = (s.transform.position - p).sqrMagnitude; if (d < best) { best = d; at = s.transform.position; } }
+            return best < float.MaxValue;
+        }
+
+        // ------------------------------------------------------------------ locations
+        /// <summary>where a location is: the ZoneManager zone with that id (legacy names too) or Markers/Zones/&lt;id&gt;</summary>
+        public bool TryLocation(string id, out Vector3 at)
+        {
+            id = StoryIds.Location(id); at = default;
+            if (string.IsNullOrEmpty(id)) return false;
+            if (_places.TryGetValue(id, out at)) return true;
+            if (Time.unscaledTime - _placesAt < 5f) return false;
+            RefreshPlaces();
+            return _places.TryGetValue(id, out at);
+        }
+        public void RefreshPlaces()
+        {
+            _placesAt = Time.unscaledTime; _places.Clear();
+            var zm = ZoneManager.Instance;
+            if (zm) foreach (var z in zm.zones) if (z != null && !string.IsNullOrEmpty(z.id)) { var k = StoryIds.Location(z.id); if (!_places.ContainsKey(k)) _places[k] = z.center; }
+            var markers = PrimalFrontier.Core.SceneRoots.Legacy("Markers"); var zones = markers ? markers.Find("Zones") : null;   // HIER: Managers/Markers
+            if (zones) for (int i = 0; i < zones.childCount; i++) { var t = zones.GetChild(i); var k = StoryIds.Location(t.name); if (!_places.ContainsKey(k)) _places[k] = t.position; }
+        }
+
+        void SyncVisited()
+        {
+            var zm = ZoneManager.Instance;
+            if (zm) foreach (var v in zm.Visited) if (!string.IsNullOrEmpty(v)) _visited.Add(StoryIds.Location(v));
+        }
+
+        // ------------------------------------------------------------------ start / complete
+        void StartMission(State s)
+        {
+            s.status = MissionStatus.Active;
+            s.startedClock = GameClock.Now;
+            var tm = TimeManager.Instance; s.startedDay = tm ? tm.day : 1;
+            s.deadlineDay = -1; s.warned = s.late = false;
+            if (s.def.deadline != MissionDeadline.None && tm) s.deadlineDay = tm.hour < DeadlineHour(s.def) ? tm.day : tm.day + 1;
+            for (int i = 0; i < s.counts.Length; i++) { s.counts[i] = 0; s.seen[i].Clear(); }
+            if (_silent) return;
+            GameEvents.Raise(GameEventType.MissionStarted, s.def.id, s.def.chapter);
+            MissionStarted?.Invoke(s.def);
+            if (!string.IsNullOrEmpty(s.def.startLine)) ProtagonistVoice.SayText("mission:" + s.def.id + ":start", s.def.startLine, true);
+            if (!string.IsNullOrEmpty(s.def.startCue)) PlayCue(s.def.startCue);
+        }
+
+        void CompleteMission(State s)
+        {
+            s.status = MissionStatus.Done;
+            if (!string.IsNullOrEmpty(s.def.journalPage) && JournalSystem.Instance) JournalSystem.Instance.Unlock(s.def.journalPage, !_silent);
+            if (!_silent)
+            {
+                GameEvents.Raise(GameEventType.MissionCompleted, s.def.id, s.def.chapter);
+                MissionCompleted?.Invoke(s.def);
+                if (!string.IsNullOrEmpty(s.def.doneLine)) ProtagonistVoice.SayText("mission:" + s.def.id + ":done", s.def.doneLine, true);
+            }
+            if (s.def.endsChapter && s.def.chapter >= Chapter)
+            {
+                if (s.def.chapter >= MissionCatalog.ChapterNames.Length) Finished = true;
+                else BeginChapter(s.def.chapter + 1);
+            }
+        }
+
+        void BeginChapter(int n)
+        {
+            if (n <= Chapter) return;
+            Chapter = n; Bump();
+            if (_silent) return;
+            GameEvents.Raise(GameEventType.ChapterStarted, MissionCatalog.ChapterName(n), n);
+            ChapterBegan?.Invoke(n);
+            StartCoroutine(ChapterCard(n));
+        }
+        IEnumerator ChapterCard(int n)
+        {
+            yield return new WaitForSeconds(chapterCardDelay);
+            if (Chapter == n && UI.HUDManager.Instance) UI.HUDManager.Instance.ShowBanner(MissionCatalog.ChapterNumber(n), MissionCatalog.ChapterName(n), 5f);
+        }
+
+        /// <summary>story moments tied to a mission start</summary>
+        void PlayCue(string cue)
+        {
+            if (cue == "predator_roar")
+            {
+                GameEvents.Raise(GameEventType.PredatorWarning, "roar");
+                Audio.SfxPlayer.Instance.Play2D(Audio.SfxId.RoarDistant, 0.9f);
+                var cam = Camera.main ? Camera.main.GetComponent<Player.ThirdPersonCamera>() : null;
+                if (cam) cam.AddShake(0.02f, 1.2f);
+            }
+        }
+
+        // ------------------------------------------------------------------ focus, text, deadline, marker
+        State PickFocus()
+        {
+            State earlier = null, optional = null;
+            for (int i = 0; i < _states.Count; i++)
+            {
+                var s = _states[i]; if (!s.Active) continue;
+                if (s.def.main && s.def.chapter == Chapter) return s;
+                if (s.def.main) { if (earlier == null) earlier = s; }
+                else if (optional == null) optional = s;
+            }
+            return earlier ?? optional;
+        }
+
+        /// <summary>the objective line of a mission (late text after its soft deadline, progress for count goals)</summary>
+        public string ObjectiveText(State s)
+        {
+            if (s == null) return null;
+            string t = s.late && !string.IsNullOrEmpty(s.def.lateObjective) ? s.def.lateObjective : s.def.objective;
+            int n = Progress(s, out int of);
+            return n >= 0 ? t + "  (" + n + "/" + of + ")" : t;
+        }
+        /// <summary>focused objective close to its soft deadline (the UI shows it again, warmer)</summary>
+        public bool FocusedUrgent => Focused != null && Focused.warned && !Focused.late;
+
+        static float DeadlineHour(MissionDefinition d)
+        {
+            var tm = TimeManager.Instance; float sunset = tm ? tm.sunsetHour : 19.5f;
+            switch (d.deadline)
+            {
+                case MissionDeadline.Sunset: return sunset;
+                case MissionDeadline.Nightfall: return sunset + 0.5f;
+                case MissionDeadline.Hour: return d.deadlineHour;
+            }
+            return 24f;
+        }
+
+        void UpdateDeadlines()
+        {
+            var tm = TimeManager.Instance; if (!tm) return;
+            for (int i = 0; i < _states.Count; i++)
+            {
+                var s = _states[i]; if (!s.Active || s.def.deadline == MissionDeadline.None || s.late || s.deadlineDay < 0) continue;
+                float dl = DeadlineHour(s.def);
+                float left = (s.deadlineDay - tm.day) * 24f + dl - tm.hour;
+                if (left <= 0f)
+                {
+                    s.late = true; Bump();
+                    if (!_silent && !string.IsNullOrEmpty(s.def.lateLine)) ProtagonistVoice.SayText("mission:" + s.def.id + ":late", s.def.lateLine, true);
+                }
+                else if (!s.warned && left <= warnHours) { s.warned = true; Bump(); }
+            }
+        }
+
+        void UpdateMarker()
+        {
+            Vector3? m = null;
+            var s = Focused; var p = PlayerLocator.Position;
+            if (s != null && p.HasValue && s.def.marker != MissionMarker.None && GameClock.Now - s.startedClock >= GameClock.Hours(s.def.markerAfterHours))
+            {
+                switch (s.def.marker)
+                {
+                    case MissionMarker.Location: if (TryLocation(s.def.markerId, out var at)) m = at; break;
+                    case MissionMarker.NearestFreshWater: if (NearestFreshWater(p.Value, out var w)) m = w; break;
+                    case MissionMarker.Camp: if (NearestCamp(p.Value, out var c)) m = c; break;
+                    case MissionMarker.Shelter: { var sh = Shelter.Nearest(p.Value, 5000f); if (sh) m = sh.transform.position; break; }
+                }
+            }
+            _marker = m;
+        }
+
+        /// <summary>nearest fresh water point (the exact surface near it, the bounds of the source from afar)</summary>
+        public static bool NearestFreshWater(Vector3 p, out Vector3 at)
+        {
+            float best = float.MaxValue; at = default;
+            foreach (var w in WaterSource.All)
+            {
+                if (!w || !w.fresh) continue;
+                if (!WaterPoint(w, p, out var pt)) continue;
+                float d = Flat(pt - p); if (d < best) { best = d; at = pt; }
+            }
+            return best < float.MaxValue;
+        }
+        /// <summary>closest point of one water source to p</summary>
+        public static bool WaterPoint(WaterSource w, Vector3 p, out Vector3 at)
+        {
+            at = w.transform.position;
+            var r = w.surface ? w.surface.GetComponent<Renderer>() : null;
+            Vector3 cp = r ? r.bounds.ClosestPoint(p) : at;
+            if (r && Flat(cp - p) > 8f) { at = cp; return true; }        // far: the edge of the source's area guides well enough
+            float d = w.Closest(p, out var exact);
+            at = d < float.MaxValue ? exact : cp;
+            return true;
+        }
+
+        void Bump() { Version++; }
+
+        // ------------------------------------------------------------------ save
+        [Serializable] class Saved { public int chapter; public bool finished; public List<SavedMission> missions = new List<SavedMission>(); }
+        [Serializable] class SavedMission { public string id; public int status; public int[] counts; public string[] seen; public bool[] latch; public double started; public int day, deadlineDay; public bool warned, late; }
+
+        public string CaptureSection()
+        {
+            if (!Begun) return null;
+            var d = new Saved { chapter = Chapter, finished = Finished };
+            foreach (var s in _states)
+            {
+                if (s.status == MissionStatus.Locked && !s.latch.Any(x => x)) continue;
+                var seen = new List<string>();
+                for (int i = 0; i < s.seen.Length; i++) foreach (var id in s.seen[i]) seen.Add(i + ":" + id);
+                d.missions.Add(new SavedMission { id = s.def.id, status = (int)s.status, counts = (int[])s.counts.Clone(), seen = seen.ToArray(), latch = (bool[])s.latch.Clone(),
+                                                  started = s.startedClock, day = s.startedDay, deadlineDay = s.deadlineDay, warned = s.warned, late = s.late });
+            }
+            return JsonUtility.ToJson(d);
+        }
+
+        public void RestoreSection(string json)
+        {
+            var d = JsonUtility.FromJson<Saved>(json); if (d == null) return;
+            ResetAll();
+            Chapter = Mathf.Clamp(d.chapter, 1, MissionCatalog.ChapterNames.Length); Finished = d.finished;
+            if (d.missions != null)
+                foreach (var m in d.missions)
+                {
+                    var s = m != null ? Get(m.id) : null; if (s == null) continue;          // a mission removed from the game
+                    s.status = (MissionStatus)Mathf.Clamp(m.status, 0, 2);
+                    if (m.counts != null) for (int i = 0; i < s.counts.Length && i < m.counts.Length; i++) s.counts[i] = Mathf.Max(0, m.counts[i]);
+                    if (m.latch != null) for (int i = 0; i < s.latch.Length && i < m.latch.Length; i++) s.latch[i] = m.latch[i];
+                    if (m.seen != null)
+                        foreach (var e in m.seen)
+                        {
+                            int c = e != null ? e.IndexOf(':') : -1; if (c <= 0) continue;
+                            if (int.TryParse(e.Substring(0, c), out int i) && i >= 0 && i < s.seen.Length) s.seen[i].Add(e.Substring(c + 1));
+                        }
+                    s.startedClock = m.started; s.startedDay = m.day; s.deadlineDay = m.deadlineDay; s.warned = m.warned; s.late = m.late;
+                }
+            _restoredThisLoad = true;
+        }
+
+        /// <summary>after a load: settle the state quietly; a save made before missions existed is migrated</summary>
+        void OnLoaded()
+        {
+            SyncVisited();
+            bool was = _silent; _silent = true;
+            try
+            {
+                if (!_restoredThisLoad) MigrateFromLegacy();
+                Evaluate();
+            }
+            finally { _silent = was; _restoredThisLoad = false; }
+            UpdateMarker(); Bump();
+        }
+
+        /// <summary>old saves (tutorial step, journal, places): the chapter one missions the player had already done are done</summary>
+        void MigrateFromLegacy()
+        {
+            Chapter = 1;
+            var tut = TutorialManager.Instance; var tm = TimeManager.Instance;
+            bool all = tut && tut.Completed; int day = tm ? tm.day : 1;
+            bool L(params string[] ids) { if (all) return true; if (!tut) return false; foreach (var id in ids) if (tut.IsLearned(id)) return true; return false; }
+            void Mark(string id, bool done) { var s = Get(id); if (s != null && done && !s.Done) { if (!s.Active) StartMission(s); CompleteMission(s); } }
+            Mark("wake", L("walk", "search", "wood", "stone") || day > 1);
+            Mark("find_water", L("water", "fill_water", "drink_clean"));
+            Mark("make_fire", L("campfire", "cook"));
+            Mark("find_food", L("food", "cook"));
+            Mark("build_shelter", L("tent", "shelter") || Shelter.All.Count > 0);
+            Mark("first_night", L("night", "sleep") || day > 1);
+        }
+    }
+}

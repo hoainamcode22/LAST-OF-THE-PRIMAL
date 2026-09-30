@@ -91,9 +91,9 @@ namespace PrimalFrontier.Tests
         {
             yield return LoadIsland();
             var p = _gm.Player; var pi = p.GetComponent<PlayerInteraction>(); var inv = p.GetComponent<InventorySystem>();
-            var nodes = NodesWithin(Spawn, 40f).Where(n => !n.IsEmpty).OrderBy(n => Flat(n.transform.position - Spawn).magnitude).ToList();
+            var nodes = NodesWithin(Spawn, 40f).Where(n => !n.IsEmpty && n.Def.handsFactor > 0f).OrderBy(n => Flat(n.transform.position - Spawn).magnitude).ToList();
             Assert.GreaterOrEqual(nodes.Count, 12, "nodes around the spawn");
-            var allowed = new[] { "Gather Stone", "Gather Wood", "Gather Fiber", "Harvest" };
+            var allowed = new[] { "Gather Stone", "Gather Wood", "Gather Fiber", "Harvest", "Salvage", "Search Wreckage", "Take Bones" };
             int targeted = 0, lit = 0; var misses = new List<string>(); var report = new System.Text.StringBuilder();
             var hl = Object.FindFirstObjectByType<InteractionHighlight>(); Assert.IsNotNull(hl, "the interaction highlight runs");
             foreach (var n in nodes)
@@ -129,18 +129,20 @@ namespace PrimalFrontier.Tests
             var stone = Db.Item("stone"); var wood = Db.Item("wood"); var report = new System.Text.StringBuilder();
             ResourceNode Nearest(string def) => Interactable.Active.OfType<ResourceNode>().Where(n => n && n.Def.id == def && !n.IsEmpty).OrderBy(n => Flat(n.transform.position - Spawn).magnitude).FirstOrDefault();
             bool tg = false;
-            // stone: large rock, hands 1 per 3 actions, pick 3-5 per action
+            // stone: large rock, hands nothing ("Need a pick", Phase 1 gating), pick 3-5 per action
             var rock = Nearest("stone_large"); Assert.IsNotNull(rock, "a large rock");
             yield return StandAt(rock, pi, b => tg = b);
             inv.Clear();
+            Assert.IsFalse(rock.CanInteract(pi), "a large rock by hand");
+            rock.GetPrompt(pi, out var rsub); StringAssert.Contains("Need a pick", rsub);
             for (int i = 0; i < 3; i++) rock.Hit(pi);
-            Assert.AreEqual(1, inv.Count(stone), "three hand actions on a large rock: 1 stone");
+            Assert.AreEqual(0, inv.Count(stone), "hands get nothing from a large rock");
             inv.Add(Db.Item("stone_pick"), 1); inv.SetActiveSlot(0);
             Assert.AreEqual("stone_pick", inv.ActiveItem ? inv.ActiveItem.id : null);
             StringAssert.Contains("Gather Stone", rock.GetPrompt(pi, out _));
             int b0 = inv.Count(stone); rock.Hit(pi); int pickGain = inv.Count(stone) - b0;
             Assert.That(pickGain, Is.InRange(3, 5), "the pick: 3-5 stone per action");
-            report.Append($"large rock: hands 1 per 3, pick {pickGain}; ");
+            report.Append($"large rock: hands 0 ('{rsub}'), pick {pickGain}; ");
             // a branch by hand, then fibre by hand and with a knife
             var br = Nearest("wood_branch"); Assert.IsNotNull(br, "a fallen branch");
             yield return StandAt(br, pi, b => tg = b); inv.Clear(); inv.SetActiveSlot(0);
@@ -149,7 +151,7 @@ namespace PrimalFrontier.Tests
             yield return StandAt(fib, pi, b => tg = b); inv.Clear();
             fib.Hit(pi); int fh = inv.Count(Db.Item("fiber")); Assert.That(fh, Is.InRange(1, 2), "fibre by hand 1-2");
             report.Append($"branch by hand 1, fibre by hand {fh}; ");
-            // a terrain tree: hands only strip twigs (tiny, capped, never fells), the axe chops 2-3 per hit and fells it
+            // a terrain tree: hands get nothing ("Need an axe", Phase 1 gating), the axe chops 2-3 per hit and fells it
             var th = Object.FindFirstObjectByType<TreeHarvest>(); Assert.IsNotNull(th, "trees");
             var td = Terrain.activeTerrain.terrainData; var tp = Terrain.activeTerrain.transform.position;
             var tree = td.treeInstances.Select(t => Vector3.Scale(t.position, td.size) + tp).OrderBy(t => Flat(t - Spawn).magnitude).First();
@@ -158,10 +160,12 @@ namespace PrimalFrontier.Tests
             float t0 = Time.realtimeSinceStartup; while (th.Current < 0 && Time.realtimeSinceStartup - t0 < 2f) yield return null;
             Assert.GreaterOrEqual(th.Current, 0, "at a tree"); int idx = th.Current;
             inv.Clear(); inv.SetActiveSlot(0);
-            Assert.AreEqual("Gather Wood", th.GetPrompt(pi, out var tsub), "bare hands at a tree");
+            Assert.AreEqual("Chop Tree", th.GetPrompt(pi, out var tsub), "bare hands at a tree");
+            StringAssert.Contains("Need an axe", tsub);
+            Assert.IsFalse(th.CanInteract(pi), "bare hands cannot work a tree");
             for (int i = 0; i < 12; i++) th.HandHit(pi, idx);
             int twigs = inv.Count(wood);
-            Assert.That(twigs, Is.InRange(1, 2), "hands: a couple of dry twigs, no more");
+            Assert.AreEqual(0, twigs, "hands: nothing from a tree");
             Assert.IsFalse(th.Felled.ContainsKey(idx), "fists never fell a tree");
             bool felledEvent = false; System.Action<GameEvent> on = e => { if (e.type == GameEventType.TreeFelled) felledEvent = true; };
             GameEvents.Raised += on;

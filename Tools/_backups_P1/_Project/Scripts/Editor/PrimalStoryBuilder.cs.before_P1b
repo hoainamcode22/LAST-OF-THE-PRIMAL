@@ -1,0 +1,306 @@
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
+using UnityEditor;
+using UnityEditor.SceneManagement;
+using UnityEngine;
+using PrimalFrontier.Core;
+using PrimalFrontier.Story;
+using PrimalFrontier.UI;
+using PrimalFrontier.World;
+
+namespace PrimalFrontier.EditorTools
+{
+    /// <summary>
+    /// Story content in the island scene (STORY agent), idempotent and additive (hand edits are kept):
+    /// mission assets in Resources/Story/Missions (created when missing; "reset-missions" rewrites them from MissionCatalog),
+    /// [Systems]/Story with MissionSystem (mission list), ProtagonistVoice (lines) and DeathSystem, the first-day tip texts on
+    /// the TutorialManager, the journal's new pages and sections, the objective line / journal / minimap / death screen
+    /// layouts under [UI], and (arg "map", after the terrain is final) the survivor's map picture. Logs every step, checks
+    /// that the location and discovery ids the story uses exist in the scene, saves the scene.
+    /// Bridge: PrimalStoryBuilder.Build "" | "map" | "reset-missions"; PrimalStoryBuilder.BakeMap; PrimalStoryBuilder.Inspect.
+    /// </summary>
+    public static class PrimalStoryBuilder
+    {
+        const string Scene = "Assets/_Project/Scenes/Island_VerticalSlice.unity";
+        const string MissionDir = "Assets/_Project/Resources/Story/Missions";
+        const string MapPng = "Assets/_Project/Art/UI/T_MinimapSketch.png";
+        const string MapData = "Assets/_Project/Resources/MinimapData.asset";
+        static readonly StringBuilder Log = new StringBuilder();
+        static void L(string s) { Log.AppendLine(s); Debug.Log("[PrimalStoryBuilder] " + s); }
+
+        [MenuItem("Primal Frontier/Story/Build story content")]
+        static void Menu() => Build("");
+
+        [PrimalBridgeCommand]
+        public static string Build(string arg)
+        {
+            Log.Clear();
+            arg ??= "";
+            var scene = EditorSceneManager.GetActiveScene();
+            if (scene.path != Scene) scene = EditorSceneManager.OpenScene(Scene, OpenSceneMode.Single);
+            var missions = MissionAssets(arg.Contains("reset-missions"));
+            SceneSystems(missions);
+            UiLayouts();
+            if (arg.Contains("map")) BakeMapInternal();
+            Checks(missions);
+            EditorSceneManager.MarkSceneDirty(scene);
+            EditorSceneManager.SaveScene(scene);
+            AssetDatabase.SaveAssets();
+            L("scene saved: " + scene.path);
+            return Log.ToString();
+        }
+
+        // ------------------------------------------------------------------ missions
+        static List<MissionDefinition> MissionAssets(bool reset)
+        {
+            Directory.CreateDirectory(MissionDir);
+            int made = 0, kept = 0, rewritten = 0;
+            var list = new List<MissionDefinition>();
+            foreach (var def in MissionCatalog.Build())
+            {
+                string path = MissionDir + "/MIS_" + def.id + ".asset";
+                var asset = AssetDatabase.LoadAssetAtPath<MissionDefinition>(path);
+                if (!asset) { AssetDatabase.CreateAsset(def, path); asset = def; made++; }
+                else if (reset) { EditorUtility.CopySerialized(def, asset); asset.name = "MIS_" + def.id; EditorUtility.SetDirty(asset); Object.DestroyImmediate(def); rewritten++; }
+                else { Object.DestroyImmediate(def); kept++; }
+                list.Add(asset);
+            }
+            // missions added by hand in the folder are kept and used too
+            foreach (var guid in AssetDatabase.FindAssets("t:MissionDefinition", new[] { MissionDir }))
+            {
+                var m = AssetDatabase.LoadAssetAtPath<MissionDefinition>(AssetDatabase.GUIDToAssetPath(guid));
+                if (m && !list.Contains(m)) { list.Add(m); L("extra mission kept: " + m.id); }
+            }
+            L($"missions: {list.Count} ({made} created, {kept} kept as edited, {rewritten} reset) in {MissionDir}");
+            return list.OrderBy(m => m.chapter).ThenBy(m => m.order).ToList();
+        }
+
+        // ------------------------------------------------------------------ scene systems
+        static void SceneSystems(List<MissionDefinition> missions)
+        {
+            var systems = GameObject.Find("[Systems]");
+            if (!systems) { systems = new GameObject("[Systems]"); L("created [Systems]"); }
+            var ms = Object.FindFirstObjectByType<MissionSystem>(FindObjectsInactive.Include);
+            GameObject story;
+            if (ms) story = ms.gameObject;
+            else
+            {
+                var t = systems.transform.Find("Story");
+                story = t ? t.gameObject : new GameObject("Story");
+                story.transform.SetParent(systems.transform, false);
+                ms = story.GetOrAdd<MissionSystem>();
+                L("created " + Path(story.transform) + " with MissionSystem");
+            }
+            // mission list: keep the scene's order / removals, add what is missing
+            int added = 0;
+            if (ms.missions == null) ms.missions = new List<MissionDefinition>();
+            ms.missions.RemoveAll(m => !m);
+            foreach (var m in missions) if (!ms.missions.Contains(m)) { ms.missions.Add(m); added++; }
+            EditorUtility.SetDirty(ms);
+            L($"MissionSystem: {ms.missions.Count} missions ({added} added)");
+
+            var voice = Object.FindFirstObjectByType<ProtagonistVoice>(FindObjectsInactive.Include);
+            if (!voice) voice = story.AddComponent<ProtagonistVoice>();
+            int lines = 0;
+            foreach (var l in ProtagonistVoice.Defaults()) if (!voice.lines.Exists(x => x != null && x.id == l.id)) { voice.lines.Add(l); lines++; }
+            EditorUtility.SetDirty(voice);
+            L($"ProtagonistVoice: {voice.lines.Count} lines ({lines} added)");
+
+            var death = Object.FindFirstObjectByType<DeathSystem>(FindObjectsInactive.Include);
+            if (!death) { death = story.AddComponent<DeathSystem>(); L("DeathSystem added (drop share 0.5, item in hand kept)"); }
+            else L($"DeathSystem: drop share {death.dropShare:0.##}, keep in hand {death.keepEquipped}, keep tools {death.keepToolsAndWeapons}");
+
+            var tut = Object.FindFirstObjectByType<TutorialManager>(FindObjectsInactive.Include);
+            if (tut)
+            {
+                int before = tut.tips.Count; tut.SyncTexts(); EditorUtility.SetDirty(tut);
+                L($"TutorialManager: {tut.tips.Count} first-day tips ({tut.tips.Count - before} added), one per {tut.minTipGapSeconds:0} s at most");
+            }
+            else L("WARNING: no TutorialManager in the scene (GameManager creates one at run time)");
+
+            var j = Object.FindFirstObjectByType<JournalSystem>(FindObjectsInactive.Include);
+            if (j)
+            {
+                int before = j.entries.Count; j.SyncBuiltIns(); EditorUtility.SetDirty(j);
+                var per = JournalSystem.Sections.Select(c => JournalSystem.SectionName(c) + " " + j.entries.Count(e => e != null && e.category == c));
+                L($"Journal: {j.entries.Count} pages ({j.entries.Count - before} added): " + string.Join(", ", per));
+            }
+            else L("WARNING: no JournalSystem in the scene");
+        }
+
+        // ------------------------------------------------------------------ UI
+        static void UiLayouts()
+        {
+            var ui = Object.FindFirstObjectByType<UIManager>(FindObjectsInactive.Include);
+            if (!ui) { L("WARNING: no [UI] (UIManager) in the scene: layouts not baked (they build at run time)"); return; }
+            var root = ui.gameObject;
+            root.GetOrAdd<ObjectiveUI>().BakeLayout();
+            var mm = root.GetComponent<Minimap>(); if (mm) { if (!mm.data) mm.data = AssetDatabase.LoadAssetAtPath<MinimapData>(MapData); mm.BakeLayout(); EditorUtility.SetDirty(mm); }
+            var jui = root.GetComponent<JournalUI>(); if (jui) jui.BakeLayout();
+            var death = root.GetComponent<DeathScreenUI>(); if (death) death.BakeLayout();
+            EditorUtility.SetDirty(root);
+            L("UI baked: [Objective] (objective line + chapter), [HUD]/Minimap (fog layer), [Journal] (6 sections), [Death]");
+        }
+
+        // ------------------------------------------------------------------ checks
+        static void Checks(List<MissionDefinition> missions)
+        {
+            var have = new HashSet<string>();
+            var zm = Object.FindFirstObjectByType<ZoneManager>(FindObjectsInactive.Include);
+            if (zm) foreach (var z in zm.zones) if (z != null && !string.IsNullOrEmpty(z.id)) have.Add(StoryIds.Location(z.id));
+            var markers = GameObject.Find("Markers"); var zones = markers ? markers.transform.Find("Zones") : null;
+            int markerCount = 0;
+            if (zones) for (int i = 0; i < zones.childCount; i++) { have.Add(StoryIds.Location(zones.GetChild(i).name)); markerCount++; }
+            var missing = StoryIds.Locations.Where(id => !have.Contains(id)).ToList();
+            L($"locations: {StoryIds.Locations.Length - missing.Count} of {StoryIds.Locations.Length} found (ZoneManager {(zm ? zm.zones.Count : 0)} zones, Markers/Zones {markerCount})" +
+              (missing.Count > 0 ? "; missing: " + string.Join(", ", missing) : ""));
+            foreach (var m in missions)
+            {
+                foreach (var c in m.complete.Concat(m.startWhen))
+                {
+                    if (c == null) continue;
+                    if (c.kind == ConditionKind.Location || c.kind == ConditionKind.NearLocation)
+                        foreach (var id in StoryIds.Split(c.ids)) if (!have.Contains(StoryIds.Location(id))) L($"  mission {m.id}: location '{id}' not in the scene yet");
+                    if (c.kind == ConditionKind.Event && StoryIds.Events(c.events).Count == 0) L($"  mission {m.id}: event(s) '{c.events}' not in GameEventType yet (the rule waits for them)");
+                }
+                if (m.marker == MissionMarker.Location && !have.Contains(StoryIds.Location(m.markerId))) L($"  mission {m.id}: marker location '{m.markerId}' missing");
+            }
+            var exs = Object.FindObjectsByType<Examinable>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            int known = 0; var unknown = new List<string>();
+            foreach (var e in exs)
+            {
+                if (string.IsNullOrEmpty(e.discoveryId)) continue;
+                if (StoryTexts.Discovery(e.discoveryId) != null) known++; else unknown.Add(e.discoveryId);
+            }
+            L($"examinables: {exs.Length} ({known} with story texts" + (unknown.Count > 0 ? ", no text for: " + string.Join(", ", unknown.Distinct()) + " (page made from the prop)" : "") + ")");
+        }
+
+        static string Path(Transform t) => t.parent ? Path(t.parent) + "/" + t.name : t.name;
+
+        // ------------------------------------------------------------------ the survivor's map
+        [PrimalBridgeCommand]
+        public static string BakeMap()
+        {
+            Log.Clear();
+            var scene = EditorSceneManager.GetActiveScene();
+            if (scene.path != Scene) scene = EditorSceneManager.OpenScene(Scene, OpenSceneMode.Single);
+            BakeMapInternal();
+            EditorSceneManager.MarkSceneDirty(scene); EditorSceneManager.SaveScene(scene);
+            return Log.ToString();
+        }
+
+        /// <summary>
+        /// top-down picture of the terrain turned into a hand-drawn map: parchment tones from the render, ink contour lines
+        /// every 8 m, a darker coast line, sea washed grey-blue. The reveal fog hides it until explored.
+        /// </summary>
+        static void BakeMapInternal()
+        {
+            var terrain = Object.FindFirstObjectByType<Terrain>();
+            if (!terrain) { L("map: no terrain"); return; }
+            var size = terrain.terrainData.size; var tp = terrain.transform.position;
+            float world = Mathf.Max(size.x, size.z);
+            const int Res = 1024;
+            var go = new GameObject("_StoryMapCam"); var cam = go.AddComponent<Camera>();
+            var rt = new RenderTexture(Res, Res, 24, RenderTextureFormat.ARGB32) { antiAliasing = 4 };
+            bool fog = RenderSettings.fog; RenderSettings.fog = false;
+            float sea = SeaLevel();
+            try
+            {
+                cam.orthographic = true; cam.orthographicSize = world * 0.5f; cam.aspect = 1f;
+                cam.transform.position = new Vector3(tp.x + world * 0.5f, tp.y + size.y + 400f, tp.z + world * 0.5f);
+                cam.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
+                cam.nearClipPlane = 1f; cam.farClipPlane = size.y + 900f;
+                cam.clearFlags = CameraClearFlags.SolidColor; cam.backgroundColor = new Color(0.3f, 0.36f, 0.38f);
+                int ui = LayerMask.NameToLayer("UI"), pl = LayerMask.NameToLayer("Player");
+                cam.cullingMask = ~((ui >= 0 ? 1 << ui : 0) | (pl >= 0 ? 1 << pl : 0));
+                cam.targetTexture = rt; cam.Render();
+                var prev = RenderTexture.active; RenderTexture.active = rt;
+                var tex = new Texture2D(Res, Res, TextureFormat.RGB24, false); tex.ReadPixels(new Rect(0, 0, Res, Res), 0, 0); tex.Apply();
+                RenderTexture.active = prev;
+                var px = tex.GetPixels();
+                // heights per pixel (terrain), for contours, coast and sea
+                var h = new float[Res * Res];
+                for (int y = 0; y < Res; y++)
+                    for (int x = 0; x < Res; x++)
+                    {
+                        var w = new Vector3(tp.x + (x + 0.5f) / Res * world, 0f, tp.z + (y + 0.5f) / Res * world);
+                        bool inside = w.x <= tp.x + size.x && w.z <= tp.z + size.z;
+                        h[y * Res + x] = inside ? terrain.SampleHeight(w) + tp.y : sea - 5f;
+                    }
+                var paper = new Color(0.83f, 0.75f, 0.58f); var ink = new Color(0.27f, 0.19f, 0.12f); var wash = new Color(0.44f, 0.53f, 0.55f);
+                const float Step = 8f;
+                for (int y = 0; y < Res; y++)
+                    for (int x = 0; x < Res; x++)
+                    {
+                        int i = y * Res + x; float hi = h[i];
+                        var c = px[i]; float lum = c.r * 0.3f + c.g * 0.59f + c.b * 0.11f;
+                        Color outc;
+                        if (hi < sea) outc = Color.Lerp(wash, wash * 0.8f, Mathf.Clamp01((sea - hi) / 12f));
+                        else
+                        {
+                            var tone = paper * (0.62f + 0.55f * lum); tone.a = 1f;
+                            var desat = Color.Lerp(new Color(lum, lum, lum), c, 0.45f);
+                            outc = Color.Lerp(tone, desat * paper, 0.35f);
+                        }
+                        // ink: contour lines and a heavier coast line
+                        int xr = Mathf.Min(Res - 1, x + 1), yu = Mathf.Min(Res - 1, y + 1);
+                        float hr = h[y * Res + xr], hu = h[yu * Res + x];
+                        bool coast = (hi >= sea) != (hr >= sea) || (hi >= sea) != (hu >= sea);
+                        bool contour = hi >= sea && (Mathf.FloorToInt(hi / Step) != Mathf.FloorToInt(hr / Step) || Mathf.FloorToInt(hi / Step) != Mathf.FloorToInt(hu / Step));
+                        if (coast) outc = Color.Lerp(outc, ink, 0.75f);
+                        else if (contour) outc = Color.Lerp(outc, ink, 0.28f);
+                        // aged edges
+                        float dx = (x - Res * 0.5f) / (Res * 0.5f), dy = (y - Res * 0.5f) / (Res * 0.5f);
+                        float v = Mathf.Clamp01((Mathf.Sqrt(dx * dx + dy * dy) - 0.8f) / 0.35f);
+                        outc = Color.Lerp(outc, outc * 0.7f, v); outc.a = 1f;
+                        px[i] = outc;
+                    }
+                tex.SetPixels(px); tex.Apply();
+                Directory.CreateDirectory(System.IO.Path.GetDirectoryName(MapPng));
+                File.WriteAllBytes(MapPng, tex.EncodeToPNG()); Object.DestroyImmediate(tex);
+                AssetDatabase.ImportAsset(MapPng, ImportAssetOptions.ForceUpdate);
+                var ti = (TextureImporter)AssetImporter.GetAtPath(MapPng);
+                ti.textureType = TextureImporterType.Default; ti.mipmapEnabled = false; ti.wrapMode = TextureWrapMode.Clamp; ti.maxTextureSize = 1024; ti.sRGBTexture = true;
+                ti.SaveAndReimport();
+                var data = AssetDatabase.LoadAssetAtPath<MinimapData>(MapData);
+                if (!data) { Directory.CreateDirectory("Assets/_Project/Resources"); data = ScriptableObject.CreateInstance<MinimapData>(); AssetDatabase.CreateAsset(data, MapData); }
+                data.map = AssetDatabase.LoadAssetAtPath<Texture2D>(MapPng); data.worldMin = new Vector2(tp.x, tp.z); data.worldSize = world;
+                EditorUtility.SetDirty(data);
+                var mm = Object.FindFirstObjectByType<Minimap>(FindObjectsInactive.Include); if (mm) { mm.data = data; EditorUtility.SetDirty(mm); }
+                L($"map baked: {MapPng} ({Res}px, {world:0} m, sea level {sea:0.0} m, contours every {Step:0} m)");
+            }
+            finally { RenderSettings.fog = fog; cam.targetTexture = null; Object.DestroyImmediate(go); rt.Release(); Object.DestroyImmediate(rt); }
+        }
+
+        /// <summary>height of the sea surface: the Water/Ocean object (else 0)</summary>
+        static float SeaLevel()
+        {
+            var water = GameObject.Find("Water");
+            if (water)
+                foreach (Transform t in water.transform)
+                    if (t.name.ToLowerInvariant().Contains("ocean") || t.name.ToLowerInvariant().Contains("sea")) return t.position.y;
+            return 0f;
+        }
+
+        // ------------------------------------------------------------------ inspect
+        [PrimalBridgeCommand]
+        public static string Inspect()
+        {
+            Log.Clear();
+            var ms = Object.FindFirstObjectByType<MissionSystem>(FindObjectsInactive.Include);
+            L(ms ? $"MissionSystem at {Path(ms.transform)}: {ms.missions.Count} missions" : "no MissionSystem in the scene");
+            var assets = AssetDatabase.FindAssets("t:MissionDefinition", new[] { MissionDir }).Length;
+            L($"mission assets: {assets}");
+            var v = Object.FindFirstObjectByType<ProtagonistVoice>(FindObjectsInactive.Include); L(v ? $"voice lines: {v.lines.Count}" : "no ProtagonistVoice");
+            var t = Object.FindFirstObjectByType<TutorialManager>(FindObjectsInactive.Include); L(t ? $"tips: {t.tips.Count}" : "no TutorialManager");
+            var j = Object.FindFirstObjectByType<JournalSystem>(FindObjectsInactive.Include);
+            if (j) L("journal: " + string.Join(", ", JournalSystem.Sections.Select(c => JournalSystem.SectionName(c) + " " + j.entries.Count(e => e != null && e.category == c))));
+            var data = AssetDatabase.LoadAssetAtPath<MinimapData>(MapData);
+            L(data ? $"minimap: {(data.map ? AssetDatabase.GetAssetPath(data.map) : "no picture")}, {data.worldSize:0} m from {data.worldMin}" : "no MinimapData");
+            Checks(ms ? ms.missions : new List<MissionDefinition>());
+            return Log.ToString();
+        }
+    }
+}

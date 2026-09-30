@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: RCP_torch
   m_EditorClassIdentifier: PrimalFrontier.Runtime::PrimalFrontier.Items.RecipeDefinition
   id: torch
-  category: 2
+  category: 7
   output: {fileID: 11400000, guid: 84e1bfe893489d244aeb94851e3abbd7, type: 2}
   outputCount: 1
   ingredients:
@@ -25,3 +25,5 @@ MonoBehaviour:
   station: 0
   knownAtStart: 1
   hint: 
+  requirements: []
+  extraResults: []

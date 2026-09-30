@@ -1,0 +1,45 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6c1c87829c145634e97f96d6e284623d, type: 3}
+  m_Name: RES_rare_hide
+  m_EditorClassIdentifier: PrimalFrontier.Runtime::PrimalFrontier.World.ResourceDefinition
+  id: rare_hide
+  displayName: Torn hide
+  category: 5
+  size: 0
+  prompt: Take Hide
+  item: {fileID: 11400000, guid: 2a31c73324c38c844b057d148433dd37, type: 2}
+  yieldRange: {x: 1, y: 1}
+  bonusItem: {fileID: 0}
+  bonusChance: 0
+  bestTool: 0
+  requiredTool: 0
+  handsFactor: 1
+  toolFactor: 1
+  gatherSeconds: 0.9
+  handAction: 1
+  toolAction: 1
+  toolWear: 1
+  handHint: 
+  punchable: 0
+  damagePerUnit: 4
+  respawnHours: 168
+  depletedLook: 0
+  damagedScale: 0.85
+  depletedScale: 0.45
+  sink: 0
+  radius: 0.35
+  hitVfx: 27
+  hitVfx2: 0
+  handSfx: 14
+  toolSfx: 14
+  depleteSfx: 0

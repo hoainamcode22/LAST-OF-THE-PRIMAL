@@ -15,6 +15,7 @@ namespace PrimalFrontier.VFX
         DinoFootDust, DinoImpactDust,
         BloodSpray, BloodSprayHeavy, HitDust,          // appended: ids are serialised as ints in the library
         PunchImpactSmall, PunchImpactHeavy, DustImpact, Heal, BoilBubbles,   // phase 3 (registered by the Lead)
+        FootWood, FootGrass, BuildDust, BloodDrip, DrinkDrips, RockDust,     // PC phase (U): wood / grass steps, construction dust, bleed drops, chin drips, climb grit
     }
 
     /// <summary>

@@ -23,3 +23,10 @@ The editor bridge (`$HOME/run.sh`, `$HOME/deploy.sh`) must be used by one agent 
 ## Rules
 No git commands (the Lead commits, without Claude trailers). No push. Never kill processes, never run Unity in batch mode,
 never run `PrimalGameplayBuilder`. No deleting files on the PC (not permitted). Original work only. Concise writing, no em-dashes.
+
+## Console check (added 2026-09-29, PC phase)
+`$HOME/run.sh <fresh id> PrimalEditorBridge.ConsoleCheck "" 5` returns the editor Console counts ("N entries, E errors,
+W warnings") plus the first unique error lines, and writes every entry to `Library/PrimalBridge/console.txt`. Run it
+after each deploy / builder run. Only errors that your change caused are yours to fix; report others to the Lead.
+Owner testing policy for the PC phase: no full PlayMode suites; compile + Console + asset import checks after each major
+step; a targeted PlayMode test only when nothing else can check the change.

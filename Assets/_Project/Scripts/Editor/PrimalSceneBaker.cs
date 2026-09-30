@@ -123,9 +123,7 @@ namespace PrimalFrontier.EditorTools
         // ------------------------------------------------------------------ helpers
         static Transform Root(string name)
         {
-            var go = GameObject.Find(name);
-            if (go && go.transform.parent == null) return go.transform;
-            return new GameObject(name).transform;
+            return PrimalFrontier.Core.SceneRoots.Legacy(name, true);                     // HIER 2026-09-30: [Systems] is Managers now
         }
 
         /// <summary>the scene's component of this type (anywhere, kept as is) or a new child of parent with it</summary>
@@ -234,7 +232,7 @@ namespace PrimalFrontier.EditorTools
             var root = ui ? ui.gameObject : new GameObject("[UI]");
             root.GetOrAdd<UIManager>(); root.GetOrAdd<HUDManager>(); root.GetOrAdd<InventoryUI>(); root.GetOrAdd<JournalUI>();
             root.GetOrAdd<PauseMenuUI>(); root.GetOrAdd<TitleScreenUI>(); root.GetOrAdd<DeathScreenUI>();
-            root.GetOrAdd<Minimap>(); root.GetOrAdd<MobileHUD>(); root.GetOrAdd<ContextHints>();
+            root.GetOrAdd<Minimap>(); if (MobileHUD.Supported) root.GetOrAdd<MobileHUD>(); root.GetOrAdd<ContextHints>();   // touch controls: mobile builds only
             int before = root.GetComponentsInChildren<Transform>(true).Length;
             foreach (var b in root.GetComponents<MonoBehaviour>().OfType<IBakeableUI>()) b.BakeLayout();
             if (!UnityEngine.Object.FindFirstObjectByType<DamageOverlay>(FindObjectsInactive.Include))

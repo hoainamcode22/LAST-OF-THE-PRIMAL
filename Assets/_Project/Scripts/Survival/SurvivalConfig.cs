@@ -35,7 +35,7 @@ namespace PrimalFrontier.Survival
             public float stamina;
             [Range(0, 1)] public float sickChance;
             public float sickSeconds;
-            [Tooltip("seconds on a lit campfire to purify one container (0 = cannot / need not be boiled)")] public float boilSeconds;
+            [Tooltip("seconds on a lit campfire to purify one container (0 = cannot / need not be boiled). Salt water never becomes drinkable, whatever this says (WaterRules)")] public float boilSeconds;
             public WaterType boilResult;
             [Tooltip("charges lost while boiling (salt boils down)")] public int boilChargeLoss;
             [Tooltip("HUD / inventory word")] public string label;
@@ -70,12 +70,21 @@ namespace PrimalFrontier.Survival
         [Header("Water")]
         public WaterProfile[] water =
         {
-            new WaterProfile { type = WaterType.SaltWater, thirst = -6f, stamina = 0f, sickChance = 0f, sickSeconds = 0f, boilSeconds = 20f, boilResult = WaterType.CleanWater, boilChargeLoss = 1, label = "salt water", color = new Color(0.55f, 0.78f, 0.92f), eventId = "salt_water" },
+            new WaterProfile { type = WaterType.SaltWater, thirst = -6f, stamina = 0f, sickChance = 0f, sickSeconds = 0f, boilSeconds = 0f, boilResult = WaterType.SaltWater, boilChargeLoss = 0, label = "salt water", color = new Color(0.55f, 0.78f, 0.92f), eventId = "salt_water" },
             new WaterProfile { type = WaterType.DirtyWater, thirst = 25f, stamina = 3f, sickChance = 0.2f, sickSeconds = 60f, boilSeconds = 8f, boilResult = WaterType.CleanWater, boilChargeLoss = 0, label = "unboiled water", color = new Color(0.72f, 0.6f, 0.38f), eventId = "dirty_water" },
             new WaterProfile { type = WaterType.CleanWater, thirst = 30f, stamina = 5f, sickChance = 0f, sickSeconds = 0f, boilSeconds = 0f, boilResult = WaterType.CleanWater, boilChargeLoss = 0, label = "clean water", color = new Color(0.45f, 0.75f, 1f), eventId = "clean_water" },
         };
         [Tooltip("drinking straight from the pond / stream (hands): thirst gained, sickness uses the dirty water profile")] public float handDrinkThirst = 28f;
         [Tooltip("millilitres in one charge (one drink); containers show their amount in ml")] [Min(1)] public int mlPerCharge = 250;
+
+        [Header("Water temperature (phase 1): Cold from a source / after cooling, Hot just boiled")]
+        [Tooltip("game-clock seconds boiled / heated water stays Hot before it is Cold again (sleep counts)")] [Min(1)] public float hotWaterCoolSeconds = 240f;
+        [Tooltip("seconds on a lit campfire to heat clean Cold water (it needs no purifying); 0 = clean water cannot be reheated")] [Min(0)] public float heatWaterSeconds = 6f;
+        [Tooltip("hot clean water in the cold / rain / night: body temperature raised at once by this, deg C (never above normal)")] public float hotDrinkBodyWarmth = 0.8f;
+        [Tooltip("hot clean water in the cold / rain / night: the body feels this much warmer, deg C, for hotDrinkWarmSeconds")] public float hotDrinkWarmth = 6f;
+        [Tooltip("seconds the warmth of a hot drink lasts")] [Min(0)] public float hotDrinkWarmSeconds = 120f;
+        [Tooltip("felt air below this counts as cold for a hot drink, deg C (the body starts to cool below 18)")] public float hotDrinkColdAir = 18f;
+        [Tooltip("slot / label colour of hot water")] public Color hotWaterColor = new Color(1f, 0.62f, 0.35f);
 
         [Header("Fire")]
         [Tooltip("burn seconds of a fuel item whose fuelSeconds is 0 but is the campfire's own fuel item (legacy wood)")] public float legacyFuelSeconds = 240f;
@@ -95,6 +104,8 @@ namespace PrimalFrontier.Survival
         [Tooltip("fuel use in heavy rain on an uncovered fire (x)")] public float heavyRainFuelMultiplier = 2f;
         [Tooltip("fire strength in heavy rain on an uncovered fire (x intensity)")] [Range(0, 1)] public float heavyRainFireIntensity = 0.5f;
         [Tooltip("seconds of heavy rain that put out an uncovered fire (x0.5 when the fuel is low); 0 = never")] public float heavyRainExtinguishSeconds = 45f;
+        [Tooltip("a fire that burns out after burning this many seconds leaves 1 charcoal (2 after twice as long); 0 = never")] [Min(0)] public float charcoalAfterBurnSeconds = 300f;
+        [Tooltip("most charcoal one burnt-out fire leaves")] [Range(0, 5)] public int charcoalMax = 2;
 
         [Header("Rain collector")]
         public int collectorCapacity = 6;
@@ -116,6 +127,7 @@ namespace PrimalFrontier.Survival
         [Tooltip("extra drying in full sun")] public float sunDryPerSecond = 0.006f;
         [Tooltip("warmer in full sun than in the shade, deg C (clear midday; clouds and evening lower it)")] public float sunWarmth = 2.5f;
         [Tooltip("the Wet status shows above this wetness (0..1)")] [Range(0, 1)] public float wetStatusAbove = 0.3f;
+        [Tooltip("drying x (1 - this x humidity): wetland / waterfall air (humidity 0.95, WORLD's zones) dries you about half as fast")] [Range(0, 1)] public float humidityDryingPenalty = 0.5f;
 
         [Header("Injuries (PlayerHealth damage path)")]
         [Tooltip("one hit of this much damage opens a deep wound")] public float deepWoundDamage = 30f;
@@ -129,6 +141,8 @@ namespace PrimalFrontier.Survival
 
         [Header("Healing")]
         [Tooltip("health regeneration x this while under a roof or by a lit fire")] public float restRegenMultiplier = 1.75f;
+        [Tooltip("all healing (natural regeneration, Recovering) x this at hunger 0, x1 at hunger 100 (linear): an empty stomach heals slowly")] [Range(0, 1)] public float healAtEmptyHunger = 0.25f;
+        [Tooltip("all healing x this at thirst 0, x1 at 100")] [Range(0, 1)] public float healAtEmptyThirst = 0.5f;
         [Tooltip("limb injuries heal this many times faster while resting under a roof or by a fire")] public float restInjuryHealMultiplier = 2f;
 
         [Header("Food spoilage (ItemDefinition.spoilHours; stages by the part of that time gone)")]
@@ -148,6 +162,7 @@ namespace PrimalFrontier.Survival
         public ItemDefinition wood;
         public ItemDefinition rawMeat;
         public ItemDefinition cookedMeat;
+        [Tooltip("left by a campfire that burned out (phase 1); empty = looked up by id 'charcoal'")] public ItemDefinition charcoal;
 
         // ------------------------------------------------------------------ access
         static SurvivalConfig _instance;

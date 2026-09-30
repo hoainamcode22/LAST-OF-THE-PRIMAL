@@ -11,9 +11,12 @@ using PrimalFrontier.Survival;
 namespace PrimalFrontier.UI
 {
     /// <summary>
-    /// In-game HUD: vitals (top left), compass + day/time (top right), objective, hotbar 1-8, interaction prompt,
-    /// short notifications, crafting progress, crosshair when aiming / building, subtitles, chapter banner,
-    /// fade and lightning flash. Minimal and dark so the island stays the star.
+    /// In-game HUD: vitals (top left), compass + day/time (top right), hotbar 1-8, interaction prompt, short
+    /// notifications, crafting progress, crosshair when aiming / building, subtitles, chapter banner (GameManager /
+    /// intro: "DAY N"), fade and lightning flash. Minimal and dark so the island stays the star.
+    /// PC phase: the old objective box and the "DAY ONE SURVIVED" banner are gone (STORY's ObjectiveUI shows the current
+    /// mission; the compass marker still reads TutorialManager.CurrentTarget = the mission marker). A hazard warning line
+    /// (GameEventType.HazardWarning: amount 1 warm, 2 hot, 3 dangerous, 0 clears) sits above the prompt.
     /// Hunger / thirst show their SurvivalConfig tier word ("Thirsty") inside the bar; the hotbar water count takes the
     /// water type colour. Texts are rebuilt only when their value changes (no per-frame string allocations).
     /// Phase 3: a row of status icons under the vitals (PlayerStatusEffects: bleeding, food poisoning, wet, cold, leg / arm
@@ -35,12 +38,12 @@ namespace PrimalFrontier.UI
         Image _hpBar, _hungerBar, _thirstBar, _staminaBar, _tempBar; Text _hpVal, _hungerVal, _thirstVal, _staminaVal, _tempVal, _status;
         Text _hungerTier, _thirstTier;
         // last values written into the texts (rebuild on change only)
-        int _cHp = int.MinValue, _cHunger = int.MinValue, _cThirst = int.MinValue, _cStamina = int.MinValue, _cTemp = int.MinValue, _cStatus = -1, _cClock = -1, _cDist = int.MinValue, _cObjIndex = int.MinValue;
-        int _cHungerTier = int.MinValue, _cThirstTier = int.MinValue; string _cHungerLabel, _cThirstLabel; bool _hungerDrain, _thirstDrain, _objDirty = true;
+        int _cHp = int.MinValue, _cHunger = int.MinValue, _cThirst = int.MinValue, _cStamina = int.MinValue, _cTemp = int.MinValue, _cStatus = -1, _cClock = -1, _cDist = int.MinValue;
+        int _cHungerTier = int.MinValue, _cThirstTier = int.MinValue; string _cHungerLabel, _cThirstLabel; bool _hungerDrain, _thirstDrain;
+        Text _hazard; CanvasGroup _hazardGroup; int _hazardLevel; float _hazardPulse;
         string _cPrompt, _cPromptSub, _cHold; bool _cPromptSet;
         readonly string[] _statusTexts = new string[32];
         RectTransform _compassStrip; Text _clock; Image _marker; Text _markerDist;
-        Text _objTitle, _objText, _objHint; CanvasGroup _objGroup;
         readonly List<Image> _slotBg = new List<Image>(); readonly List<Image> _slotIcon = new List<Image>(); readonly List<Text> _slotCount = new List<Text>(); readonly List<Image> _slotDur = new List<Image>();
         Text _hotbarName; float _hotbarNameT;
         Text _prompt, _promptSub, _promptKey; Image _promptKeyBg; Image _hold; CanvasGroup _promptGroup;
@@ -56,16 +59,16 @@ namespace PrimalFrontier.UI
         {
             Instance = this; Build();
             // texts the game fills in while playing (the saved scene may hold sample text for layout work)
-            foreach (var t in new[] { _objText, _objHint, _prompt, _promptSub, _hotbarName, _subtitle, _bannerTitle, _bannerSub, _markerDist, _status, _hungerTier, _thirstTier }) if (t) t.text = "";
+            foreach (var t in new[] { _prompt, _promptSub, _hotbarName, _subtitle, _bannerTitle, _bannerSub, _markerDist, _status, _hungerTier, _thirstTier, _hazard }) if (t) t.text = "";
         }
 
         /// <summary>editor baker: write the HUD into the scene, with sample text so the hidden parts can be laid out</summary>
         public void BakeLayout()
         {
             Build();
-            foreach (var g in new[] { _objGroup, _promptGroup, _craftGroup, _subGroup, _bannerGroup }) if (g) g.alpha = 1f;
+            foreach (var g in new[] { _promptGroup, _craftGroup, _subGroup, _bannerGroup, _hazardGroup }) if (g) g.alpha = 1f;
             void Sample(Text t, string v) { if (t && string.IsNullOrEmpty(t.text)) t.text = v; }
-            Sample(_objText, "Collect wood (2/4)"); Sample(_objHint, "Driftwood lies along the beach. Press E next to it.");
+            Sample(_hazard, "The ground is warm here");
             Sample(_prompt, "Pick up Driftwood"); Sample(_promptSub, "Hold E: gather"); Sample(_hotbarName, "Stone Axe");
             Sample(_subtitle, "What was that?"); Sample(_bannerTitle, "DAY 1"); Sample(_bannerSub, "Dawn"); Sample(_markerDist, "120 m");
             Sample(_hungerTier, "Peckish"); Sample(_thirstTier, "Thirsty");
@@ -81,15 +84,15 @@ namespace PrimalFrontier.UI
         public void Bind(GameObject player)
         {
             _player = player;
-            _cHp = _cHunger = _cThirst = _cStamina = _cTemp = _cDist = _cObjIndex = _cHungerTier = _cThirstTier = int.MinValue; _cStatus = _cClock = -1;
-            _cHungerLabel = _cThirstLabel = null; _cPromptSet = false; _objDirty = true;
+            _cHp = _cHunger = _cThirst = _cStamina = _cTemp = _cDist = _cHungerTier = _cThirstTier = int.MinValue; _cStatus = _cClock = -1;
+            _cHungerLabel = _cThirstLabel = null; _cPromptSet = false;
+            SetHazard(0);
             _hp = player.GetComponent<PlayerHealth>(); _sv = player.GetComponent<PlayerSurvival>(); _inv = player.GetComponent<InventorySystem>();
             _pi = player.GetComponent<PlayerInteraction>(); _craft = player.GetComponent<CraftingSystem>(); _combat = player.GetComponent<PlayerCombat>();
             if (_inv) { _inv.Changed -= RefreshHotbar; _inv.Changed += RefreshHotbar; _inv.ActiveSlotChanged -= OnActive; _inv.ActiveSlotChanged += OnActive; }
             if (_sv) { _sv.Warning -= Notify; _sv.Warning += Notify; }
             PlayerInteraction.Message -= Notify; PlayerInteraction.Message += Notify;
             GameEvents.Raised -= OnEvent; GameEvents.Raised += OnEvent;
-            var tut = TutorialManager.Instance; if (tut) { tut.StepStarted -= OnStep; tut.StepStarted += OnStep; tut.Finished -= OnTutorialDone; tut.Finished += OnTutorialDone; }
             var j = JournalSystem.Instance; if (j) { j.Unlocked -= OnJournal; j.Unlocked += OnJournal; }
             if (_craft) { _craft.Learned -= OnLearned; _craft.Learned += OnLearned; }
             if (_fx) { _fx.Message -= Notify; }
@@ -141,8 +144,11 @@ namespace PrimalFrontier.UI
             float wetY = -20 - 4 * 32 - 12 - 18;
             _wetIcon = UIFactory.Image(vit.transform, "WetnessIcon", UIStyle.Icon("status_wet"), new Color(0.55f, 0.78f, 1f, 0.95f), new Vector2(0, 1), new Vector2(0, 1), new Vector2(0, 0.5f), new Vector2(34, wetY), new Vector2(16, 16));
             _wetBar = UIFactory.Bar(vit.transform, "WetnessBar", new Color(0.45f, 0.7f, 0.95f), new Vector2(0, 1), new Vector2(0, 1), new Vector2(0, 0.5f), new Vector2(54, wetY), new Vector2(200, 10));
-            // status effect icons: a row to the right of the vitals panel, along the top (the space under the panel holds the touch menu buttons)
-            _statusRow = UIFactory.Rect(root, "StatusIcons", new Vector2(0, 1), new Vector2(0, 1), new Vector2(0, 1), new Vector2(24 + 330 + 10, -24), new Vector2(MaxStatusIcons * 40, 38));
+            // status effect icons (PC layout): one row under the vitals panel, left aligned with it, below the status words line
+            // (panel 24 + 196 px, words line 26 px, 8 px gap); 8 icons x 40 px = 320 px fit the 330 px panel width. The top row
+            // stays clear for the perception indicator ("Presence", x 352-448) and the compass on the right.
+            const float StatusRowY = -24 - 196 - 26 - 8;
+            _statusRow = UIFactory.Rect(root, "StatusIcons", new Vector2(0, 1), new Vector2(0, 1), new Vector2(0, 1), new Vector2(24, StatusRowY), new Vector2(MaxStatusIcons * 40, 38));
             _statusIcons.Clear();
             for (int i = 0; i < MaxStatusIcons; i++)
             {
@@ -173,14 +179,8 @@ namespace PrimalFrontier.UI
             _markerDist = UIFactory.Label(root, "ObjectiveDist", "", 16, UIStyle.Accent, TextAnchor.UpperCenter, UIStyle.Body, new Vector2(1, 1), new Vector2(1, 1), new Vector2(0.5f, 1), new Vector2(-204, -70), new Vector2(120, 22));
             _clock = UIFactory.Label(root, "Clock", "Day 1  09:00", 18, UIStyle.TextDim, TextAnchor.UpperRight, UIStyle.Body, new Vector2(1, 1), new Vector2(1, 1), new Vector2(1, 1), new Vector2(-28, -74), new Vector2(300, 26));
 
-            // ---- objective (right)
-            var obj = UIFactory.Rect(root, "Objective", new Vector2(1, 1), new Vector2(1, 1), new Vector2(1, 1), new Vector2(-24, -110), new Vector2(380, 120));
-            _objGroup = UIFactory.Group(obj.gameObject);
-            UIFactory.Image(obj, "Bg", UIStyle.PanelDark, new Color(1, 1, 1, 0.7f), Vector2.zero, Vector2.one, new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero);
-            _objTitle = UIFactory.Label(obj, "Title", "OBJECTIVE", 16, UIStyle.Accent, TextAnchor.UpperLeft, UIStyle.Head, new Vector2(0, 1), new Vector2(1, 1), new Vector2(0, 1), new Vector2(18, -12), new Vector2(-36, 22));
-            _objText = UIFactory.Label(obj, "Text", "", 22, UIStyle.Text, TextAnchor.UpperLeft, UIStyle.Body, new Vector2(0, 1), new Vector2(1, 1), new Vector2(0, 1), new Vector2(18, -36), new Vector2(-36, 30));
-            _objHint = UIFactory.Label(obj, "Hint", "", 16, UIStyle.TextDim, TextAnchor.UpperLeft, UIStyle.Body, new Vector2(0, 1), new Vector2(1, 1), new Vector2(0, 1), new Vector2(18, -70), new Vector2(-36, 44));
-            _objGroup.alpha = 0f;
+            // ---- the old objective box: STORY's ObjectiveUI replaced it. A saved scene may still hold it: switched off, not rebuilt
+            var oldBox = root.Find("Objective"); if (oldBox && !oldBox.GetComponent<Image>()) oldBox.gameObject.SetActive(false);
 
             // ---- hotbar (bottom centre)
             var hb = UIFactory.Rect(root, "Hotbar", new Vector2(0.5f, 0), new Vector2(0.5f, 0), new Vector2(0.5f, 0), new Vector2(0, 22), new Vector2(8 * 76 + 16, 92));
@@ -210,6 +210,13 @@ namespace PrimalFrontier.UI
             _hold = UIFactory.Image(pr, "Hold", UIStyle.BarFill, UIStyle.Accent, new Vector2(0.5f, 1), new Vector2(0.5f, 1), new Vector2(0.5f, 1), new Vector2(0, -44), new Vector2(200, 4));
             _hold.type = Image.Type.Filled; _hold.fillMethod = Image.FillMethod.Horizontal; _hold.fillAmount = 0f;
             _promptGroup.alpha = 0f;
+
+            // ---- hazard warning (centre, above the prompt): volcano heat / lava, from GameEventType.HazardWarning
+            var hz = UIFactory.Rect(root, "Hazard", new Vector2(0.5f, 0), new Vector2(0.5f, 0), new Vector2(0.5f, 0), new Vector2(0, 286), new Vector2(620, 36));
+            _hazardGroup = UIFactory.Group(hz.gameObject);
+            UIFactory.Image(hz, "Bg", UIStyle.PanelDark, new Color(1, 1, 1, 0.65f), Vector2.zero, Vector2.one, new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero);
+            _hazard = UIFactory.Label(hz, "Text", "", 19, UIStyle.Accent, TextAnchor.MiddleCenter, UIStyle.Body, Vector2.zero, Vector2.one, new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero);
+            _hazardGroup.alpha = 0f;
 
             // ---- notifications (left, above hotbar level)
             _notes = UIFactory.Rect(root, "Notes", new Vector2(0, 0), new Vector2(0, 0), new Vector2(0, 0), new Vector2(28, 140), new Vector2(520, 300));
@@ -337,18 +344,31 @@ namespace PrimalFrontier.UI
                     break;
                 }
                 case GameEventType.GameSaved: AddNote("Game saved.", null, "saved"); break;
+                case GameEventType.HazardWarning: SetHazard(e.amount, e.id); break;
             }
+        }
+
+        /// <summary>the hazard line: 0 clears it; 1 warm, 2 hot, 3 dangerous (WORLD's HazardZoneMonitor raises it on each change)</summary>
+        public void SetHazard(int level, string id = null)
+        {
+            level = Mathf.Clamp(level, 0, 3);
+            if (level == _hazardLevel && level == 0) return;
+            _hazardLevel = level;
+            if (!_hazard) return;
+            bool lava = id == "lava";
+            _hazard.text = level switch
+            {
+                1 => lava ? "The ground is warm near the lava" : "The ground is warm here",
+                2 => lava ? "Hot air rises from the lava. Do not stay" : "The heat is rising. Do not stay long",
+                3 => lava ? "Get away from the lava!" : "Dangerous heat! Get away from here",
+                _ => "",
+            };
+            _hazard.color = level >= 3 ? UIStyle.Bad : level == 2 ? new Color(1f, 0.66f, 0.26f) : UIStyle.Accent;
+            _hazardPulse = 1f;
         }
         readonly Dictionary<string, int> _added = new Dictionary<string, int>();
         int AddedTotal(string key) => _added.TryGetValue(key, out var n) ? n : 0;
 
-        void OnStep(TutorialManager.Step s)
-        {
-            _objGroup.alpha = 1f; _objFlash = 1f; _objDirty = true;
-            Audio.SfxPlayer.Instance.Play2D(Audio.SfxId.UiObjective, 0.6f);
-        }
-        float _objFlash;
-        void OnTutorialDone() { ShowBanner("DAY ONE SURVIVED", "The island is larger than you thought", 6f); }
         void OnJournal(JournalSystem.Entry e) { AddNote("Journal: " + e.title + "   [J]", UIStyle.Icon("journal"), null); }
         /// <summary>recipes learned in the same moment (one pickup can teach several) become one note, posted a moment later</summary>
         void OnLearned(RecipeDefinition r)
@@ -367,11 +387,15 @@ namespace PrimalFrontier.UI
             AddNote(msg, _learnedIcon, null);
             _learnedNames.Clear(); _learnedIcon = null;
         }
-        void OnActive(int i) { RefreshHotbar(); var it = _inv ? _inv.ActiveItem : null; _hotbarName.text = it ? it.displayName : ""; _hotbarNameT = Time.unscaledTime; }
+        void OnActive(int i)
+        {
+            RefreshHotbar(); var it = _inv ? _inv.ActiveItem : null; var st = _inv ? _inv.ActiveStack : null;
+            _hotbarName.text = !it ? "" : it.IsWaterContainer && st != null && st.water > 0 ? it.displayName + ": " + WaterRules.NameOf(st) : it.displayName;     // "Gourd: Clean Water (Hot)"
+            _hotbarNameT = Time.unscaledTime;
+        }
 
         void RefreshHotbar()
         {
-            _objDirty = true;                                  // objective progress counts items
             if (_inv == null || _inv.Slots == null) return;
             for (int i = 0; i < 8 && i < _inv.Slots.Length; i++)
             {
@@ -411,6 +435,15 @@ namespace PrimalFrontier.UI
             }
             _hotbarName.color = new Color(1, 1, 1, Mathf.Clamp01(2.2f - (Time.unscaledTime - _hotbarNameT))) * UIStyle.Text;
             if (_learnedFlushAt >= 0f && Time.unscaledTime >= _learnedFlushAt) FlushLearned();
+            // hazard line (pulses briefly on a change, stays while the level is above 0)
+            if (_hazardGroup)
+            {
+                bool hz = _hazardLevel > 0 && !menuOpen;
+                _hazardPulse = Mathf.MoveTowards(_hazardPulse, 0f, udt * 1.5f);
+                float want = hz ? (_hazardLevel >= 3 ? 0.75f + 0.25f * Mathf.Abs(Mathf.Sin(Time.unscaledTime * 3f)) : 1f) : 0f;
+                _hazardGroup.alpha = Mathf.MoveTowards(_hazardGroup.alpha, want, udt * 3f);
+                if (_hazard) _hazard.transform.localScale = Vector3.one * (1f + 0.08f * _hazardPulse);
+            }
 
             if (_player == null) return;
             // vitals (texts only when the shown value changes)
@@ -465,15 +498,6 @@ namespace PrimalFrontier.UI
                 int h = Mathf.FloorToInt(tm.hour), m = Mathf.FloorToInt((tm.hour - h) * 60f), key = tm.day * 1440 + h * 60 + m;
                 if (key != _cClock) { _cClock = key; _clock.text = string.Format(CultureInfo.InvariantCulture, "Day {0}   {1:00}:{2:00}", tm.day, h, m); }
             }
-            // objective
-            var tut = TutorialManager.Instance;
-            if (tut && tut.Running)
-            {
-                if (_objDirty || tut.Index != _cObjIndex) { _objDirty = false; _cObjIndex = tut.Index; _objText.text = tut.ObjectiveText(); _objHint.text = tut.Current.hint; }
-                _objGroup.alpha = Mathf.MoveTowards(_objGroup.alpha, 1f, udt * 3f);
-            }
-            else _objGroup.alpha = Mathf.MoveTowards(_objGroup.alpha, 0f, udt * 1f);
-            _objFlash = Mathf.MoveTowards(_objFlash, 0f, udt * 0.8f); _objTitle.color = Color.Lerp(UIStyle.Accent, Color.white, _objFlash);
             // prompt
             bool show = _pi && !menuOpen && (_pi.Prompt != null || _pi.HoldLabel != null);
             if (show)
@@ -508,7 +532,7 @@ namespace PrimalFrontier.UI
         public static Color WaterCountColor(ItemStack s)
         {
             var t = s != null && s.item != null && s.item.IsWaterContainer ? WaterRules.TypeOf(s) : WaterType.None;
-            return t == WaterType.None ? UIStyle.Text : WaterRules.Color(t);
+            return t == WaterType.None ? UIStyle.Text : WaterRules.ColorOf(s);        // hot water: the warm colour
         }
 
         static readonly string[] _nums = BuildNums(301);
@@ -525,11 +549,19 @@ namespace PrimalFrontier.UI
             if (t) { t.text = label ?? ""; t.color = drain ? UIStyle.Bad : UIStyle.Text; }
         }
 
-        /// <summary>"500ml" for a container, the count for a stack, "" for one item</summary>
+        static readonly System.Collections.Generic.Dictionary<int, string> _hotText = new System.Collections.Generic.Dictionary<int, string>();
+        /// <summary>"HOT" over "500ml" (cached per amount)</summary>
+        static string HotText(int charges)
+        {
+            if (!_hotText.TryGetValue(charges, out var t)) _hotText[charges] = t = "HOT\n" + WaterRules.MlShort(charges);
+            return t;
+        }
+
+        /// <summary>"500ml" for a container ("HOT" above it while the water is hot), the count for a stack, "" for one item</summary>
         public static string SlotCountText(ItemStack s)
         {
             if (s == null) return "";
-            if (s.item.IsWaterContainer) return WaterRules.MlShort(s.water);
+            if (s.item.IsWaterContainer) return WaterRules.IsHot(s) ? HotText(s.water) : WaterRules.MlShort(s.water);
             return s.count > 1 ? NumText(s.count) : "";
         }
 

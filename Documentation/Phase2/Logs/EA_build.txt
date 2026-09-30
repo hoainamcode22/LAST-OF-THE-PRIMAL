@@ -1,0 +1,967 @@
+EA Survey zone=valley;points=-70,-5|-80,-20|-60,20|60,10|40,30|-40,-92|84.6,-97.5 started 2026-09-30 19:27:08
+terrain TD_Island size (640, 80, 640) at (-320, -10, -320); heightmap 1025, alphamap 1024 x 9, detail 512 (32/patch)
+  distances: detail 90 density 1, tree 450, billboard 450, crossfade 5, basemap 300; wind grass speed 0.5 strength 0.5 amount 0.5
+  layers: 0 TL_Sand, 1 TL_Grass, 2 TL_ForestFloor, 3 TL_Rock, 4 TL_Mud, 5 TL_SandWet, 6 TL_Moss, 7 TL_DarkSoil, 8 TL_Ash
+  detail 0: DET_ENV_Fern_01 VertexLit inst True w 0.8-1.3 h 0.8-1.3  mesh ENV_Fern_01_LOD0 bounds (2.2, 0.5, 2) mat M_Foliage / Universal Render Pipeline/Lit; in valley rect 20339
+  detail 1: DET_ENV_Grass_01 VertexLit inst True w 0.7-1.2 h 0.7-1.2  mesh ENV_Grass_01_LOD0 bounds (0.7, 0.7, 0.6) mat M_Foliage / Universal Render Pipeline/Lit; in valley rect 10792
+  detail 2: DET_ENV_Bush_01 VertexLit inst True w 0.8-1.2 h 0.8-1.2  mesh ENV_Bush_01_LOD0 bounds (3, 1.3, 2.6) mat M_Foliage / Universal Render Pipeline/Lit; in valley rect 301
+  detail 3: DET_PC_Horsetail VertexLit inst True w 0.75-1.25 h 0.75-1.25  mesh DET_PC_Horsetail bounds (1.1, 1.3, 1) mat M_Env_FoliageLow / PF/Foliage Wind; in valley rect 729
+  detail 4: DET_PC_Reeds VertexLit inst True w 0.8-1.3 h 0.8-1.3  mesh DET_PC_Reeds bounds (1, 1.7, 1.1) mat M_Env_FoliageLow / PF/Foliage Wind; in valley rect 0
+  detail 5: DET_PC_GiantFern VertexLit inst True w 0.7-1.15 h 0.7-1.15  mesh DET_PC_GiantFern bounds (3.9, 1.2, 3.3) mat M_Env_FoliageLow / PF/Foliage Wind; in valley rect 1924
+  tree 0: PFB_ENV_Tree_01 all 554, in valley 87
+  tree 1: PFB_ENV_Tree_02 all 0, in valley 0
+  tree 2: PFB_ENV_Tree_03 all 230, in valley 36
+  tree 3: PFB_ENV_Tree_04 all 0, in valley 0
+  tree 4: ENV_PC_TreeFern_A all 175, in valley 50
+  tree 5: ENV_PC_TreeFern_B all 162, in valley 38
+  tree 6: ENV_PC_TreeFern_C all 166, in valley 42
+  tree 7: ENV_PC_Cycad_A all 56, in valley 16
+  tree 8: ENV_PC_Cycad_B all 60, in valley 9
+  tree 9: ENV_PC_Cycad_C all 76, in valley 15
+  tree instances total 1479
+  splat share in the valley core: TL_Sand 0%, TL_Grass 71.54%, TL_ForestFloor 18.31%, TL_Rock 5.02%, TL_Mud 1.93%, TL_SandWet 0.37%, TL_Moss 0.14%, TL_DarkSoil 2.69%, TL_Ash 0%
+  ring 0.25R: [0] y9,1 s1 w49 [23] y9,1 s2 w40 [45] y9,4 s0 w33 [68] y9,5 s2 w29 [90] y9,6 s2 w28 [113] y9,7 s2 w31 [135] y9,6 s2 w38 [158] y9,4 s3 w47 [180] y9,4 s1 w57 [203] y9,4 s2 w65 [225] y9,4 s3 w71 [248] y9,6 s1 w74 [270] y9,4 s1 w75 [293] y9,4 s1 w73 [315] y9,2 s2 w66 [338] y9,1 s1 w58
+  ring 0.5R: [0] y8,8 s0 w45 [23] y8,9 s1 w31 [45] y10,6 s13 w15 [68] y11,4 s4 w7 [90] y11,5 s6 w4 [113] y11,1 s7 w15 [135] y10,5 s3 w33 [158] y10,0 s1 w51 [180] y9,5 s2 w68 [203] y9,8 s1 w81 [225] y10,1 s3 w92 [248] y10,4 s4 w98 [270] y10,5 s5 w99 [293] y10,0 s3 w93 [315] y9,4 s3 w79 [338] y8,9 s1 w60
+  ring 0.75R: [0] y8,5 s1 w29 [23] y10,1 s23 w16 [45] y10,7 s16 w2 [68] y11,6 s4 w10 [90] y11,8 s4 w11 [113] y11,6 s4 w6 [135] y11,3 s1 w27 [158] y10,6 s4 w53 [180] y10,7 s8 w80 [203] y10,8 s8 w100 [225] y11,7 s43 w113 [248] y12,0 s5 w121 [270] y12,5 s9 w123 [293] y11,6 s10 w108 [315] y10,0 s5 w83 [338] y8,9 s2 w55
+  ring 1R: [0] y10,2 s7 w21 [23] y7,6 s23 w0 [45] y10,9 s3 w10 [68] y11,5 s3 w31 [90] y11,1 s2 w27 [113] y12,0 s6 w5 [135] y12,3 s16 w13 [158] y15,8 s18 w45 [180] y17,5 s21 w82 [203] y16,3 s15 w117 [225] y14,9 s30 w136 [248] y14,0 s13 w144 [270] y17,4 s7 w146 [293] y15,7 s6 w123 [315] y13,6 s9 w92 [338] y10,9 s10 w58
+  ring 1.25R: [0] y11,5 s1 w27 [23] y8,7 s16 w0 [45] y10,8 s6 w31 [68] y11,7 s1 w51 [90] y11,9 s4 w46 [113] y11,9 s3 w23 [135] y14,1 s12 w0 [158] y25,6 s3 w41 [180] y34,1 s58 w86 [203] y22,9 s10 w129 [225] y20,0 s33 w158 [248] y25,1 s37 w168 [270] y14,1 s14 w167 [293] y14,1 s8 w139 [315] y15,9 s10 w106 [338] y12,1 s1 w67
+  Managers :: OceanShore: 1
+  Managers :: Trees: 1
+  Managers/Markers/Zones :: cave: 1
+  Managers/Markers/Zones :: herbivore_valley: 1
+  Managers/Markers/Zones :: meadow: 1
+  Managers/Markers/Zones :: migration_view: 1
+  Managers/Markers/Zones :: predator_territory: 1
+  Managers/Markers/Zones :: river: 1
+  World/Environment/Caves/Cave :: PFB_RES_Stone: 3
+  World/Environment/Caves/Cave :: Pickup_bone: 1
+  World/Environment/Forest/ForestDressing :: ENV_PC_FallenTrunk_B: 2
+  World/Environment/Forest/ForestDressing :: ENV_PC_Magnolia_A: 10
+  World/Environment/Forest/ForestDressing :: ENV_PC_Magnolia_B: 10
+  World/Environment/Forest/ForestDressing :: ENV_PC_Roots_A: 1
+  World/Environment/Forest/Rocks :: ENV_PC_MossRock_A: 6
+  World/Environment/Forest/Rocks :: ENV_PC_MossRock_B: 8
+  World/Environment/Forest/Rocks :: ENV_PC_MossRock_C: 8
+  World/Environment/Forest/Vegetation :: PFB_ENV_FallenLog: 4
+  World/Environment/Forest/Vegetation/InteractiveBushes :: Bush: 20
+  World/Environment/Forest/Vegetation/InteractiveBushes :: Bush_006_Berries: 1
+  World/Environment/Forest/Vegetation/InteractiveBushes :: Bush_009_Berries: 1
+  World/Environment/Forest/Vegetation/InteractiveBushes :: Bush_010_AnimalFlush: 1
+  World/Environment/Forest/Vegetation/InteractiveBushes :: Bush_023_Berries: 1
+  World/Environment/Forest/Vegetation/InteractiveBushes :: Bush_026_Berries: 1
+  World/Environment/Forest/Vegetation/InteractiveBushes :: Bush_030_HiddenItem: 1
+  World/Environment/Forest/Vegetation/InteractiveBushes :: Bush_053_Berries: 1
+  World/Environment/Forest/Vegetation/InteractiveBushes :: Bush_061_Berries: 1
+  World/Environment/Forest/Vegetation/InteractiveBushes :: Bush_089_Berries: 1
+  World/Environment/Forest/Vegetation/InteractiveBushes :: Bush_094_Berries: 1
+  World/Environment/Forest/Vegetation/InteractiveBushes :: Bush_096_Berries: 1
+  World/Environment/Forest/Vegetation/InteractiveBushes :: Bush_122_AnimalFlush: 1
+  World/Environment/Forest/Vegetation/Thickets/Thicket_02 :: ThicketBush_02: 3
+  World/Environment/Forest/Vegetation/Thickets/Thicket_02 :: ThicketBush_02_2_Berries: 1
+  World/Environment/Forest/Vegetation/Thickets/Thicket_04 :: ThicketBush_04: 3
+  World/Environment/Forest/Vegetation/Thickets/Thicket_04 :: ThicketBush_04_2_Berries: 1
+  World/Environment/Forest/Vegetation/Thickets/Thicket_05 :: ThicketBush_05: 5
+  World/Environment/Forest/Vegetation/Thickets/Thicket_05 :: ThicketBush_05_2_Berries: 1
+  World/Environment/Forest/Vegetation/Thickets/Thicket_05 :: ThicketBush_05_5_Berries: 1
+  World/Environment/Forest/Vegetation/Thickets/Thicket_06 :: ThicketBush_06: 5
+  World/Environment/Forest/Vegetation/Thickets/Thicket_09 :: ThicketBush_09: 2
+  World/Environment/Forest/Vegetation/Thickets/Thicket_09 :: ThicketBush_09_1_AnimalFlush: 1
+  World/Environment/Forest/Vegetation/Thickets/Thicket_10 :: ThicketBush_10: 3
+  World/Environment/Forest/Vegetation/Thickets/Thicket_11 :: ThicketBush_11: 4
+  World/Environment/Forest/Vegetation/Thickets/Thicket_11 :: ThicketBush_11_1_HiddenItem: 1
+  World/Environment/Forest/Vegetation/Thickets/Thicket_11 :: ThicketBush_11_4_Berries: 1
+  World/Environment/Forest/Vegetation/Thickets/Thicket_12 :: ThicketBush_12: 2
+  World/Environment/Forest/Vegetation/Thickets/Thicket_12 :: ThicketBush_12_3_AnimalFlush: 1
+  World/Environment/Forest/Vegetation/Thickets/Thicket_13 :: ThicketBush_13: 3
+  World/Environment/Forest/Vegetation/Thickets/Thicket_13 :: ThicketBush_13_1_Berries: 1
+  World/Environment/Forest/Vegetation/Thickets/Thicket_13 :: ThicketBush_13_4_Berries: 1
+  World/Environment/Forest/Vegetation/Thickets/Thicket_14 :: ThicketBush_14: 2
+  World/Environment/Forest/Vegetation/Thickets/Thicket_14 :: ThicketBush_14_1_AnimalFlush: 1
+  World/Environment/Forest/Vegetation/Thickets/Thicket_14 :: ThicketBush_14_3_HiddenItem: 1
+  World/Environment/Forest/Vegetation/Thickets/Thicket_16 :: ThicketBush_16: 4
+  World/Environment/Forest/Vegetation/Thickets/Thicket_16 :: ThicketBush_16_5_Berries: 1
+  World/Environment/Forest/Vegetation/Thickets/Thicket_17 :: ThicketBush_17: 3
+  World/Environment/Forest/Vegetation/Thickets/Thicket_17 :: ThicketBush_17_4_HiddenItem: 1
+  World/Environment/Forest/Vegetation/Thickets/Thicket_18 :: ThicketBush_18: 6
+  World/Environment/Forest/Vegetation/Thickets/Thicket_20 :: ThicketBush_20: 3
+  World/Environment/Forest/Vegetation/Thickets/Thicket_20 :: ThicketBush_20_1_Berries: 1
+  World/Environment/Forest/Vegetation/Thickets/Thicket_21 :: ThicketBush_21: 1
+  World/Environment/Forest/Vegetation/Thickets/Thicket_21 :: ThicketBush_21_1_HiddenItem: 1
+  World/Environment/Forest/Vegetation/Thickets/Thicket_21 :: ThicketBush_21_2_AnimalFlush: 1
+  World/Environment/Forest/Vegetation/Thickets/Thicket_24 :: ThicketBush_24: 5
+  World/Environment/Forest/Vegetation/Thickets/Thicket_24 :: ThicketBush_24_5_Berries: 1
+  World/Environment/Forest/Vegetation/Thickets/Thicket_25 :: ThicketBush_25: 1
+  World/Environment/Forest/Vegetation/Thickets/Thicket_25 :: ThicketBush_25_2_Berries: 1
+  World/Environment/Forest/Vegetation/Thickets/Thicket_25 :: ThicketBush_25_3_Berries: 1
+  World/Environment/Forest/Vegetation/Thickets/Thicket_27 :: ThicketBush_27: 5
+  World/Environment/Forest/Vegetation/Thickets/Thicket_29 :: ThicketBush_29: 4
+  World/Environment/Forest/Vegetation/Thickets/Thicket_29 :: ThicketBush_29_1_HiddenItem: 1
+  World/Environment/Forest/Vegetation/Thickets/Thicket_29 :: ThicketBush_29_3_Berries: 1
+  World/Environment/Forest/Vegetation/Thickets/Thicket_29 :: ThicketBush_29_5_AnimalFlush: 1
+  World/Environment/Forest/Vegetation/Thickets/Thicket_32 :: ThicketBush_32: 4
+  World/Environment/Forest/Vegetation/Thickets/Thicket_37 :: ThicketBush_37: 3
+  World/Environment/Forest/Vegetation/Thickets/Thicket_37 :: ThicketBush_37_2_Berries: 1
+  World/Environment/Forest/Vegetation/Thickets/Thicket_38 :: ThicketBush_38: 7
+  World/Environment/Forest/Vegetation/Thickets/Thicket_39 :: ThicketBush_39: 1
+  World/Environment/Forest/Vegetation/Thickets/Thicket_39 :: ThicketBush_39_4_AnimalFlush: 1
+  World/Environment/Forest/Vegetation/Thickets/Thicket_41 :: ThicketBush_41: 4
+  World/Environment/Forest/Vegetation/Thickets/Thicket_44 :: ThicketBush_44: 7
+  World/Environment/Forest/Vegetation/Thickets/Thicket_46 :: ThicketBush_46: 4
+  World/Environment/Forest/Vegetation/Thickets/Thicket_46 :: ThicketBush_46_1_HiddenItem: 1
+  World/Environment/Forest/Vegetation/Thickets/Thicket_46 :: ThicketBush_46_3_HiddenItem: 1
+  World/Environment/Forest/Vegetation/Thickets/Thicket_46 :: ThicketBush_46_6_HiddenItem: 1
+  World/Environment/Forest/Vegetation/Thickets/Thicket_51 :: ThicketBush_51: 2
+  World/Environment/Forest/Vegetation/Thickets/Thicket_51 :: ThicketBush_51_3_Berries: 1
+  World/Environment/Forest/Vegetation/Thickets/Thicket_52 :: ThicketBush_52: 2
+  World/Environment/Forest/Vegetation/Thickets/Thicket_52 :: ThicketBush_52_3_Berries: 1
+  World/Environment/Forest/Vegetation/Thickets/Thicket_52 :: ThicketBush_52_4_Berries: 1
+  World/Environment/Forest/Vegetation/Thickets/Thicket_52 :: ThicketBush_52_5_HiddenItem: 1
+  World/Environment/Forest/Vegetation/Thickets/Thicket_52 :: ThicketBush_52_6_AnimalFlush: 1
+  World/Environment/Forest/Vegetation/Thickets/Thicket_54 :: ThicketBush_54: 3
+  World/Environment/Forest/Vegetation/Thickets/Thicket_54 :: ThicketBush_54_4_AnimalFlush: 1
+  World/Environment/Forest/Vegetation/Thickets/Thicket_54 :: ThicketBush_54_5_AnimalFlush: 1
+  World/Environment/Forest/Vegetation/Thickets/Thicket_54 :: ThicketBush_54_6_HiddenItem: 1
+  World/Environment/Forest/Vegetation/Thickets/Thicket_57 :: ThicketBush_57: 4
+  World/Environment/Forest/Vegetation/Thickets/Thicket_57 :: ThicketBush_57_3_Berries: 1
+  World/Environment/Forest/Vegetation/Thickets/Thicket_57 :: ThicketBush_57_5_Berries: 1
+  World/Environment/Forest/Vegetation/Thickets/Thicket_58 :: ThicketBush_58: 3
+  World/Environment/Forest/Vegetation/Thickets/Thicket_58 :: ThicketBush_58_1_Berries: 1
+  World/Environment/Forest/Vegetation/Thickets/Thicket_58 :: ThicketBush_58_2_HiddenItem: 1
+  World/Environment/Forest/Vegetation/Thickets/Thicket_59 :: ThicketBush_59: 2
+  World/Environment/Forest/Vegetation/Thickets/Thicket_59 :: ThicketBush_59_2_Berries: 1
+  World/Environment/Forest/Vegetation/Thickets/Thicket_59 :: ThicketBush_59_3_Berries: 1
+  World/Environment/Rivers :: ENV_LowerRiver_Water: 1
+  World/Environment/Rivers :: ENV_River_Water: 1
+  World/Environment/Rivers :: ENV_RiverMouth_Water: 1
+  World/Environment/Rivers :: ENV_SpringStream_Water: 1
+  World/Environment/Terrain/Cliffs :: PFB_ENV_Cave_Entrance: 1
+  World/Environment/Terrain/Cliffs :: PFB_ENV_Cliff: 3
+  World/Environment/Terrain/Rocks :: PFB_ENV_Rock_Medium: 93
+  World/Environment/Terrain/Rocks :: PFB_ENV_Rock_Small: 86
+  World/Environment/Wetlands :: ENV_Wetland_Water: 1
+  World/Environment/Wetlands/WaterEdge :: ENV_PC_GiantFern_A: 13
+  World/Environment/Wetlands/WaterEdge :: ENV_PC_GiantFern_B: 9
+  World/Environment/Wetlands/WaterEdge :: ENV_PC_HorsetailClump: 24
+  World/Gameplay/Interactables/FruitTrees :: FruitTree: 2
+  World/Gameplay/Interactables/GiantFootprints :: FootprintClue: 1
+  World/Gameplay/Interactables/Storytelling/BloodTrail :: Stain: 1
+  World/Gameplay/Interactables/Storytelling/KillSite :: Bones: 2
+  World/Gameplay/Interactables/Storytelling/KillSite :: GiantSkeleton: 1
+  World/Gameplay/Interactables/Storytelling/Markings :: CastawayMarks_Cave: 1
+  World/Gameplay/Interactables/Storytelling/OldCamp :: CollapsedShelter: 1
+  World/Gameplay/Interactables/Storytelling/PredatorPath :: BrokenTree: 2
+  World/Gameplay/Interactables/Storytelling/PredatorPath :: ClawSnag: 1
+  World/Gameplay/Interactables/Storytelling/Spots :: KnollView: 1
+  World/Gameplay/Interactables/Storytelling/TheropodTrail :: Print: 1
+  World/Gameplay/Resources/[Resources]/FruitTreeDrops :: Resource_Food_FallenFruit: 2
+  World/Gameplay/Resources/[Resources]/Island/Cluster_032_Forest :: Resource_Fiber_Fern: 2
+  World/Gameplay/Resources/[Resources]/Island/Cluster_043_Forest :: Resource_Fiber_SmallBush: 2
+  World/Gameplay/Resources/[Resources]/Island/Cluster_043_Forest :: Resource_Wood_Branch_02: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_044_Forest :: Resource_Fiber_Fern: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_044_Forest :: Resource_Wood_Branch_02: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_045_Forest :: Resource_Fiber_Fern: 2
+  World/Gameplay/Resources/[Resources]/Island/Cluster_045_Forest :: Resource_Wood_Branch_02: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_054_ForestEdge :: Resource_Fiber_Fern: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_054_ForestEdge :: Resource_Food_BerryBush: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_054_ForestEdge :: Resource_Stone_Small: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_055_Forest :: Resource_Food_FallenFruit: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_055_Forest :: Resource_Wood_SmallLog: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_056_ForestEdge :: Resource_Fiber_Plant: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_056_ForestEdge :: Resource_Food_EdiblePlant: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_057_ForestEdge :: Resource_Wood_Branch: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_057_ForestEdge :: Resource_Wood_Branch_02: 2
+  World/Gameplay/Resources/[Resources]/Island/Cluster_058_ForestEdge :: Resource_Stone_Small: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_058_ForestEdge :: Resource_Wood_Branch_02: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_059_Forest :: Resource_Wood_Branch: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_059_Forest :: Resource_Wood_SmallLog: 2
+  World/Gameplay/Resources/[Resources]/Island/Cluster_066_Meadow :: Resource_Fiber_LongGrass: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_066_Meadow :: Resource_Wood_Branch: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_067_ForestEdge :: Resource_Fiber_Plant: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_067_ForestEdge :: Resource_Food_EdiblePlant: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_068_Meadow :: Resource_Fiber_LongGrass: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_068_Meadow :: Resource_Stone_Small: 2
+  World/Gameplay/Resources/[Resources]/Island/Cluster_069_Meadow :: Resource_Fiber_LongGrass: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_069_Meadow :: Resource_Wood_Branch: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_070_Meadow :: Resource_Fiber_LongGrass: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_070_Meadow :: Resource_Fiber_Plant: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_071_Meadow :: Resource_Fiber_Plant: 2
+  World/Gameplay/Resources/[Resources]/Island/Cluster_071_Meadow :: Resource_Stone_Small: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_078_Forest :: Resource_Fiber_Fern: 2
+  World/Gameplay/Resources/[Resources]/Island/Cluster_079_ForestEdge :: Resource_Fiber_Fern: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_079_ForestEdge :: Resource_Fiber_SmallBush: 2
+  World/Gameplay/Resources/[Resources]/Island/Cluster_080_ForestEdge :: Resource_Food_EdiblePlant: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_080_ForestEdge :: Resource_Stone_Small: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_080_ForestEdge :: Resource_Wood_Branch: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_081_Meadow :: Resource_Food_EdiblePlant: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_081_Meadow :: Resource_Wood_Branch: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_082_Meadow :: Resource_Fiber_LongGrass: 2
+  World/Gameplay/Resources/[Resources]/Island/Cluster_083_Meadow :: Resource_Fiber_LongGrass: 2
+  World/Gameplay/Resources/[Resources]/Island/Cluster_084_ForestEdge :: Resource_Food_EdiblePlant: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_084_ForestEdge :: Resource_Wood_Branch_02: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_090_Forest :: Resource_Fiber_Fern: 2
+  World/Gameplay/Resources/[Resources]/Island/Cluster_090_Forest :: Resource_Wood_Branch_02: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_091_ForestEdge :: Resource_Fiber_Fern: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_091_ForestEdge :: Resource_Wood_Branch_02: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_092_ForestEdge :: Resource_Fiber_Plant: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_092_ForestEdge :: Resource_Stone_Small: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_093_WaterEdge :: Resource_Fiber_LongGrass: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_093_WaterEdge :: Resource_Food_EdiblePlant: 2
+  World/Gameplay/Resources/[Resources]/Island/Cluster_094_Meadow :: Resource_Food_BerryBush: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_094_Meadow :: Resource_Wood_Branch: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_097_Forest :: Resource_Stone_Medium: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_097_Forest :: Resource_Wood_SmallLog: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_098_Forest :: Resource_Wood_Branch: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_098_Forest :: Resource_Wood_SmallLog: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_105_Forest :: Resource_Fiber_Fern: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_105_Forest :: Resource_Fiber_SmallBush: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_105_Forest :: Resource_Wood_Branch: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_106_Forest :: Resource_Fiber_Fern: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_106_Forest :: Resource_Fiber_SmallBush: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_106_Forest :: Resource_Food_FallenFruit: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_107_Forest :: Resource_Fiber_Fern: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_107_Forest :: Resource_Wood_Branch: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_108_Forest :: Resource_Fiber_Fern: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_108_Forest :: Resource_Fiber_SmallBush: 1
+  World/Gameplay/Resources/[Resources]/WaterEdge :: Resource_Fish_Shoal: 6
+  World/Gameplay/Resources/[Resources]/WaterEdge/Bank_00 :: Resource_Fiber_LongGrass: 1
+  World/Gameplay/Resources/[Resources]/WaterEdge/Bank_00 :: Resource_Fiber_Plant: 1
+  World/Gameplay/Resources/[Resources]/WaterEdge/Bank_00 :: Resource_Stone_Small: 1
+  World/Gameplay/Resources/[Resources]/WaterEdge/Bank_02 :: Resource_Fiber_LongGrass: 1
+  World/Gameplay/Resources/[Resources]/WaterEdge/Bank_02 :: Resource_Stone_Small: 2
+  World/Gameplay/Resources/[Resources]/WaterEdge/Bank_03 :: Resource_Fiber_LongGrass: 1
+  World/Gameplay/Resources/[Resources]/WaterEdge/Bank_03 :: Resource_Food_EdiblePlant: 2
+  World/Gameplay/Resources/[Resources]/WaterEdge/Bank_04 :: Resource_Fiber_LongGrass: 1
+  World/Gameplay/Resources/[Resources]/WaterEdge/Bank_04 :: Resource_Food_EdiblePlant: 1
+  World/Gameplay/Resources/[Resources]/WaterEdge/Bank_04 :: Resource_Stone_Small: 1
+  World/Gameplay/Resources/[Resources]/WaterEdge/Bank_05 :: Resource_Fiber_LongGrass: 1
+  World/Gameplay/Resources/[Resources]/WaterEdge/Bank_05 :: Resource_Stone_Small: 1
+  World/Gameplay/Resources/[Resources]/WaterEdge/Bank_06 :: Resource_Stone_Small: 2
+  World/Gameplay/Resources/[Resources]/WaterEdge/Bank_07 :: Resource_Fiber_Plant: 1
+  World/Gameplay/Resources/[Resources]/WaterEdge/Bank_07 :: Resource_Food_EdiblePlant: 1
+  World/Gameplay/Resources/[Resources]/WaterEdge/Bank_07 :: Resource_Stone_Small: 1
+  World/Gameplay/Resources/[Resources]/WaterEdge/Bank_08 :: Resource_Fiber_LongGrass: 3
+  World/Gameplay/Resources/[Resources]/WaterEdge/Bank_10 :: Resource_Stone_Small: 1
+  World/Gameplay/Resources/[Resources]/WaterEdge/Bank_11 :: Resource_Fiber_LongGrass: 1
+  World/Gameplay/Resources/[Resources]/WaterEdge/Bank_11 :: Resource_Stone_Small: 1
+  World/Gameplay/Resources/Resources :: PFB_RES_Fiber: 1
+  World/Gameplay/Resources/Resources :: PFB_RES_Stone: 9
+  World/Gameplay/WaterSources :: ENV_Pond_Water: 1
+  World/Gameplay/WaterSources :: ENV_Spring_Water: 1
+  World/Gameplay/WaterSources :: ENV_WaterfallPool_Water: 1
+  World/Gameplay/Wildlife/[Dinosaurs]/Carnotaurus :: Carnotaurus: 1
+  World/Gameplay/Wildlife/[Dinosaurs]/Parasaurolophus :: Parasaurolophus: 3
+  World/Gameplay/Wildlife/[Dinosaurs]/Spinosaurus :: Spinosaurus: 1
+  World/Gameplay/Wildlife/[Dinosaurs]/Triceratops :: Triceratops: 2
+  blockers: 1609
+  point (-70, 12.4, -5): slope 13.95, water 110.09, route 58.25, blocked False, solid False, own 1
+  point (-80, 14.9, -20): slope 15.94, water 126.69, route 70.99, blocked False, solid False, own 0.98
+  point (-60, 11.5, 20): slope 10.98, water 89.62, route 46.69, blocked False, solid False, own 1
+  point (60, 11, 10): slope 4.55, water 1.96, route 72.17, blocked True, solid True, own 1
+  point (40, 11.5, 30): slope 4.96, water 4.81, route 56.92, blocked False, solid False, own 1
+  point (-40, 25.4, -92): slope 1.61, water 106.79, route 59.35, blocked True, solid False, own 1
+  point (84.6, 10.6, -97.5): slope 4.72, water 0, route 0, blocked False, solid False, own 0.73
+finished, 0 warning(s)
+
+EA Survey zone=wetland;points=118,196|130,180|135,165|85,150|75,170|70,185|95,195|120,150|100,140|140,175 started 2026-09-30 19:28:09
+terrain TD_Island size (640, 80, 640) at (-320, -10, -320); heightmap 1025, alphamap 1024 x 9, detail 512 (32/patch)
+  distances: detail 90 density 1, tree 450, billboard 450, crossfade 5, basemap 300; wind grass speed 0.5 strength 0.5 amount 0.5
+  layers: 0 TL_Sand, 1 TL_Grass, 2 TL_ForestFloor, 3 TL_Rock, 4 TL_Mud, 5 TL_SandWet, 6 TL_Moss, 7 TL_DarkSoil, 8 TL_Ash
+  detail 0: DET_ENV_Fern_01 VertexLit inst True w 0.8-1.3 h 0.8-1.3  mesh ENV_Fern_01_LOD0 bounds (2.2, 0.5, 2) mat M_Foliage / Universal Render Pipeline/Lit; in wetland rect 3689
+  detail 1: DET_ENV_Grass_01 VertexLit inst True w 0.7-1.2 h 0.7-1.2  mesh ENV_Grass_01_LOD0 bounds (0.7, 0.7, 0.6) mat M_Foliage / Universal Render Pipeline/Lit; in wetland rect 177
+  detail 2: DET_ENV_Bush_01 VertexLit inst True w 0.8-1.2 h 0.8-1.2  mesh ENV_Bush_01_LOD0 bounds (3, 1.3, 2.6) mat M_Foliage / Universal Render Pipeline/Lit; in wetland rect 61
+  detail 3: DET_PC_Horsetail VertexLit inst True w 0.75-1.25 h 0.75-1.25  mesh DET_PC_Horsetail bounds (1.1, 1.3, 1) mat M_Env_FoliageLow / PF/Foliage Wind; in wetland rect 2057
+  detail 4: DET_PC_Reeds VertexLit inst True w 0.8-1.3 h 0.8-1.3  mesh DET_PC_Reeds bounds (1, 1.7, 1.1) mat M_Env_FoliageLow / PF/Foliage Wind; in wetland rect 4720
+  detail 5: DET_PC_GiantFern VertexLit inst True w 0.7-1.15 h 0.7-1.15  mesh DET_PC_GiantFern bounds (3.9, 1.2, 3.3) mat M_Env_FoliageLow / PF/Foliage Wind; in wetland rect 365
+  tree 0: PFB_ENV_Tree_01 all 554, in wetland 33
+  tree 1: PFB_ENV_Tree_02 all 0, in wetland 0
+  tree 2: PFB_ENV_Tree_03 all 230, in wetland 9
+  tree 3: PFB_ENV_Tree_04 all 0, in wetland 0
+  tree 4: ENV_PC_TreeFern_A all 175, in wetland 13
+  tree 5: ENV_PC_TreeFern_B all 162, in wetland 17
+  tree 6: ENV_PC_TreeFern_C all 166, in wetland 12
+  tree 7: ENV_PC_Cycad_A all 56, in wetland 8
+  tree 8: ENV_PC_Cycad_B all 60, in wetland 6
+  tree 9: ENV_PC_Cycad_C all 76, in wetland 10
+  tree instances total 1479
+  splat share in the wetland core: TL_Sand 21.16%, TL_Grass 17.37%, TL_ForestFloor 20.32%, TL_Rock 7.1%, TL_Mud 19.97%, TL_SandWet 1.11%, TL_Moss 0%, TL_DarkSoil 12.98%, TL_Ash 0%
+  ring 0.25R: [0] y0,4 s5 w0 [23] y0,4 s6 w0 [45] y0,6 s3 w0 [68] y0,9 s4 w0 [90] y0,9 s2 w0 [113] y0,8 s0 w0 [135] y0,7 s2 w0 [158] y0,6 s1 w0 [180] y0,7 s1 w0 [203] y0,6 s5 w0 [225] y0,3 s0 w0 [248] y0,7 s5 w0 [270] y0,6 s3 w0 [293] y0,5 s1 w0 [315] y0,6 s4 w0 [338] y0,6 s6 w0
+  ring 0.5R: [0] y0,6 s11 w0 [23] y1,0 s14 w0 [45] y1,2 s9 w0 [68] y0,7 s1 w0 [90] y1,0 s9 w0 [113] y1,1 s8 w0 [135] y1,2 s7 w0 [158] y1,0 s12 w0 [180] y1,1 s10 w0 [203] y1,0 s0 w0 [225] y0,6 s3 w0 [248] y0,8 s6 w0 [270] y0,4 s1 w0 [293] y0,7 s9 w0 [315] y1,5 s13 w0 [338] y2,1 s3 w3
+  ring 0.75R: [0] y0,7 s16 w0 [23] y1,3 s11 w3 [45] y2,0 s1 w7 [68] y2,4 s1 w3 [90] y2,6 s11 w2 [113] y0,7 s4 w0 [135] y4,1 s8 w4 [158] y4,7 s5 w8 [180] y5,6 s19 w7 [203] y5,4 s26 w6 [225] y3,9 s28 w0 [248] y4,2 s9 w6 [270] y2,3 s32 w1 [293] y2,6 s9 w2 [315] y2,1 s3 w8 [338] y1,8 s2 w13
+  ring 1R: [0] y0,0 s6 w0 [23] y1,0 s11 w5 [45] y1,8 s2 w18 [68] y2,2 s2 w14 [90] y2,4 s3 w12 [113] y3,3 s2 w9 [135] y4,0 s4 w14 [158] y5,1 s9 w19 [180] y7,5 s8 w18 [203] y8,2 s8 w16 [225] y5,3 s22 w0 [248] y5,2 s9 w11 [270] y3,1 s4 w13 [293] y2,7 s2 w13 [315] y1,9 s3 w18 [338] y1,2 s5 w17
+  ring 1.25R: [0] y-0,7 s9 w0 [23] y0,3 s7 w6 [45] y1,5 s2 w27 [68] y1,9 s2 w25 [90] y2,0 s3 w23 [113] y3,2 s7 w20 [135] y4,0 s6 w24 [158] y6,1 s9 w30 [180] y8,7 s8 w29 [203] y9,6 s10 w14 [225] y7,5 s31 w0 [248] y6,3 s12 w18 [270] y3,7 s7 w24 [293] y2,7 s3 w24 [315] y1,4 s5 w29 [338] y-0,1 s9 w19
+  Managers/Markers/Zones :: wetland: 1
+  World/Environment/Forest/ForestDressing :: ENV_PC_FallenTrunk_B: 1
+  World/Environment/Forest/ForestDressing :: ENV_PC_Magnolia_A: 4
+  World/Environment/Forest/ForestDressing :: ENV_PC_Magnolia_B: 1
+  World/Environment/Forest/ForestDressing :: ENV_PC_Roots_A: 2
+  World/Environment/Forest/Rocks :: ENV_PC_MossRock_A: 1
+  World/Environment/Forest/Rocks :: ENV_PC_MossRock_B: 3
+  World/Environment/Forest/Rocks :: ENV_PC_MossRock_C: 1
+  World/Environment/Forest/Vegetation/InteractiveBushes :: Bush: 13
+  World/Environment/Forest/Vegetation/InteractiveBushes :: Bush_004_HiddenItem: 1
+  World/Environment/Forest/Vegetation/InteractiveBushes :: Bush_007_Berries: 1
+  World/Environment/Forest/Vegetation/InteractiveBushes :: Bush_017_HiddenItem: 1
+  World/Environment/Forest/Vegetation/InteractiveBushes :: Bush_019_HiddenItem: 1
+  World/Environment/Forest/Vegetation/InteractiveBushes :: Bush_024_AnimalFlush: 1
+  World/Environment/Forest/Vegetation/InteractiveBushes :: Bush_028_Berries: 1
+  World/Environment/Forest/Vegetation/InteractiveBushes :: Bush_035_AnimalFlush: 1
+  World/Environment/Forest/Vegetation/InteractiveBushes :: Bush_054_HiddenItem: 1
+  World/Environment/Forest/Vegetation/InteractiveBushes :: Bush_073_HiddenItem: 1
+  World/Environment/Forest/Vegetation/InteractiveBushes :: Bush_118_AnimalFlush: 1
+  World/Environment/Forest/Vegetation/Thickets/Thicket_36 :: ThicketBush_36: 3
+  World/Environment/Forest/Vegetation/Thickets/Thicket_36 :: ThicketBush_36_3_AnimalFlush: 1
+  World/Environment/Forest/Vegetation/Thickets/Thicket_50 :: ThicketBush_50: 5
+  World/Environment/Forest/Vegetation/Thickets/Thicket_50 :: ThicketBush_50_2_Berries: 1
+  World/Environment/Terrain/Rocks :: PFB_ENV_Rock_Large: 25
+  World/Environment/Terrain/Rocks :: PFB_ENV_Rock_Medium: 18
+  World/Environment/Terrain/Rocks :: PFB_ENV_Rock_Small: 4
+  World/Environment/Wetlands/WaterEdge :: ENV_PC_GiantFern_A: 12
+  World/Environment/Wetlands/WaterEdge :: ENV_PC_GiantFern_B: 13
+  World/Environment/Wetlands/WaterEdge :: ENV_PC_HorsetailClump: 20
+  World/Gameplay/Interactables/FruitTrees :: FruitTree: 1
+  World/Gameplay/Interactables/Storytelling/WreckRemains :: PFB_PROP_Ship_Debris: 1
+  World/Gameplay/Resources/[Resources]/FruitTreeDrops :: Resource_Food_FallenFruit: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_095_ForestEdge :: Resource_Food_BerryBush: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_095_ForestEdge :: Resource_Stone_Small: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_095_ForestEdge :: Resource_Wood_Branch_02: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_100_Forest :: Resource_Fiber_Fern: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_100_Forest :: Resource_Wood_Branch: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_100_Forest :: Resource_Wood_SmallLog: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_101_ForestEdge :: Resource_Fiber_Plant: 2
+  World/Gameplay/Resources/[Resources]/Island/Cluster_101_ForestEdge :: Resource_Food_EdiblePlant: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_102_Beach :: Resource_Fiber_LongGrass: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_102_Beach :: Resource_Food_FallenFruit: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_110_Forest :: Resource_Fiber_Fern: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_111_Forest :: Resource_Fiber_Fern: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_111_Forest :: Resource_Fiber_SmallBush: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_111_Forest :: Resource_Wood_Branch: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_112_Forest :: Resource_Wood_Branch: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_112_Forest :: Resource_Wood_SmallLog: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_113_Beach :: Resource_Food_FallenFruit: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_113_Beach :: Resource_Wood_Branch: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_113_Beach :: Resource_Wood_Driftwood: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_121_Forest :: Resource_Fiber_Fern: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_121_Forest :: Resource_Wood_Branch: 2
+  World/Gameplay/Resources/[Resources]/Island/Cluster_122_ForestEdge :: Resource_Fiber_Plant: 2
+  World/Gameplay/Resources/[Resources]/Island/Cluster_122_ForestEdge :: Resource_Food_BerryBush: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_123_Beach :: Resource_Fiber_LongGrass: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_123_Beach :: Resource_Stone_Small: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_134_Beach :: Resource_Stone_Small: 1
+  World/Gameplay/Resources/Resources :: PFB_RES_BerryPlant: 9
+  World/Gameplay/Resources/Resources :: PFB_RES_Fiber: 4
+  World/Gameplay/Resources/Resources :: PFB_RES_Wood: 2
+  blockers: 1609
+  point (118, 2, 196): slope 2.88, water 2.66, route 226.45, blocked True, solid True, own 1
+  point (130, 1, 180): slope 2.51, water 0, route 221.27, blocked False, solid False, own 1
+  point (135, 1.3, 165): slope 14.27, water 0, route 213.57, blocked False, solid False, own 1
+  point (85, 2, 150): slope 26.54, water 0.33, route 169.84, blocked False, solid False, own 1
+  point (75, 0.4, 170): slope 1.46, water 0, route 181.34, blocked False, solid False, own 1
+  point (70, 2.7, 185): slope 2.12, water 2.75, route 192.31, blocked False, solid False, own 1
+  point (95, 2, 195): slope 3.13, water 2.87, route 213, blocked False, solid False, own 1
+  point (120, 3.5, 150): slope 17.72, water 3.81, route 192.35, blocked False, solid False, own 1
+  point (100, 5, 140): slope 23.54, water 4.9, route 171.41, blocked True, solid False, own 1
+  point (140, 2.5, 175): slope 2.37, water 6.27, route 224.24, blocked False, solid True, own 1
+finished, 0 warning(s)
+
+EA Survey zone=bone;points=-118,-50|-105,-76|-103,-65|-114,-66|-125,-58|-95,-85|-112,-90|-100,-95 started 2026-09-30 19:34:33
+terrain TD_Island size (640, 80, 640) at (-320, -10, -320); heightmap 1025, alphamap 1024 x 9, detail 512 (32/patch)
+  distances: detail 90 density 1, tree 450, billboard 450, crossfade 5, basemap 300; wind grass speed 0.5 strength 0.5 amount 0.5
+  layers: 0 TL_Sand, 1 TL_Grass, 2 TL_ForestFloor, 3 TL_Rock, 4 TL_Mud, 5 TL_SandWet, 6 TL_Moss, 7 TL_DarkSoil, 8 TL_Ash
+  detail 0: DET_ENV_Fern_01 VertexLit inst True w 0.8-1.3 h 0.8-1.3  mesh ENV_Fern_01_LOD0 bounds (2.2, 0.5, 2) mat M_Foliage / Universal Render Pipeline/Lit; in bone rect 8426
+  detail 1: DET_ENV_Grass_01 VertexLit inst True w 0.7-1.2 h 0.7-1.2  mesh ENV_Grass_01_LOD0 bounds (0.7, 0.7, 0.6) mat M_Foliage / Universal Render Pipeline/Lit; in bone rect 2169
+  detail 2: DET_ENV_Bush_01 VertexLit inst True w 0.8-1.2 h 0.8-1.2  mesh ENV_Bush_01_LOD0 bounds (3, 1.3, 2.6) mat M_Foliage / Universal Render Pipeline/Lit; in bone rect 56
+  detail 3: DET_PC_Horsetail VertexLit inst True w 0.75-1.25 h 0.75-1.25  mesh DET_PC_Horsetail bounds (1.1, 1.3, 1) mat M_Env_FoliageLow / PF/Foliage Wind; in bone rect 0
+  detail 4: DET_PC_Reeds VertexLit inst True w 0.8-1.3 h 0.8-1.3  mesh DET_PC_Reeds bounds (1, 1.7, 1.1) mat M_Env_FoliageLow / PF/Foliage Wind; in bone rect 0
+  detail 5: DET_PC_GiantFern VertexLit inst True w 0.7-1.15 h 0.7-1.15  mesh DET_PC_GiantFern bounds (3.9, 1.2, 3.3) mat M_Env_FoliageLow / PF/Foliage Wind; in bone rect 1147
+  tree 0: PFB_ENV_Tree_01 all 554, in bone 89
+  tree 1: PFB_ENV_Tree_02 all 0, in bone 0
+  tree 2: PFB_ENV_Tree_03 all 230, in bone 28
+  tree 3: PFB_ENV_Tree_04 all 0, in bone 0
+  tree 4: ENV_PC_TreeFern_A all 175, in bone 15
+  tree 5: ENV_PC_TreeFern_B all 162, in bone 13
+  tree 6: ENV_PC_TreeFern_C all 166, in bone 14
+  tree 7: ENV_PC_Cycad_A all 56, in bone 2
+  tree 8: ENV_PC_Cycad_B all 60, in bone 5
+  tree 9: ENV_PC_Cycad_C all 76, in bone 5
+  tree instances total 1479
+  splat share in the bone core: TL_Sand 0%, TL_Grass 18.78%, TL_ForestFloor 54.55%, TL_Rock 18.21%, TL_Mud 0%, TL_SandWet 1.36%, TL_Moss 3.9%, TL_DarkSoil 3.19%, TL_Ash 0%
+  ring 0.25R: [0] y14,2 s23 w160 [23] y14,2 s20 w155 [45] y14,5 s20 w152 [68] y15,6 s19 w150 [90] y15,3 s21 w150 [113] y16,2 s24 w152 [135] y17,4 s41 w156 [158] y19,4 s29 w161 [180] y22,9 s42 w166 [203] y26,0 s32 w170 [225] y28,3 s20 w173 [248] y28,6 s20 w175 [270] y27,8 s37 w174 [293] y23,5 s42 w172 [315] y18,8 s45 w169 [338] y15,7 s33 w164
+  ring 0.5R: [0] y15,3 s11 w158 [23] y15,0 s10 w148 [45] y14,0 s7 w141 [68] y13,1 s4 w138 [90] y12,8 s3 w138 [113] y13,1 s1 w143 [135] y14,0 s22 w151 [158] y20,1 s44 w160 [180] y27,4 s39 w170 [203] y31,5 s26 w178 [225] y32,6 s12 w184 [248] y31,0 s25 w187 [270] y19,7 s78 w187 [293] y15,9 s71 w183 [315] y14,2 s11 w176 [338] y14,6 s7 w167
+  ring 0.75R: [0] y17,1 s7 w157 [23] y16,1 s13 w142 [45] y13,4 s8 w131 [68] y12,4 s5 w125 [90] y12,5 s6 w126 [113] y13,6 s3 w134 [135] y13,7 s10 w146 [158] y21,0 s39 w160 [180] y29,7 s19 w175 [203] y32,8 s25 w187 [225] y17,6 s32 w195 [248] y15,9 s55 w199 [270] y29,1 s77 w199 [293] y14,6 s59 w193 [315] y11,6 s3 w184 [338] y14,1 s6 w171
+  ring 1R: [0] y17,4 s5 w151 [23] y16,1 s11 w136 [45] y12,3 s7 w121 [68] y11,5 s4 w113 [90] y11,4 s5 w114 [113] y14,1 s35 w125 [135] y16,3 s12 w142 [158] y22,0 s31 w162 [180] y31,9 s19 w180 [203] y33,0 s7 w196 [225] y31,4 s3 w206 [248] y31,4 s19 w212 [270] y29,5 s26 w211 [293] y17,5 s34 w204 [315] y14,0 s6 w189 [338] y13,4 s10 w169
+  ring 1.25R: [0] y16,1 s14 w145 [23] y15,2 s17 w127 [45] y11,3 s5 w112 [68] y10,7 s5 w101 [90] y10,6 s3 w102 [113] y21,9 s38 w117 [135] y18,2 s16 w139 [158] y22,5 s14 w162 [180] y32,2 s5 w186 [203] y31,5 s70 w205 [225] y30,9 s20 w218 [248] y25,9 s32 w224 [270] y25,0 s34 w223 [293] y16,3 s15 w214 [315] y14,0 s4 w192 [338] y13,1 s8 w168
+  Managers/Markers/Zones :: canyon: 1
+  Managers/Markers/Zones :: fossil_bed: 1
+  Managers/Markers/Zones :: migration_view: 1
+  Managers/Markers/Zones :: nest: 1
+  Managers/Markers/Zones :: predator_territory: 1
+  World/Environment/Forest/ForestDressing :: ENV_PC_FallenTrunk_A: 1
+  World/Environment/Forest/ForestDressing :: ENV_PC_Magnolia_A: 7
+  World/Environment/Forest/ForestDressing :: ENV_PC_Magnolia_B: 6
+  World/Environment/Forest/ForestDressing :: ENV_PC_Roots_A: 1
+  World/Environment/Forest/ForestDressing :: ENV_PC_Roots_B: 1
+  World/Environment/Forest/ForestDressing :: ENV_PC_VineCurtain_A: 10
+  World/Environment/Forest/ForestDressing :: ENV_PC_VineCurtain_B: 10
+  World/Environment/Forest/Rocks :: ENV_PC_MossRock_A: 2
+  World/Environment/Forest/Rocks :: ENV_PC_MossRock_B: 4
+  World/Environment/Forest/Rocks :: ENV_PC_MossRock_C: 3
+  World/Environment/Forest/Vegetation :: PFB_ENV_FallenLog: 3
+  World/Environment/Forest/Vegetation/InteractiveBushes :: Bush: 6
+  World/Environment/Forest/Vegetation/InteractiveBushes :: Bush_053_Berries: 1
+  World/Environment/Forest/Vegetation/InteractiveBushes :: Bush_061_Berries: 1
+  World/Environment/Forest/Vegetation/InteractiveBushes :: Bush_089_Berries: 1
+  World/Environment/Forest/Vegetation/InteractiveBushes :: Bush_096_Berries: 1
+  World/Environment/Forest/Vegetation/InteractiveBushes :: Bush_100_HiddenItem: 1
+  World/Environment/Forest/Vegetation/InteractiveBushes :: Bush_122_AnimalFlush: 1
+  World/Environment/Forest/Vegetation/InteractiveBushes :: Bush_129_HiddenItem: 1
+  World/Environment/Forest/Vegetation/Thickets/Thicket_02 :: ThicketBush_02: 2
+  World/Environment/Forest/Vegetation/Thickets/Thicket_04 :: ThicketBush_04: 3
+  World/Environment/Forest/Vegetation/Thickets/Thicket_04 :: ThicketBush_04_2_Berries: 1
+  World/Environment/Forest/Vegetation/Thickets/Thicket_13 :: ThicketBush_13: 3
+  World/Environment/Forest/Vegetation/Thickets/Thicket_13 :: ThicketBush_13_1_Berries: 1
+  World/Environment/Forest/Vegetation/Thickets/Thicket_13 :: ThicketBush_13_4_Berries: 1
+  World/Environment/Forest/Vegetation/Thickets/Thicket_17 :: ThicketBush_17: 3
+  World/Environment/Forest/Vegetation/Thickets/Thicket_17 :: ThicketBush_17_4_HiddenItem: 1
+  World/Environment/Forest/Vegetation/Thickets/Thicket_18 :: ThicketBush_18: 6
+  World/Environment/Forest/Vegetation/Thickets/Thicket_25 :: ThicketBush_25: 1
+  World/Environment/Forest/Vegetation/Thickets/Thicket_25 :: ThicketBush_25_2_Berries: 1
+  World/Environment/Forest/Vegetation/Thickets/Thicket_25 :: ThicketBush_25_3_Berries: 1
+  World/Environment/Forest/Vegetation/Thickets/Thicket_28 :: ThicketBush_28: 3
+  World/Environment/Forest/Vegetation/Thickets/Thicket_28 :: ThicketBush_28_3_Berries: 1
+  World/Environment/Forest/Vegetation/Thickets/Thicket_28 :: ThicketBush_28_4_Berries: 1
+  World/Environment/Forest/Vegetation/Thickets/Thicket_29 :: ThicketBush_29: 4
+  World/Environment/Forest/Vegetation/Thickets/Thicket_29 :: ThicketBush_29_1_HiddenItem: 1
+  World/Environment/Forest/Vegetation/Thickets/Thicket_29 :: ThicketBush_29_3_Berries: 1
+  World/Environment/Forest/Vegetation/Thickets/Thicket_29 :: ThicketBush_29_5_AnimalFlush: 1
+  World/Environment/Forest/Vegetation/Thickets/Thicket_37 :: ThicketBush_37: 3
+  World/Environment/Forest/Vegetation/Thickets/Thicket_37 :: ThicketBush_37_2_Berries: 1
+  World/Environment/Forest/Vegetation/Thickets/Thicket_38 :: ThicketBush_38: 7
+  World/Environment/Forest/Vegetation/Thickets/Thicket_42 :: ThicketBush_42: 3
+  World/Environment/Forest/Vegetation/Thickets/Thicket_42 :: ThicketBush_42_2_Berries: 1
+  World/Environment/Forest/Vegetation/Thickets/Thicket_44 :: ThicketBush_44: 7
+  World/Environment/Forest/Vegetation/Thickets/Thicket_51 :: ThicketBush_51: 2
+  World/Environment/Forest/Vegetation/Thickets/Thicket_51 :: ThicketBush_51_3_Berries: 1
+  World/Environment/Forest/Vegetation/Thickets/Thicket_61 :: ThicketBush_61: 3
+  World/Environment/Terrain/Rocks :: PFB_ENV_Rock_Large: 14
+  World/Environment/Terrain/Rocks :: PFB_ENV_Rock_Medium: 53
+  World/Environment/Terrain/Rocks :: PFB_ENV_Rock_Small: 9
+  World/Gameplay/Interactables/Storytelling/BloodTrail :: Stain: 1
+  World/Gameplay/Interactables/Storytelling/FossilBed :: FossilSlab: 1
+  World/Gameplay/Interactables/Storytelling/KillSite :: Bones: 3
+  World/Gameplay/Interactables/Storytelling/KillSite :: GiantSkeleton: 1
+  World/Gameplay/Interactables/Storytelling/Nest :: Nest: 1
+  World/Gameplay/Interactables/Storytelling/PredatorPath :: BrokenTree: 3
+  World/Gameplay/Interactables/Storytelling/PredatorPath :: ClawSnag: 1
+  World/Gameplay/Interactables/Storytelling/Spots :: KnollView: 1
+  World/Gameplay/Interactables/Storytelling/TheropodTrail :: Print: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_019_Forest :: Resource_Fiber_Fern: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_019_Forest :: Resource_Wood_SmallLog: 2
+  World/Gameplay/Resources/[Resources]/Island/Cluster_020_Forest :: Resource_Fiber_Fern: 2
+  World/Gameplay/Resources/[Resources]/Island/Cluster_020_Forest :: Resource_Stone_Medium_02: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_030_Rocky :: Resource_Stone_Medium: 2
+  World/Gameplay/Resources/[Resources]/Island/Cluster_030_Rocky :: Resource_Stone_Medium_02: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_030_Rocky :: Resource_Stone_Small: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_031_Rocky :: Resource_Stone_Medium: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_031_Rocky :: Resource_Stone_Medium_02: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_031_Rocky :: Resource_Stone_Small: 2
+  World/Gameplay/Resources/[Resources]/Island/Cluster_032_Forest :: Resource_Fiber_Fern: 2
+  World/Gameplay/Resources/[Resources]/Island/Cluster_032_Forest :: Resource_Wood_SmallLog: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_042_Rocky :: Resource_Stone_Medium: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_042_Rocky :: Resource_Stone_Small: 2
+  World/Gameplay/Resources/[Resources]/Island/Cluster_043_Forest :: Resource_Fiber_SmallBush: 2
+  World/Gameplay/Resources/[Resources]/Island/Cluster_043_Forest :: Resource_Wood_Branch_02: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_044_Forest :: Resource_Fiber_Fern: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_044_Forest :: Resource_Wood_Branch_02: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_054_ForestEdge :: Resource_Fiber_Fern: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_054_ForestEdge :: Resource_Food_BerryBush: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_054_ForestEdge :: Resource_Stone_Small: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_055_Forest :: Resource_Food_FallenFruit: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_055_Forest :: Resource_Wood_SmallLog: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_056_ForestEdge :: Resource_Fiber_Plant: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_056_ForestEdge :: Resource_Food_EdiblePlant: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_057_ForestEdge :: Resource_Wood_Branch: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_057_ForestEdge :: Resource_Wood_Branch_02: 2
+  World/Gameplay/Resources/Resources :: PFB_RES_Stone: 6
+  World/Gameplay/Wildlife/[Dinosaurs]/Carnotaurus :: Carnotaurus: 1
+  blockers: 1609
+  point (-118, 14.5, -50): slope 2.85, water 170.49, route 114.56, blocked True, solid False, own 1
+  point (-105, 21.6, -76): slope 35.23, water 162.21, route 110.36, blocked False, solid False, own 1
+  point (-103, 14.7, -65): slope 25.37, water 157.88, route 104.99, blocked False, solid False, own 0.91
+  point (-114, 17.8, -66): slope 42.97, water 168.87, route 115.74, blocked False, solid False, own 1
+  point (-125, 14, -58): slope 29.91, water 178.43, route 123.65, blocked False, solid False, own 1
+  point (-95, 16.4, -85): slope 35.7, water 155.04, route 103.82, blocked True, solid False, own 0.92
+  point (-112, 27.5, -90): slope 27.22, water 172.75, route 121.49, blocked False, solid False, own 0.07
+  point (-100, 20.9, -95): slope 37.69, water 162.98, route 112.31, blocked False, solid False, own 0.44
+finished, 0 warning(s)
+
+EA Valley  started 2026-09-30 20:05:20
+tall grass: detail layer 6 = DET_Z_TallGrass (w 1.5-2.2, h 1.7-2.6 x 0.7 m mesh = about 1.2-1.8 m tall), PF/Foliage Wind
+terrain backup made: Assets/_Project/Art/Terrain/TD_Island.asset -> Assets/_Project/Art/Terrain/_Backup/TD_Island_before_EA.asset
+valley splat: 110878 texels written (lerp by OwnWeight from the EA baseline)
+valley details: 27729 texels, layers fern 0 grass 1 horsetail 3 reeds 4 giantfern 5 tallgrass 6; instances in the rect 23338 -> 73134
+valley trees: 1 own terrain trees (araucaria 0, cycad 1, tree fern 0); rejected route / wallow / landmark 3, knoll view 7, gameplay 6, spacing 3
+EA_valley: 1 own terrain trees (0 in recorded slots, 1 appended, 0 surplus removed from the tail, 0 surplus parked), total terrain trees 1480
+valley props: 28 boulders (Rocks), 26 giant ferns, 1 fallen trunks, 14 horsetail clumps (Props)
+landmark: LM_RockRidge not delivered yet: empty LM_MigrationValley kept
+landmark LM_MigrationValley at (-72, 12.9, -8), facing (0.9, 0, -0.4); route 60.8 m, knoll view blocked by a 12 m ridge there: False
+valley FX anchors: FXA_Valley_Pollen_Meadow (-2, 10.7, -28), FXA_Valley_Mist_Ford (84.6, 11.4, -97.5), FXA_Valley_Dust_Trail (18, 10.9, -72), FXA_Valley_Pollen_Knoll (-40, 27.4, -92), FXA_Valley_Insects_Wallow_0 (16, 9.7, 2), FXA_Valley_Insects_Wallow_1 (-24, 9.7, -50), FXA_Valley_Insects_Wallow_2 (4, 9.7, -76)
+scene saved: Assets/_Project/Scenes/Island_VerticalSlice.unity
+finished, 0 warning(s)
+
+EA Wetland  started 2026-09-30 20:10:08
+terrain baseline: Assets/_Project/Art/Terrain/_Backup/TD_Island_before_EA.asset (existing backup, kept)
+wetland splat: 39412 texels written
+wetland details: 9851 texels, layers fern 0 grass 1 horsetail 3 reeds 4 giantfern 5 bush 2; instances in the rect 9626 -> 13266
+wetland trees: 3 own terrain trees (tree fern 3, cycad 0), rejected 5
+EA_wetland: 3 own terrain trees (0 in recorded slots, 3 appended, 0 surplus removed from the tail, 0 surplus parked), total terrain trees 1483
+wetland props: 11 dead snags (PROP_PC_BrokenTree_A/..), 8 root plates, 3 fallen trunks, 16 horsetail clumps, 12 giant ferns
+landmark: LM_AncientFallenTree not delivered yet: empty LM_PrehistoricWetland kept (its +z points from the root end into the water)
+landmark LM_PrehistoricWetland at (87, 2.2, 190.5) (ground 2.24), trunk direction (0.5, 0, -0.9), 14 m out: ground 0.55 (water 0.85), blocked False
+wetland FX anchors: FXA_Wetland_Fog_Lagoon (100, 1.5, 168), FXA_Wetland_Fog_West (83, 1.5, 175), FXA_Wetland_Fog_East (118, 1.5, 174), FXA_Wetland_Mist_RiverMouth (106, 1, 200), FXA_Wetland_Insects_Landmark (90, 3.7, 185.3), FXA_Wetland_Insects_Reeds_0 (123, 2.1, 169), FXA_Wetland_Insects_Reeds_1 (99, 2.1, 187), FXA_Wetland_Insects_Reeds_2 (87, 2.1, 157)
+scene saved: Assets/_Project/Scenes/Island_VerticalSlice.unity
+finished, 0 warning(s)
+
+EA Valley terrain;props started 2026-09-30 21:00:21
+tall grass: detail layer 6 = DET_Z_TallGrass (w 1.5-2.2, h 1.7-2.6 x 0.7 m mesh = about 1.2-1.8 m tall), PF/Foliage Wind
+terrain baseline: Assets/_Project/Art/Terrain/_Backup/TD_Island_before_EA.asset (existing backup, kept)
+valley splat: 110878 texels written (lerp by OwnWeight from the EA baseline)
+valley details: 27729 texels, layers fern 0 grass 1 horsetail 3 reeds 4 giantfern 5 tallgrass 6; instances in the rect 73134 -> 73134
+valley trees: 11 own terrain trees (araucaria 2, cycad 4, tree fern 5); rejected route / wallow / landmark 6, knoll view 23, gameplay 14, spacing 8
+EA_valley: 11 own terrain trees (1 in recorded slots, 10 appended, 0 surplus removed from the tail, 0 surplus parked), total terrain trees 1493
+valley props: 28 boulders (Rocks), 26 giant ferns, 3 fallen trunks, 14 horsetail clumps (Props)
+landmark: LM_RockRidge not delivered yet: empty LM_MigrationValley kept
+landmark LM_MigrationValley at (-72, 12.9, -8), facing (0.9, 0, -0.4); route 60.8 m, knoll view blocked by a 12 m ridge there: False
+valley FX anchors: FXA_Valley_Pollen_Meadow (-2, 10.7, -28), FXA_Valley_Mist_Ford (84.6, 11.4, -97.5), FXA_Valley_Dust_Trail (18, 10.9, -72), FXA_Valley_Pollen_Knoll (-40, 27.4, -92), FXA_Valley_Insects_Wallow_0 (16, 9.7, 2), FXA_Valley_Insects_Wallow_1 (-24, 9.7, -50), FXA_Valley_Insects_Wallow_2 (4, 9.7, -76)
+scene saved: Assets/_Project/Scenes/Island_VerticalSlice.unity
+finished, 0 warning(s)
+
+EA Wetland  started 2026-09-30 21:03:58
+terrain baseline: Assets/_Project/Art/Terrain/_Backup/TD_Island_before_EA.asset (existing backup, kept)
+wetland splat: 39412 texels written
+wetland details: 9851 texels, layers fern 0 grass 1 horsetail 3 reeds 4 giantfern 5 bush 2; instances in the rect 13266 -> 13266
+wetland trees: 4 own terrain trees (tree fern 3, cycad 1), rejected 22
+EA_wetland: 4 own terrain trees (3 in recorded slots, 1 appended, 0 surplus removed from the tail, 0 surplus parked), total terrain trees 1494
+wetland props: 11 dead snags (PROP_PC_BrokenTree_A/..), 8 root plates, 7 fallen trunks, 16 horsetail clumps, 12 giant ferns
+landmark: LM_AncientFallenTree not delivered yet: empty LM_PrehistoricWetland kept (its +z points from the root end into the water)
+landmark LM_PrehistoricWetland at (87, 2.2, 190.5) (ground 2.24), trunk direction (0.5, 0, -0.9), 14 m out: ground 0.55 (water 0.85), blocked False
+wetland FX anchors: FXA_Wetland_Fog_Lagoon (100, 1.5, 168), FXA_Wetland_Fog_West (83, 1.5, 175), FXA_Wetland_Fog_East (118, 1.5, 174), FXA_Wetland_Mist_RiverMouth (106, 1, 200), FXA_Wetland_Insects_Landmark (90, 3.7, 185.3), FXA_Wetland_Insects_Reeds_0 (123, 2.1, 169), FXA_Wetland_Insects_Reeds_1 (99, 2.1, 187), FXA_Wetland_Insects_Reeds_2 (87, 2.1, 157)
+scene saved: Assets/_Project/Scenes/Island_VerticalSlice.unity
+finished, 0 warning(s)
+
+EA ValleyCheck  started 2026-09-30 21:06:01
+[valley] objects under World/Environment/Forest/MigrationValley: 257
+  ENV_PC_FallenTrunk_A: 2
+  ENV_PC_FallenTrunk_B: 1
+  ENV_PC_GiantFern_A: 13
+  ENV_PC_GiantFern_B: 13
+  ENV_PC_HorsetailClump: 14
+  ENV_PC_MossRock_A: 10
+  ENV_PC_MossRock_B: 9
+  ENV_PC_MossRock_C: 9
+  own terrain trees: 11 (ENV_PC_Cycad_C 4, ENV_PC_TreeFern_A 5, PFB_ENV_Tree_01 2)
+  missing refs: prefab 0, mesh 0, material 0, broken shader 0, script 0, LOD renderer 0, collider mesh 0; terrain prototypes without asset 0
+  resource nodes in the zone + blend: 341; covered by a zone collider 1, own terrain tree within 1.2 m 0
+    covered by ENV_PC_FallenTrunk_A: World/Environment/Terrain/Rocks/PFB_ENV_Rock_Medium_03 (92.3, 11.4, -5.4)
+  other interactables covered: 0
+  objects within 20 m of the player spawn (-20, 1.5, 211): 0
+  route: zone props within 3 m 0, own trees within 8 m 0; knoll view lines (ford, waterfall, meadow): own trees in the way 0, older trees that may cut a line 22
+  wallows (mud weight at the centre): (16, 8.9, 2) mud 0.75, (-24, 8.9, -50) mud 0.82, (4, 8.9, -76) mud 0.82
+  tall grass layer 6: DET_Z_TallGrass / PF/Foliage Wind
+  terrain draw settings (scene): detail distance 90 m, density 1, tree distance 450 m, billboard 450 m; runtime presets (Core/TerrainQuality) override these per quality level
+  landmark: (-72, 12.9, -8) (empty, waiting for ART)
+VALLEY CHECK PROBLEMS: 1 problem(s)
+finished, 0 warning(s)
+
+EA WetlandCheck  started 2026-09-30 21:08:20
+[wetland] objects under World/Environment/Wetlands/PrehistoricWetland: 201
+  ENV_PC_FallenTrunk_A: 4
+  ENV_PC_FallenTrunk_B: 3
+  ENV_PC_GiantFern_A: 6
+  ENV_PC_GiantFern_B: 6
+  ENV_PC_HorsetailClump: 16
+  ENV_PC_Roots_A: 4
+  ENV_PC_Roots_B: 4
+  PROP_PC_BrokenTree_A: 6
+  PROP_PC_BrokenTree_B: 5
+  own terrain trees: 4 (ENV_PC_Cycad_B 1, ENV_PC_TreeFern_A 1, ENV_PC_TreeFern_B 2)
+  missing refs: prefab 0, mesh 0, material 0, broken shader 0, script 0, LOD renderer 0, collider mesh 0; terrain prototypes without asset 0
+  resource nodes in the zone + blend: 95; covered by a zone collider 0, own terrain tree within 1.2 m 0
+  other interactables covered: 0
+  objects within 20 m of the player spawn (-20, 1.5, 211): 0
+  props standing in water deeper than 0.6 m: 0
+  lagoon water ENV_Wetland_Water: on at (0, 0, 0)
+  landmark: (87, 2.2, 190.5) (empty, waiting for ART)
+  FX anchors: 8: FXA_Wetland_Fog_Lagoon (100, 1.5, 168), FXA_Wetland_Fog_West (83, 1.5, 175), FXA_Wetland_Fog_East (118, 1.5, 174), FXA_Wetland_Mist_RiverMouth (106, 1, 200), FXA_Wetland_Insects_Landmark (90, 3.7, 185.3), FXA_Wetland_Insects_Reeds_0 (123, 2.1, 169), FXA_Wetland_Insects_Reeds_1 (99, 2.1, 187), FXA_Wetland_Insects_Reeds_2 (87, 2.1, 157)
+WETLAND CHECK OK: 0 problem(s)
+finished, 0 warning(s)
+
+EA Valley terrain;props started 2026-09-30 21:48:39
+tall grass: detail layer 6 = DET_Z_TallGrass (w 1.5-2.2, h 1.7-2.6 x 0.7 m mesh = about 1.2-1.8 m tall), PF/Foliage Wind
+terrain baseline: Assets/_Project/Art/Terrain/_Backup/TD_Island_before_EA.asset (existing backup, kept)
+valley splat: 110878 texels written (lerp by OwnWeight from the EA baseline)
+valley details: 27729 texels, layers fern 0 grass 1 horsetail 3 reeds 4 giantfern 5 tallgrass 6; instances in the rect 72954 -> 73134
+knoll view: 0 moved trees put back
+valley trees: 11 own terrain trees (araucaria 2, cycad 4, tree fern 5); rejected route / wallow / landmark 6, knoll view 23, gameplay 14, spacing 8
+EA_valley: 11 own terrain trees (11 in recorded slots, 0 appended, 0 surplus removed from the tail, 0 surplus parked), total terrain trees 1494
+knoll view: 0 trees put back from the last run, 13 trees that cut a view line (knoll -> ford / waterfall / meadow) moved aside (same index), 0 without a free spot
+valley props: 0 boulders (Rocks), 26 giant ferns, 0 fallen trunks, 14 horsetail clumps (Props)
+landmark: LM_RockRidge not delivered yet: empty LM_MigrationValley kept
+landmark LM_MigrationValley at (-72, 12.9, -8), facing (0.9, 0, -0.4); route 60.8 m, knoll view blocked by a 12 m ridge there: False
+valley FX anchors: FXA_Valley_Pollen_Meadow (-2, 10.7, -28), FXA_Valley_Mist_Ford (84.6, 11.4, -97.5), FXA_Valley_Dust_Trail (18, 10.9, -72), FXA_Valley_Pollen_Knoll (-40, 27.4, -92), FXA_Valley_Insects_Wallow_0 (16, 9.7, 2), FXA_Valley_Insects_Wallow_1 (-24, 9.7, -50), FXA_Valley_Insects_Wallow_2 (4, 9.7, -76)
+scene saved: Assets/_Project/Scenes/Island_VerticalSlice.unity
+finished, 0 warning(s)
+
+EA Valley terrain;props started 2026-09-30 22:16:27
+tall grass: detail layer 6 = DET_Z_TallGrass (w 1.5-2.2, h 1.7-2.6 x 0.7 m mesh = about 1.2-1.8 m tall), PF/Foliage Wind
+terrain baseline: Assets/_Project/Art/Terrain/_Backup/TD_Island_before_EA.asset (existing backup, kept)
+valley splat: 110878 texels written (lerp by OwnWeight from the EA baseline)
+valley details: 27729 texels, layers fern 0 grass 1 horsetail 3 reeds 4 giantfern 5 tallgrass 6; instances in the rect 73134 -> 73134
+knoll view: 13 moved trees put back
+valley trees: 11 own terrain trees (araucaria 2, cycad 4, tree fern 5); rejected route / wallow / landmark 6, knoll view 23, gameplay 14, spacing 8
+EA_valley: 11 own terrain trees (11 in recorded slots, 0 appended, 0 surplus removed from the tail, 0 surplus parked), total terrain trees 1494
+knoll view: 0 trees put back from the last run, 13 trees that cut a view line (knoll -> ford / waterfall / meadow) moved aside (same index), 0 without a free spot
+valley props: 28 boulders (Rocks), 26 giant ferns, 0 fallen trunks, 14 horsetail clumps (Props)
+landmark: LM_RockRidge (ART) placed under LM_MigrationValley
+landmark LM_MigrationValley at (-72, 12.9, -8), facing (0.9, 0, -0.4); route 60.8 m, knoll view blocked by a 12 m ridge there: False
+valley FX anchors: FXA_Valley_Pollen_Meadow (-2, 10.7, -28), FXA_Valley_Mist_Ford (84.6, 11.4, -97.5), FXA_Valley_Dust_Trail (18, 10.9, -72), FXA_Valley_Pollen_Knoll (-40, 27.4, -92), FXA_Valley_Insects_Wallow_0 (16, 9.7, 2), FXA_Valley_Insects_Wallow_1 (-24, 9.7, -50), FXA_Valley_Insects_Wallow_2 (4, 9.7, -76)
+scene saved: Assets/_Project/Scenes/Island_VerticalSlice.unity
+finished, 0 warning(s)
+
+EA Wetland  started 2026-09-30 22:18:56
+terrain baseline: Assets/_Project/Art/Terrain/_Backup/TD_Island_before_EA.asset (existing backup, kept)
+wetland splat: 39412 texels written
+wetland details: 9851 texels, layers fern 0 grass 1 horsetail 3 reeds 4 giantfern 5 bush 2; instances in the rect 13266 -> 13266
+wetland trees: 4 own terrain trees (tree fern 3, cycad 1), rejected 22
+EA_wetland: 4 own terrain trees (4 in recorded slots, 0 appended, 0 surplus removed from the tail, 0 surplus parked), total terrain trees 1494
+wetland props: 7 dead snags (PROP_PC_BrokenTree_A/..), 4 root plates, 5 fallen trunks, 16 horsetail clumps, 12 giant ferns
+landmark: LM_AncientFallenTree (ART) placed under LM_PrehistoricWetland
+landmark LM_PrehistoricWetland at (87, 2.2, 190.5) (ground 2.24), trunk direction (0.5, 0, -0.9), 14 m out: ground 0.55 (water 0.85), blocked False
+wetland FX anchors: FXA_Wetland_Fog_Lagoon (100, 1.5, 168), FXA_Wetland_Fog_West (83, 1.5, 175), FXA_Wetland_Fog_East (118, 1.5, 174), FXA_Wetland_Mist_RiverMouth (106, 1, 200), FXA_Wetland_Insects_Landmark (90, 3.7, 185.3), FXA_Wetland_Insects_Reeds_0 (123, 2.1, 169), FXA_Wetland_Insects_Reeds_1 (99, 2.1, 187), FXA_Wetland_Insects_Reeds_2 (87, 2.1, 157)
+scene saved: Assets/_Project/Scenes/Island_VerticalSlice.unity
+finished, 0 warning(s)
+
+EA ValleyCheck  started 2026-09-30 22:21:58
+[valley] objects under World/Environment/Forest/MigrationValley: 249
+  ENV_PC_GiantFern_A: 13
+  ENV_PC_GiantFern_B: 13
+  ENV_PC_HorsetailClump: 14
+  ENV_PC_MossRock_A: 10
+  ENV_PC_MossRock_B: 9
+  ENV_PC_MossRock_C: 9
+  LM_RockRidge: 1
+  own terrain trees: 11 (ENV_PC_Cycad_C 4, ENV_PC_TreeFern_A 5, PFB_ENV_Tree_01 2)
+  missing refs: prefab 0, mesh 0, material 0, broken shader 0, script 0, LOD renderer 0, collider mesh 0; terrain prototypes without asset 0
+  resource nodes in the zone + blend: 341; covered by a zone collider 0, own terrain tree within 1.2 m 0
+  other interactables covered: 0
+  objects within 20 m of the player spawn (-20, 1.5, 211): 0
+  route: zone props within 3 m 0, own trees within 8 m 0; knoll view lines (ford, waterfall, meadow): own trees in the way 0, other trees that cut a line 0 (outside the zone weight they are not moved)
+  wallows (mud weight at the centre): (16, 8.9, 2) mud 0.75, (-24, 8.9, -50) mud 0.82, (4, 8.9, -76) mud 0.82
+  tall grass layer 6: DET_Z_TallGrass / PF/Foliage Wind
+  terrain draw settings (scene): detail distance 90 m, density 1, tree distance 450 m, billboard 450 m; runtime presets (Core/TerrainQuality) override these per quality level
+  landmark: (-72, 12.9, -8) with LM_RockRidge
+VALLEY CHECK OK: 0 problem(s)
+finished, 0 warning(s)
+
+EA WetlandCheck  started 2026-09-30 22:24:09
+[wetland] objects under World/Environment/Wetlands/PrehistoricWetland: 165
+  ENV_PC_FallenTrunk_A: 3
+  ENV_PC_FallenTrunk_B: 2
+  ENV_PC_GiantFern_A: 6
+  ENV_PC_GiantFern_B: 6
+  ENV_PC_HorsetailClump: 16
+  ENV_PC_Roots_A: 2
+  ENV_PC_Roots_B: 2
+  LM_AncientFallenTree: 1
+  PROP_PC_BrokenTree_A: 4
+  PROP_PC_BrokenTree_B: 3
+  own terrain trees: 4 (ENV_PC_Cycad_B 1, ENV_PC_TreeFern_A 1, ENV_PC_TreeFern_B 2)
+  missing refs: prefab 0, mesh 0, material 0, broken shader 0, script 0, LOD renderer 0, collider mesh 0; terrain prototypes without asset 0
+  resource nodes in the zone + blend: 95; covered by a zone collider 3, own terrain tree within 1.2 m 0
+    covered by LM_AncientFallenTree: World/Gameplay/Resources/[Resources]/Island/Cluster_101_ForestEdge/Resource_Food_EdiblePlant_0344 (74.5, 1.2, 182.4)
+    covered by LM_AncientFallenTree: World/Gameplay/Resources/[Resources]/Island/Cluster_101_ForestEdge/Resource_Fiber_Plant_0346 (76, 1.1, 182.3)
+    covered by LM_AncientFallenTree: World/Gameplay/Resources/[Resources]/Island/Cluster_113_Beach/Resource_Food_FallenFruit_0378 (99.3, 1.4, 200.4)
+  other interactables covered: 0
+  objects within 20 m of the player spawn (-20, 1.5, 211): 0
+  props standing in water deeper than 0.6 m: 0
+  lagoon water ENV_Wetland_Water: on at (0, 0, 0)
+  landmark: (87, 2.2, 190.5) with LM_AncientFallenTree
+  FX anchors: 8: FXA_Wetland_Fog_Lagoon (100, 1.5, 168), FXA_Wetland_Fog_West (83, 1.5, 175), FXA_Wetland_Fog_East (118, 1.5, 174), FXA_Wetland_Mist_RiverMouth (106, 1, 200), FXA_Wetland_Insects_Landmark (90, 3.7, 185.3), FXA_Wetland_Insects_Reeds_0 (123, 2.1, 169), FXA_Wetland_Insects_Reeds_1 (99, 2.1, 187), FXA_Wetland_Insects_Reeds_2 (87, 2.1, 157)
+WETLAND CHECK PROBLEMS: 3 problem(s)
+finished, 0 warning(s)
+
+EA Valley terrain;props started 2026-09-30 22:49:54
+tall grass: detail layer 6 = DET_Z_TallGrass (w 1.5-2.2, h 1.7-2.6 x 0.7 m mesh = about 1.2-1.8 m tall), PF/Foliage Wind
+terrain baseline: Assets/_Project/Art/Terrain/_Backup/TD_Island_before_EA.asset (existing backup, kept)
+WARNING: ridge: no yaw keeps the whole footprint clear of the route / gameplay / knoll view
+WARNING: ridge: ground range 4.35 m under the footprint is more than the 2 m skirt: the downhill edge may show a gap
+valley splat: 110878 texels written (lerp by OwnWeight from the EA baseline)
+valley details: 27729 texels, layers fern 0 grass 1 horsetail 3 reeds 4 giantfern 5 tallgrass 6; instances in the rect 73134 -> 73134
+knoll view: 13 moved trees put back
+valley trees: 11 own terrain trees (araucaria 2, cycad 4, tree fern 5); rejected route / wallow / landmark 6, knoll view 23, gameplay 14, spacing 8
+EA_valley: 11 own terrain trees (11 in recorded slots, 0 appended, 0 surplus removed from the tail, 0 surplus parked), total terrain trees 1494
+knoll view: 0 trees put back from the last run, 13 trees that cut a view line (knoll -> ford / waterfall / meadow) moved aside (same index), 0 without a free spot
+WARNING: ridge: no yaw keeps the whole footprint clear of the route / gameplay / knoll view
+WARNING: ridge: ground range 4.35 m under the footprint is more than the 2 m skirt: the downhill edge may show a gap
+valley props: 28 boulders (Rocks), 26 giant ferns, 1 fallen trunks, 14 horsetail clumps (Props)
+landmark: LM_RockRidge (ART) placed under LM_MigrationValley
+landmark LM_MigrationValley at (-72, 11.4, -8), yaw 90.56 (valley side (1, 0, 0)), footprint 57 x 21 m: ground range 4.35 m (buried skirt 2 m), footprint clear of route / gameplay / knoll view: False; route 60.8 m from the centre
+valley FX anchors: FXA_Valley_Pollen_Meadow (-2, 10.7, -28), FXA_Valley_Mist_Ford (84.6, 11.4, -97.5), FXA_Valley_Dust_Trail (18, 10.9, -72), FXA_Valley_Pollen_Knoll (-40, 27.4, -92), FXA_Valley_Insects_Wallow_0 (16, 9.7, 2), FXA_Valley_Insects_Wallow_1 (-24, 9.7, -50), FXA_Valley_Insects_Wallow_2 (4, 9.7, -76)
+scene saved: Assets/_Project/Scenes/Island_VerticalSlice.unity
+finished, 4 warning(s)
+
+EA Wetland  started 2026-09-30 22:51:49
+terrain baseline: Assets/_Project/Art/Terrain/_Backup/TD_Island_before_EA.asset (existing backup, kept)
+fallen tree spot: 54 shore candidates, 50 footprint on gameplay objects / outside the zone core, 4 crown not in the water; chosen (80, 2.1, 188) dir (0.7, 0, -0.7) (FALLBACK, no clear spot)
+WARNING: fallen tree: no shore spot with a clear footprint
+wetland splat: 39412 texels written
+wetland details: 9851 texels, layers fern 0 grass 1 horsetail 3 reeds 4 giantfern 5 bush 2; instances in the rect 13266 -> 13266
+wetland trees: 4 own terrain trees (tree fern 3, cycad 1), rejected 22
+EA_wetland: 4 own terrain trees (4 in recorded slots, 0 appended, 0 surplus removed from the tail, 0 surplus parked), total terrain trees 1494
+fallen tree spot: 54 shore candidates, 50 footprint on gameplay objects / outside the zone core, 4 crown not in the water; chosen (80, 2.1, 188) dir (0.7, 0, -0.7) (FALLBACK, no clear spot)
+WARNING: fallen tree: no shore spot with a clear footprint
+wetland props: 9 dead snags (PROP_PC_BrokenTree_A/..), 4 root plates, 2 fallen trunks, 16 horsetail clumps, 12 giant ferns
+landmark: LM_AncientFallenTree (ART) placed under LM_PrehistoricWetland
+landmark LM_PrehistoricWetland (root end) at (80, 2.1, 188), trunk direction (0.7, 0, -0.7), tree pivot (92.4, 0.9, 175.6) at the water line, crown end (105.8, 0.6, 162.2) (lagoon bed 0.64, water 0.85)
+wetland FX anchors: FXA_Wetland_Fog_Lagoon (100, 1.5, 168), FXA_Wetland_Fog_West (83, 1.5, 175), FXA_Wetland_Fog_East (118, 1.5, 174), FXA_Wetland_Mist_RiverMouth (106, 1, 200), FXA_Wetland_Insects_Landmark (84.2, 3.6, 183.8), FXA_Wetland_Insects_Reeds_0 (123, 2.1, 169), FXA_Wetland_Insects_Reeds_1 (99, 2.1, 187), FXA_Wetland_Insects_Reeds_2 (87, 2.1, 157)
+scene saved: Assets/_Project/Scenes/Island_VerticalSlice.unity
+finished, 2 warning(s)
+
+EA WetlandCheck  started 2026-09-30 22:54:29
+[wetland] objects under World/Environment/Wetlands/PrehistoricWetland: 161
+  ENV_PC_FallenTrunk_A: 1
+  ENV_PC_FallenTrunk_B: 1
+  ENV_PC_GiantFern_A: 6
+  ENV_PC_GiantFern_B: 6
+  ENV_PC_HorsetailClump: 16
+  ENV_PC_Roots_A: 2
+  ENV_PC_Roots_B: 2
+  LM_AncientFallenTree: 1
+  PROP_PC_BrokenTree_A: 5
+  PROP_PC_BrokenTree_B: 4
+  own terrain trees: 4 (ENV_PC_Cycad_B 1, ENV_PC_TreeFern_A 1, ENV_PC_TreeFern_B 2)
+  missing refs: prefab 0, mesh 0, material 0, broken shader 0, script 0, LOD renderer 0, collider mesh 0; terrain prototypes without asset 0
+  resource nodes in the zone + blend: 95; covered by a zone collider 0, own terrain tree within 1.2 m 0
+  other interactables covered: 0
+  objects within 20 m of the player spawn (-20, 1.5, 211): 0
+  props standing in water deeper than 0.6 m: 0
+  lagoon water ENV_Wetland_Water: on at (0, 0, 0)
+  landmark: (80, 2.1, 188) with LM_AncientFallenTree
+  FX anchors: 8: FXA_Wetland_Fog_Lagoon (100, 1.5, 168), FXA_Wetland_Fog_West (83, 1.5, 175), FXA_Wetland_Fog_East (118, 1.5, 174), FXA_Wetland_Mist_RiverMouth (106, 1, 200), FXA_Wetland_Insects_Landmark (84.2, 3.6, 183.8), FXA_Wetland_Insects_Reeds_0 (123, 2.1, 169), FXA_Wetland_Insects_Reeds_1 (99, 2.1, 187), FXA_Wetland_Insects_Reeds_2 (87, 2.1, 157)
+WETLAND CHECK OK: 0 problem(s)
+finished, 0 warning(s)
+
+EA ValleyCheck  started 2026-09-30 22:54:33
+[valley] objects under World/Environment/Forest/MigrationValley: 253
+  ENV_PC_FallenTrunk_A: 1
+  ENV_PC_GiantFern_A: 13
+  ENV_PC_GiantFern_B: 13
+  ENV_PC_HorsetailClump: 14
+  ENV_PC_MossRock_A: 10
+  ENV_PC_MossRock_B: 9
+  ENV_PC_MossRock_C: 9
+  LM_RockRidge: 1
+  own terrain trees: 11 (ENV_PC_Cycad_C 4, ENV_PC_TreeFern_A 5, PFB_ENV_Tree_01 2)
+  missing refs: prefab 0, mesh 0, material 0, broken shader 0, script 0, LOD renderer 0, collider mesh 0; terrain prototypes without asset 0
+  resource nodes in the zone + blend: 341; covered by a zone collider 1, own terrain tree within 1.2 m 0
+    covered by LM_RockRidge: World/Gameplay/Resources/[Resources]/Island/Cluster_058_ForestEdge/Resource_Wood_Branch_02_0238 (-66.6, 11.8, 6.3)
+  other interactables covered: 0
+  objects within 20 m of the player spawn (-20, 1.5, 211): 0
+  route: zone props within 3 m 0, own trees within 8 m 0; knoll view lines (ford, waterfall, meadow): own trees in the way 0, other trees that cut a line 0 (outside the zone weight they are not moved)
+  wallows (mud weight at the centre): (16, 8.9, 2) mud 0.75, (-24, 8.9, -50) mud 0.82, (4, 8.9, -76) mud 0.82
+  tall grass layer 6: DET_Z_TallGrass / PF/Foliage Wind
+  terrain draw settings (scene): detail distance 90 m, density 1, tree distance 450 m, billboard 450 m; runtime presets (Core/TerrainQuality) override these per quality level
+  landmark: (-72, 11.4, -8) with LM_RockRidge
+VALLEY CHECK PROBLEMS: 1 problem(s)
+finished, 0 warning(s)
+
+EA Survey zone=bone;points=-134.2,-40.2|-134.2,-36.1|-134.2,-32.0|-134.2,-27.9|-134.2,-23.8|-130.7,-40.2|-130.7,-36.1|-130.7,-32.0|-130.7,-27.9|-130.7,-23.8|-127.1,-40.2|-127.1,-36.1|-127.1,-32.0|-127.1,-27.9|-127.1,-23.8|-123.6,-40.2|-123.6,-36.1|-123.6,-32.0|-123.6,-27.9|-123.6,-23.8|-120.0,-40.2|-120.0,-36.1|-120.0,-32.0|-120.0,-27.9|-120.0,-23.8|-116.4,-40.2|-116.4,-36.1|-116.4,-32.0|-116.4,-27.9|-116.4,-23.8|-112.9,-40.2|-112.9,-36.1|-112.9,-32.0|-112.9,-27.9|-112.9,-23.8|-109.3,-40.2|-109.3,-36.1|-109.3,-32.0|-109.3,-27.9|-109.3,-23.8|-105.8,-40.2|-105.8,-36.1|-105.8,-32.0|-105.8,-27.9|-105.8,-23.8 started 2026-09-30 23:07:53
+terrain TD_Island size (640, 80, 640) at (-320, -10, -320); heightmap 1025, alphamap 1024 x 9, detail 512 (32/patch)
+  distances: detail 90 density 1, tree 450, billboard 450, crossfade 5, basemap 300; wind grass speed 0.5 strength 0.5 amount 0.5
+  layers: 0 TL_Sand, 1 TL_Grass, 2 TL_ForestFloor, 3 TL_Rock, 4 TL_Mud, 5 TL_SandWet, 6 TL_Moss, 7 TL_DarkSoil, 8 TL_Ash
+  detail 0: DET_ENV_Fern_01 VertexLit inst True w 0.8-1.3 h 0.8-1.3  mesh ENV_Fern_01_LOD0 bounds (2.2, 0.5, 2) mat M_Foliage / Universal Render Pipeline/Lit; in bone rect 8121
+  detail 1: DET_ENV_Grass_01 VertexLit inst True w 0.7-1.2 h 0.7-1.2  mesh ENV_Grass_01_LOD0 bounds (0.7, 0.7, 0.6) mat M_Foliage / Universal Render Pipeline/Lit; in bone rect 5564
+  detail 2: DET_ENV_Bush_01 VertexLit inst True w 0.8-1.2 h 0.8-1.2  mesh ENV_Bush_01_LOD0 bounds (3, 1.3, 2.6) mat M_Foliage / Universal Render Pipeline/Lit; in bone rect 55
+  detail 3: DET_PC_Horsetail VertexLit inst True w 0.75-1.25 h 0.75-1.25  mesh DET_PC_Horsetail bounds (1.1, 1.3, 1) mat M_Env_FoliageLow / PF/Foliage Wind; in bone rect 0
+  detail 4: DET_PC_Reeds VertexLit inst True w 0.8-1.3 h 0.8-1.3  mesh DET_PC_Reeds bounds (1, 1.7, 1.1) mat M_Env_FoliageLow / PF/Foliage Wind; in bone rect 0
+  detail 5: DET_PC_GiantFern VertexLit inst True w 0.7-1.15 h 0.7-1.15  mesh DET_PC_GiantFern bounds (3.9, 1.2, 3.3) mat M_Env_FoliageLow / PF/Foliage Wind; in bone rect 1101
+  detail 6: DET_Z_TallGrass VertexLit inst True w 1.5-2.2 h 1.7-2.6  mesh ENV_Grass_01_LOD0 bounds (0.7, 0.7, 0.6) mat M_Z_TallGrass_Wind / PF/Foliage Wind; in bone rect 3585
+  tree 0: PFB_ENV_Tree_01 all 556, in bone 89
+  tree 1: PFB_ENV_Tree_02 all 0, in bone 0
+  tree 2: PFB_ENV_Tree_03 all 230, in bone 28
+  tree 3: PFB_ENV_Tree_04 all 0, in bone 0
+  tree 4: ENV_PC_TreeFern_A all 181, in bone 15
+  tree 5: ENV_PC_TreeFern_B all 164, in bone 13
+  tree 6: ENV_PC_TreeFern_C all 166, in bone 14
+  tree 7: ENV_PC_Cycad_A all 56, in bone 2
+  tree 8: ENV_PC_Cycad_B all 61, in bone 5
+  tree 9: ENV_PC_Cycad_C all 80, in bone 5
+  tree instances total 1494
+  splat share in the bone core: TL_Sand 0%, TL_Grass 18.57%, TL_ForestFloor 41.11%, TL_Rock 17.23%, TL_Mud 0.62%, TL_SandWet 1.03%, TL_Moss 3.38%, TL_DarkSoil 18.05%, TL_Ash 0%
+  ring 0.25R: [0] y14,2 s23 w160 [23] y14,2 s20 w155 [45] y14,5 s20 w152 [68] y15,6 s19 w150 [90] y15,3 s21 w150 [113] y16,2 s24 w152 [135] y17,4 s41 w156 [158] y19,4 s29 w161 [180] y22,9 s42 w166 [203] y26,0 s32 w170 [225] y28,3 s20 w173 [248] y28,6 s20 w175 [270] y27,8 s37 w174 [293] y23,5 s42 w172 [315] y18,8 s45 w169 [338] y15,7 s33 w164
+  ring 0.5R: [0] y15,3 s11 w158 [23] y15,0 s10 w148 [45] y14,0 s7 w141 [68] y13,1 s4 w138 [90] y12,8 s3 w138 [113] y13,1 s1 w143 [135] y14,0 s22 w151 [158] y20,1 s44 w160 [180] y27,4 s39 w170 [203] y31,5 s26 w178 [225] y32,6 s12 w184 [248] y31,0 s25 w187 [270] y19,7 s78 w187 [293] y15,9 s71 w183 [315] y14,2 s11 w176 [338] y14,6 s7 w167
+  ring 0.75R: [0] y17,1 s7 w157 [23] y16,1 s13 w142 [45] y13,4 s8 w131 [68] y12,4 s5 w125 [90] y12,5 s6 w126 [113] y13,6 s3 w134 [135] y13,7 s10 w146 [158] y21,0 s39 w160 [180] y29,7 s19 w175 [203] y32,8 s25 w187 [225] y17,6 s32 w195 [248] y15,9 s55 w199 [270] y29,1 s77 w199 [293] y14,6 s59 w193 [315] y11,6 s3 w184 [338] y14,1 s6 w171
+  ring 1R: [0] y17,4 s5 w151 [23] y16,1 s11 w136 [45] y12,3 s7 w121 [68] y11,5 s4 w113 [90] y11,4 s5 w114 [113] y14,1 s35 w125 [135] y16,3 s12 w142 [158] y22,0 s31 w162 [180] y31,9 s19 w180 [203] y33,0 s7 w196 [225] y31,4 s3 w206 [248] y31,4 s19 w212 [270] y29,5 s26 w211 [293] y17,5 s34 w204 [315] y14,0 s6 w189 [338] y13,4 s10 w169
+  ring 1.25R: [0] y16,1 s14 w145 [23] y15,2 s17 w127 [45] y11,3 s5 w112 [68] y10,7 s5 w101 [90] y10,6 s3 w102 [113] y21,9 s38 w117 [135] y18,2 s16 w139 [158] y22,5 s14 w162 [180] y32,2 s5 w186 [203] y31,5 s70 w205 [225] y30,9 s20 w218 [248] y25,9 s32 w224 [270] y25,0 s34 w223 [293] y16,3 s15 w214 [315] y14,0 s4 w192 [338] y13,1 s8 w168
+  Managers/Markers/Zones :: canyon: 1
+  Managers/Markers/Zones :: fossil_bed: 1
+  Managers/Markers/Zones :: migration_view: 1
+  Managers/Markers/Zones :: nest: 1
+  Managers/Markers/Zones :: predator_territory: 1
+  World/Environment/Forest/BoneValley/AI_Anchors :: BV_CircleCentre: 1
+  World/Environment/Forest/BoneValley/AI_Anchors/Perch :: BV_Perch: 4
+  World/Environment/Forest/BoneValley/AI_Anchors/PredatorRoute :: BV_PredRoute: 9
+  World/Environment/Forest/BoneValley/AI_Anchors/Scavenge :: BV_Scavenge_fresh: 4
+  World/Environment/Forest/BoneValley/AI_Anchors/Scavenge :: BV_Scavenge_killsite: 2
+  World/Environment/Forest/BoneValley/AI_Anchors/Scavenge :: BV_Scavenge_old: 2
+  World/Environment/Forest/BoneValley/AI_Anchors/Scavenge :: BV_Scavenge_rotting: 3
+  World/Environment/Forest/BoneValley/Bones :: Bones: 14
+  World/Environment/Forest/BoneValley/Carcasses :: BV_Carcass_Fresh: 1
+  World/Environment/Forest/BoneValley/Carcasses :: BV_Carcass_Rotting: 1
+  World/Environment/Forest/BoneValley/Carcasses :: RotBones: 3
+  World/Environment/Forest/BoneValley/Carcasses/BV_Carcass_Old :: OldBones: 4
+  World/Environment/Forest/BoneValley/Entrance :: BoneLine: 5
+  World/Environment/Forest/BoneValley/Entrance :: Skull_Entrance_Placeholder: 1
+  World/Environment/Forest/BoneValley/Landmark :: LM_FossilSkeleton: 1
+  World/Environment/Forest/BoneValley/Tracks :: DragMark: 1
+  World/Environment/Forest/BoneValley/Tracks :: FreshPrint: 1
+  World/Environment/Forest/BoneValley/Trees :: BrokenTree: 5
+  World/Environment/Forest/BoneValley/Trees :: ClawSnag: 2
+  World/Environment/Forest/ForestDressing :: ENV_PC_FallenTrunk_A: 1
+  World/Environment/Forest/ForestDressing :: ENV_PC_Magnolia_A: 7
+  World/Environment/Forest/ForestDressing :: ENV_PC_Magnolia_B: 6
+  World/Environment/Forest/ForestDressing :: ENV_PC_Roots_A: 1
+  World/Environment/Forest/ForestDressing :: ENV_PC_Roots_B: 1
+  World/Environment/Forest/ForestDressing :: ENV_PC_VineCurtain_A: 10
+  World/Environment/Forest/ForestDressing :: ENV_PC_VineCurtain_B: 10
+  World/Environment/Forest/MigrationValley/Props :: ENV_PC_FallenTrunk_A: 1
+  World/Environment/Forest/MigrationValley/Props :: ENV_PC_GiantFern_A: 1
+  World/Environment/Forest/MigrationValley/Rocks :: ENV_PC_MossRock_A: 1
+  World/Environment/Forest/Rocks :: ENV_PC_MossRock_A: 2
+  World/Environment/Forest/Rocks :: ENV_PC_MossRock_B: 4
+  World/Environment/Forest/Rocks :: ENV_PC_MossRock_C: 3
+  World/Environment/Forest/Vegetation :: PFB_ENV_FallenLog: 3
+  World/Environment/Forest/Vegetation/InteractiveBushes :: Bush: 6
+  World/Environment/Forest/Vegetation/InteractiveBushes :: Bush_053_Berries: 1
+  World/Environment/Forest/Vegetation/InteractiveBushes :: Bush_061_Berries: 1
+  World/Environment/Forest/Vegetation/InteractiveBushes :: Bush_089_Berries: 1
+  World/Environment/Forest/Vegetation/InteractiveBushes :: Bush_096_Berries: 1
+  World/Environment/Forest/Vegetation/InteractiveBushes :: Bush_100_HiddenItem: 1
+  World/Environment/Forest/Vegetation/InteractiveBushes :: Bush_122_AnimalFlush: 1
+  World/Environment/Forest/Vegetation/InteractiveBushes :: Bush_129_HiddenItem: 1
+  World/Environment/Forest/Vegetation/Thickets/Thicket_02 :: ThicketBush_02: 2
+  World/Environment/Forest/Vegetation/Thickets/Thicket_04 :: ThicketBush_04: 3
+  World/Environment/Forest/Vegetation/Thickets/Thicket_04 :: ThicketBush_04_2_Berries: 1
+  World/Environment/Forest/Vegetation/Thickets/Thicket_13 :: ThicketBush_13: 3
+  World/Environment/Forest/Vegetation/Thickets/Thicket_13 :: ThicketBush_13_1_Berries: 1
+  World/Environment/Forest/Vegetation/Thickets/Thicket_13 :: ThicketBush_13_4_Berries: 1
+  World/Environment/Forest/Vegetation/Thickets/Thicket_17 :: ThicketBush_17: 3
+  World/Environment/Forest/Vegetation/Thickets/Thicket_17 :: ThicketBush_17_4_HiddenItem: 1
+  World/Environment/Forest/Vegetation/Thickets/Thicket_18 :: ThicketBush_18: 6
+  World/Environment/Forest/Vegetation/Thickets/Thicket_25 :: ThicketBush_25: 1
+  World/Environment/Forest/Vegetation/Thickets/Thicket_25 :: ThicketBush_25_2_Berries: 1
+  World/Environment/Forest/Vegetation/Thickets/Thicket_25 :: ThicketBush_25_3_Berries: 1
+  World/Environment/Forest/Vegetation/Thickets/Thicket_28 :: ThicketBush_28: 3
+  World/Environment/Forest/Vegetation/Thickets/Thicket_28 :: ThicketBush_28_3_Berries: 1
+  World/Environment/Forest/Vegetation/Thickets/Thicket_28 :: ThicketBush_28_4_Berries: 1
+  World/Environment/Forest/Vegetation/Thickets/Thicket_29 :: ThicketBush_29: 4
+  World/Environment/Forest/Vegetation/Thickets/Thicket_29 :: ThicketBush_29_1_HiddenItem: 1
+  World/Environment/Forest/Vegetation/Thickets/Thicket_29 :: ThicketBush_29_3_Berries: 1
+  World/Environment/Forest/Vegetation/Thickets/Thicket_29 :: ThicketBush_29_5_AnimalFlush: 1
+  World/Environment/Forest/Vegetation/Thickets/Thicket_37 :: ThicketBush_37: 3
+  World/Environment/Forest/Vegetation/Thickets/Thicket_37 :: ThicketBush_37_2_Berries: 1
+  World/Environment/Forest/Vegetation/Thickets/Thicket_38 :: ThicketBush_38: 7
+  World/Environment/Forest/Vegetation/Thickets/Thicket_42 :: ThicketBush_42: 3
+  World/Environment/Forest/Vegetation/Thickets/Thicket_42 :: ThicketBush_42_2_Berries: 1
+  World/Environment/Forest/Vegetation/Thickets/Thicket_44 :: ThicketBush_44: 7
+  World/Environment/Forest/Vegetation/Thickets/Thicket_51 :: ThicketBush_51: 2
+  World/Environment/Forest/Vegetation/Thickets/Thicket_51 :: ThicketBush_51_3_Berries: 1
+  World/Environment/Forest/Vegetation/Thickets/Thicket_61 :: ThicketBush_61: 3
+  World/Environment/Terrain/Rocks :: PFB_ENV_Rock_Large: 14
+  World/Environment/Terrain/Rocks :: PFB_ENV_Rock_Medium: 53
+  World/Environment/Terrain/Rocks :: PFB_ENV_Rock_Small: 9
+  World/Gameplay/Interactables/Storytelling/BloodTrail :: Stain: 1
+  World/Gameplay/Interactables/Storytelling/FossilBed :: FossilSlab: 1
+  World/Gameplay/Interactables/Storytelling/KillSite :: Bones: 3
+  World/Gameplay/Interactables/Storytelling/KillSite :: GiantSkeleton: 1
+  World/Gameplay/Interactables/Storytelling/Nest :: Nest: 1
+  World/Gameplay/Interactables/Storytelling/PredatorPath :: BrokenTree: 3
+  World/Gameplay/Interactables/Storytelling/PredatorPath :: ClawSnag: 1
+  World/Gameplay/Interactables/Storytelling/Spots :: KnollView: 1
+  World/Gameplay/Interactables/Storytelling/TheropodTrail :: Print: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_019_Forest :: Resource_Fiber_Fern: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_019_Forest :: Resource_Wood_SmallLog: 2
+  World/Gameplay/Resources/[Resources]/Island/Cluster_020_Forest :: Resource_Fiber_Fern: 2
+  World/Gameplay/Resources/[Resources]/Island/Cluster_020_Forest :: Resource_Stone_Medium_02: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_030_Rocky :: Resource_Stone_Medium: 2
+  World/Gameplay/Resources/[Resources]/Island/Cluster_030_Rocky :: Resource_Stone_Medium_02: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_030_Rocky :: Resource_Stone_Small: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_031_Rocky :: Resource_Stone_Medium: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_031_Rocky :: Resource_Stone_Medium_02: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_031_Rocky :: Resource_Stone_Small: 2
+  World/Gameplay/Resources/[Resources]/Island/Cluster_032_Forest :: Resource_Fiber_Fern: 2
+  World/Gameplay/Resources/[Resources]/Island/Cluster_032_Forest :: Resource_Wood_SmallLog: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_042_Rocky :: Resource_Stone_Medium: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_042_Rocky :: Resource_Stone_Small: 2
+  World/Gameplay/Resources/[Resources]/Island/Cluster_043_Forest :: Resource_Fiber_SmallBush: 2
+  World/Gameplay/Resources/[Resources]/Island/Cluster_043_Forest :: Resource_Wood_Branch_02: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_044_Forest :: Resource_Fiber_Fern: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_044_Forest :: Resource_Wood_Branch_02: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_054_ForestEdge :: Resource_Fiber_Fern: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_054_ForestEdge :: Resource_Food_BerryBush: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_054_ForestEdge :: Resource_Stone_Small: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_055_Forest :: Resource_Food_FallenFruit: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_055_Forest :: Resource_Wood_SmallLog: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_056_ForestEdge :: Resource_Fiber_Plant: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_056_ForestEdge :: Resource_Food_EdiblePlant: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_057_ForestEdge :: Resource_Wood_Branch: 1
+  World/Gameplay/Resources/[Resources]/Island/Cluster_057_ForestEdge :: Resource_Wood_Branch_02: 2
+  World/Gameplay/Resources/Resources :: PFB_RES_Stone: 6
+  World/Gameplay/Wildlife/[Dinosaurs]/Carnotaurus :: Carnotaurus: 1
+  blockers: 1625
+  point (-134.2, 12.7, -40.2): slope 8.84, water 183.24, route 128.1, blocked False, solid False, own 1
+  point (-134.2, 13, -36.1): slope 5.84, water 181.18, route 127.3, blocked False, solid False, own 1
+  point (-134.2, 13, -32): slope 4.26, water 179.19, route 126.49, blocked False, solid False, own 0.96
+  point (-134.2, 13.1, -27.9): slope 2.58, water 177.25, route 125.69, blocked False, solid False, own 0.84
+  point (-134.2, 13, -23.8): slope 5.9, water 175.39, route 124.89, blocked False, solid False, own 0.66
+  point (-130.7, 12.1, -40.2): slope 10.18, water 180.24, route 124.67, blocked True, solid False, own 1
+  point (-130.7, 12.4, -36.1): slope 6.12, water 178.15, route 123.87, blocked False, solid False, own 1
+  point (-130.7, 12.6, -32): slope 7.34, water 176.12, route 123.06, blocked False, solid False, own 1
+  point (-130.7, 12.9, -27.9): slope 3.36, water 174.16, route 122.26, blocked False, solid False, own 0.91
+  point (-130.7, 13.2, -23.8): slope 2.72, water 172.27, route 121.45, blocked False, solid False, own 0.75
+  point (-127.1, 12.2, -40.2): slope 11.14, water 177.17, route 121.14, blocked False, solid False, own 1
+  point (-127.1, 12.4, -36.1): slope 5.83, water 175.05, route 120.34, blocked False, solid False, own 1
+  point (-127.1, 12.8, -32): slope 13.57, water 172.98, route 119.53, blocked False, solid True, own 1
+  point (-127.1, 13.1, -27.9): slope 6.2, water 170.99, route 118.73, blocked True, solid True, own 0.96
+  point (-127.1, 13.4, -23.8): slope 6.88, water 169.06, route 117.92, blocked False, solid False, own 0.82
+  point (-123.6, 13.1, -40.2): slope 14.39, water 174.21, route 117.71, blocked False, solid False, own 1
+  point (-123.6, 13.1, -36.1): slope 12.62, water 172.05, route 116.9, blocked True, solid False, own 1
+  point (-123.6, 13.3, -32): slope 8.92, water 169.95, route 116.1, blocked True, solid False, own 1
+  point (-123.6, 13.7, -27.9): slope 11.24, water 167.92, route 115.3, blocked True, solid False, own 0.99
+  point (-123.6, 13.9, -23.8): slope 10.58, water 165.97, route 114.49, blocked False, solid False, own 0.88
+  point (-120, 14, -40.2): slope 8.44, water 171.17, route 114.18, blocked False, solid True, own 1
+  point (-120, 13.8, -36.1): slope 13.23, water 168.98, route 113.37, blocked False, solid False, own 1
+  point (-120, 13.9, -32): slope 12.75, water 166.85, route 112.57, blocked True, solid False, own 1
+  point (-120, 14.3, -27.9): slope 11.41, water 164.79, route 111.77, blocked False, solid False, own 1
+  point (-120, 14.5, -23.8): slope 10.48, water 162.79, route 110.96, blocked False, solid False, own 0.92
+  point (-116.4, 14.4, -40.2): slope 3.52, water 168.06, route 110.65, blocked False, solid True, own 1
+  point (-116.4, 14.7, -36.1): slope 10.05, water 165.93, route 109.84, blocked True, solid False, own 1
+  point (-116.4, 14.8, -32): slope 18.07, water 163.76, route 109.04, blocked False, solid False, own 1
+  point (-116.4, 15.2, -27.9): slope 15.9, water 161.67, route 108.24, blocked True, solid True, own 1
+  point (-116.4, 15.4, -23.8): slope 16.03, water 159.64, route 107.43, blocked False, solid False, own 0.95
+  point (-112.9, 15.4, -40.2): slope 15.35, water 164.57, route 107.22, blocked False, solid False, own 1
+  point (-112.9, 15.6, -36.1): slope 18.21, water 162.98, route 106.41, blocked False, solid False, own 1
+  point (-112.9, 15.9, -32): slope 16.92, water 160.78, route 105.61, blocked False, solid False, own 1
+  point (-112.9, 16.2, -27.9): slope 15.88, water 158.65, route 104.8, blocked False, solid False, own 1
+  point (-112.9, 16.3, -23.8): slope 12.96, water 156.59, route 104, blocked False, solid False, own 0.97
+  point (-109.3, 16.2, -40.2): slope 13.31, water 160.98, route 103.7, blocked False, solid False, own 1
+  point (-109.3, 16.5, -36.1): slope 10.76, water 159.98, route 102.88, blocked False, solid False, own 0.99
+  point (-109.3, 16.8, -32): slope 9, water 157.74, route 102.08, blocked False, solid False, own 0.99
+  point (-109.3, 16.9, -27.9): slope 10.66, water 155.57, route 101.27, blocked False, solid False, own 1
+  point (-109.3, 16.9, -23.8): slope 7.39, water 153.47, route 100.47, blocked True, solid False, own 0.97
+  point (-105.8, 16.8, -40.2): slope 9.65, water 157.48, route 100.29, blocked False, solid False, own 0.82
+  point (-105.8, 17, -36.1): slope 8.06, water 157.02, route 99.45, blocked False, solid False, own 0.81
+  point (-105.8, 17.3, -32): slope 6.71, water 154.8, route 98.65, blocked False, solid False, own 0.81
+  point (-105.8, 17.4, -27.9): slope 5.5, water 152.59, route 97.84, blocked False, solid False, own 0.83
+  point (-105.8, 17.1, -23.8): slope 5.88, water 150.45, route 97.04, blocked False, solid False, own 0.84
+finished, 0 warning(s)
+

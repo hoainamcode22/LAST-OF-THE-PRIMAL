@@ -10,6 +10,7 @@ using PrimalFrontier.Combat;
 using PrimalFrontier.Core;
 using PrimalFrontier.Items;
 using PrimalFrontier.Player;
+using PrimalFrontier.Survival;
 using PrimalFrontier.World;
 
 namespace PrimalFrontier.Tests
@@ -148,6 +149,10 @@ namespace PrimalFrontier.Tests
             while (Time.time - t0 < 4f && engagedAt < 0f) { if (raptor.Senses.Level == AwarenessLevel.Engaged) { engagedAt = Time.time - t0; distAt = Vector3.Distance(raptor.transform.position, _gm.Player.transform.position); } yield return null; }
             PlayerInputReader.Sim.Move = Vector2.zero; PlayerInputReader.Sim.Sprint = false;
             Debug.Log($"[Perception] sprinting: engaged after {engagedAt:F2} s at {distAt:F1} m, sight {raptor.Senses.EffectiveSight:F1} m, speed {Motor.MeasuredPlanarSpeed:F1}");
+            // footstep loudness uses the surface of the last footstep (RES: PlayerFeedback.LastFootSurface)
+            yield return new WaitForSeconds(0.6f);
+            var fb = _gm.Player.GetComponent<PlayerFeedback>(); Assert.IsNotNull(fb);
+            Assert.AreEqual((int)fb.LastFootSurface, PlayerSignature.Current.surface, "the signature reads the footstep surface");
             Assert.Greater(engagedAt, 0f, $"sprinting in view is detected (sight {raptor.Senses.EffectiveSight:F1} m, awareness {raptor.Senses.Awareness:F2})");
             Assert.Less(engagedAt, 3f, "within 3 s");
             Assert.Greater(distAt, 10f, "long before it reaches the raptor");
@@ -310,6 +315,93 @@ namespace PrimalFrontier.Tests
             float best = mates.Max(m => m.Senses.Awareness);
             Debug.Log($"[Perception] herd alert: {mates.Count} mates, best awareness {best:F2}");
             Assert.GreaterOrEqual(best, C.herdShareLevel - 0.02f, "herd mates share the alert");
+        }
+
+        [UnityTest, Timeout(120000)]
+        public IEnumerator Missed_Projectile_Landing_Lures_An_Investigation()
+        {
+            yield return LoadIsland();
+            SetHour(9.5f);
+            var carno = Dino("carnotaurus");
+            Vector3 cp = OpenSpot(carno.home, 1f);
+            Warp(cp + Vector3.forward * 80f, cp);
+            Place(carno, cp, cp + Vector3.forward * 10f);
+            Vector3 landed = Ground(cp - Vector3.forward * 18f);            // behind it, far from the player
+            yield return new WaitForSeconds(0.5f);
+            int head0 = Stimuli.TransientHead;
+            for (int i = 0; i < 2; i++) { GameEvents.Raise(GameEventType.ProjectileLanded, "stone_spear", 2, landed); yield return new WaitForSeconds(1f); }
+            bool distraction = false;
+            for (int seq = Mathf.Max(head0 + 1, Stimuli.OldestTransient); seq <= Stimuli.TransientHead; seq++)
+                if (Stimuli.TryGetTransient(seq, Stimuli.Now, out var s) && s.source == StimulusSource.Distraction && Vector3.Distance(s.pos, landed) < 0.5f) distraction = true;
+            Assert.IsTrue(distraction, "the landing is a distraction noise at the landing spot");
+            float t0 = Time.time; bool toLanding = false;
+            while (Time.time - t0 < 4f && !toLanding) { toLanding = carno.State == DinoState.Investigate && Vector3.Distance(carno.Destination, landed) < C.noiseLocError + 2f; yield return null; }
+            Debug.Log($"[Perception] projectile landing: carnotaurus {carno.State}, awareness {carno.Senses.Awareness:F2}, destination {Vector3.Distance(carno.Destination, landed):F1} m from the spear, {Vector3.Distance(carno.Destination, _gm.Player.transform.position):F0} m from the player");
+            Assert.IsTrue(toLanding, $"it investigates the landing spot (state {carno.State}, awareness {carno.Senses.Awareness:F2})");
+            Assert.Greater(Vector3.Distance(carno.Destination, _gm.Player.transform.position), 50f, "not the player");
+        }
+
+        [UnityTest, Timeout(120000)]
+        public IEnumerator Bleeding_Status_Leaves_A_Blood_Trail()
+        {
+            yield return LoadIsland();
+            var fx = PlayerStatusEffects.Player; Assert.IsNotNull(fx, "PlayerStatusEffects on the player");
+            int w0 = Stimuli.ScentWritten;
+            fx.Apply(StatusEffectIds.Bleeding, 1f, 30f, false);
+            Assert.IsTrue(fx.Has(StatusEffectIds.Bleeding));
+            yield return new WaitForSeconds(C.bleedScentInterval * 2f + 0.3f);
+            int blood = CountBlood(w0, _gm.Player.transform.position, 3f);
+            fx.Remove(StatusEffectIds.Bleeding, false, false);
+            Debug.Log($"[Perception] bleeding: {blood} blood puffs in {C.bleedScentInterval * 2f + 0.3f:F1} s");
+            Assert.GreaterOrEqual(blood, 1, "bleeding (PlayerStatusEffects) leaves blood scent");
+            int w1 = Stimuli.ScentWritten;
+            yield return new WaitForSeconds(C.bleedScentInterval * 2f);
+            int after = CountBlood(w1, _gm.Player.transform.position, 1000f);
+            Assert.AreEqual(0, after, "no blood once the bleeding stopped");
+        }
+
+        /// <summary>player blood puffs written since sequence 'from' within r of p</summary>
+        static int CountBlood(int from, Vector3 p, float r)
+        {
+            int n = 0;
+            for (int i = 0; i < Stimuli.ScentSlotsUsed; i++)
+            {
+                var s = Stimuli.ScentSlot(i);
+                if (s.seq >= from && s.tag == (byte)ScentKind.Blood && s.source == StimulusSource.Player && Vector3.Distance(s.pos, p) < r) n++;
+            }
+            return n;
+        }
+
+        [UnityTest, Timeout(180000)]
+        public IEnumerator Save_And_Load_Keep_Killed_And_Wounded_Creatures()
+        {
+            yield return LoadIsland();
+            Assert.IsTrue(SaveSystem.Sections.Any(s => s is CreatureSaveSection), "the creature section is registered");
+            var raptor = Dino("velociraptor"); string rname = raptor.name;
+            var tri = Dino("triceratops"); string tname = tri.name;
+            raptor.TakeHit(new HitInfo { damage = 500f, point = raptor.transform.position + Vector3.up, direction = Vector3.forward, attacker = _gm.Player });
+            yield return new WaitForSeconds(0.3f);
+            var carcass = raptor.GetComponent<Carcass>(); Assert.IsNotNull(carcass);
+            var pi = _gm.Player.GetComponent<PlayerInteraction>();
+            for (int i = 0; i < carcass.handCutsPerItem; i++) carcass.Hit(pi);
+            int meatLeft = carcass.meat; Vector3 bodyAt = raptor.transform.position;
+            tri.TakeHit(new HitInfo { damage = 150f, point = tri.transform.position + Vector3.up, direction = Vector3.forward, attacker = _gm.Player });
+            float triHp = tri.Health;
+            Assert.IsTrue(_gm.SaveGame(), "saved");
+            // everything changes after the save: the island respawns alive and healthy
+            var sp = Object.FindFirstObjectByType<DinosaurSpawner>(); sp.SpawnAll();
+            yield return null; yield return null;
+            Assert.IsTrue(sp.Spawned.First(g => g && g.name == rname).GetComponent<DinosaurController>().IsAlive, "respawned alive before the load");
+            _gm.LoadGame();
+            yield return null; yield return null; yield return null;
+            var r2 = sp.Spawned.First(g => g && g.name == rname).GetComponent<DinosaurController>();
+            var t2 = sp.Spawned.First(g => g && g.name == tname).GetComponent<DinosaurController>();
+            var c2 = r2.GetComponent<Carcass>();
+            Debug.Log($"[Perception] save / load: raptor dead {!r2.IsAlive}, carcass meat {(c2 ? c2.meat : -1)} (saved {meatLeft}), {Vector3.Distance(r2.transform.position, bodyAt):F2} m from where it fell; triceratops {t2.Health:F0} HP (saved {triHp:F0})");
+            Assert.IsFalse(r2.IsAlive, "the killed raptor is dead after the load");
+            Assert.IsNotNull(c2, "its carcass"); Assert.AreEqual(meatLeft, c2.meat, "with what was left on it");
+            Assert.Less(Vector3.Distance(r2.transform.position, bodyAt), 1f, "where it fell");
+            Assert.AreEqual(triHp, t2.Health, 0.5f, "the wounded triceratops keeps its health");
         }
 
         // ------------------------------------------------------------------ scent + fire
@@ -494,6 +586,7 @@ namespace PrimalFrontier.Tests
                 .OrderBy(x => Vector3.Distance(x.d.home, x.s)).FirstOrDefault();
             Assert.IsNotNull(herb.d, "a herbivore with water in reach");
             var d = herb.d;
+            d.LeaveHerd();                  // a herd drinks and sleeps together (HerdGroup); this one lives alone for the test
             Warp(d.transform.position + Vector3.right * 100f, d.transform.position);
             SetHour(23.5f);
             float t0 = Time.time; bool slept = false;
@@ -538,7 +631,7 @@ namespace PrimalFrontier.Tests
                 int expect = real < C.nearDistance ? 0 : real < C.mediumDistance ? 1 : real < C.farDistance ? 2 : 3;
                 seen.Add($"{real:F0} m -> tier {tri.Tier} (animator {(anim ? anim.enabled.ToString() : "none")})");
                 Assert.AreEqual(expect, tri.Tier, $"tier at {real:F0} m");
-                if (anim) Assert.AreEqual(expect < 3, anim.enabled, "Animator off only very far");
+                if (anim) Assert.AreEqual(expect < 2, anim.enabled, "Animator on near and medium (far: stepped by hand at a lower rate, very far: off)");
             }
             Debug.Log("[Perception] tiers: " + string.Join("; ", seen));
         }

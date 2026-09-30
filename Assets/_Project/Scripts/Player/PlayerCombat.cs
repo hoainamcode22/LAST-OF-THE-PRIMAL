@@ -311,12 +311,12 @@ namespace PrimalFrontier.Player
             var zone = bestC.GetComponent<HitZone>();
             float mult = zone ? zone.DamageMultiplier : 1f;
             Vector3 pt = bestC.ClosestPoint(origin + fwd * 0.5f);
-            float dmg = (heavy ? item.heavyDamage : item.damage * (combo ? 1.25f : 1f)) * mult;
+            float dmg = (heavy ? item.heavyDamage : item.damage * (combo ? 1.25f : 1f)) * mult * WeaponHitbox.AttackerMultiplier(transform);   // arm injury
             best.TakeHit(new HitInfo { damage = dmg, point = pt, direction = combo ? Vector3.down * 0.5f + fwd : fwd, attacker = gameObject, weapon = item.weapon, heavy = heavy || combo, zoneMultiplier = mult });
             VfxPool.Instance.Play(VfxId.SpearImpact, pt, -fwd);
             SfxPlayer.Instance.Play(SfxId.SpearImpact, pt);
             if (_cam) _cam.AddShake(heavy ? 0.06f : 0.03f, 0.12f);
-            if (item.HasDurability && _inv.WearActive(heavy ? 2f : 1f)) PlayerInteraction.Notify(item.displayName + " broke!");
+            if (item.HasDurability) _inv.WearActive(heavy ? 2f : 1f);      // a break: InventorySystem.ToolBroke (sound, puff, note)
             GameEvents.Raise(GameEventType.CreatureHit, (best as Component) ? ((Component)best).name : "creature", 1, pt);
         }
 

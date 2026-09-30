@@ -73,13 +73,143 @@ namespace PrimalFrontier.AI
         [Header("Bare-hand hits")]
         [Tooltip("multiplies unarmed damage (1 = full, 0.05 = barely notices); negative = from body size (PerceptionConfig.unarmedFullBody)")]
         public float unarmedDamageScale = -1f;
+
+        // ---- appended (wildlife, PC phase): values per species from PrimalWildlifeBuilder
+        [Header("Behaviour (FireFear = fireFear.predatorFear)")]
+        public BehaviourProfile behaviour = BehaviourProfile.Default;
+        [Header("Body weight")]
+        public LocomotionProfile locomotion = LocomotionProfile.Default;
+        [Header("Tracks it leaves")]
+        public TrackProfile tracks = TrackProfile.Default;
+        [Tooltip("the wildlife values above were written by PrimalWildlifeBuilder (the runtime leaves them alone)")] public bool wildlifeTuned;
+
+        // ---- appended (Phase 1, AI): predators hunting herbivores; values per species from PrimalWildlifeBuilder.TuneHunting
+        [Header("Hunting herbivores (predators)")]
+        public HuntProfile hunt = HuntProfile.Default;
+        /// <summary>the hunt values in use: the asset's once tuned, else the built-in row for this species id</summary>
+        public HuntProfile Hunt => hunt.tuned ? hunt : HuntProfile.For(id);
+
+        /// <summary>directive 13: per species FireFear (the campfire profile's fear), NightFear, Aggression, Investigation</summary>
+        public float FireFear => fireFear.predatorFear;
+        public float NightFear => behaviour.nightFear;
+        public float Aggression => behaviour.aggression;
+        public float Investigation => behaviour.investigation;
+        /// <summary>0 light .. 1 massive: locomotion.weight, or from the body radius when negative</summary>
+        public float Weight01 => locomotion.weight >= 0f ? Mathf.Clamp01(locomotion.weight) : Mathf.Clamp01((bodyRadius - 0.35f) / 1.5f);
+        public bool IsHerbivore => temperament == Temperament.Passive || temperament == Temperament.Defensive;
+        public bool IsPredator => temperament == Temperament.Predator || temperament == Temperament.Territorial;
+    }
+
+    /// <summary>
+    /// How a species feels about the dark, how fast it turns to violence and how curious it is (0..1 each).
+    /// NightFear: herbivores huddle tighter and startle sooner at night; predators with low night fear roam wider at night.
+    /// Aggression: predators hunt from further and stalk rather than watch; defensive herbivores charge sooner.
+    /// Investigation: predators search longer and follow smells sooner; herbivores go back to feeding sooner.
+    /// </summary>
+    [System.Serializable]
+    public struct BehaviourProfile
+    {
+        [Range(0, 1)] public float nightFear;
+        [Range(0, 1)] public float aggression;
+        [Range(0, 1)] public float investigation;
+        public static BehaviourProfile Default => new BehaviourProfile { nightFear = 0.5f, aggression = 0.5f, investigation = 0.5f };
+    }
+
+    /// <summary>
+    /// Weight in motion (directive 44). Big animals: slow to speed up and to turn on the spot, body sway on every step, the
+    /// tail swings out against the turn, heavy footfalls shake the ground; small ones dart and pivot. Degrees are the
+    /// procedural additive on top of the clips (DinoLife).
+    /// </summary>
+    [System.Serializable]
+    public struct LocomotionProfile
+    {
+        [Tooltip("0 light .. 1 massive (negative = from the body radius)")] public float weight;
+        [Tooltip("side to side roll of the hips per step (deg at walk)")] [Min(0)] public float swayDegrees;
+        [Tooltip("leans into a turn (deg at full turn rate and run speed)")] [Min(0)] public float leanDegrees;
+        [Tooltip("the tail swings out against the turn (deg per 100 deg/s of turning, over the whole tail)")] [Min(0)] public float tailBalance;
+        [Tooltip("pitches forward when speeding up, back when braking (deg at full acceleration)")] [Min(0)] public float accelPitch;
+        [Tooltip("camera shake of one footfall next to the player (0 = none)")] [Min(0)] public float stepShake;
+        [Tooltip("turn rate standing still (x turnSpeed): heavy animals shuffle round, small ones pivot")] [Range(0.1f, 1f)] public float pivotRate;
+        public static LocomotionProfile Default => new LocomotionProfile { weight = -1f, swayDegrees = 1.2f, leanDegrees = 2.5f, tailBalance = 12f, accelPitch = 0.8f, stepShake = 0f, pivotRate = 0.6f };
+    }
+
+    public enum FootShape { Theropod, Dromaeosaur, Hadrosaur, Ceratopsian, Ankylosaur }
+
+    /// <summary>the tracking signs a species leaves (TrackSigns): print shape and size, stride, droppings, claw scratch height</summary>
+    [System.Serializable]
+    public struct TrackProfile
+    {
+        public FootShape shape;
+        [Tooltip("print length (m); 0 = no prints")] [Min(0)] public float printSize;
+        [Tooltip("one stride (left + right) at walk (m)")] [Min(0.2f)] public float stride;
+        [Tooltip("distance between the left and right print lines (m)")] [Min(0)] public float gauge;
+        [Tooltip("dropping pile size (m); 0 = none")] [Min(0)] public float droppingsSize;
+        [Tooltip("predators: claw scratches on trunks at this height (m); 0 = none")] [Min(0)] public float scratchHeight;
+        public static TrackProfile Default => new TrackProfile { shape = FootShape.Theropod, printSize = 0.4f, stride = 2f, gauge = 0.6f, droppingsSize = 0f, scratchHeight = 0f };
+    }
+
+    /// <summary>
+    /// How a predator hunts herbivores (Phase 1). Hunger rises with game time; a hungry hunter (hungerToHunt) now and then
+    /// stalks a straggler of a prey species (HuntDirector allows one hunt on the island at a time, with a cooldown), charges
+    /// from chargeDistance, strikes up to 'strikes' times (each brings the prey down with killChance, otherwise wounds it by
+    /// woundFraction of its health and it runs on with its herd), gives up after chaseSeconds. A kill leaves the prey's
+    /// Carcass; the hunter eats eatsMeat pieces of it and then rests restHoursAfterMeal game hours.
+    /// </summary>
+    [System.Serializable]
+    public struct HuntProfile
+    {
+        [Tooltip("hunts herbivores at all")] public bool hunts;
+        [Tooltip("prey species ids, comma separated (e.g. parasaurolophus,triceratops)")] public string prey;
+        [Tooltip("hunger gained per game hour (0..1)")] [Min(0)] public float hungerPerHour;
+        [Tooltip("hunger at which it starts to look for prey")] [Range(0, 1)] public float hungerToHunt;
+        [Tooltip("stalks until this close, then charges (m)")] [Min(1)] public float chargeDistance;
+        [Tooltip("gives up the chase after this many seconds")] [Min(1)] public float chaseSeconds;
+        [Tooltip("chance a strike brings the prey down")] [Range(0, 1)] public float killChance;
+        [Tooltip("strikes before it gives up")] [Min(1)] public int strikes;
+        [Tooltip("a strike that does not kill takes this share of the prey's health (never the last point)")] [Range(0, 1)] public float woundFraction;
+        [Tooltip("meat pieces it eats off its kill (the rest stays on the carcass)")] [Min(0)] public int eatsMeat;
+        [Tooltip("game hours it rests after the meal")] [Min(0)] public float restHoursAfterMeal;
+        [Tooltip("written by PrimalWildlifeBuilder.TuneHunting (else the built-in row is used)")] public bool tuned;
+
+        public static HuntProfile Default => new HuntProfile { hunts = false, prey = "", hungerPerHour = 0f, hungerToHunt = 0.6f, chargeDistance = 20f, chaseSeconds = 10f, killChance = 0.4f, strikes = 2, woundFraction = 0.15f, eatsMeat = 1, restHoursAfterMeal = 2f };
+
+        /// <summary>built-in values per species id (the ones PrimalWildlifeBuilder.TuneHunting writes)</summary>
+        public static HuntProfile For(string id)
+        {
+            var h = Default;
+            switch (id)
+            {
+                case "velociraptor": h.hunts = true; h.prey = "parasaurolophus"; h.hungerPerHour = 0.09f; h.hungerToHunt = 0.6f; h.chargeDistance = 16f; h.chaseSeconds = 10f; h.killChance = 0.3f; h.strikes = 3; h.woundFraction = 0.1f; h.eatsMeat = 1; h.restHoursAfterMeal = 2f; break;
+                case "carnotaurus": h.hunts = true; h.prey = "parasaurolophus,triceratops"; h.hungerPerHour = 0.07f; h.hungerToHunt = 0.6f; h.chargeDistance = 24f; h.chaseSeconds = 12f; h.killChance = 0.45f; h.strikes = 2; h.woundFraction = 0.15f; h.eatsMeat = 2; h.restHoursAfterMeal = 3f; break;
+                case "spinosaurus": h.hunts = true; h.prey = "parasaurolophus"; h.hungerPerHour = 0.05f; h.hungerToHunt = 0.65f; h.chargeDistance = 18f; h.chaseSeconds = 9f; h.killChance = 0.35f; h.strikes = 2; h.woundFraction = 0.15f; h.eatsMeat = 2; h.restHoursAfterMeal = 3f; break;
+                case "apex": h.hunts = true; h.prey = "triceratops,parasaurolophus"; h.hungerPerHour = 0.06f; h.hungerToHunt = 0.6f; h.chargeDistance = 26f; h.chaseSeconds = 12f; h.killChance = 0.55f; h.strikes = 2; h.woundFraction = 0.2f; h.eatsMeat = 3; h.restHoursAfterMeal = 4f; break;
+            }
+            return h;
+        }
+
+        /// <summary>is this species id in the prey list (no allocation)</summary>
+        public bool PreysOn(string id)
+        {
+            if (!hunts || string.IsNullOrEmpty(prey) || string.IsNullOrEmpty(id)) return false;
+            int at = 0;
+            while ((at = prey.IndexOf(id, at, System.StringComparison.Ordinal)) >= 0)
+            {
+                int end = at + id.Length;
+                bool startOk = at == 0 || prey[at - 1] == ',' || prey[at - 1] == ' ';
+                bool endOk = end == prey.Length || prey[end] == ',' || prey[end] == ' ';
+                if (startOk && endOk) return true;
+                at = end;
+            }
+            return false;
+        }
     }
 
     /// <summary>when a species is awake</summary>
     public enum ActivityCycle { Diurnal, Nocturnal, Cathemeral }
 
-    /// <summary>what a creature does when a lit campfire is in its way</summary>
-    public enum FireResponse { Avoid, Observe, Circle, Wait, Leave }
+    /// <summary>what a creature does when a lit campfire is in its way (Investigate: paces a short arc at the edge, sniffing, then
+    /// leaves; AttackAnyway: hesitates a moment at the edge, then comes in regardless while it is after the player)</summary>
+    public enum FireResponse { Avoid, Observe, Circle, Wait, Leave, Investigate, AttackAnyway }
 
     /// <summary>
     /// Campfire fear of one species (owner decision: configurable, not a universal safe zone). The fear radius is

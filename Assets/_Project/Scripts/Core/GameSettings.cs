@@ -18,7 +18,7 @@ namespace PrimalFrontier.Core
         public static bool Fullscreen { get => UnityEngine.Screen.fullScreen; set { UnityEngine.Screen.fullScreen = value; } }
         public static bool Hints { get => PlayerPrefs.GetInt("pf_hints", 1) == 1; set => PlayerPrefs.SetInt("pf_hints", value ? 1 : 0); }
         /// <summary>blood effects: Off (dust puffs instead), Reduced (small sprays, no pools / trails), Normal</summary>
-        /// <summary>on-screen touch controls: 0 automatic (touch devices), 1 always, 2 never</summary>
+        /// <summary>on-screen touch controls, mobile builds only (MobileHUD.Supported): 0 automatic (touch devices), 1 always, 2 never. No Settings row on PC.</summary>
         public static int TouchControls { get => PlayerPrefs.GetInt("pf_touch", 0); set => PlayerPrefs.SetInt("pf_touch", Mathf.Clamp(value, 0, 2)); }
         public static readonly string[] TouchNames = { "AUTO", "ON", "OFF" };
         /// <summary>stealth indicator (eye / noise ring / threat markers): 0 automatic (crouched or a predator near), 1 always, 2 off</summary>

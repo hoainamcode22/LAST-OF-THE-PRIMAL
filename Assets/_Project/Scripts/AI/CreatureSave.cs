@@ -11,6 +11,8 @@ namespace PrimalFrontier.AI
         public int i; public string id; public string name;
         public bool dead; public float hp; public Vector3 pos; public float yaw; public double diedAt;
         public bool carcass; public int meat, hide, bone; public double expireAt; public bool gone;
+        /// <summary>predators: hunger 0..1 (appended in Phase 1; older saves read 0)</summary>
+        public float hunger;
     }
 
     [Serializable]
@@ -61,13 +63,13 @@ namespace PrimalFrontier.AI
         static void Fill(CreatureRecord r, DinosaurController.SavedState s)
         {
             r.dead = s.dead; r.hp = s.health; r.pos = s.pos; r.yaw = s.yaw; r.diedAt = s.diedAt;
-            r.carcass = s.carcass; r.meat = s.meat; r.hide = s.hide; r.bone = s.bone; r.expireAt = s.expireAt; r.gone = s.gone;
+            r.carcass = s.carcass; r.meat = s.meat; r.hide = s.hide; r.bone = s.bone; r.expireAt = s.expireAt; r.gone = s.gone; r.hunger = s.hunger;
         }
 
         static DinosaurController.SavedState ToState(CreatureRecord r) => new DinosaurController.SavedState
         {
             dead = r.dead, health = r.hp, pos = r.pos, yaw = r.yaw, diedAt = r.diedAt,
-            carcass = r.carcass, meat = r.meat, hide = r.hide, bone = r.bone, expireAt = r.expireAt, gone = r.gone,
+            carcass = r.carcass, meat = r.meat, hide = r.hide, bone = r.bone, expireAt = r.expireAt, gone = r.gone, hunger = r.hunger,
         };
 
         /// <summary>apply a captured section to the (freshly respawned) creatures; returns how many were restored</summary>
@@ -119,10 +121,10 @@ namespace PrimalFrontier.AI
     }
 
     /// <summary>
-    /// The save section for creatures (SURV's ISaveSection: SectionKey / CaptureSection / RestoreSection). Registered by
-    /// GameManager once SaveSystem.RegisterSection exists.
+    /// The save section for creatures (SURV's ISaveSection), registered by GameManager.Awake. SaveSystem.Apply restores it
+    /// after GameManager.ResetWorld has respawned every creature, so the load order is respawn, then this.
     /// </summary>
-    public sealed class CreatureSaveSection
+    public sealed class CreatureSaveSection : Core.ISaveSection
     {
         readonly DinosaurSpawner _spawner;
         public CreatureSaveSection(DinosaurSpawner spawner) { _spawner = spawner; }

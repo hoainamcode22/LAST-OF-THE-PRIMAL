@@ -291,7 +291,7 @@ namespace PrimalFrontier.UI
             if (_hp && _hp.IsDead) return false;
             var hud = HUDManager.Instance;
             if (!inventory && hud && hud.HudAlpha < 0.5f) return false;           // HUD hidden (cutscene, fade)
-            if (!_touchLooked) { _touchLooked = true; _touch = GetComponent<MobileHUD>(); if (!_touch) _touch = FindFirstObjectByType<MobileHUD>(); }
+            if (MobileHUD.Supported && !_touchLooked) { _touchLooked = true; _touch = GetComponent<MobileHUD>(); if (!_touch) _touch = FindFirstObjectByType<MobileHUD>(); }
             if (_touch && _touch.Visible) return false;                            // the touch buttons own that corner
             return true;
         }

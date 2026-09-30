@@ -1,0 +1,62 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5f3f67f885fbfda40a2cc2d19904f423, type: 3}
+  m_Name: STR_foundation
+  m_EditorClassIdentifier: PrimalFrontier.Runtime::PrimalFrontier.Building.StructureDefinition
+  id: foundation
+  displayName: Log Foundation
+  description: 'Logs laid over bearers on flat stones: a dry, level floor three paces
+    wide. Walls stand on its edges, more floors join its sides.'
+  category: 1
+  prefab: {fileID: 7292639292540233544, guid: 9c521d08a5ae32d41aca7e8465f44bd2, type: 3}
+  item: {fileID: 11400000, guid: ecec73fe219551a4b91c98479bc949e2, type: 2}
+  recipe: {fileID: 11400000, guid: cf5ad802722d3c144928ab912bff930f, type: 2}
+  cost: []
+  sockets:
+  - kind: 1
+    localPosition: {x: 0, y: 0.35, z: 1.5}
+    localYaw: 0
+  - kind: 1
+    localPosition: {x: 0, y: 0.35, z: -1.5}
+    localYaw: 180
+  - kind: 1
+    localPosition: {x: 1.5, y: 0.35, z: 0}
+    localYaw: 90
+  - kind: 1
+    localPosition: {x: -1.5, y: 0.35, z: 0}
+    localYaw: -90
+  - kind: 2
+    localPosition: {x: 0, y: 0, z: 3}
+    localYaw: 0
+  - kind: 2
+    localPosition: {x: 0, y: 0, z: -3}
+    localYaw: 0
+  - kind: 2
+    localPosition: {x: 3, y: 0, z: 0}
+    localYaw: 0
+  - kind: 2
+    localPosition: {x: -3, y: 0, z: 0}
+    localYaw: 0
+  snapsTo: 2
+  support: 0
+  minWallsBelow: 2
+  allowFree: 1
+  snapRadius: 1.8
+  snapYawStep: 0
+  footprintCenter: {x: 0, y: 0.195, z: 0}
+  footprintSize: {x: 3, y: 0.35, z: 3}
+  maxSlope: 24
+  groundTolerance: 0.7
+  buildHits: 3
+  dustScale: 1.4
+  leafy: 0
+  wooden: 1

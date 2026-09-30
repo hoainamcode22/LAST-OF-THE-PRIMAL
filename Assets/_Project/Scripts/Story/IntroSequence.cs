@@ -11,7 +11,7 @@ namespace PrimalFrontier.Story
 {
     /// <summary>
     /// Opening: black screen, storm, the ship breaking, silence, fade in on the beach, the survivor wakes up
-    /// ("Where am I?"), chapter card DAY ZERO, objective SURVIVE UNTIL NIGHT, "Stay alive." Skippable (Space / Esc).
+    /// ("Where am I?"), chapter card DAY ZERO, SURVIVE THE FIRST DAY, "Stay alive." Skippable (Space / Esc).
     /// </summary>
     public class IntroSequence : MonoBehaviour
     {
@@ -74,7 +74,7 @@ namespace PrimalFrontier.Story
             SfxPlayer.Instance.Play2D(SfxId.BreathIn, 0.6f);
             if (hud) hud.ShowSubtitle("Where am I?", 2.8f, true);
             yield return Wait(3.0f);
-            if (hud) hud.ShowBanner("DAY ZERO", "Survive until night", 4f);
+            if (hud) hud.ShowBanner("DAY ZERO", "Survive the first day", 4f);
             yield return Wait(2.2f);
             if (hud) hud.ShowSubtitle("Stay alive.", 2.5f, true);
             yield return Wait(1.0f);
@@ -90,7 +90,7 @@ namespace PrimalFrontier.Story
                 if (drv) { drv.StopAction(); drv.animator.Play("Locomotion", 0, 0f); }
                 var amb = FindFirstObjectByType<AmbienceManager>(); if (amb) amb.SnapStorm(false);
                 if (WeatherManager.Instance) WeatherManager.Instance.SetWeather(WeatherState.Clear, -1f, true);
-                if (hud) { hud.Fade(0f, 0.6f); hud.ShowBanner("DAY ZERO", "Survive until night", 3f); }
+                if (hud) { hud.Fade(0f, 0.6f); hud.ShowBanner("DAY ZERO", "Survive the first day", 3f); }
             }
             if (hud) hud.SetHudVisible(true);
             var input = PlayerInputReader.Instance; if (input) input.GameplayBlocked = false;

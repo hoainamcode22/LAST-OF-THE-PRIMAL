@@ -297,6 +297,64 @@ namespace PrimalFrontier.Tests
             Assert.AreEqual("CLIMB", MobileHUD.ContextLabel("W / S climb", false, true));
             Assert.AreEqual("PICK UP", MobileHUD.ContextLabel("Pick up Stone x2", false, false));
             Assert.AreEqual("USE", MobileHUD.ContextLabel("Sleep", false, false));
+            Assert.AreEqual("GATHER", MobileHUD.ContextLabel("Catch Fish", false, false), "fish shoal");
+            Assert.AreEqual("HARVEST", MobileHUD.ContextLabel("Harvest", false, false), "food node prompt");
+        }
+
+        // ------------------------------------------------------------------ integration round
+        [UnityTest, Timeout(120000)] public IEnumerator Arm_Injury_Weakens_The_Punch()
+        {
+            var dummy = Dummy();
+            var fx = _player.GetComponent<PlayerHealth>().Effects;
+            Assert.IsNotNull(fx, "PlayerStatusEffects");
+            fx.Apply(StatusEffectIds.ArmInjury, 1f, 60f, false);
+            yield return null;
+            float k = fx.AttackMultiplier;
+            Assert.Less(k, 1f, "arm injury lowers the attack multiplier");
+            SetStamina(100f);
+            yield return Tap();
+            yield return WaitFor(() => dummy.Hits.Count > 0, 2.5f, "the punch lands");
+            var d = _wc.CurrentData ?? _wc.BareHandData;
+            Assert.AreEqual(d.damage * d.attacks[0].damageMultiplier * k, dummy.Hits[0].damage, 0.01f, "punch damage x AttackMultiplier");
+            Debug.Log($"[BareHand] arm injury: AttackMultiplier {k:F2}, jab {dummy.Hits[0].damage:F2} (healthy {d.damage:F2})");
+        }
+
+        [UnityTest, Timeout(120000)] public IEnumerator Every_Clip_Event_Has_A_Receiver()
+        {
+            yield return null;
+            var ac = _anim.runtimeAnimatorController; Assert.IsNotNull(ac);
+            var missing = new SortedSet<string>(); int n = 0;
+            foreach (var clip in ac.animationClips)
+                foreach (var e in clip.events)
+                {
+                    n++;
+                    if (typeof(CharacterAnimationEvents).GetMethod(e.functionName, System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance) == null)
+                        missing.Add(e.functionName + " (" + clip.name + ")");
+                }
+            foreach (var fn in new[] { "OnUseItem", "OnDrink", "OnGatherHit", "OnAttackStart", "OnAttackActive", "OnAttackHit", "OnAttackEnd", "OnDodge", "OnClimbStep", "OnClimbGrab" })
+                if (typeof(CharacterAnimationEvents).GetMethod(fn) == null) missing.Add(fn + " (needed by the new clips)");
+            Assert.IsEmpty(missing, "events without a receiver: " + string.Join(", ", missing));
+            Debug.Log($"[BareHand] {n} clip events checked, all have receivers");
+        }
+
+        [UnityTest, Timeout(120000)] public IEnumerator Missed_Projectiles_Raise_ProjectileLanded()
+        {
+            var got = new List<GameEvent>();
+            System.Action<GameEvent> h = e => { if (e.type == GameEventType.ProjectileLanded) got.Add(e); };
+            GameEvents.Raised += h;
+            try
+            {
+                var spear = Item("t_spear", i => { i.category = ItemCategory.Weapon; i.weapon = WeaponKind.Spear; i.maxStack = 1; });
+                Projectile.Launch(null, new Vector3(3f, 2f, 3f), new Vector3(0f, -6f, 4f), new HitInfo { damage = 5f, attacker = _player }, _player, 0f, true);
+                Projectile.Launch(new ItemStack(spear, 1), new Vector3(-3f, 2f, 3f), new Vector3(0f, -6f, 4f), new HitInfo { damage = 20f, attacker = _player }, _player, 0f, false);
+                yield return WaitFor(() => got.Count >= 2, 3f, "both came to rest");
+                var arrow = got.First(e => e.id == "arrow"); var sp = got.First(e => e.id == "t_spear");
+                Assert.AreEqual(1, arrow.amount, "arrow loudness"); Assert.AreEqual(2, sp.amount, "spear loudness");
+                Assert.AreEqual(0f, arrow.position.y, 0.3f, "arrow position on the ground"); Assert.AreEqual(0f, sp.position.y, 0.3f, "spear position on the ground");
+                Assert.Greater(arrow.position.z, 3f, "landed ahead of the launch point");
+                Debug.Log($"[BareHand] ProjectileLanded arrow {arrow.id} x{arrow.amount} at {arrow.position}, spear {sp.id} x{sp.amount} at {sp.position}");
+            }
+            finally { GameEvents.Raised -= h; }
         }
     }
 
@@ -356,6 +414,7 @@ namespace PrimalFrontier.Tests
         /// <summary>the touch HUD on the island: PUNCH / HEAVY with bare hands, GATHER / DRINK / FILL / CLIMB from the real prompts</summary>
         [UnityTest, Timeout(180000)] public IEnumerator Touch_Buttons_Show_The_Context()
         {
+            if (!MobileHUD.Supported) Assert.Ignore("touch controls: mobile builds only");
             int prev = GameSettings.TouchControls;
             GameSettings.TouchControls = 1;
             try
@@ -394,6 +453,52 @@ namespace PrimalFrontier.Tests
                 Vector3 np = node.transform.position; Vector3 away = (player.transform.position - np); away.y = 0f; away = away.sqrMagnitude > 0.01f ? away.normalized : Vector3.back;
                 Vector3 stand = np + away * 1.1f; stand.y = Ground(stand);
                 yield return Face(node, stand, np, "GATHER");
+
+                // hold GATHER = hold E: gathering repeats while the button is held; a tap gathers once (ResourceManager.HoldToRepeat)
+                var node2 = PrimalFrontier.World.Interactable.Active.OfType<PrimalFrontier.World.ResourceNode>()
+                    .Where(n => n && n.Remaining >= 4 && n.CanInteract(pi) && n.Def.category != PrimalFrontier.World.ResourceCategory.Food && NothingElseNear(n.transform.position, 3f, n))
+                    .OrderBy(n => (n.transform.position - player.transform.position).sqrMagnitude).FirstOrDefault();
+                if (node2 && PrimalFrontier.World.ResourceManager.HoldToRepeat)
+                {
+                    Vector3 p2 = node2.transform.position; Vector3 a2 = player.transform.position - p2; a2.y = 0f; a2 = a2.sqrMagnitude > 0.01f ? a2.normalized : Vector3.back;
+                    Vector3 s2 = p2 + a2 * 1.1f; s2.y = Ground(s2);
+                    yield return Face(node2, s2, p2, "GATHER");
+                    var use = hud.transform.Find("[Touch]/SafeArea/Use").GetComponent<TouchButton>();
+                    PlayerInputReader.Simulate = false;                      // the touch button path (PlayerInputReader.Virtual), as on a phone
+                    try
+                    {
+                        int r0 = node2.Remaining;
+                        use.Down();
+                        float g0 = Time.realtimeSinceStartup; while (Time.realtimeSinceStartup - g0 < 10f && r0 - node2.Remaining < 2) yield return null;
+                        int held = r0 - node2.Remaining;
+                        use.Up();
+                        g0 = Time.realtimeSinceStartup; while (Time.realtimeSinceStartup - g0 < 5f && pi.InAction) yield return null;
+                        int afterRelease = r0 - node2.Remaining;
+                        Assert.GreaterOrEqual(held, 2, "holding GATHER repeats the gather");
+                        Assert.IsFalse(pi.InAction, "releasing stops after the current hit");
+                        yield return new WaitForSeconds(0.3f);
+                        int r1 = node2.Remaining;
+                        use.Down(); yield return null; yield return null; use.Up();
+                        g0 = Time.realtimeSinceStartup; while (Time.realtimeSinceStartup - g0 < 1f && !pi.InAction) yield return null;
+                        g0 = Time.realtimeSinceStartup; while (Time.realtimeSinceStartup - g0 < 5f && pi.InAction) yield return null;
+                        int tap = r1 - node2.Remaining;
+                        report.Append($"hold GATHER on {node2.name}: {held} hits while held, {afterRelease} after release; tap: {tap}; ");
+                        Assert.AreEqual(1, tap, "a tap gathers once");
+                    }
+                    finally { PlayerInputReader.Simulate = true; }
+                }
+                else report.Append("hold-to-repeat not checked (no node with 4 left, or HoldToRepeat off); ");
+
+                // a food node: HARVEST (checked on its own, not whatever node is nearest)
+                var food = Object.FindObjectsByType<PrimalFrontier.World.ResourceNode>(FindObjectsSortMode.None)
+                    .Where(n => n && n.isActiveAndEnabled && !n.IsEmpty && n.Def.category == PrimalFrontier.World.ResourceCategory.Food && n.CanInteract(pi))
+                    .OrderBy(n => (n.transform.position - player.transform.position).sqrMagnitude).FirstOrDefault(n => NothingElseNear(n.transform.position, 2.5f, n));
+                Assert.IsNotNull(food, "a free-standing food node (berries / fruit / edible plant)");
+                {
+                    Vector3 fp = food.transform.position; Vector3 fa = player.transform.position - fp; fa.y = 0f; fa = fa.sqrMagnitude > 0.01f ? fa.normalized : Vector3.back;
+                    Vector3 fs = fp + fa * 1.1f; fs.y = Ground(fs);
+                    yield return Face(food, fs, fp, "HARVEST");
+                }
 
                 // a climbable tree: CLIMB
                 var tree = Object.FindObjectsByType<PrimalFrontier.World.Climbable>(FindObjectsSortMode.None).FirstOrDefault(c => c && c.isActiveAndEnabled);
@@ -447,6 +552,49 @@ namespace PrimalFrontier.Tests
                 Debug.Log("[BareHand] touch " + report);
             }
             finally { GameSettings.TouchControls = prev; }
+        }
+
+        /// <summary>a weapon breaking on a hit: exactly one ToolBreak sound and one ToolBroken event (the HUD's ToolBroke handler)</summary>
+        [UnityTest, Timeout(180000)] public IEnumerator Weapon_Break_Plays_One_ToolBreak()
+        {
+            yield return LoadIsland();
+            var player = _gm.Player; var inv = player.GetComponent<InventorySystem>(); inv.Clear();
+            var wc = player.GetComponent<PlayerCombat>().Weapons; var sv = player.GetComponent<PlayerSurvival>();
+            player.GetComponent<PlayerHealth>().InvulnerableUntil = Time.time + 60f;
+            var wd = ScriptableObject.CreateInstance<WeaponData>();
+            wd.name = "WPN_t_brittle"; wd.kind = WeaponKind.Knife; wd.damage = 6f; wd.reach = 1.35f; wd.durabilityCost = 1f;
+            wd.attacks = new[] { new AttackProfile(PlayerActions.KnifeAttack) }; wd.heavyAttack = new AttackProfile();
+            var it = ScriptableObject.CreateInstance<ItemDefinition>();
+            it.name = "ITEM_t_brittle"; it.id = "t_brittle"; it.displayName = "Brittle knife"; it.maxStack = 1; it.category = ItemCategory.Weapon;
+            it.weapon = WeaponKind.Knife; it.weaponData = wd; it.maxDurability = 1f;
+            var dummy = GameObject.CreatePrimitive(PrimitiveType.Cube); dummy.name = "BreakDummy";
+            try
+            {
+                var pt = player.transform;
+                dummy.transform.position = pt.position + pt.forward * 0.95f + Vector3.up * 1.0f; dummy.transform.rotation = pt.rotation;
+                dummy.transform.localScale = new Vector3(0.5f, 1.6f, 0.4f);
+                var rec = dummy.AddComponent<HitRecorder>();
+                inv.SetSlot(0, new ItemStack(it, 1) { durability = 1f }); inv.SetActiveSlot(0);
+                yield return null; yield return null;
+                int sounds = 0, events = 0;
+                System.Action<SfxId, Vector3> onSfx = (id, p) => { if (id == SfxId.ToolBreak) sounds++; };
+                System.Action<GameEvent> onEv = e => { if (e.type == GameEventType.ToolBroken) events++; };
+                SfxPlayer.Played += onSfx; GameEvents.Raised += onEv;
+                try
+                {
+                    if (sv) sv.SetStats(sv.Hunger, sv.Thirst, sv.maxStamina, sv.BodyTemperature, sv.Wetness);
+                    PlayerInputReader.Sim.Attack = true;
+                    float t0 = Time.realtimeSinceStartup; while (Time.realtimeSinceStartup - t0 < 3f && inv.Get(0) != null) yield return null;
+                    Assert.AreEqual(1, rec.Hits.Count, "the knife hit");
+                    Assert.IsNull(inv.Get(0), "the knife broke");
+                    yield return new WaitForSeconds(0.6f);
+                    Assert.AreEqual(1, events, "one ToolBroken event");
+                    Assert.AreEqual(1, sounds, "exactly one ToolBreak sound per break");
+                    Debug.Log($"[BareHand] weapon break: {sounds} ToolBreak sound(s), {events} ToolBroken event(s)");
+                }
+                finally { SfxPlayer.Played -= onSfx; GameEvents.Raised -= onEv; }
+            }
+            finally { Object.Destroy(dummy); Object.Destroy(it); Object.Destroy(wd); }
         }
 
         [UnityTest, Timeout(180000)] public IEnumerator Punch_Small_Creature_Hurts_Large_Barely()

@@ -5,128 +5,190 @@ using PrimalFrontier.Core;
 using PrimalFrontier.Items;
 using PrimalFrontier.Player;
 using PrimalFrontier.Survival;
+using PrimalFrontier.UI;
 using PrimalFrontier.World;
 
 namespace PrimalFrontier.Story
 {
     /// <summary>
-    /// Day Zero tutorial: steps that teach by doing (look, walk, search, gather, craft, water, food, fire, cook, then the
-    /// survival milestone 1 steps: fill a container, boil it, drink clean water, build a tent, shelter before night,
-    /// sleep; then spear, explore, tracks, observe, predator warning, return, shelter, survive the night). Each step
-    /// completes from game events or a simple check, shows an objective + hint, and can be skipped as a whole in the
-    /// settings. The save stores the current step by id (older saves: an index into <see cref="LegacyOrder"/>).
+    /// Chapter one teaching, folded into play: the old 25 tutorial steps are now lessons. A lesson is learned when the
+    /// player does the thing (any order: drink, fill a cup, light a fire...). Its short tip (keys + a Vietnamese gloss, shown by
+    /// ContextHints) appears only when it becomes relevant (thirsty, holding raw meat, evening without a shelter...), never
+    /// twice, at most one tip per <see cref="minTipGapSeconds"/>, so the lessons spread over the first day instead of a
+    /// checklist in the first minutes. The objective line belongs to MissionSystem now; this class keeps the old public
+    /// members (Index = first lesson not learned, CurrentId, Restore by id / old index) so older saves and tools still work.
+    /// Saved as the "lessons" section (older saves: the step id / index).
     /// </summary>
-    public class TutorialManager : MonoBehaviour
+    public class TutorialManager : MonoBehaviour, ISaveSection
     {
         public class Step
         {
             public string id, objective, hint;
-            public Func<GameEvent, bool> onEvent;      // completes when true
-            public Func<bool> check;                   // polled
-            public Func<string> progress;              // "(2/4)"
+            public Func<GameEvent, bool> onEvent;      // learned when true
+            public Func<bool> check;                   // polled: learned when true
+            public Func<string> progress;              // legacy "(2/4)"
             public Action onBegin;
+            /// <summary>tip is relevant now (null = no tip for this lesson)</summary>
+            public Func<bool> tipWhen;
+            public string tip;
         }
 
-        [Serializable] public class StepText { public string id; public string objective; [TextArea(1, 3)] public string hint; }
+        [Serializable] public class TipText { public string id; [TextArea(1, 3)] public string text; }
 
         public static TutorialManager Instance { get; private set; }
         public readonly List<Step> steps = new List<Step>();
-        [Tooltip("Objective / hint shown for each step. Edit the text freely (the step logic stays in code); an empty field uses the built-in text.")]
-        public List<StepText> texts = new List<StepText>();
-        public int Index { get; private set; } = -1;
-        public bool Running => Index >= 0 && Index < steps.Count;
-        public bool Completed { get; private set; }
-        public Step Current => Running ? steps[Index] : null;
-        public event Action<Step> StepStarted;
-        public event Action Finished;
-        /// <summary>fallback when no creature is present yet: seconds spent inside the herbivore habitat</summary>
+        [Tooltip("tip text per lesson id (edit freely; an empty text uses the built-in one, '-' switches the tip off)")]
+        public List<TipText> tips = new List<TipText>();
+        [Tooltip("real seconds between two first-day tips")] [Min(5)] public float minTipGapSeconds = 45f;
+        [Tooltip("seconds of play before the first tip")] [Min(0)] public float firstTipDelay = 4f;
         public float observeSeconds = 4f;
-        [Tooltip("'Shelter before night' completes from this hour on (or at night) while the player is near a shelter")] public float eveningHour = 17f;
+        [Tooltip("'Shelter before night' is learned from this hour on (or at night) while the player is near a shelter")] public float eveningHour = 17f;
         [Tooltip("metres from a shelter / tent that count as 'at the shelter'")] public float shelterRange = 6f;
 
-        /// <summary>survival milestone 1 step ids (compass targets, tests)</summary>
+        /// <summary>survival milestone 1 lesson ids (tests, tools)</summary>
         public const string FillWaterStep = "fill_water", BoilWaterStep = "boil_water", DrinkCleanStep = "drink_clean",
                             TentStep = "tent", ShelterNightStep = "shelter_night", SleepStep = "sleep";
         /// <summary>the step order before milestone 1: saves without a step id store an index into this list</summary>
         public static readonly string[] LegacyOrder = { "look", "walk", "search", "wood", "stone", "open_craft", "craft_axe", "fiber", "water", "food",
                                                         "campfire", "cook", "spear", "explore", "tracks", "observe", "return", "shelter", "night" };
-        /// <summary>id of the current step (null when idle or finished)</summary>
+        const string TipPrefix = "ch1_";
+
+        readonly HashSet<string> _learned = new HashSet<string>(StringComparer.Ordinal);
+        bool _started;
+        public int Index { get; private set; } = -1;
+        public bool Running => _started && !Completed && Index >= 0 && Index < steps.Count;
+        public bool Completed { get; private set; }
+        public Step Current => Running ? steps[Index] : null;
+        /// <summary>id of the first lesson not learned yet (null when idle or all learned)</summary>
         public string CurrentId => Running ? steps[Index].id : null;
+        public event Action<Step> StepStarted;
+        public event Action Finished;
+        public bool IsLearned(string id) => id != null && _learned.Contains(id);
         public int IndexOf(string id) { if (string.IsNullOrEmpty(id)) return -1; for (int i = 0; i < steps.Count; i++) if (steps[i].id == id) return i; return -1; }
 
-        GameObject _player; InventorySystem _inv; ThirdPersonCamera _cam;
-        float _yawAcc; float _lastYaw; float _stepTime; float _habitatTime;
+        GameObject _player; InventorySystem _inv; ThirdPersonCamera _cam; PlayerInteraction _pi; PlayerSurvival _sv; PlayerHealth _hp;
+        float _yawAcc, _lastYaw, _habitatTime, _nextPoll, _nextTip, _playTime, _lastTipAt = -999f;
+        Vector3 _startPos; bool _hasStart;
+        readonly HashSet<GameEventType> _seenEvents = new HashSet<GameEventType>();
         public Func<Vector3, bool> NearCamp = p => false;
-        /// <summary>where the current objective is (compass marker); null = no marker</summary>
-        public Func<string, Vector3?> TargetFor = id => null;
-        public Vector3? CurrentTarget => Running ? TargetFor(steps[Index].id) : null;
         public Func<Vector3, bool> InHerbivoreHabitat = p => false;
-        public Action PredatorWarningCue;
+        /// <summary>the current objective's direction: the focused mission's marker (compass / map)</summary>
+        public Vector3? CurrentTarget => MissionSystem.Instance ? MissionSystem.Instance.MarkerTarget : null;
+        /// <summary>set by the dinosaur system once creatures exist in the world</summary>
+        public static Func<bool> CreatureExists = () => false;
 
         void Awake() { Instance = this; Build(); }
         void OnDestroy() { if (Instance == this) Instance = null; }
-        void OnEnable() { GameEvents.Raised += OnEvent; }
-        void OnDisable() { GameEvents.Raised -= OnEvent; }
+        void OnEnable() { GameEvents.Raised -= OnEvent; GameEvents.Raised += OnEvent; SaveSystem.RegisterSection(this); }
+        void OnDisable() { GameEvents.Raised -= OnEvent; SaveSystem.UnregisterSection(this); }
 
         public void Bind(GameObject player)
         {
-            _player = player; _inv = player ? player.GetComponent<InventorySystem>() : null;
+            _player = player;
+            _inv = player ? player.GetComponent<InventorySystem>() : null; _pi = player ? player.GetComponent<PlayerInteraction>() : null;
+            _sv = player ? player.GetComponent<PlayerSurvival>() : null; _hp = player ? player.GetComponent<PlayerHealth>() : null;
             _cam = Camera.main ? Camera.main.GetComponent<ThirdPersonCamera>() : null;
             if (_cam) _lastYaw = _cam.Yaw;
         }
 
+        // ------------------------------------------------------------------ lessons
         int Count(string id) { var db = ItemDatabase.Instance; var it = db ? db.Item(id) : null; return _inv && it ? _inv.Count(it) : 0; }
         static bool Is(GameEvent e, GameEventType t, string id = null) => e.type == t && (id == null || e.id == id);
+        static string K(string action, string fallback) => Accent("[" + (KeyNames.Of(action) ?? fallback) + "]");
+        static string Accent(string s) => "<color=#" + ColorUtility.ToHtmlStringRGB(UIStyle.Accent) + ">" + s + "</color>";
+        static float Hour => TimeManager.Instance ? TimeManager.Instance.hour : 9f;
+        static int Day => TimeManager.Instance ? TimeManager.Instance.day : 1;
+        bool Seen(GameEventType t) => _seenEvents.Contains(t);
 
         void Build()
         {
             steps.Clear();
-            void S(string id, string obj, string hint, Func<GameEvent, bool> ev = null, Func<bool> chk = null, Func<string> prog = null, Action begin = null) =>
-                steps.Add(new Step { id = id, objective = obj, hint = hint, onEvent = ev, check = chk, progress = prog, onBegin = begin });
+            Step S(string id, string obj, string hint, Func<GameEvent, bool> ev = null, Func<bool> chk = null, Func<bool> tipWhen = null, string tip = null)
+            { var s = new Step { id = id, objective = obj, hint = hint, onEvent = ev, check = chk, tipWhen = tipWhen, tip = tip }; steps.Add(s); return s; }
+            string E = K("Interact", "E"), LMB = K("Attack", "LMB"), RMB = K("Aim", "RMB"), C = K("Crouch", "C"), Q = K("Craft", "Q"), J = K("Journal", "J");
 
             S("look", "Look around", "Move the mouse to look.", chk: () => _yawAcc > 100f);
-            S("walk", "Walk to the wreck", "W A S D to move. Hold Shift to run faster.", e => Is(e, GameEventType.ZoneEntered, "ZONE_Shipwreck"));
-            S("search", "Search the wreck for supplies", "Walk up to a crate and press E.", e => Is(e, GameEventType.LootOpened));
-            S("wood", "Collect wood", "Driftwood lies along the beach. Press E next to it.", chk: () => Count("wood") >= 4, prog: () => $"({Mathf.Min(4, Count("wood"))}/4)");
-            S("stone", "Collect stones", "Loose stones gather where the rocks meet the sand.", chk: () => Count("stone") >= 3, prog: () => $"({Mathf.Min(3, Count("stone"))}/3)");
-            S("open_craft", "Open the crafting menu", "Press Q (or Tab, then the Crafting tab).", e => Is(e, GameEventType.MenuOpened, "crafting"));
-            S("craft_axe", "Craft a Stone Axe", "Stone, wood and the ship's rope. Select it and press Craft.", e => Is(e, GameEventType.ItemCrafted, "stone_axe"), chk: () => Count("stone_axe") > 0);
-            S("fiber", "Gather plant fibre", "Tall fibrous plants grow behind the beach. Fibre makes cord.", chk: () => Count("fiber") >= 5, prog: () => $"({Mathf.Min(5, Count("fiber"))}/5)");
-            S("water", "Find fresh water", "The sea will not help you. Look for a stream or a pond inland.", e => Is(e, GameEventType.Drank));
-            S("food", "Find something to eat", "Berry bushes grow along the forest edge.", e => Is(e, GameEventType.Ate));
-            S("campfire", "Build a campfire", "Craft it, choose it on the hotbar (1-8) and place it with left click.", e => Is(e, GameEventType.StructurePlaced, "campfire"));
-            S("cook", "Light the fire and cook meat", "Press E at the campfire with wood, then with raw meat.", e => Is(e, GameEventType.FoodCooked));
+            S("walk", "Walk to the wreck", "W A S D to move, Shift to run.", e => Is(e, GameEventType.ZoneEntered) && StoryIds.Location(e.id) == "shipwreck", chk: () => Moved(25f),
+              tipWhen: () => _playTime > firstTipDelay, tip: "Mouse to look around, " + Accent("[W A S D]") + " to walk, " + K("Sprint", "Shift") + " to run (Nhìn: chuột, đi: WASD, chạy: Shift)");
+            S("search", "Search the wreck", "Walk up to a crate and press E.", e => Is(e, GameEventType.LootOpened),
+              tipWhen: () => _pi && _pi.Prompt != null, tip: E + " searches crates and picks things up (E: lục soát, nhặt đồ)");
+            S("wood", "Collect wood", "Driftwood lies along the beach.", e => Is(e, GameEventType.ItemAdded, "wood"), chk: () => Count("wood") > 0,
+              tipWhen: () => IsLearned("search") || _playTime > 60f, tip: "Hold " + E + " to keep gathering: driftwood, stones, plants (Giữ E để thu thập liên tục)");
+            S("stone", "Collect stones", "Loose stones gather where the rocks meet the sand.", e => Is(e, GameEventType.ItemAdded, "stone"), chk: () => Count("stone") > 0);
+            S("open_craft", "Open the crafting menu", "Press Q.", e => Is(e, GameEventType.MenuOpened, "crafting"),
+              tipWhen: () => Count("wood") > 0 && Count("stone") > 0 && !OnboardingTips.IsSeen(OnboardingTips.Wood), tip: Q + " opens crafting: stone, wood and cord make a stone axe (Q: chế tạo rìu đá)");
+            S("craft_axe", "Craft a Stone Axe", "Stone, wood and rope.", e => Is(e, GameEventType.ItemCrafted, "stone_axe"), chk: () => Count("stone_axe") > 0);
+            S("fiber", "Gather plant fibre", "Fibrous plants grow behind the beach.", e => Is(e, GameEventType.ItemAdded, "fiber"), chk: () => Count("fiber") > 0,
+              tipWhen: () => Hour >= 10.5f || Day > 1, tip: "Tall fibrous plants give fibre; twisted, it becomes cord (Cây có sợi cho sợi, bện thành dây)");
+            S("water", "Find fresh water", "Look for a stream or a pond inland.", e => Is(e, GameEventType.Drank) && e.id != SaltId,
+              tipWhen: () => (_sv && _sv.Thirst < 70f) || Hour >= 11.5f || NearFreshWater(8f), tip: E + " at a stream or pond drinks with your hands. Never the sea (Uống ở suối / ao, không uống nước biển)");
+            S("food", "Find something to eat", "Berry bushes grow along the forest edge.", e => Is(e, GameEventType.Ate),
+              tipWhen: () => (_sv && _sv.Hunger < 70f) || Hour >= 12f || HasFood(), tip: "Hold food and press " + LMB + " to eat; berries grow at the forest edge (Cầm đồ ăn, nhấn chuột trái để ăn)");
+            S("campfire", "Build a campfire", "Craft it and place it.", e => Is(e, GameEventType.StructurePlaced, "campfire"), chk: () => Campfire.All.Count > 0,
+              tipWhen: () => Count("campfire") > 0 || Hour >= 13.5f || Day > 1, tip: "Craft a campfire, pick it on the hotbar " + K("Hotbar1", "1") + "-" + K("Hotbar8", "8") + " and place it with " + LMB + " (Đặt lửa trại: chọn trên thanh, nhấn chuột trái)");
+            S("cook", "Cook meat", "Raw meat on a lit fire.", e => Is(e, GameEventType.FoodCooked),
+              tipWhen: () => Count("raw_meat") > 0 || Count("raw_fish") > 0, tip: "Raw meat is a gamble: " + E + " at a lit fire cooks it (Thịt sống dễ gây bệnh: nấu ở lửa)");
             // survival milestone 1: water -> boil -> clean water -> tent -> shelter before night -> sleep
-            S(FillWaterStep, "Fill a container with water", "Hold a leaf cup or a gourd and press E at the pond, the stream or the sea.",
-              e => Is(e, GameEventType.WaterFilled), chk: () => CarriesWater(WaterType.None));
-            S(BoilWaterStep, "Boil water at the fire", "Press E at a lit campfire while holding the filled container. Pond and sea water come out clean.",
-              e => Is(e, GameEventType.WaterBoiled), chk: () => CarriesWater(WaterType.CleanWater));
-            S(DrinkCleanStep, "Drink clean water", "Choose the container on the hotbar and left click to drink.",
-              e => Is(e, GameEventType.Drank, SurvivalConfig.Instance.Water(WaterType.CleanWater).eventId));
-            S(TentStep, "Build a tent", "Craft a tent, choose it on the hotbar and place it near your fire.", chk: TentExists);
-            S(ShelterNightStep, "Shelter before night", "Evening is coming and the night air is cold. Stay by your tent and fire.",
-              chk: () => IsEvening() && _player && Shelter.Nearest(_player.transform.position, shelterRange) != null);
-            S(SleepStep, "Sleep in the tent", "After sunset, press E at the tent to sleep until dawn.", e => Is(e, GameEventType.Slept));
-            S("spear", "Craft a Stone Spear", "A spear keeps danger at a distance.", e => Is(e, GameEventType.ItemCrafted, "stone_spear"), chk: () => Count("stone_spear") > 0);
-            S("explore", "Explore the forest inland", "Follow the stream uphill towards the meadow.", e => Is(e, GameEventType.ZoneEntered, "ZONE_Meadow"));
-            S("tracks", "Examine the strange tracks", "Something left deep prints in the mud near the meadow.", e => Is(e, GameEventType.FootprintFound));
-            S("observe", "Observe the grazing giant", "Keep your distance. Watch, do not provoke.", e => Is(e, GameEventType.CreatureSighted, "triceratops"),
-              chk: () => _habitatTime >= observeSeconds && !CreatureExists());
-            S("return", "Something is nearby. Return to camp", "Head back to your fire on the beach.", chk: () => _player && NearCamp(_player.transform.position),
-              begin: () => { GameEvents.Raise(GameEventType.PredatorWarning, "roar"); PredatorWarningCue?.Invoke(); });
-            S("shelter", "Build a shelter before nightfall", "Craft a Basic Shelter and place it near the fire.",
-              e => Is(e, GameEventType.StructurePlaced, "shelter") || (e.type == GameEventType.StructurePlaced && PlacesShelter(e.id)), chk: TentExists);
-            S("night", "Survive the night", "Stay warm by the fire. A bedroll lets you sleep until dawn.", e => Is(e, GameEventType.DayStarted));
-            // text edited in the Inspector wins
-            foreach (var t in texts)
+            S(FillWaterStep, "Fill a container with water", "Hold a leaf cup or a gourd and press E at water.", e => Is(e, GameEventType.WaterFilled), chk: () => CarriesWater(WaterType.None),
+              tipWhen: () => HasEmptyContainer(), tip: "Hold a leaf cup or gourd and press " + E + " at water to fill it (Cầm cốc lá / bầu, nhấn E ở chỗ nước)");
+            S(BoilWaterStep, "Boil water at the fire", "Hold the container and press E at a lit campfire.", e => Is(e, GameEventType.WaterBoiled), chk: () => CarriesWater(WaterType.CleanWater),
+              tipWhen: () => (CarriesWater(WaterType.DirtyWater) || CarriesWater(WaterType.SaltWater)) && _player && Campfire.LitNear(_player.transform.position, 15f),
+              tip: "Hold the filled container and press " + E + " at a lit fire to boil it safe (Đun sôi nước ở lửa cho sạch)");
+            S(DrinkCleanStep, "Drink clean water", "Choose the container and left click.", e => Is(e, GameEventType.Drank, CleanId),
+              tipWhen: () => CarriesWater(WaterType.CleanWater) && _sv && _sv.Thirst < 85f, tip: "Choose the container on the hotbar and press " + LMB + " to drink (Chọn bình, nhấn chuột trái để uống)");
+            S(TentStep, "Build a tent", "Craft a tent and place it near your fire.", chk: TentExists,
+              tipWhen: () => (Hour >= 15.5f || Day > 1) && Shelter.All.Count == 0, tip: "Craft a shelter or a tent and place it near your fire before dark (Dựng lều gần lửa trước khi trời tối)");
+            S(ShelterNightStep, "Shelter before night", "Stay by your tent and fire.", chk: () => IsEvening() && _player && Shelter.Nearest(_player.transform.position, shelterRange) != null);
+            S(SleepStep, "Sleep in the tent", "After sunset, press E at the tent.", e => Is(e, GameEventType.Slept),
+              tipWhen: () => IsEvening() && _player && Shelter.Nearest(_player.transform.position, 10f, true) != null, tip: "After sunset, " + E + " at the tent sleeps until dawn (Sau hoàng hôn, nhấn E ở lều để ngủ)");
+            S("spear", "Craft a Stone Spear", "A spear keeps danger at a distance.", e => Is(e, GameEventType.ItemCrafted, "stone_spear"), chk: () => Count("stone_spear") > 0,
+              tipWhen: () => Seen(GameEventType.PredatorWarning) || Day > 1, tip: "A stone spear keeps danger at arm's length: craft one before going inland (Làm giáo đá trước khi vào sâu)");
+            S("explore", "Explore inland", "Follow the stream uphill.", e => Is(e, GameEventType.ZoneEntered) && StoryIds.LocationMatches(e.id, "meadow|river|forest|pond"));
+            S("tracks", "Examine the tracks", "Deep prints in the mud.", e => Is(e, GameEventType.FootprintFound) || StoryIds.EventIs(e.type, "TracksFound"));
+            S("observe", "Observe a grazer", "Keep your distance.", e => Is(e, GameEventType.CreatureSighted),
+              chk: () => _habitatTime >= observeSeconds && !CreatureExists(),
+              tipWhen: () => Seen(GameEventType.CreatureSighted) && !OnboardingTips.IsSeen(OnboardingTips.Dinosaur), tip: C + " crouch and move slowly: grazers ignore a quiet watcher (C: cúi người, đi chậm)");
+            S("return", "Rest at camp", "Rest at a shelter.", e => Is(e, GameEventType.Slept),
+              tipWhen: () => _player && Shelter.Nearest(_player.transform.position, 10f) != null, tip: E + " at a shelter rests: the game saves and you wake there after a bad fall (Nghỉ ở lều: lưu game, hồi sinh tại đó)");
+            S("shelter", "Build a shelter", "Place it near the fire.", e => e.type == GameEventType.StructurePlaced && PlacesShelter(e.id), chk: () => Shelter.All.Count > 0);
+            S("night", "Survive the night", "Stay warm by the fire.", e => Is(e, GameEventType.DayStarted));
+            // appended lessons (not in the old order)
+            S("journal", "Read the journal", "Press J.", e => Is(e, GameEventType.MenuOpened, "journal"),
+              tipWhen: () => JournalSystem.Instance && JournalSystem.Instance.UnlockedInOrder.Count >= 2, tip: J + " opens your journal: what you learn is written there (J: nhật ký)");
+            S("map", "Open the map", "Press M.", chk: () => _mapOpened,
+              tipWhen: () => ZoneManager.Instance && CountVisited() >= 3, tip: Accent("[M]") + " opens the map. It shows only the places you have been (M: bản đồ)");
+            S("bandage", "Dress a wound", "Use a bandage.", e => Is(e, GameEventType.ItemUsed, "bandage"),
+              tipWhen: () => _hp && _hp.IsBleeding, tip: "Bleeding: craft a bandage from fibre, hold it and press " + LMB + " (Chảy máu: làm băng từ sợi, nhấn chuột trái để dùng)");
+            S("stealth", "Stay unseen", "Crouch in cover.", e => Is(e, GameEventType.Crouched),
+              tipWhen: () => Seen(GameEventType.PlayerNoticed), tip: "Something noticed you. " + C + " crouch in the ferns and keep still (Bị phát hiện: cúi người trong bụi, đứng yên)");
+            // tip text edited in the Inspector wins ('-' = no tip)
+            foreach (var t in tips)
             {
-                if (t == null || string.IsNullOrEmpty(t.id)) continue;
+                if (t == null || string.IsNullOrEmpty(t.id) || string.IsNullOrEmpty(t.text)) continue;
                 var st = steps.Find(x => x.id == t.id); if (st == null) continue;
-                if (!string.IsNullOrEmpty(t.objective)) st.objective = t.objective;
-                if (!string.IsNullOrEmpty(t.hint)) st.hint = t.hint;
+                st.tip = t.text == "-" ? null : t.text;
             }
         }
 
+        static string SaltId => SurvivalConfig.Instance.Water(WaterType.SaltWater).eventId;
+        static string CleanId => SurvivalConfig.Instance.Water(WaterType.CleanWater).eventId;
+        bool _mapOpened;
+        bool Moved(float m) => _player && _hasStart && (_player.transform.position - _startPos).sqrMagnitude > m * m;
+        bool NearFreshWater(float r) => _player && WaterSource.IsNearFresh(_player.transform.position, r);
+        int CountVisited() { int n = 0; foreach (var _ in ZoneManager.Instance.Visited) n++; return n; }
+
+        bool HasFood()
+        {
+            if (!_inv || _inv.Slots == null) return false;
+            for (int i = 0; i < _inv.Slots.Length; i++) { var s = _inv.Slots[i]; if (!s.IsEmptyOrNull() && s.item.IsFood && !s.item.IsWaterContainer && !s.item.IsMedical) return true; }
+            return false;
+        }
+        bool HasEmptyContainer()
+        {
+            if (!_inv || _inv.Slots == null) return false;
+            for (int i = 0; i < _inv.Slots.Length; i++) { var s = _inv.Slots[i]; if (WaterRules.IsContainer(s) && s.water <= 0) return true; }
+            return false;
+        }
         /// <summary>a water container in the pack holds water (of this kind; None = any kind)</summary>
         bool CarriesWater(WaterType kind)
         {
@@ -138,57 +200,57 @@ namespace PrimalFrontier.Story
             }
             return false;
         }
-        /// <summary>a tent (a shelter with a bed on it) stands somewhere</summary>
         static bool TentExists()
         {
             var all = Shelter.All;
             for (int i = 0; i < all.Count; i++) if (all[i] && all[i].HasBed) return true;
             return false;
         }
-        /// <summary>the placed item is a shelter of any kind (lean-to, tent): read from its prefab, no item ids</summary>
         static bool PlacesShelter(string itemId)
         {
             var db = ItemDatabase.Instance; var it = db ? db.Item(itemId) : null;
             return it && it.placePrefab && it.placePrefab.GetComponentInChildren<Shelter>(true);
         }
-        bool IsEvening()
-        {
-            var tm = TimeManager.Instance; if (!tm) return false;
-            return tm.hour >= eveningHour || tm.IsNight;
-        }
+        bool IsEvening() { var tm = TimeManager.Instance; return tm && (tm.hour >= eveningHour || tm.IsNight); }
 
-        /// <summary>fill the text list with every step (keeps what was already edited). Inspector: right click the component.</summary>
-        [ContextMenu("Fill step texts")]
+        /// <summary>fill the tip text list with every lesson (keeps texts already edited). Inspector: right click the component.</summary>
+        [ContextMenu("Fill tip texts")]
         public void SyncTexts()
         {
             Build();
             foreach (var st in steps)
-                if (!texts.Exists(t => t != null && t.id == st.id)) texts.Add(new StepText { id = st.id, objective = st.objective, hint = st.hint });
+                if (st.tip != null && !tips.Exists(t => t != null && t.id == st.id)) tips.Add(new TipText { id = st.id, text = st.tip });
         }
 
-        /// <summary>set by the dinosaur system once creatures exist in the world</summary>
-        public static Func<bool> CreatureExists = () => false;
-
+        // ------------------------------------------------------------------ flow
+        /// <summary>new game after the intro: lessons from the start (index &gt; 0 = the old steps before it count as learned)</summary>
         public void Begin(int index = 0)
         {
-            Completed = false; Index = Mathf.Clamp(index, 0, steps.Count); _stepTime = 0f; _habitatTime = 0f;
-            if (_cam) _lastYaw = _cam.Yaw; _yawAcc = 0f;
-            if (Running) { steps[Index].onBegin?.Invoke(); StepStarted?.Invoke(steps[Index]); GameEvents.Raise(GameEventType.ObjectiveChanged, steps[Index].id, Index); }
-            else Finish();
+            _learned.Clear(); _seenEvents.Clear(); _mapOpened = false; _announced = false;
+            for (int i = 0; i < index && i < steps.Count; i++) _learned.Add(steps[i].id);
+            _started = true; Completed = false; _yawAcc = 0f; _habitatTime = 0f; _playTime = 0f; _lastTipAt = -999f;
+            if (_cam) _lastYaw = _cam.Yaw;
+            if (_player) { _startPos = _player.transform.position; _hasStart = true; }
+            RefreshIndex();
+            if (Running) { StepStarted?.Invoke(steps[Index]); GameEvents.Raise(GameEventType.ObjectiveChanged, steps[Index].id, Index); }
         }
 
-        public void Skip() { Index = steps.Count; Finish(); }
+        /// <summary>no more tips this game (every lesson counts as learned)</summary>
+        public void Skip() { foreach (var s in steps) _learned.Add(s.id); RefreshIndex(); if (!_announced) { _announced = true; Finished?.Invoke(); } }
+        bool _announced;
         /// <summary>new game / title: idle, nothing shown until Begin()</summary>
-        public void ResetIdle() { Index = -1; Completed = false; _stepTime = 0f; _habitatTime = 0f; _yawAcc = 0f; }
+        public void ResetIdle() { _learned.Clear(); _seenEvents.Clear(); _started = false; Completed = false; Index = -1; _yawAcc = 0f; _habitatTime = 0f; _playTime = 0f; _hasStart = false; }
         public void Restore(int index, bool completed) => Restore(index, completed, null);
-        /// <summary>load: the step id wins; saves without one map their index through the pre-milestone-1 order</summary>
+        /// <summary>load (old saves): the step id wins; the lessons before it count as learned. The "lessons" section, when present, replaces this afterwards.</summary>
         public void Restore(int index, bool completed, string stepId)
         {
-            if (completed) { Index = steps.Count; Completed = true; return; }
+            _started = true; _learned.Clear();
+            if (completed) { foreach (var s in steps) _learned.Add(s.id); Completed = true; Index = steps.Count; return; }
+            Completed = false;
             int i = IndexOf(stepId);
             if (i < 0) i = LegacyIndex(index);
-            Index = Mathf.Clamp(i, 0, steps.Count); _stepTime = 0f;
-            if (Running) StepStarted?.Invoke(steps[Index]);
+            for (int k = 0; k < i && k < steps.Count; k++) _learned.Add(steps[k].id);
+            RefreshIndex();
         }
 
         int LegacyIndex(int index)
@@ -199,47 +261,95 @@ namespace PrimalFrontier.Story
             return i >= 0 ? i : Mathf.Min(index, steps.Count);
         }
 
+        void RefreshIndex()
+        {
+            int i = 0; while (i < steps.Count && _learned.Contains(steps[i].id)) i++;
+            Index = i;
+            if (_started && i >= steps.Count) Completed = true;       // quietly: the chapter card belongs to MissionSystem
+        }
+
+        void Learn(Step s)
+        {
+            if (!_learned.Add(s.id)) return;
+            GameEvents.Raise(GameEventType.TutorialStep, s.id, IndexOf(s.id));
+            RefreshIndex();
+        }
+
         void OnEvent(GameEvent e)
         {
-            if (!Running) return;
-            var s = steps[Index];
-            if (s.onEvent != null && s.onEvent(e)) Advance();
+            _seenEvents.Add(e.type);
+            if (!_started) return;
+            for (int i = 0; i < steps.Count; i++)
+            {
+                var s = steps[i];
+                if (s.onEvent == null || _learned.Contains(s.id)) continue;
+                bool ok; try { ok = s.onEvent(e); } catch (Exception ex) { Debug.LogException(ex); ok = false; }
+                if (ok) Learn(s);
+            }
         }
+
+        /// <summary>called by GameManager when the player rested at a shelter (the "return" lesson)</summary>
+        public void NotifyRested() { var s = steps.Find(x => x.id == "return"); if (s != null && _started) Learn(s); }
+        /// <summary>called by the minimap when the big map opens</summary>
+        public void NotifyMapOpened() { _mapOpened = true; }
 
         void Update()
         {
-            if (!Running) return;
-            _stepTime += Time.deltaTime;
+            if (!_started) return;
+            float dt = Time.deltaTime;
+            _playTime += dt;
             if (_cam) { _yawAcc += Mathf.Abs(Mathf.DeltaAngle(_lastYaw, _cam.Yaw)); _lastYaw = _cam.Yaw; }
-            if (_player && InHerbivoreHabitat(_player.transform.position)) _habitatTime += Time.deltaTime;
-            var s = steps[Index];
-            if (s.check != null && _stepTime > 0.3f && s.check()) Advance();
+            if (!_hasStart && _player) { _startPos = _player.transform.position; _hasStart = true; }
+            if (_player && InHerbivoreHabitat(_player.transform.position)) _habitatTime += dt;
+            if (Time.time >= _nextPoll)
+            {
+                _nextPoll = Time.time + 0.5f;
+                for (int i = 0; i < steps.Count; i++)
+                {
+                    var s = steps[i];
+                    if (s.check == null || _learned.Contains(s.id)) continue;
+                    bool ok; try { ok = s.check(); } catch (Exception ex) { Debug.LogException(ex); ok = false; }
+                    if (ok) Learn(s);
+                }
+            }
+            if (Time.unscaledTime >= _nextTip) { _nextTip = Time.unscaledTime + 1f; TryTip(); }
         }
 
-        void Advance()
+        /// <summary>one relevant tip, when the last one is long enough ago and nothing else is on screen</summary>
+        void TryTip()
         {
-            var done = steps[Index];
-            GameEvents.Raise(GameEventType.TutorialStep, done.id, Index);
-            Index++; _stepTime = 0f;
-            if (Index >= steps.Count) { Finish(); return; }
-            var s = steps[Index];
-            s.onBegin?.Invoke();
-            StepStarted?.Invoke(s);
-            GameEvents.Raise(GameEventType.ObjectiveChanged, s.id, Index);
+            var gm = GameManager.Instance; if (gm && gm.State != GameState.Playing) return;
+            var hints = ContextHints.Instance; if (!hints || hints.CurrentTip != null || hints.QueuedTips > 0) return;
+            if (UIManager.Instance && UIManager.Instance.Current != UIScreen.None) return;
+            if (Time.unscaledTime - _lastTipAt < minTipGapSeconds) return;
+            for (int i = 0; i < steps.Count; i++)
+            {
+                var s = steps[i];
+                if (s.tip == null || s.tipWhen == null || _learned.Contains(s.id) || OnboardingTips.IsSeen(TipPrefix + s.id)) continue;
+                bool want; try { want = s.tipWhen(); } catch { want = false; }
+                if (!want) continue;
+                if (hints.QueueTip(TipPrefix + s.id, s.tip)) { _lastTipAt = Time.unscaledTime; return; }
+            }
         }
 
-        void Finish()
-        {
-            if (Completed) return;
-            Completed = true;
-            Finished?.Invoke();
-            GameEvents.Raise(GameEventType.DayCompleted, "day_one", 1);
-        }
-
+        /// <summary>legacy: text of the first lesson not learned (the HUD objective line now comes from MissionSystem)</summary>
         public string ObjectiveText()
         {
             var s = Current; if (s == null) return null;
             return s.objective + (s.progress != null ? " " + s.progress() : "");
+        }
+
+        // ------------------------------------------------------------------ save
+        [Serializable] class Saved { public List<string> learned = new List<string>(); public bool done; }
+        public string SectionKey => "lessons";
+        public string CaptureSection() { if (!_started) return null; var d = new Saved { done = Completed }; d.learned.AddRange(_learned); return JsonUtility.ToJson(d); }
+        public void RestoreSection(string json)
+        {
+            var d = JsonUtility.FromJson<Saved>(json); if (d == null) return;
+            _started = true; _learned.Clear(); Completed = false;
+            if (d.learned != null) foreach (var id in d.learned) if (!string.IsNullOrEmpty(id)) _learned.Add(id);
+            RefreshIndex();
+            if (d.done) Completed = true;
         }
     }
 }

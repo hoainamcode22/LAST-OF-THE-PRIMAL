@@ -28,6 +28,7 @@ namespace PrimalFrontier.Animation
         public static readonly int HealthState = Animator.StringToHash("HealthState");     // int (PlayerHealthStates)
         public static readonly int TurnSpeed = Animator.StringToHash("TurnSpeed");         // deg/s, + = left (turn in place)
         public static readonly int IdleVariant = Animator.StringToHash("IdleVariant");     // trigger: play Idle_Variation once
+        public static readonly int IdleMirror = Animator.StringToHash("IdleMirror");       // bool: the variation to the other side (Idle_Variation_Mirror)
         public static readonly int CombatMode = Animator.StringToHash("CombatMode");       // bool: weapon out and fighting / aiming (WeaponAnimatorBridge)
         public static readonly int WeaponType = Animator.StringToHash("WeaponType");       // int: WeaponKind of the weapon in hand (0 none, 1 spear, 2 bow, 3 knife, 4 sword)
         public static readonly int IsMoving = Animator.StringToHash("IsMoving");           // bool: planar speed above a small threshold
@@ -41,6 +42,7 @@ namespace PrimalFrontier.Animation
         public static readonly int UseLocoClips = Animator.StringToHash("UseLocoClips");   // bool: start / stop / pivot states may be entered
         public static readonly int LocoEvent = Animator.StringToHash("LocoEvent");         // int (LocoEvents), set for one frame by the driver
         public static readonly int LocoMirror = Animator.StringToHash("LocoMirror");       // bool: mirror the start / stop clip (lead foot)
+        public static readonly int Collapse = Animator.StringToHash("Collapse");           // trigger: knockout, Unconscious_Collapse then the Unconscious loop
         // dinosaur
         public static readonly int Alert = Animator.StringToHash("Alert");                 // bool
     }
@@ -55,6 +57,7 @@ namespace PrimalFrontier.Animation
             GatherStoneHand = 16,                                                              // full body loop, OnGatherHit (bare-hand stone; placeholder Gather_Plant)
             GatherBranch = 17,                                                                 // full body loop, OnGatherHit (fallen branch; placeholder Gather_Plant)
             BandageUse = 18,                                                                   // full body one-shot (wrap a wound; placeholder Use_Item)
+            DrinkKneel = 19,                                                                   // full body one-shot: kneel at the water, scoop, drink (placeholder Crouch + IK program)
             AttackSpear = 20, AttackSpearHeavy = 21, ThrowSpear = 22, SpearAttack2 = 23, KnifeAttack = 24,
             Dodge = 25,
             SwordAttack1 = 26, SwordAttack2 = 27, SwordAttack3 = 28, SwordHeavy = 29,        // full body
@@ -76,7 +79,7 @@ namespace PrimalFrontier.Animation
         public static bool IsGather(int a) => a == GatherWood || a == GatherStone || a == GatherPlant || a == GatherStoneHand || a == GatherBranch || a == Butcher;
         public static bool IsUpperBody(int a) => a >= BowAim && a <= CarryItem;
         /// <summary>full-body actions the body must be (nearly) standing for: the driver brakes the motor before starting them</summary>
-        public static bool NeedsStop(int a) => (a >= Pickup && a <= Sleep) || (a >= CollectWater && a <= BandageUse);
+        public static bool NeedsStop(int a) => (a >= Pickup && a <= Sleep) || (a >= CollectWater && a <= DrinkKneel);
     }
 
     /// <summary>Values of the "LocoEvent" int parameter (phase C start / stop / pivot clips; unused until they exist).</summary>
@@ -95,5 +98,6 @@ namespace PrimalFrontier.Animation
     public static class DinoActions
     {
         public const int None = 0, Eat = 1, Drink = 2, Rest = 3, LookAround = 4, Roar = 5, Call = 6, Threaten = 7, Defend = 8, Investigate = 9;
+        public const int IdleVariant = 11, Breathe = 12, Recover = 13;   // PC phase (DINO clips)
     }
 }

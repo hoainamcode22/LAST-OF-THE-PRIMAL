@@ -224,7 +224,7 @@ namespace PrimalFrontier.Combat.Weapons
             if (_downStroke) dir = (Vector3.down * 0.5f + fwd).normalized;
             var hit = new HitInfo
             {
-                damage = _damage * mult, point = pt, direction = dir, attacker = _owner.gameObject,
+                damage = _damage * mult * AttackerMultiplier(_owner), point = pt, direction = dir, attacker = _owner.gameObject,
                 weapon = _data ? _data.kind : Items.WeaponKind.None, heavy = _heavy, zoneMultiplier = mult,
                 unarmed = _data && _data.unarmed, knockback = _knockback,
             };
@@ -238,6 +238,14 @@ namespace PrimalFrontier.Combat.Weapons
             LastHit = hit;
             Hit?.Invoke(d, hit, c);
         }
+
+        /// <summary>
+        /// the attacker's own damage multiplier: the player's status effects (arm injury, SURV's
+        /// PlayerStatusEffects.AttackMultiplier, 0.7 at full severity); 1 for anything without them. The one place melee and
+        /// bare-hand damage is scaled by the attacker's condition.
+        /// </summary>
+        public static float AttackerMultiplier(Transform owner) =>
+            owner && owner.TryGetComponent<Survival.PlayerStatusEffects>(out var fx) ? fx.AttackMultiplier : 1f;
 
         /// <summary>creatures bleed on their own (BloodFX in their TakeHit); anything else gets a neutral impact</summary>
         public static bool IsFlesh(IDamageable d) => d is DinosaurController || d is AmbientCreature;

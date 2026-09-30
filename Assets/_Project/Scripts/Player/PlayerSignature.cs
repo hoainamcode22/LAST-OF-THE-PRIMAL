@@ -13,8 +13,9 @@ namespace PrimalFrontier.Player
     /// visibility factors (ambient light, torch / firelight, cave, posture, motion, cover from bushes / thickets / trees /
     /// shelter, clearing exposure), movement noise pulses (gait x surface), player scents (body, bleeding, carried raw
     /// meat) and the smells of lit campfires (cooking, food left on the fire, smoke). Gameplay facts that make noise come
-    /// in through GameEvents (gathering, chopping, felling, combat, building, dodge, fire lit) and the motor / health
-    /// events (landing, hurt), so no other system is edited for it. Creatures read <see cref="Read"/>; the HUD reads the
+    /// in through GameEvents (gathering, chopping, TreeFelled, combat, building, dodge, fire lit, ProjectileLanded as a
+    /// distraction at the landing spot) and the motor / health events (landing, hurt), so no other system is edited for it.
+    /// Bleeding = PlayerStatusEffects.Has(Bleeding); footstep surface = PlayerFeedback.LastFootSurface. Creatures read <see cref="Read"/>; the HUD reads the
     /// visibility and noise levels. Allocation free after Start.
     /// </summary>
     [DisallowMultipleComponent]
@@ -56,7 +57,7 @@ namespace PrimalFrontier.Player
         public int FelledAround { get; private set; }
 
         PlayerMotor _motor; PlayerHealth _hp; PlayerEquipment _eq; InventorySystem _inv; PlayerState _state; PlayerSurvival _sv; PlayerClimb _climb;
-        TreeHarvest _trees; int _felledCount; Vector3 _lastChopAt; float _lastChopTime = -99f;
+        PlayerFeedback _feedback; TreeHarvest _trees;
         float _nextSample, _nextPulse, _nextSurface, _nextCover, _nextBody, _nextBleed, _nextCarried, _nextFire, _nextSmoke, _nextLookup;
         float _bushCover, _thicket, _treeCover; bool _clearing; bool _carriedDirty = true;
         static readonly RaycastHit[] Hits = new RaycastHit[4];
@@ -71,7 +72,7 @@ namespace PrimalFrontier.Player
         void OnEnable()
         {
             _motor = GetComponent<PlayerMotor>(); _hp = GetComponent<PlayerHealth>(); _eq = GetComponent<PlayerEquipment>();
-            _inv = GetComponent<InventorySystem>(); _sv = GetComponent<PlayerSurvival>();
+            _inv = GetComponent<InventorySystem>(); _sv = GetComponent<PlayerSurvival>(); TryGetComponent(out _feedback);
             GameEvents.Raised -= OnGameEvent; GameEvents.Raised += OnGameEvent;
             if (_motor) { _motor.Landed -= OnLanded; _motor.Landed += OnLanded; }
             if (_hp) { _hp.Damaged -= OnDamaged; _hp.Damaged += OnDamaged; }
@@ -88,11 +89,7 @@ namespace PrimalFrontier.Player
             if (Instance == this) Current.valid = false;
         }
 
-        void Start()
-        {
-            _trees = FindFirstObjectByType<TreeHarvest>();
-            _felledCount = _trees && _trees.Felled != null ? _trees.Felled.Count : 0;
-        }
+        void Start() { _trees = FindFirstObjectByType<TreeHarvest>(); }
 
         void OnInventory() => _carriedDirty = true;
 
@@ -105,7 +102,7 @@ namespace PrimalFrontier.Player
             float now = Stimuli.Now;
             var c = PerceptionConfig.Instance;
             if (now >= _nextSurface) { _nextSurface = now + 0.5f; Current.surface = SampleSurface(); }
-            if (now >= _nextCover) { _nextCover = now + 0.25f; SampleCover(c); CheckFelled(c); }
+            if (now >= _nextCover) { _nextCover = now + 0.25f; SampleCover(c); }
             if (now >= _nextSample) { _nextSample = now + sampleInterval; Sample(c, now); }
             Pulse(c, now);
             Scents(c, now);
@@ -175,11 +172,13 @@ namespace PrimalFrontier.Player
         }
 
         /// <summary>
-        /// Ground under the player without allocation: collider names are classified once per collider; terrain uses a
-        /// cheap rule (beach height = sand, steep = rock, else grass) until the footstep surface is shared (request to RES).
+        /// Ground under the player: the surface of the last footstep (PlayerFeedback.LastFootSurface, from the real terrain
+        /// layer / collider). Fallback without PlayerFeedback, allocation free: collider names classified once per collider,
+        /// terrain by a cheap rule (beach height = sand, steep = rock, else grass).
         /// </summary>
         int SampleSurface()
         {
+            if (_feedback) return (int)_feedback.LastFootSurface;
             Vector3 p = transform.position;
             if (p.y < 0.35f) return (int)Surface.Water;
             int n = Physics.RaycastNonAlloc(p + Vector3.up * 0.4f, Vector3.down, Hits, 1.2f, ~0, QueryTriggerInteraction.Ignore);
@@ -230,8 +229,13 @@ namespace PrimalFrontier.Player
             if (now >= _nextFire) { _nextFire = now + c.fireScentInterval; FireScents(c, now >= _nextSmoke); if (now >= _nextSmoke) _nextSmoke = now + c.fireSmokeInterval; }
         }
 
-        /// <summary>bleeding (PlayerHealth today; SURV's PlayerStatusEffects.Has(Bleeding) replaces it when it lands)</summary>
-        bool IsBleeding() => _hp && _hp.IsBleeding;
+        /// <summary>bleeding: SURV's status effect (PlayerStatusEffects.Has(Bleeding)); PlayerHealth only when there is no effects component</summary>
+        bool IsBleeding()
+        {
+            var fx = PlayerStatusEffects.Player;
+            if (fx) return fx.Has(StatusEffectIds.Bleeding);
+            return _hp && _hp.IsBleeding;
+        }
 
         float Carried(PerceptionConfig c)
         {
@@ -282,6 +286,9 @@ namespace PrimalFrontier.Player
                 case GameEventType.StructurePlaced: Stimuli.Noise(e.position, c.buildLoudness, NoiseTag.Build, StimulusSource.Player); break;
                 case GameEventType.FireLit: Stimuli.Noise(e.position, c.fireLitLoudness, NoiseTag.Fire, StimulusSource.Player); break;
                 case GameEventType.PlayerDodged: Stimuli.Noise(transform.position, c.dodgeLoudness, NoiseTag.Landing, StimulusSource.Player); break;
+                case GameEventType.TreeFelled: Stimuli.Noise(e.position, c.treeFallLoudness, NoiseTag.TreeFall, StimulusSource.Player); break;
+                // a missed arrow / thrown spear lands: heard where it lies, not where the player is (a distraction)
+                case GameEventType.ProjectileLanded: Stimuli.Noise(e.position, c.projectileLandLoudness * Mathf.Max(1, e.amount), NoiseTag.Impact, StimulusSource.Distraction); break;
             }
         }
 
@@ -295,19 +302,9 @@ namespace PrimalFrontier.Player
             {
                 bool axe = (tool & ToolKind.Chop) != 0;
                 Stimuli.Noise(at, axe ? c.chopLoudness : c.handGatherLoudness * 2f, NoiseTag.Chop, StimulusSource.Player);
-                if (onTree) { _lastChopAt = at; _lastChopTime = Stimuli.Now; }
             }
             else if ((tool & ToolKind.Mine) != 0) Stimuli.Noise(at, c.mineLoudness, NoiseTag.Mine, StimulusSource.Player);
             else Stimuli.Noise(at, c.handGatherLoudness, NoiseTag.Gather, StimulusSource.Player);
-        }
-
-        /// <summary>a tree fell since the last check (TreeHarvest raises no event for it yet): a big noise at the last chop</summary>
-        void CheckFelled(PerceptionConfig c)
-        {
-            if (!_trees) { if (Time.frameCount % 120 == 0) _trees = FindFirstObjectByType<TreeHarvest>(); return; }
-            int n = _trees.Felled != null ? _trees.Felled.Count : 0;
-            if (n > _felledCount && Stimuli.Now - _lastChopTime < 5f) Stimuli.Noise(_lastChopAt, c.treeFallLoudness, NoiseTag.TreeFall, StimulusSource.Player);
-            _felledCount = n;
         }
 
         void OnLanded(float impact)
@@ -324,10 +321,6 @@ namespace PrimalFrontier.Player
         }
 
         /// <summary>forget cached state (new game / load)</summary>
-        public void ResetState()
-        {
-            _felledCount = _trees && _trees.Felled != null ? _trees.Felled.Count : 0;
-            _carriedDirty = true; _lastChopTime = -99f;
-        }
+        public void ResetState() { _carriedDirty = true; }
     }
 }

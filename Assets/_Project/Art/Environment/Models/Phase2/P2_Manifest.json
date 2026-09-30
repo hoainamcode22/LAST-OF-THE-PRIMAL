@@ -1,0 +1,873 @@
+{
+ "version": 1,
+ "materials": [
+  {
+   "name": "M_P2_AncientFallenTree",
+   "tex": "T_P2_AncientFallenTree",
+   "kind": "baked",
+   "cutout": false,
+   "doubleSided": false,
+   "tiling": 1.0,
+   "detailNormal": "T_P2_DetailBark_N",
+   "detailTiling": 27.19,
+   "smoothScale": 1.0,
+   "tint": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "name": "M_P2_BlackRidge",
+   "tex": "T_P2_BlackRidge",
+   "kind": "baked",
+   "cutout": false,
+   "doubleSided": false,
+   "tiling": 1.0,
+   "detailNormal": "T_P2_DetailStone_N",
+   "detailTiling": 76.41,
+   "smoothScale": 1.0,
+   "tint": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "name": "M_P2_BoneScatter_A",
+   "tex": "T_P2_BoneScatter_A",
+   "kind": "baked",
+   "cutout": false,
+   "doubleSided": false,
+   "tiling": 1.0,
+   "detailNormal": "T_P2_DetailBone_N",
+   "detailTiling": 5.83,
+   "smoothScale": 1.0,
+   "tint": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "name": "M_P2_BoneScatter_B",
+   "tex": "T_P2_BoneScatter_B",
+   "kind": "baked",
+   "cutout": false,
+   "doubleSided": false,
+   "tiling": 1.0,
+   "detailNormal": "T_P2_DetailBone_N",
+   "detailTiling": 5.65,
+   "smoothScale": 1.0,
+   "tint": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "name": "M_P2_Calcite",
+   "tex": "T_P2_CaveRock",
+   "kind": "tile",
+   "cutout": false,
+   "doubleSided": false,
+   "tiling": 1.0,
+   "detailNormal": "",
+   "detailTiling": 1.0,
+   "smoothScale": 0.9,
+   "tint": [
+    2.4,
+    2.3,
+    2.1
+   ]
+  },
+  {
+   "name": "M_P2_Canopy",
+   "tex": "T_P2_Canopy",
+   "kind": "atlas",
+   "cutout": true,
+   "doubleSided": true,
+   "tiling": 1.0,
+   "detailNormal": "",
+   "detailTiling": 1.0,
+   "smoothScale": 0.6,
+   "tint": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "name": "M_P2_CaveRock",
+   "tex": "T_P2_CaveRock",
+   "kind": "tile",
+   "cutout": false,
+   "doubleSided": false,
+   "tiling": 1.0,
+   "detailNormal": "",
+   "detailTiling": 1.0,
+   "smoothScale": 1.0,
+   "tint": [
+    1.35,
+    1.35,
+    1.35
+   ]
+  },
+  {
+   "name": "M_P2_CaveWet",
+   "tex": "T_P2_CaveWet",
+   "kind": "tile",
+   "cutout": false,
+   "doubleSided": false,
+   "tiling": 1.0,
+   "detailNormal": "",
+   "detailTiling": 1.0,
+   "smoothScale": 1.0,
+   "tint": [
+    1.3,
+    1.3,
+    1.3
+   ]
+  },
+  {
+   "name": "M_P2_DeadSnag_A",
+   "tex": "T_P2_DeadSnag_A",
+   "kind": "baked",
+   "cutout": false,
+   "doubleSided": false,
+   "tiling": 1.0,
+   "detailNormal": "T_P2_DetailBark_N",
+   "detailTiling": 17.39,
+   "smoothScale": 1.0,
+   "tint": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "name": "M_P2_DeadSnag_B",
+   "tex": "T_P2_DeadSnag_B",
+   "kind": "baked",
+   "cutout": false,
+   "doubleSided": false,
+   "tiling": 1.0,
+   "detailNormal": "T_P2_DetailBark_N",
+   "detailTiling": 14.78,
+   "smoothScale": 1.0,
+   "tint": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "name": "M_P2_FossilSkeleton",
+   "tex": "T_P2_FossilSkeleton",
+   "kind": "baked",
+   "cutout": false,
+   "doubleSided": false,
+   "tiling": 1.0,
+   "detailNormal": "T_P2_DetailBone_N",
+   "detailTiling": 36.38,
+   "smoothScale": 1.0,
+   "tint": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "name": "M_P2_GiantTree",
+   "tex": "T_P2_GiantTree",
+   "kind": "baked",
+   "cutout": false,
+   "doubleSided": false,
+   "tiling": 1.0,
+   "detailNormal": "T_P2_DetailBark_N",
+   "detailTiling": 4.87,
+   "smoothScale": 1.0,
+   "tint": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "name": "M_P2_Ribcage",
+   "tex": "T_P2_Ribcage",
+   "kind": "baked",
+   "cutout": false,
+   "doubleSided": false,
+   "tiling": 1.0,
+   "detailNormal": "T_P2_DetailBone_N",
+   "detailTiling": 10.44,
+   "smoothScale": 1.0,
+   "tint": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "name": "M_P2_RockRidge",
+   "tex": "T_P2_RockRidge",
+   "kind": "baked",
+   "cutout": false,
+   "doubleSided": false,
+   "tiling": 1.0,
+   "detailNormal": "T_P2_DetailStone_N",
+   "detailTiling": 34.2,
+   "smoothScale": 1.0,
+   "tint": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "name": "M_P2_Skull_Large",
+   "tex": "T_P2_Skull_Large",
+   "kind": "baked",
+   "cutout": false,
+   "doubleSided": false,
+   "tiling": 1.0,
+   "detailNormal": "T_P2_DetailBone_N",
+   "detailTiling": 5.27,
+   "smoothScale": 1.0,
+   "tint": [
+    1,
+    1,
+    1
+   ]
+  }
+ ],
+ "assets": [
+  {
+   "name": "CAVE_Chamber_Dome",
+   "kind": "cave",
+   "zone": "Deep Water Cave",
+   "fbx": "CAVE_Chamber_Dome.fbx",
+   "lods": [
+    "CAVE_Chamber_Dome_LOD0",
+    "CAVE_Chamber_Dome_LOD1"
+   ],
+   "tris": [
+    8327,
+    2293
+   ],
+   "col": "CAVE_Chamber_Dome_COL",
+   "colTris": 783,
+   "material": "",
+   "materials": [
+    "M_P2_CaveRock",
+    "M_P2_CaveWet"
+   ],
+   "lodHeights": [
+    0.25,
+    0.015
+   ],
+   "sizeX": 31.29,
+   "sizeY": 31.7,
+   "sizeZ": 16.2,
+   "minZ": -3.6,
+   "maxZ": 12.6,
+   "pivot": "floor centre = pool basin centre (basin floor -2 m, rim ring r ~9 m); inner radius 14 m, 11 m high; tunnel openings with floor centres at (+-14.6, 0, 0) facing +-X",
+   "notes": "tileable CaveRock / CaveWet, 1 UV = 6 m; normals inward"
+  },
+  {
+   "name": "CAVE_PoolRim",
+   "kind": "cave",
+   "zone": "Deep Water Cave",
+   "fbx": "CAVE_PoolRim.fbx",
+   "lods": [
+    "CAVE_PoolRim_LOD0",
+    "CAVE_PoolRim_LOD1"
+   ],
+   "tris": [
+    3768,
+    1004
+   ],
+   "col": "CAVE_PoolRim_COL",
+   "colTris": 304,
+   "material": "",
+   "materials": [
+    "M_P2_CaveRock"
+   ],
+   "lodHeights": [
+    0.25,
+    0.015
+   ],
+   "sizeX": 10.32,
+   "sizeY": 10.32,
+   "sizeZ": 2.47,
+   "minZ": -1.98,
+   "maxZ": 0.49,
+   "pivot": "pool centre at the water line (y = 0); 90 deg arc from +X to +Z, radius 8.4 m; 4 copies rotated 90 deg about Y close the ring",
+   "notes": "tileable CaveRock / CaveWet, 1 UV = 6 m; normals inward"
+  },
+  {
+   "name": "CAVE_Rubble",
+   "kind": "cave",
+   "zone": "Deep Water Cave",
+   "fbx": "CAVE_Rubble.fbx",
+   "lods": [
+    "CAVE_Rubble_LOD0",
+    "CAVE_Rubble_LOD1"
+   ],
+   "tris": [
+    3800,
+    1398
+   ],
+   "col": "CAVE_Rubble_COL",
+   "colTris": 1398,
+   "material": "",
+   "materials": [
+    "M_P2_CaveRock"
+   ],
+   "lodHeights": [
+    0.25,
+    0.015
+   ],
+   "sizeX": 4.27,
+   "sizeY": 3.43,
+   "sizeZ": 1.68,
+   "minZ": -0.09,
+   "maxZ": 1.59,
+   "pivot": "base centre on the floor",
+   "notes": "tileable CaveRock / CaveWet, 1 UV = 6 m; normals inward"
+  },
+  {
+   "name": "CAVE_Stalactites",
+   "kind": "cave",
+   "zone": "Deep Water Cave",
+   "fbx": "CAVE_Stalactites.fbx",
+   "lods": [
+    "CAVE_Stalactites_LOD0",
+    "CAVE_Stalactites_LOD1"
+   ],
+   "tris": [
+    4200,
+    1500
+   ],
+   "col": "",
+   "colTris": 0,
+   "material": "",
+   "materials": [
+    "M_P2_Calcite"
+   ],
+   "lodHeights": [
+    0.25,
+    0.015
+   ],
+   "sizeX": 4.77,
+   "sizeY": 3.79,
+   "sizeZ": 3.89,
+   "minZ": -3.13,
+   "maxZ": 0.76,
+   "pivot": "ceiling attach point (top centre); hangs to ~-3.4 m",
+   "notes": "tileable CaveRock / CaveWet, 1 UV = 6 m; normals inward"
+  },
+  {
+   "name": "CAVE_Tunnel_Bend",
+   "kind": "cave",
+   "zone": "Deep Water Cave",
+   "fbx": "CAVE_Tunnel_Bend.fbx",
+   "lods": [
+    "CAVE_Tunnel_Bend_LOD0",
+    "CAVE_Tunnel_Bend_LOD1"
+   ],
+   "tris": [
+    9472,
+    2432
+   ],
+   "col": "CAVE_Tunnel_Bend_COL",
+   "colTris": 640,
+   "material": "",
+   "materials": [
+    "M_P2_CaveRock",
+    "M_P2_CaveWet"
+   ],
+   "lodHeights": [
+    0.25,
+    0.015
+   ],
+   "sizeX": 9.98,
+   "sizeY": 9.98,
+   "sizeZ": 7.0,
+   "minZ": -1.2,
+   "maxZ": 5.8,
+   "pivot": "snap point: entrance floor centre heading +X; 90 deg left bend, exit floor centre at (+6, 0, +6) heading +Z",
+   "notes": "tileable CaveRock / CaveWet, 1 UV = 6 m; normals inward"
+  },
+  {
+   "name": "CAVE_Tunnel_Straight",
+   "kind": "cave",
+   "zone": "Deep Water Cave",
+   "fbx": "CAVE_Tunnel_Straight.fbx",
+   "lods": [
+    "CAVE_Tunnel_Straight_LOD0",
+    "CAVE_Tunnel_Straight_LOD1"
+   ],
+   "tris": [
+    6400,
+    1664
+   ],
+   "col": "CAVE_Tunnel_Straight_COL",
+   "colTris": 448,
+   "material": "",
+   "materials": [
+    "M_P2_CaveRock",
+    "M_P2_CaveWet"
+   ],
+   "lodHeights": [
+    0.25,
+    0.015
+   ],
+   "sizeX": 6.18,
+   "sizeY": 7.49,
+   "sizeZ": 7.0,
+   "minZ": -1.2,
+   "maxZ": 5.8,
+   "pivot": "snap point: entrance floor centre; exit floor centre at (+6, 0, 0); 5 m wide, 4.6 m high",
+   "notes": "tileable CaveRock / CaveWet, 1 UV = 6 m; normals inward"
+  },
+  {
+   "name": "CAVE_Wall_A",
+   "kind": "cave",
+   "zone": "Deep Water Cave",
+   "fbx": "CAVE_Wall_A.fbx",
+   "lods": [
+    "CAVE_Wall_A_LOD0",
+    "CAVE_Wall_A_LOD1"
+   ],
+   "tris": [
+    5408,
+    1424
+   ],
+   "col": "CAVE_Wall_A_COL",
+   "colTris": 392,
+   "material": "",
+   "materials": [
+    "M_P2_CaveRock"
+   ],
+   "lodHeights": [
+    0.25,
+    0.015
+   ],
+   "sizeX": 6.18,
+   "sizeY": 6.47,
+   "sizeZ": 8.04,
+   "minZ": -0.47,
+   "maxZ": 7.58,
+   "pivot": "snap corner: floor-level start of the wall line; runs 6 m along +X; cave interior on -Z, ceiling overhangs 4.6 m towards -Z",
+   "notes": "tileable CaveRock / CaveWet, 1 UV = 6 m; normals inward"
+  },
+  {
+   "name": "CAVE_Wall_B",
+   "kind": "cave",
+   "zone": "Deep Water Cave",
+   "fbx": "CAVE_Wall_B.fbx",
+   "lods": [
+    "CAVE_Wall_B_LOD0",
+    "CAVE_Wall_B_LOD1"
+   ],
+   "tris": [
+    5408,
+    1424
+   ],
+   "col": "CAVE_Wall_B_COL",
+   "colTris": 392,
+   "material": "",
+   "materials": [
+    "M_P2_CaveRock"
+   ],
+   "lodHeights": [
+    0.25,
+    0.015
+   ],
+   "sizeX": 6.18,
+   "sizeY": 6.47,
+   "sizeZ": 8.04,
+   "minZ": -0.47,
+   "maxZ": 7.58,
+   "pivot": "snap corner: floor-level start of the wall line; runs 6 m along +X; interior on -Z; flowstone bulge variant, same seams as A",
+   "notes": "tileable CaveRock / CaveWet, 1 UV = 6 m; normals inward"
+  },
+  {
+   "name": "LM_AncientFallenTree",
+   "kind": "landmark",
+   "zone": "Prehistoric Wetland",
+   "fbx": "LM_AncientFallenTree.fbx",
+   "lods": [
+    "LM_AncientFallenTree_LOD0",
+    "LM_AncientFallenTree_LOD1",
+    "LM_AncientFallenTree_LOD2"
+   ],
+   "tris": [
+    31000,
+    10999,
+    3500
+   ],
+   "col": "LM_AncientFallenTree_COL",
+   "colTris": 1600,
+   "material": "M_P2_AncientFallenTree",
+   "materials": [
+    "M_P2_AncientFallenTree"
+   ],
+   "lodHeights": [
+    0.3,
+    0.1,
+    0.004
+   ],
+   "sizeX": 38.27,
+   "sizeY": 10.72,
+   "sizeZ": 7.96,
+   "minZ": -1.73,
+   "maxZ": 6.23,
+   "pivot": "base centre; z = 0 is the intended water line (crown end sunk to -1.5 m)",
+   "notes": "trunk along local X: root plate at -X (rises ~6.5 m), broken hollow crown end at +X; moss on top and +Z (north) in Unity"
+  },
+  {
+   "name": "LM_BlackRidge",
+   "kind": "landmark",
+   "zone": "Volcanic Foothills",
+   "fbx": "LM_BlackRidge.fbx",
+   "lods": [
+    "LM_BlackRidge_LOD0",
+    "LM_BlackRidge_LOD1",
+    "LM_BlackRidge_LOD2"
+   ],
+   "tris": [
+    32797,
+    12000,
+    3600
+   ],
+   "col": "LM_BlackRidge_COL",
+   "colTris": 1800,
+   "material": "M_P2_BlackRidge",
+   "materials": [
+    "M_P2_BlackRidge"
+   ],
+   "lodHeights": [
+    0.3,
+    0.1,
+    0.004
+   ],
+   "sizeX": 52.76,
+   "sizeY": 20.45,
+   "sizeZ": 19.04,
+   "minZ": -2.07,
+   "maxZ": 16.97,
+   "pivot": "base centre, ground level (z = 0), columns ~2 m below",
+   "notes": "ridge along local X; steeper face on -Z (south) in Unity, talus of fallen columns mostly on that side"
+  },
+  {
+   "name": "LM_FossilSkeleton",
+   "kind": "landmark",
+   "zone": "Bone / Carcass Valley",
+   "fbx": "LM_FossilSkeleton.fbx",
+   "lods": [
+    "LM_FossilSkeleton_LOD0",
+    "LM_FossilSkeleton_LOD1",
+    "LM_FossilSkeleton_LOD2"
+   ],
+   "tris": [
+    36885,
+    13000,
+    4200
+   ],
+   "col": "LM_FossilSkeleton_COL",
+   "colTris": 2600,
+   "material": "M_P2_FossilSkeleton",
+   "materials": [
+    "M_P2_FossilSkeleton"
+   ],
+   "lodHeights": [
+    0.3,
+    0.1,
+    0.004
+   ],
+   "sizeX": 40.66,
+   "sizeY": 23.45,
+   "sizeZ": 7.47,
+   "minZ": -0.4,
+   "maxZ": 7.07,
+   "pivot": "base centre, z = 0 = surrounding ground (mound edge sinks to -0.4 m)",
+   "notes": "head / skull at local +X, tail at -X; rib arches 4-6 m tall (walk-under gaps); mound bank on -Z side in Unity"
+  },
+  {
+   "name": "LM_GiantTree",
+   "kind": "landmark",
+   "zone": "Giant Fern Forest",
+   "fbx": "LM_GiantTree.fbx",
+   "lods": [
+    "LM_GiantTree_LOD0",
+    "LM_GiantTree_LOD1",
+    "LM_GiantTree_LOD2"
+   ],
+   "tris": [
+    31873,
+    9753,
+    2898
+   ],
+   "col": "LM_GiantTree_COL",
+   "colTris": 1500,
+   "material": "",
+   "materials": [
+    "M_P2_GiantTree",
+    "M_P2_Canopy"
+   ],
+   "lodHeights": [
+    0.28,
+    0.09,
+    0.004
+   ],
+   "sizeX": 42.27,
+   "sizeY": 40.3,
+   "sizeZ": 59.59,
+   "minZ": -1.2,
+   "maxZ": 58.39,
+   "pivot": "trunk base centre at ground level (buttresses go ~1 m below z = 0)",
+   "notes": "collider covers trunk + buttresses up to 12 m; canopy is cut-out cards (M_P2_Canopy, double sided); wood tris per LOD 31873/9753/2898"
+  },
+  {
+   "name": "LM_RockRidge",
+   "kind": "landmark",
+   "zone": "Migration Valley",
+   "fbx": "LM_RockRidge.fbx",
+   "lods": [
+    "LM_RockRidge_LOD0",
+    "LM_RockRidge_LOD1",
+    "LM_RockRidge_LOD2"
+   ],
+   "tris": [
+    28652,
+    10999,
+    3399
+   ],
+   "col": "LM_RockRidge_COL",
+   "colTris": 1800,
+   "material": "M_P2_RockRidge",
+   "materials": [
+    "M_P2_RockRidge"
+   ],
+   "lodHeights": [
+    0.3,
+    0.1,
+    0.004
+   ],
+   "sizeX": 57.0,
+   "sizeY": 20.73,
+   "sizeZ": 15.69,
+   "minZ": -1.28,
+   "maxZ": 14.42,
+   "pivot": "base centre, ground level (z = 0), ~2 m buried skirt",
+   "notes": "ridge along local X; ramp to the top at +X end; steep cliff on -Z (south), moss on +Z (north) in Unity"
+  },
+  {
+   "name": "PROP_P2_BoneScatter_A",
+   "kind": "prop",
+   "zone": "Bone / Carcass Valley",
+   "fbx": "PROP_P2_BoneScatter_A.fbx",
+   "lods": [
+    "PROP_P2_BoneScatter_A_LOD0",
+    "PROP_P2_BoneScatter_A_LOD1",
+    "PROP_P2_BoneScatter_A_LOD2"
+   ],
+   "tris": [
+    4199,
+    1500,
+    500
+   ],
+   "col": "PROP_P2_BoneScatter_A_COL",
+   "colTris": 500,
+   "material": "M_P2_BoneScatter_A",
+   "materials": [
+    "M_P2_BoneScatter_A"
+   ],
+   "lodHeights": [
+    0.15,
+    0.05,
+    0.012
+   ],
+   "sizeX": 3.17,
+   "sizeY": 3.06,
+   "sizeZ": 0.45,
+   "minZ": -0.03,
+   "maxZ": 0.42,
+   "pivot": "base centre at ground level",
+   "notes": ""
+  },
+  {
+   "name": "PROP_P2_BoneScatter_B",
+   "kind": "prop",
+   "zone": "Bone / Carcass Valley",
+   "fbx": "PROP_P2_BoneScatter_B.fbx",
+   "lods": [
+    "PROP_P2_BoneScatter_B_LOD0",
+    "PROP_P2_BoneScatter_B_LOD1",
+    "PROP_P2_BoneScatter_B_LOD2"
+   ],
+   "tris": [
+    3999,
+    1400,
+    499
+   ],
+   "col": "PROP_P2_BoneScatter_B_COL",
+   "colTris": 500,
+   "material": "M_P2_BoneScatter_B",
+   "materials": [
+    "M_P2_BoneScatter_B"
+   ],
+   "lodHeights": [
+    0.15,
+    0.05,
+    0.012
+   ],
+   "sizeX": 3.68,
+   "sizeY": 2.98,
+   "sizeZ": 0.46,
+   "minZ": -0.03,
+   "maxZ": 0.44,
+   "pivot": "base centre at ground level",
+   "notes": ""
+  },
+  {
+   "name": "PROP_P2_DeadSnag_A",
+   "kind": "prop",
+   "zone": "Prehistoric Wetland",
+   "fbx": "PROP_P2_DeadSnag_A.fbx",
+   "lods": [
+    "PROP_P2_DeadSnag_A_LOD0",
+    "PROP_P2_DeadSnag_A_LOD1",
+    "PROP_P2_DeadSnag_A_LOD2"
+   ],
+   "tris": [
+    3770,
+    1799,
+    599
+   ],
+   "col": "PROP_P2_DeadSnag_A_COL",
+   "colTris": 320,
+   "material": "M_P2_DeadSnag_A",
+   "materials": [
+    "M_P2_DeadSnag_A"
+   ],
+   "lodHeights": [
+    0.15,
+    0.05,
+    0.012
+   ],
+   "sizeX": 2.13,
+   "sizeY": 2.15,
+   "sizeZ": 9.78,
+   "minZ": -0.54,
+   "maxZ": 9.24,
+   "pivot": "base centre at ground level",
+   "notes": ""
+  },
+  {
+   "name": "PROP_P2_DeadSnag_B",
+   "kind": "prop",
+   "zone": "Prehistoric Wetland",
+   "fbx": "PROP_P2_DeadSnag_B.fbx",
+   "lods": [
+    "PROP_P2_DeadSnag_B_LOD0",
+    "PROP_P2_DeadSnag_B_LOD1",
+    "PROP_P2_DeadSnag_B_LOD2"
+   ],
+   "tris": [
+    4156,
+    1999,
+    649
+   ],
+   "col": "PROP_P2_DeadSnag_B_COL",
+   "colTris": 320,
+   "material": "M_P2_DeadSnag_B",
+   "materials": [
+    "M_P2_DeadSnag_B"
+   ],
+   "lodHeights": [
+    0.15,
+    0.05,
+    0.012
+   ],
+   "sizeX": 4.92,
+   "sizeY": 2.54,
+   "sizeZ": 8.12,
+   "minZ": -0.5,
+   "maxZ": 7.62,
+   "pivot": "base centre at ground level",
+   "notes": ""
+  },
+  {
+   "name": "PROP_P2_Ribcage",
+   "kind": "prop",
+   "zone": "Bone / Carcass Valley",
+   "fbx": "PROP_P2_Ribcage.fbx",
+   "lods": [
+    "PROP_P2_Ribcage_LOD0",
+    "PROP_P2_Ribcage_LOD1",
+    "PROP_P2_Ribcage_LOD2"
+   ],
+   "tris": [
+    7000,
+    2400,
+    800
+   ],
+   "col": "PROP_P2_Ribcage_COL",
+   "colTris": 500,
+   "material": "M_P2_Ribcage",
+   "materials": [
+    "M_P2_Ribcage"
+   ],
+   "lodHeights": [
+    0.15,
+    0.05,
+    0.012
+   ],
+   "sizeX": 4.31,
+   "sizeY": 4.25,
+   "sizeZ": 1.45,
+   "minZ": 0.01,
+   "maxZ": 1.46,
+   "pivot": "base centre at ground level",
+   "notes": ""
+  },
+  {
+   "name": "PROP_P2_Skull_Large",
+   "kind": "prop",
+   "zone": "Bone / Carcass Valley",
+   "fbx": "PROP_P2_Skull_Large.fbx",
+   "lods": [
+    "PROP_P2_Skull_Large_LOD0",
+    "PROP_P2_Skull_Large_LOD1",
+    "PROP_P2_Skull_Large_LOD2"
+   ],
+   "tris": [
+    6000,
+    2000,
+    700
+   ],
+   "col": "PROP_P2_Skull_Large_COL",
+   "colTris": 500,
+   "material": "M_P2_Skull_Large",
+   "materials": [
+    "M_P2_Skull_Large"
+   ],
+   "lodHeights": [
+    0.15,
+    0.05,
+    0.012
+   ],
+   "sizeX": 1.77,
+   "sizeY": 0.79,
+   "sizeZ": 0.85,
+   "minZ": 0.01,
+   "maxZ": 0.86,
+   "pivot": "base centre at ground level",
+   "notes": ""
+  }
+ ]
+}

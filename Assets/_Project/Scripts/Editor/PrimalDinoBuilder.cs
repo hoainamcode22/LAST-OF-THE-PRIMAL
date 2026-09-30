@@ -41,6 +41,43 @@ namespace PrimalFrontier.EditorTools
         [Serializable] class MarkerFile { public Marker[] markers; }
         [Serializable] class Marker { public string name; public string group; public float x, y, z, r, yaw; }
 
+        /// <summary>the seven land species that got the PC phase clip set (DINO, 2026-09-30)</summary>
+        public static readonly string[] LandIds = { "Parasaurolophus", "Triceratops", "Ankylosaurus", "Velociraptor", "Carnotaurus", "Spinosaurus", "Apex" };
+
+        /// <summary>
+        /// PC phase: re-import the dinosaur FBX exported with the new clips (Stop, Turn, Breathe, Eat, Drink, Rest_Down /
+        /// Rest_Loop / Rest_Shift / Rest_Up, Call, Chase / Bite / Recover or Flee / Defend / Charge), rebuild controller,
+        /// prefab and test per species (PrimalCharacterBuilder.BuildAndTest), then the eyes and lids (PrimalCreatureEyes,
+        /// "force": the prefab was rebuilt). Does not touch DINO_*.asset or the spawner (walk / run speeds are unchanged).
+        /// arg: "" = the seven land species, or a comma list ("Triceratops,Apex"). Refuses to run over an unsaved scene.
+        /// Leaves the scene that was open open again. Summary: Documentation/CharacterTests/Dinosaurs_PC_clips.md.
+        /// </summary>
+        [PrimalBridgeCommand]
+        public static string RebuildClips(string arg)
+        {
+            var active = EditorSceneManager.GetActiveScene();
+            if (active.isDirty) return "REFUSED: the open scene has unsaved changes (save it first)";
+            string scenePath = active.path;
+            var ids = string.IsNullOrWhiteSpace(arg) ? LandIds : arg.Split(new[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            var lines = new List<string>();
+            foreach (var id in ids)
+            {
+                bool ok = false; string err = "";
+                try { ok = PrimalCharacterBuilder.BuildAndTest(id); }
+                catch (Exception e) { err = e.Message; Debug.LogError($"[PrimalDinoBuilder] {id}: {e}"); }
+                lines.Add($"{id}: {(ok ? "PASS" : "FAIL " + err)} (report Documentation/CharacterTests/{id}_test.md)");
+            }
+            string eyes;
+            try { eyes = PrimalCreatureEyes.Build("force"); }
+            catch (Exception e) { eyes = "eyes FAILED: " + e.Message; Debug.LogError("[PrimalDinoBuilder] eyes: " + e); }
+            if (!string.IsNullOrEmpty(scenePath)) EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Single);
+            string report = "# Dinosaur PC clips re-import\n\n" + string.Join("\n", lines.Select(l => "- " + l)) + "\n\n## Eyes\n\n```\n" + eyes + "```\n";
+            Directory.CreateDirectory("Documentation/CharacterTests");
+            File.WriteAllText("Documentation/CharacterTests/Dinosaurs_PC_clips.md", report);
+            Debug.Log("[PrimalDinoBuilder] RebuildClips\n" + report);
+            return string.Join(" | ", lines) + " || " + eyes.Replace("\n", "; ");
+        }
+
         [MenuItem("Primal Frontier/Advanced (overwrites hand edits)/Regenerate Dinosaur Definitions + Spawner", priority = 102)]
         public static void BuildMenu() { if (PrimalSceneBaker.ConfirmRegenerate("Dinosaur stats (DINO_*.asset) and the spawner's random entries (dinosaurs placed in the scene are kept)")) Build(); }
 
@@ -87,7 +124,7 @@ namespace PrimalFrontier.EditorTools
             Vector3 MP(string n) { if (!markers.TryGetValue(n, out var m)) return Vector3.zero; var p = BlenderSpace.ToUnityPosition(m.x, m.y, m.z); if (terrain) p.y = terrain.SampleHeight(p) + terrain.transform.position.y; return p; }
             // keep the [Dinosaurs] object and everything placed in it by hand; only the random entries are rebuilt
             var go = GameObject.Find("[Dinosaurs]");
-            if (!go) { go = new GameObject("[Dinosaurs]"); var gp = GameObject.Find("[Gameplay]"); if (gp) go.transform.SetParent(gp.transform); }
+            if (!go) { go = new GameObject("[Dinosaurs]"); var gp = PrimalFrontier.Core.SceneRoots.LegacyParent("[Gameplay]/[Dinosaurs]", true); if (gp) go.transform.SetParent(gp); }   // World/Gameplay/Wildlife (HIER)
             var sp = go.GetOrAdd<DinosaurSpawner>(); sp.entries.Clear();
             foreach (var (d, r) in defs)
             {

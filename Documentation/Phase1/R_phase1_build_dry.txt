@@ -1,0 +1,26 @@
+PrimalResourceBuilder.Phase1 2026-09-30 16:09 arg 'dry' (dry run: no asset or scene change)
+terrain (640.00, 80.00, 640.00) at (-320.00, -10.00, -320.00), layers TL_Sand,TL_Grass,TL_ForestFloor,TL_Rock,TL_Mud,TL_SandWet,TL_Moss,TL_DarkSoil,TL_Ash, trees 1479
+fresh water cells 4780 from 8 active bodies: ENV_River_Water 1483, ENV_WaterfallPool_Water 53, ENV_SpringStream_Water 56, ENV_Wetland_Water 1620, ENV_RiverMouth_Water 170, ENV_Spring_Water 9, ENV_LowerRiver_Water 515, ENV_Pond_Water 874
+locations (18): beach (0,0,1,8,205,0) r70, canyon (-136,0,23,4,-125,0) r36, cave (-18,0,18,4,-131,0) r15, deep_forest (168,0,8,1,20,0) r60, forest (-40,0,10,7,125,0) r60, fossil_bed (-128,4,23,5,-120,0) r10, herbivore_valley (6,0,9,2,-40,0) r85, meadow (-2,0,9,2,-28,0) r70, migration_view (-40,0,25,4,-92,0) r10, nest (-152,0,13,2,-28,0) r14, old_camp (122,0,12,2,-66,0) r12, predator_territory (-105,0,21,6,-76,0) r45, ridge (108,0,47,8,-208,0) r45, river (66,0,10,7,-45,0) r55, shipwreck (-45,0,-0,1,224,0) r25, volcano (-122,0,44,4,-216,0) r45, waterfall (93,5,19,4,-160,0) r24, wetland (102,0,0,4,172,0) r38
+sea level 0,00 m; fresh water cells 4780
+[Resources]: 487 nodes (7 fish shoals skipped): in water 0, would move to dry ground 0, no dry spot 0; would snap to the ground 0 (worst 0,00 m)
+World/Resources: 45 nodes (0 fish shoals skipped): in water 0, would move to dry ground 0, no dry spot 0; would snap to the ground 0 (worst 0,00 m)
+World/Rocks + World/Vegetation nodes standing in water: 0 would be switched off (the model stays as scenery)
+recipe stone_axe: 2 stone + 1 wood + 1 rope
+recipe stone_pick: 2 stone + 2 wood + 1 rope
+recipe flint_knife: 1 stone + 1 bone + 1 fiber
+recipe campfire: 4 wood + 5 stone
+recipe rope: 3 fiber
+hand-gatherable within 60 m of the spawn (-20,0,1,5,211,0) (before top-up): berries 6 nodes / 29 units, bone 1 nodes / 2 units, fiber 8 nodes / 23 units, fruit 4 nodes / 7 units, sailcloth 2 nodes / 2 units, stone 11 nodes / 50 units, wood 11 nodes / 30 units, wreck_nails 2 nodes / 4 units, wreck_scraps 6 nodes / 12 units
+   stone: 50 units, need 20: enough
+   wood: 30 units, need 16: enough
+   fiber: 23 units, need 18: enough
+   bone: 2 units, need 1: enough
+tool-gated nodes within 60 m (hands 0): stone_large 4
+nodes on top of each other (< 0.3 m) separated: 0
+node sets: [Resources] 487 (487 active), World/Resources 45 (45 active)
+World/Resources vs [Resources]: 0 within 1.5 m, 0 within 0.5 m (0 same item at the same spot)
+[Resources]: 0 pairs within 0.3 m of each other
+World/Resources: 0 pairs within 0.3 m of each other
+World/Resources kinds: wood_driftwood 10, stone_small 12, fiber_plant 14, food_berry_bush 9
+VERIFY 1435 active nodes: off the ground 0, in fresh water (not fish) 0, below sea level 0

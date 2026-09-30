@@ -63,30 +63,68 @@
   },
   {
    "name": "Turn_Left",
-   "frames": 30,
+   "frames": 31,
    "loop": true,
    "speed": 0.0,
-   "notes": "",
+   "notes": "authored for 52 deg/s in place",
    "move": "turn",
-   "events": []
+   "events": [
+    {
+     "frame": 1,
+     "function": "OnFootstep",
+     "param": "L"
+    },
+    {
+     "frame": 16,
+     "function": "OnFootstep",
+     "param": "R"
+    }
+   ]
   },
   {
    "name": "Turn_Right",
-   "frames": 30,
+   "frames": 31,
    "loop": true,
    "speed": 0.0,
-   "notes": "",
+   "notes": "authored for 52 deg/s in place",
    "move": "turn",
-   "events": []
+   "events": [
+    {
+     "frame": 1,
+     "function": "OnFootstep",
+     "param": "L"
+    },
+    {
+     "frame": 16,
+     "function": "OnFootstep",
+     "param": "R"
+    }
+   ]
   },
   {
    "name": "Eat",
-   "frames": 120,
+   "frames": 150,
    "loop": true,
    "speed": 0.0,
    "notes": "",
    "move": "",
-   "events": []
+   "events": [
+    {
+     "frame": 28,
+     "function": "OnEat",
+     "param": "bite"
+    },
+    {
+     "frame": 55,
+     "function": "OnEat",
+     "param": "tear"
+    },
+    {
+     "frame": 113,
+     "function": "OnEat",
+     "param": "swallow"
+    }
+   ]
   },
   {
    "name": "Drink",
@@ -95,7 +133,28 @@
    "speed": 0.0,
    "notes": "",
    "move": "",
-   "events": []
+   "events": [
+    {
+     "frame": 17,
+     "function": "OnDrink",
+     "param": ""
+    },
+    {
+     "frame": 32,
+     "function": "OnDrink",
+     "param": ""
+    },
+    {
+     "frame": 46,
+     "function": "OnDrink",
+     "param": ""
+    },
+    {
+     "frame": 61,
+     "function": "OnDrink",
+     "param": ""
+    }
+   ]
   },
   {
    "name": "Look",
@@ -175,6 +234,164 @@
      "frame": 60,
      "function": "OnBodyFall",
      "param": ""
+    }
+   ]
+  },
+  {
+   "name": "Stop",
+   "frames": 34,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "",
+   "move": "",
+   "events": [
+    {
+     "frame": 11,
+     "function": "OnFootstep",
+     "param": "L"
+    }
+   ]
+  },
+  {
+   "name": "Breathe",
+   "frames": 63,
+   "loop": true,
+   "speed": 0.0,
+   "notes": "",
+   "move": "",
+   "events": [
+    {
+     "frame": 24,
+     "function": "OnBreath",
+     "param": ""
+    },
+    {
+     "frame": 56,
+     "function": "OnBreath",
+     "param": ""
+    }
+   ]
+  },
+  {
+   "name": "Rest_Down",
+   "frames": 78,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "",
+   "move": "",
+   "events": [
+    {
+     "frame": 63,
+     "function": "OnBodyFall",
+     "param": "rest"
+    }
+   ]
+  },
+  {
+   "name": "Rest_Loop",
+   "frames": 170,
+   "loop": true,
+   "speed": 0.0,
+   "notes": "",
+   "move": "",
+   "events": []
+  },
+  {
+   "name": "Rest_Shift",
+   "frames": 89,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "",
+   "move": "",
+   "events": []
+  },
+  {
+   "name": "Rest_Up",
+   "frames": 64,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "",
+   "move": "",
+   "events": [
+    {
+     "frame": 39,
+     "function": "OnFootstep",
+     "param": "L"
+    },
+    {
+     "frame": 55,
+     "function": "OnFootstep",
+     "param": "R"
+    }
+   ]
+  },
+  {
+   "name": "Call",
+   "frames": 105,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "",
+   "move": "",
+   "events": [
+    {
+     "frame": 15,
+     "function": "OnCall",
+     "param": "rumble"
+    }
+   ]
+  },
+  {
+   "name": "Chase",
+   "frames": 16,
+   "loop": true,
+   "speed": 9.5,
+   "notes": "",
+   "move": "forward",
+   "events": [
+    {
+     "frame": 1,
+     "function": "OnFootstep",
+     "param": "L"
+    },
+    {
+     "frame": 8,
+     "function": "OnFootstep",
+     "param": "R"
+    }
+   ]
+  },
+  {
+   "name": "Bite",
+   "frames": 20,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "",
+   "move": "",
+   "events": [
+    {
+     "frame": 9,
+     "function": "OnBite",
+     "param": "bite"
+    }
+   ]
+  },
+  {
+   "name": "Recover",
+   "frames": 37,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "",
+   "move": "",
+   "events": [
+    {
+     "frame": 15,
+     "function": "OnFootstep",
+     "param": "R"
+    },
+    {
+     "frame": 34,
+     "function": "OnFootstep",
+     "param": "R"
     }
    ]
   }

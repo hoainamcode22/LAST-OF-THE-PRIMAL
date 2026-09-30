@@ -63,30 +63,68 @@
   },
   {
    "name": "Turn_Left",
-   "frames": 30,
+   "frames": 36,
    "loop": true,
    "speed": 0.0,
-   "notes": "",
+   "notes": "authored for 22 deg/s in place",
    "move": "turn",
-   "events": []
+   "events": [
+    {
+     "frame": 1,
+     "function": "OnFootstep",
+     "param": "L"
+    },
+    {
+     "frame": 19,
+     "function": "OnFootstep",
+     "param": "R"
+    }
+   ]
   },
   {
    "name": "Turn_Right",
-   "frames": 30,
+   "frames": 36,
    "loop": true,
    "speed": 0.0,
-   "notes": "",
+   "notes": "authored for 22 deg/s in place",
    "move": "turn",
-   "events": []
+   "events": [
+    {
+     "frame": 1,
+     "function": "OnFootstep",
+     "param": "L"
+    },
+    {
+     "frame": 19,
+     "function": "OnFootstep",
+     "param": "R"
+    }
+   ]
   },
   {
    "name": "Eat",
-   "frames": 120,
+   "frames": 150,
    "loop": true,
    "speed": 0.0,
    "notes": "",
    "move": "",
-   "events": []
+   "events": [
+    {
+     "frame": 25,
+     "function": "OnEat",
+     "param": "crop"
+    },
+    {
+     "frame": 55,
+     "function": "OnEat",
+     "param": "crop"
+    },
+    {
+     "frame": 85,
+     "function": "OnEat",
+     "param": "crop"
+    }
+   ]
   },
   {
    "name": "Drink",
@@ -95,7 +133,28 @@
    "speed": 0.0,
    "notes": "",
    "move": "",
-   "events": []
+   "events": [
+    {
+     "frame": 17,
+     "function": "OnDrink",
+     "param": ""
+    },
+    {
+     "frame": 32,
+     "function": "OnDrink",
+     "param": ""
+    },
+    {
+     "frame": 46,
+     "function": "OnDrink",
+     "param": ""
+    },
+    {
+     "frame": 61,
+     "function": "OnDrink",
+     "param": ""
+    }
+   ]
   },
   {
    "name": "Look",
@@ -195,6 +254,149 @@
      "frame": 10,
      "function": "OnFootstep",
      "param": "R"
+    }
+   ]
+  },
+  {
+   "name": "Stop",
+   "frames": 45,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "",
+   "move": "",
+   "events": [
+    {
+     "frame": 13,
+     "function": "OnFootstep",
+     "param": "L"
+    },
+    {
+     "frame": 17,
+     "function": "OnFootstep",
+     "param": "R"
+    }
+   ]
+  },
+  {
+   "name": "Breathe",
+   "frames": 84,
+   "loop": true,
+   "speed": 0.0,
+   "notes": "",
+   "move": "",
+   "events": [
+    {
+     "frame": 32,
+     "function": "OnBreath",
+     "param": ""
+    },
+    {
+     "frame": 74,
+     "function": "OnBreath",
+     "param": ""
+    }
+   ]
+  },
+  {
+   "name": "Rest_Down",
+   "frames": 101,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "",
+   "move": "",
+   "events": [
+    {
+     "frame": 89,
+     "function": "OnBodyFall",
+     "param": "rest"
+    }
+   ]
+  },
+  {
+   "name": "Rest_Loop",
+   "frames": 201,
+   "loop": true,
+   "speed": 0.0,
+   "notes": "",
+   "move": "",
+   "events": []
+  },
+  {
+   "name": "Rest_Shift",
+   "frames": 104,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "",
+   "move": "",
+   "events": []
+  },
+  {
+   "name": "Rest_Up",
+   "frames": 84,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "",
+   "move": "",
+   "events": [
+    {
+     "frame": 51,
+     "function": "OnFootstep",
+     "param": "L"
+    },
+    {
+     "frame": 72,
+     "function": "OnFootstep",
+     "param": "R"
+    }
+   ]
+  },
+  {
+   "name": "Call",
+   "frames": 105,
+   "loop": false,
+   "speed": 0.0,
+   "notes": "",
+   "move": "",
+   "events": [
+    {
+     "frame": 45,
+     "function": "OnCall",
+     "param": ""
+    }
+   ]
+  },
+  {
+   "name": "Flee",
+   "frames": 20,
+   "loop": true,
+   "speed": 3.2,
+   "notes": "",
+   "move": "forward",
+   "events": [
+    {
+     "frame": 1,
+     "function": "OnFootstep",
+     "param": "L"
+    },
+    {
+     "frame": 10,
+     "function": "OnFootstep",
+     "param": "R"
+    }
+   ]
+  },
+  {
+   "name": "Defend",
+   "frames": 120,
+   "loop": true,
+   "speed": 0.0,
+   "notes": "",
+   "move": "",
+   "events": [
+    {
+     "frame": 31,
+     "function": "OnBreath",
+     "param": "snort"
     }
    ]
   }

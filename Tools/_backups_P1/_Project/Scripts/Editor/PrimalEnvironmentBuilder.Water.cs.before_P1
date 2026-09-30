@@ -1,0 +1,354 @@
+using System.Collections.Generic;
+using System.Linq;
+using UnityEditor;
+using UnityEngine;
+using UnityEngine.Rendering;
+using PrimalFrontier.World;
+
+namespace PrimalFrontier.EditorTools
+{
+    /// <summary>
+    /// Water: the spring, the brook, the waterfall (sheet + rivulets, mist, spray, wet rock face), the plunge pool, the river
+    /// (pool -> pond), the lower river (pond -> wetland -> sea) and the wetland lagoon, from env_features_v2.json.
+    /// Surfaces are generated meshes (Art/Environment/Generated) under the Water root with a WaterSource each (SURV's
+    /// component, only configured here: fresh, dirty unless marked clean; the spring is clean). The old stream ribbon
+    /// (Water/ENV_Stream_Water) is switched off (its line is now the river). After this step run PrimalWaterBuilder.Build:
+    /// it bakes the flow maps of every fresh WaterSource and gives them the PF/Water Flow materials.
+    /// </summary>
+    public static partial class PrimalEnvironmentBuilder
+    {
+        const string WaterfallShader = "PF/Waterfall";
+
+        [PrimalBridgeCommand]
+        public static string Water(string arg)
+        {
+            Begin("Water");
+            if (!IslandOpen(out var scene, out bool wasDirty)) return End("Water");
+            if (!FindTerrain()) { W("no terrain"); return End("Water"); }
+            var f = LoadFeatures(); if (f == null || f.water == null) return End("Water");
+            EnsureFolder(MeshDir); EnsureFolder(MatDir);
+            var waterRoot = Root(scene, "Water");
+            var fresh = AssetDatabase.LoadAssetAtPath<Material>("Assets/_Project/Art/Materials/M_FreshWater.mat");
+
+            // ---- surfaces
+            var fw = f.water;
+            var riverA = RibbonMesh("ME_Env_River", Pts(fw.riverA.points), fw.riverA.halfWidths, 0, 0.6f, 7, float.NegativeInfinity);
+            // the lower river stops where the lagoon takes over and starts again at the mouth across the beach
+            var ptsB = Pts(fw.riverB.points); var hwB = fw.riverB.halfWidths ?? new float[0];
+            int w0 = fw.riverB.wetlandSpan != null && fw.riverB.wetlandSpan.Length == 2 && fw.riverB.wetlandSpan[0] > 2 ? fw.riverB.wetlandSpan[0] : ptsB.Count - 1;
+            int w1 = fw.riverB.wetlandSpan != null && fw.riverB.wetlandSpan.Length == 2 && fw.riverB.wetlandSpan[1] > w0 ? fw.riverB.wetlandSpan[1] : ptsB.Count - 1;
+            int e0 = Mathf.Min(ptsB.Count, w0 + 4), s1 = Mathf.Max(0, w1 - 4);
+            var riverB = RibbonMesh("ME_Env_LowerRiver", ptsB.GetRange(0, e0), hwB.Take(e0).ToArray(), 0, 0.6f, 7, float.NegativeInfinity);
+            var mouth = s1 < ptsB.Count - 2 ? RibbonMesh("ME_Env_RiverMouth", ptsB.GetRange(s1, ptsB.Count - s1), hwB.Skip(s1).ToArray(), 0, 0.6f, 7, 0.06f) : null;
+            var brook = RibbonMesh("ME_Env_SpringStream", Pts(fw.brook.points), null, fw.brook.halfWidth, 0.35f, 5, float.NegativeInfinity);
+            var pool = DiscMesh("ME_Env_WaterfallPool", V3(fw.waterfall.pool), fw.waterfall.poolRadius + 1.4f, 56, 5);
+            var spring = DiscMesh("ME_Env_Spring", V3(fw.spring.center), fw.spring.radius + 0.6f, 24, 3);
+            var wet = WetlandMesh("ME_Env_Wetland", fw.wetland);
+            int bodies = 0;
+            GameObject Body(string name, Mesh mesh, string display, bool clean, string saveId)
+            {
+                if (!mesh) return null;
+                var t = waterRoot.Find(name); var go = t ? t.gameObject : new GameObject(name);
+                go.transform.SetParent(waterRoot, false); go.transform.localPosition = Vector3.zero; go.transform.localRotation = Quaternion.identity; go.transform.localScale = Vector3.one;
+                var mf = Comp<MeshFilter>(go); mf.sharedMesh = mesh;
+                var mr = Comp<MeshRenderer>(go);
+                if (!mr.sharedMaterial) mr.sharedMaterial = fresh;
+                mr.shadowCastingMode = ShadowCastingMode.Off; mr.receiveShadows = true;
+                var ws = Comp<WaterSource>(go);
+                ws.displayName = display; ws.fresh = true; ws.clean = clean; ws.surface = mf; ws.SaveId = saveId;
+                GameObjectUtility.SetStaticEditorFlags(go, StaticEditorFlags.OccludeeStatic);
+                bodies++;
+                return go;
+            }
+            Body("ENV_River_Water", riverA, "River water", false, "water_env_river");
+            Body("ENV_LowerRiver_Water", riverB, "River water", false, "water_env_lower_river");
+            Body("ENV_RiverMouth_Water", mouth, "River water", false, "water_env_river_mouth");
+            Body("ENV_SpringStream_Water", brook, "Stream water", false, "water_env_brook");
+            Body("ENV_WaterfallPool_Water", pool, "Waterfall pool", false, "water_env_pool");
+            Body("ENV_Spring_Water", spring, "Spring water", true, "water_env_spring");
+            Body("ENV_Wetland_Water", wet, "Marsh water", false, "water_env_wetland");
+            L($"water bodies: {bodies} (river {riverA?.vertexCount} v, lower river {riverB?.vertexCount} v, mouth {mouth?.vertexCount} v, brook {brook?.vertexCount} v, pool, spring, wetland {wet?.vertexCount} v); WaterSource: fresh, dirty (spring clean)");
+
+            // ---- the old stream ribbon: its line is the river now
+            var oldStream = waterRoot.Find("ENV_Stream_Water");
+            if (oldStream && oldStream.gameObject.activeSelf) { oldStream.gameObject.SetActive(false); L("Water/ENV_Stream_Water: switched off (inactive, kept; its WaterSource is replaced by ENV_River_Water)"); }
+
+            // ---- waterfall visuals
+            BuildWaterfall(scene, fw);
+
+            AssetDatabase.SaveAssets();
+            SaveScene(scene, wasDirty);
+            L("next: PrimalWaterBuilder.Build (flow maps + PF/Water Flow materials for the new bodies)");
+            return End("Water");
+        }
+
+        // ------------------------------------------------------------------ meshes
+        static Mesh SaveMesh(string name, Mesh m)
+        {
+            string path = $"{MeshDir}/{name}.asset";
+            var existing = AssetDatabase.LoadAssetAtPath<Mesh>(path);
+            m.name = name; m.RecalculateBounds();
+            if (existing) { EditorUtility.CopySerialized(m, existing); Object.DestroyImmediate(m); EditorUtility.SetDirty(existing); return existing; }
+            AssetDatabase.CreateAsset(m, path);
+            return m;
+        }
+
+        /// <summary>flat-across ribbon following a polyline with a surface height per point; the edges sit a little inside
+        /// the banks (hidden by the terrain). cutBelow: points whose surface is lower than this are dropped (the sea takes over).</summary>
+        static Mesh RibbonMesh(string name, List<Vector3> pts, float[] halfWidths, float fixedHalfWidth, float overlap, int across, float cutBelow)
+        {
+            if (pts.Count < 2) { W(name + ": no points"); return null; }
+            int last = pts.Count; while (last > 2 && pts[last - 1].y < cutBelow) last--;
+            var verts = new List<Vector3>(); var uvs = new List<Vector2>(); var cols = new List<Color>(); var tris = new List<int>();
+            float along = 0f;
+            for (int i = 0; i < last; i++)
+            {
+                if (i > 0) along += Vector3.Distance(new Vector3(pts[i].x, 0, pts[i].z), new Vector3(pts[i - 1].x, 0, pts[i - 1].z));
+                var tng = pts[Mathf.Min(i + 1, last - 1)] - pts[Mathf.Max(i - 1, 0)]; tng.y = 0f; tng.Normalize();
+                var side = new Vector3(-tng.z, 0f, tng.x);
+                float hw = (halfWidths != null && i < halfWidths.Length ? halfWidths[i] : fixedHalfWidth) + overlap;
+                for (int k = 0; k < across; k++)
+                {
+                    float u = k / (float)(across - 1);
+                    var p = pts[i] + side * Mathf.Lerp(-hw, hw, u);
+                    verts.Add(p); uvs.Add(new Vector2(u, along / Mathf.Max(1f, hw * 2f)));
+                    cols.Add(new Color(1f, 1f, 1f, 1f));
+                }
+                if (i > 0)
+                {
+                    int b0 = (i - 1) * across, b1 = i * across;
+                    for (int k = 0; k < across - 1; k++) { tris.AddRange(new[] { b0 + k, b1 + k, b0 + k + 1, b0 + k + 1, b1 + k, b1 + k + 1 }); }
+                }
+            }
+            var m = new Mesh { indexFormat = verts.Count > 65000 ? IndexFormat.UInt32 : IndexFormat.UInt16 };
+            m.SetVertices(verts); m.SetUVs(0, uvs); m.SetColors(cols); m.SetTriangles(tris, 0);
+            m.RecalculateNormals();
+            return SaveMesh(name, m);
+        }
+
+        static Mesh DiscMesh(string name, Vector3 c, float r, int seg, int rings)
+        {
+            var verts = new List<Vector3> { c }; var uvs = new List<Vector2> { new Vector2(0.5f, 0.5f) }; var tris = new List<int>();
+            for (int ri = 1; ri <= rings; ri++)
+            {
+                float rr = r * ri / rings;
+                for (int s = 0; s < seg; s++)
+                {
+                    float a = s / (float)seg * Mathf.PI * 2f;
+                    verts.Add(c + new Vector3(Mathf.Cos(a) * rr, 0f, Mathf.Sin(a) * rr));
+                    uvs.Add(new Vector2(0.5f + Mathf.Cos(a) * 0.5f * ri / rings, 0.5f + Mathf.Sin(a) * 0.5f * ri / rings));
+                }
+            }
+            for (int s = 0; s < seg; s++) tris.AddRange(new[] { 0, 1 + (s + 1) % seg, 1 + s });
+            for (int ri = 1; ri < rings; ri++)
+            {
+                int a0 = 1 + (ri - 1) * seg, b0 = 1 + ri * seg;
+                for (int s = 0; s < seg; s++)
+                {
+                    int s1 = (s + 1) % seg;
+                    tris.AddRange(new[] { a0 + s, a0 + s1, b0 + s, a0 + s1, b0 + s1, b0 + s });
+                }
+            }
+            var m = new Mesh(); m.SetVertices(verts); m.SetUVs(0, uvs); m.SetTriangles(tris, 0); m.RecalculateNormals();
+            return SaveMesh(name, m);
+        }
+
+        /// <summary>flat grid at the lagoon level, only where the ground is low enough to be under (or just above) the water</summary>
+        static Mesh WetlandMesh(string name, FWet wet)
+        {
+            if (wet == null || wet.blobs == null || wet.blobs.Length == 0) return null;
+            float lv = wet.level, step = 1.0f;
+            float x0 = float.MaxValue, x1 = float.MinValue, z0 = float.MaxValue, z1 = float.MinValue;
+            foreach (var b in wet.blobs) { var c = V3(b.center); x0 = Mathf.Min(x0, c.x - b.radius); x1 = Mathf.Max(x1, c.x + b.radius); z0 = Mathf.Min(z0, c.z - b.radius); z1 = Mathf.Max(z1, c.z + b.radius); }
+            int nx = Mathf.CeilToInt((x1 - x0) / step) + 1, nz = Mathf.CeilToInt((z1 - z0) / step) + 1;
+            var h = new float[nx, nz];
+            for (int i = 0; i < nx; i++) for (int j = 0; j < nz; j++) h[i, j] = GroundY(new Vector3(x0 + i * step, 0, z0 + j * step));
+            var index = new Dictionary<int, int>(); var verts = new List<Vector3>(); var uvs = new List<Vector2>(); var tris = new List<int>();
+            int Vx(int i, int j)
+            {
+                int key = i * nz + j; if (index.TryGetValue(key, out int v)) return v;
+                v = verts.Count; index[key] = v; var p = new Vector3(x0 + i * step, lv, z0 + j * step); verts.Add(p); uvs.Add(new Vector2(p.x * 0.1f, p.z * 0.1f)); return v;
+            }
+            for (int i = 0; i + 1 < nx; i++)
+                for (int j = 0; j + 1 < nz; j++)
+                {
+                    float mn = Mathf.Min(Mathf.Min(h[i, j], h[i + 1, j]), Mathf.Min(h[i, j + 1], h[i + 1, j + 1]));
+                    if (mn > lv + 0.05f) continue;
+                    int a = Vx(i, j), b = Vx(i + 1, j), c = Vx(i, j + 1), d = Vx(i + 1, j + 1);
+                    tris.AddRange(new[] { a, c, b, b, c, d });
+                }
+            if (tris.Count == 0) { W(name + ": no ground below the lagoon level"); return null; }
+            var m = new Mesh { indexFormat = verts.Count > 65000 ? IndexFormat.UInt32 : IndexFormat.UInt16 };
+            m.SetVertices(verts); m.SetUVs(0, uvs); m.SetTriangles(tris, 0); m.RecalculateNormals();
+            L($"{name}: {tris.Count / 6} quads at {F(step)} m, level {F(lv)} m");
+            return SaveMesh(name, m);
+        }
+
+        // ------------------------------------------------------------------ waterfall
+        static void BuildWaterfall(UnityEngine.SceneManagement.Scene scene, FWater fw)
+        {
+            var root = EnvGroup(scene, "Water/Waterfall");
+            ClearChildren(root);
+            var lip = V3(fw.waterfall.lip); var pool = V3(fw.waterfall.pool);
+            var fwd = pool - lip; fwd.y = 0f; fwd.Normalize();
+            var side = new Vector3(-fwd.z, 0f, fwd.x);
+            var sh = Shader.Find(WaterfallShader);
+            bool shaderOk = sh && !ShaderUtil.ShaderHasError(sh);
+            if (!shaderOk) W($"{WaterfallShader} missing or has errors: waterfall sheet uses URP Unlit");
+            var mat = WaterfallMat("M_Env_Waterfall", shaderOk ? sh : Shader.Find("Universal Render Pipeline/Unlit"), 1f);
+            var matThin = WaterfallMat("M_Env_Rivulet", shaderOk ? sh : Shader.Find("Universal Render Pipeline/Unlit"), 0.55f);
+            // main sheet: parabolic arc from the lip (exit speed ~1.4 m/s) to the pool, wider at the bottom
+            float drop = lip.y - pool.y;
+            var sheet = FallMesh("ME_Env_WaterfallSheet", lip, fwd, side, drop, 1.25f, 1.9f, 1.4f, 14, 7);
+            var sheetBack = FallMesh("ME_Env_WaterfallSheetBack", lip - fwd * 0.25f + Vector3.down * 0.1f, fwd, side, drop, 1.6f, 2.5f, 1.1f, 10, 5);
+            Place(root, "WaterfallSheet", sheet, mat);
+            Place(root, "WaterfallSheetBack", sheetBack, mat);
+            // rivulets: thin trickles on the rock face either side of the fall
+            int ri = 0;
+            foreach (var (off, h, w) in new[] { (-3.4f, 0.72f, 0.22f), (2.9f, 0.85f, 0.18f), (4.6f, 0.45f, 0.14f) })
+            {
+                var top = lip + side * off + Vector3.down * (drop * (1 - h)) - fwd * 0.4f;
+                var m = FallMesh($"ME_Env_Rivulet_{ri}", top, fwd, side, drop * h - 0.2f, w, w * 1.6f, 0.15f, 8, 3);
+                Place(root, $"Rivulet_{ri}", m, matThin); ri++;
+            }
+            // mist + spray at the impact
+            var impact = lip + fwd * 2.4f; impact.y = pool.y + 0.15f;
+            BuildMist(root, impact, fwd);
+            BuildSpray(root, impact);
+            L($"waterfall: drop {F(drop)} m, sheet + back sheet + {ri} rivulets, mist and spray at {V(impact)} ({(shaderOk ? WaterfallShader : "fallback shader")})");
+            // the rock face: the westmost cliff piece of the arc becomes the east face, two more pieces frame the fall
+            var cliffs = Root(scene, "World").Find("Cliffs");
+            if (cliffs)
+            {
+                var west = cliffs.Cast<Transform>().Where(c => c.name.StartsWith("PFB_ENV_Cliff")).OrderByDescending(c => c.position.x).FirstOrDefault();
+                if (west && (west.position - lip).sqrMagnitude < 25f * 25f)
+                {
+                    var p = lip + side * 7.5f + fwd * 1.2f; p.y = pool.y - 0.8f;
+                    west.position = p;
+                    L($"World/Cliffs/{west.name}: moved to the waterfall's east face {V(p)}");
+                }
+            }
+            var cliff1 = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Project/Prefabs/Environment/PFB_ENV_Cliff_01.prefab");
+            var cliff2 = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Project/Prefabs/Environment/PFB_ENV_Cliff_02.prefab");
+            var rockL = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Project/Prefabs/Environment/PFB_ENV_Rock_Large_03.prefab");
+            var rockM = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Project/Prefabs/Environment/PFB_ENV_Rock_Medium_02.prefab");
+            var faces = Child(root, "RockFace");
+            int np = 0;
+            void Put(GameObject pf, Vector3 p, float yaw, float s, string nm)
+            {
+                if (!pf) return;
+                var go = (GameObject)PrefabUtility.InstantiatePrefab(pf, faces); go.name = nm;
+                go.transform.SetPositionAndRotation(p, Quaternion.Euler(0f, yaw, 0f)); go.transform.localScale = Vector3.one * s;
+                GameObjectUtility.SetStaticEditorFlags(go, StaticEditorFlags.OccluderStatic | StaticEditorFlags.OccludeeStatic | StaticEditorFlags.ContributeGI); np++;
+            }
+            float yawBack = Quaternion.LookRotation(-fwd).eulerAngles.y;
+            Put(cliff2, lip - side * 7.0f + fwd * 0.8f + Vector3.down * (drop + 0.6f), yawBack + 90f, 1.05f, "FaceWest");
+            Put(cliff1, lip - side * 3.0f - fwd * 1.8f + Vector3.down * (drop * 0.55f), yawBack + 180f, 0.8f, "FaceBehindWest");
+            Put(cliff1, lip + side * 3.2f - fwd * 1.6f + Vector3.down * (drop * 0.6f), yawBack, 0.8f, "FaceBehindEast");
+            // wet dark boulders round the pool (the Wet step gives them the wet / moss look)
+            var r = fw.waterfall.poolRadius;
+            for (int i = 0; i < 9; i++)
+            {
+                float a = -0.9f + i * 0.33f + Rand01(i, 3) * 0.2f;       // mostly on the far half of the pool
+                var dir = Quaternion.AngleAxis(Mathf.Rad2Deg * a, Vector3.up) * (-fwd);
+                var p = pool + dir * (r + 0.6f + Rand01(i, 4) * 1.4f); p.y = GroundY(p) - 0.3f;
+                Put(i % 3 == 0 ? rockL : rockM, p, Rand01(i, 5) * 360f, i % 3 == 0 ? 0.55f + Rand01(i, 6) * 0.25f : 0.8f + Rand01(i, 6) * 0.5f, $"PoolRock_{i}");
+            }
+            L($"waterfall rock face: {np} cliff / rock pieces under {PathOf(faces)}");
+        }
+
+        static Material WaterfallMat(string name, Shader sh, float strength)
+        {
+            string path = $"{MatDir}/{name}.mat";
+            var m = AssetDatabase.LoadAssetAtPath<Material>(path);
+            if (!m) { m = new Material(sh) { name = name }; AssetDatabase.CreateAsset(m, path); }
+            else if (m.shader != sh) m.shader = sh;
+            m.enableInstancing = true;
+            var tex = ImportTexture($"{TexDir}/T_Waterfall_Streaks.png", false, true, 512);
+            if (tex && m.HasProperty("_StreakTex")) m.SetTexture("_StreakTex", tex);
+            if (m.HasProperty("_Opacity")) m.SetFloat("_Opacity", 0.85f * strength);
+            if (sh.name.Contains("Unlit")) { m.SetColor("_BaseColor", new Color(0.85f, 0.9f, 0.92f, 0.6f)); }
+            EditorUtility.SetDirty(m);
+            return m;
+        }
+
+        /// <summary>a curved sheet: v = 0 at the lip, 1 at the pool; the water leaves the lip at 'exit' m/s</summary>
+        static Mesh FallMesh(string name, Vector3 top, Vector3 fwd, Vector3 side, float drop, float halfTop, float halfBottom, float exit, int rows, int cols)
+        {
+            float tFall = Mathf.Sqrt(2f * Mathf.Max(0.2f, drop) / 9.81f);
+            var verts = new List<Vector3>(); var uvs = new List<Vector2>(); var tris = new List<int>(); var colors = new List<Color>();
+            float len = 0f; Vector3 prev = top;
+            for (int i = 0; i <= rows; i++)
+            {
+                float v = i / (float)rows, t = v * tFall;
+                var c = top + fwd * (exit * t) + Vector3.down * (0.5f * 9.81f * t * t);
+                if (i > 0) len += Vector3.Distance(c, prev); prev = c;
+                float hw = Mathf.Lerp(halfTop, halfBottom, v * v);
+                for (int k = 0; k <= cols; k++)
+                {
+                    float u = k / (float)cols;
+                    float bulge = Mathf.Sin(u * Mathf.PI) * 0.18f * (0.3f + v);
+                    verts.Add(c + side * Mathf.Lerp(-hw, hw, u) + fwd * bulge);
+                    uvs.Add(new Vector2(u, len));
+                    colors.Add(new Color(1f, 1f, 1f, v));
+                }
+                if (i > 0)
+                {
+                    int b0 = (i - 1) * (cols + 1), b1 = i * (cols + 1);
+                    for (int k = 0; k < cols; k++) tris.AddRange(new[] { b0 + k, b0 + k + 1, b1 + k, b0 + k + 1, b1 + k + 1, b1 + k });
+                }
+            }
+            var m = new Mesh(); m.SetVertices(verts); m.SetUVs(0, uvs); m.SetColors(colors); m.SetTriangles(tris, 0); m.RecalculateNormals();
+            return SaveMesh(name, m);
+        }
+
+        static GameObject Place(Transform parent, string name, Mesh mesh, Material mat)
+        {
+            var go = new GameObject(name); go.transform.SetParent(parent, false);
+            go.AddComponent<MeshFilter>().sharedMesh = mesh;
+            var r = go.AddComponent<MeshRenderer>(); r.sharedMaterial = mat; r.shadowCastingMode = ShadowCastingMode.Off;
+            return go;
+        }
+
+        static Material VfxMat(string name) => AssetDatabase.LoadAssetAtPath<Material>($"Assets/_Project/VFX/Materials/{name}.mat");
+
+        static void BuildMist(Transform root, Vector3 at, Vector3 fwd)
+        {
+            var go = new GameObject("Mist"); go.transform.SetParent(root, false); go.transform.position = at;
+            var ps = go.AddComponent<ParticleSystem>();
+            var main = ps.main; main.loop = true; main.playOnAwake = true; main.maxParticles = 28;
+            main.startLifetime = new ParticleSystem.MinMaxCurve(4f, 6.5f); main.startSpeed = new ParticleSystem.MinMaxCurve(0.3f, 0.9f);
+            main.startSize = new ParticleSystem.MinMaxCurve(2.8f, 5.5f); main.startRotation = new ParticleSystem.MinMaxCurve(0f, Mathf.PI * 2f);
+            main.startColor = new ParticleSystem.MinMaxGradient(new Color(0.92f, 0.95f, 0.97f, 0.16f), new Color(0.86f, 0.9f, 0.93f, 0.08f));
+            main.simulationSpace = ParticleSystemSimulationSpace.World; main.gravityModifier = -0.02f; main.prewarm = true;
+            main.cullingMode = ParticleSystemCullingMode.PauseAndCatchup;
+            var em = ps.emission; em.rateOverTime = 5.5f;
+            var sh = ps.shape; sh.shapeType = ParticleSystemShapeType.Hemisphere; sh.radius = 2.2f;
+            var vel = ps.velocityOverLifetime; vel.enabled = true; vel.space = ParticleSystemSimulationSpace.World;
+            vel.x = new ParticleSystem.MinMaxCurve(fwd.x * 0.5f); vel.y = new ParticleSystem.MinMaxCurve(0.25f); vel.z = new ParticleSystem.MinMaxCurve(fwd.z * 0.5f);
+            var size = ps.sizeOverLifetime; size.enabled = true; size.size = new ParticleSystem.MinMaxCurve(1f, AnimationCurve.Linear(0f, 0.6f, 1f, 1.6f));
+            var col = ps.colorOverLifetime; col.enabled = true;
+            var g = new Gradient(); g.SetKeys(new[] { new GradientColorKey(Color.white, 0f), new GradientColorKey(Color.white, 1f) }, new[] { new GradientAlphaKey(0f, 0f), new GradientAlphaKey(1f, 0.25f), new GradientAlphaKey(0f, 1f) });
+            col.color = g;
+            var rot = ps.rotationOverLifetime; rot.enabled = true; rot.z = new ParticleSystem.MinMaxCurve(-0.15f, 0.15f);
+            var r = go.GetComponent<ParticleSystemRenderer>(); r.sharedMaterial = VfxMat("M_VFX_Soft"); r.shadowCastingMode = ShadowCastingMode.Off; r.sortingFudge = 2f;
+            r.maxParticleSize = 1.5f;
+        }
+
+        static void BuildSpray(Transform root, Vector3 at)
+        {
+            var go = new GameObject("Spray"); go.transform.SetParent(root, false); go.transform.position = at; go.transform.rotation = Quaternion.Euler(-90f, 0f, 0f);
+            var ps = go.AddComponent<ParticleSystem>();
+            var main = ps.main; main.loop = true; main.playOnAwake = true; main.maxParticles = 90;
+            main.startLifetime = new ParticleSystem.MinMaxCurve(0.6f, 1.3f); main.startSpeed = new ParticleSystem.MinMaxCurve(2.5f, 5.5f);
+            main.startSize = new ParticleSystem.MinMaxCurve(0.05f, 0.16f);
+            main.startColor = new ParticleSystem.MinMaxGradient(new Color(0.9f, 0.94f, 0.96f, 0.55f), new Color(0.8f, 0.86f, 0.9f, 0.35f));
+            main.simulationSpace = ParticleSystemSimulationSpace.World; main.gravityModifier = 1.0f;
+            main.cullingMode = ParticleSystemCullingMode.Pause;
+            var em = ps.emission; em.rateOverTime = 45f;
+            var sh = ps.shape; sh.shapeType = ParticleSystemShapeType.Cone; sh.angle = 38f; sh.radius = 1.3f;
+            var r = go.GetComponent<ParticleSystemRenderer>(); r.sharedMaterial = Or(VfxMat("M_VFX_Drop"), VfxMat("M_VFX_Soft"));
+            r.renderMode = ParticleSystemRenderMode.Stretch; r.velocityScale = 0.06f; r.lengthScale = 1.5f; r.shadowCastingMode = ShadowCastingMode.Off;
+        }
+    }
+}

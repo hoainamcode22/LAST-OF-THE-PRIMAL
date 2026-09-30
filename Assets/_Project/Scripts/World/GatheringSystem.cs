@@ -33,7 +33,8 @@ namespace PrimalFrontier.World
             var db = ResourceDatabase.Instance;
             var tool = held && held.tool != ToolKind.None ? db.ToolFor(held) : null;
             ToolKind kinds = tool ? tool.toolKind | held.tool : ToolKind.None;
-            if (tool && def.bestTool != ToolKind.None && (kinds & def.bestTool) != 0 && tool.TryGet(def.category, out var e))
+            bool crude = tool && !tool.heavyWork && def.requiredTool != ToolKind.None;      // a hand stone does not fell trees or break boulders
+            if (tool && !crude && def.bestTool != ToolKind.None && (kinds & def.bestTool) != 0 && tool.TryGet(def.category, out var e))
             {
                 plan.allowed = true; plan.tool = tool; plan.toolItem = held;
                 plan.min = e.min * def.toolFactor; plan.max = e.max * def.toolFactor; plan.speed = e.speed;
@@ -41,7 +42,7 @@ namespace PrimalFrontier.World
             }
             var hands = db.Hands;
             if (!hands.TryGet(def.category, out var h)) h = new ToolEfficiency(def.category, 1, 1);
-            bool lacks = def.requiredTool != ToolKind.None && (kinds & def.requiredTool) == 0;
+            bool lacks = def.requiredTool != ToolKind.None && ((kinds & def.requiredTool) == 0 || crude);
             plan.byHand = true; plan.tool = hands; plan.slowByHand = lacks;
             plan.min = h.min * def.handsFactor; plan.max = h.max * def.handsFactor; plan.speed = h.speed;
             plan.allowed = def.handsFactor > 0f;
@@ -72,6 +73,9 @@ namespace PrimalFrontier.World
         }
 
         static bool Whole(float v) => Mathf.Abs(v - Mathf.Round(v)) < 1e-4f;
+
+        /// <summary>the prompt line for a node the hands cannot work: "Need an axe" / "Need a pick"</summary>
+        public static string NeedText(ToolKind k) => "Need " + ToolName(k);
 
         /// <summary>"a pick", "an axe" ... (same words as the old node prompts)</summary>
         public static string ToolName(ToolKind k) => k switch

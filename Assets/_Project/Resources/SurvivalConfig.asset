@@ -77,9 +77,9 @@ MonoBehaviour:
     stamina: 0
     sickChance: 0
     sickSeconds: 0
-    boilSeconds: 20
-    boilResult: 3
-    boilChargeLoss: 1
+    boilSeconds: 0
+    boilResult: 1
+    boilChargeLoss: 0
     label: salt water
     color: {r: 0.55, g: 0.78, b: 0.92, a: 1}
     eventId: salt_water
@@ -106,11 +106,33 @@ MonoBehaviour:
     color: {r: 0.45, g: 0.75, b: 1, a: 1}
     eventId: clean_water
   handDrinkThirst: 28
+  mlPerCharge: 250
+  hotWaterCoolSeconds: 240
+  heatWaterSeconds: 6
+  hotDrinkBodyWarmth: 0.8
+  hotDrinkWarmth: 6
+  hotDrinkWarmSeconds: 120
+  hotDrinkColdAir: 18
+  hotWaterColor: {r: 1, g: 0.62, b: 0.35, a: 1}
   legacyFuelSeconds: 240
   maxFuelSeconds: 1200
   cookingSlots: 4
   burnAfterCookMultiplier: 1.5
   burntFood: {fileID: 11400000, guid: c5725bc82b8760c44bc4c748de5d2580, type: 2}
+  fuelBurnRate: 1
+  lightingSeconds: 3
+  lowFuelSeconds: 60
+  fullIntensityFuelSeconds: 180
+  minFireIntensity: 0.3
+  lowFireCookRate: 0.6
+  rainFireIntensity: 0.7
+  rainFuelMultiplier: 1.5
+  heavyRainIntensity: 0.9
+  heavyRainFuelMultiplier: 2
+  heavyRainFireIntensity: 0.5
+  heavyRainExtinguishSeconds: 45
+  charcoalAfterBurnSeconds: 300
+  charcoalMax: 2
   collectorCapacity: 6
   collectorChargesPerRainHour: 2
   nightAirOffset: -4
@@ -118,6 +140,35 @@ MonoBehaviour:
   torchWarmth: 2
   altitudeCoolingStart: 30
   altitudeCooling: 0.06
+  rainWetPerSecond: 0.04
+  waterWetPerSecond: 0.3
+  waterChill: 3
+  dryPerSecond: 0.01
+  heatDryPerDegree: 0.004
+  shelterDryPerSecond: 0.01
+  sunDryPerSecond: 0.006
+  sunWarmth: 2.5
+  wetStatusAbove: 0.3
+  humidityDryingPenalty: 0.5
+  deepWoundDamage: 30
+  deepWoundSeconds: 75
+  repeatCutDeepens: 1
+  injuryMinDamage: 25
+  injuryChance: 0.6
+  legInjuryShare: 0.5
+  injurySeconds: 300
+  fallInjurySpeed: 13
+  restRegenMultiplier: 1.75
+  healAtEmptyHunger: 0.25
+  healAtEmptyThirst: 0.5
+  restInjuryHealMultiplier: 2
+  agingAt: 0.5
+  agingNutrition: 0.8
+  spoiledNutrition: 0.35
+  agingSickChance: 0.05
+  spoiledSickChance: 0.5
+  spoiledSickSeconds: 60
+  spoilCheckSeconds: 5
   sleepHungerPerHour: 2.2
   sleepThirstPerHour: 2.8
   sleepHealthPerHour: 4
@@ -125,3 +176,4 @@ MonoBehaviour:
   wood: {fileID: 11400000, guid: b44ddd1d863e4de47a95118bf8fd7b5d, type: 2}
   rawMeat: {fileID: 11400000, guid: 0b3a64e6eeb56bd49a534a15dac5b869, type: 2}
   cookedMeat: {fileID: 11400000, guid: fded9e29bcccdb44b970102625f1cf5d, type: 2}
+  charcoal: {fileID: 11400000, guid: b9f7770aca44306419eb0427eeb9e39e, type: 2}
