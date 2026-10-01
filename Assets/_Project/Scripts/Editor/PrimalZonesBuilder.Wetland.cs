@@ -258,17 +258,15 @@ namespace PrimalFrontier.EditorTools
                     var p = c + d * r; float y = GroundY(p);
                     if (y < LagoonLevel + 0.25f || y > LagoonLevel + 1.4f || Slope(p) > 12f) continue;
                     tried++;
-                    var inward = -d; var side = new Vector3(inward.z, 0f, -inward.x);
-                    int wet = 0, samples = 0; bool bad = false;
-                    for (float s = -2f; s <= FtCentre + FtHalfLen; s += 3f)
-                        for (float w = -FtHalfW; w <= FtHalfW + 0.1f; w += FtHalfW)
-                        {
-                            var q = p + inward * s + side * w;
-                            if (IsBlocked(q, 0.8f) || z.Weight(q) < 1f) bad = true;
-                            if (s > FtCentre && w == 0f) { samples++; if (GroundY(q) < LagoonLevel - 0.1f) wet++; }
-                        }
-                    if (bad) { rjBlock++; break; }
-                    if (wet * 2 < samples || SolidAt(p, 2f)) { rjWet++; break; }
+                    var inward = -d;
+                    int wet = 0, samples = 0;
+                    float yaw = Quaternion.LookRotation(inward, Vector3.up).eulerAngles.y;             // local +Z = inward
+                    bool bad = EA_RectBlocked(p + inward * FtCentre, yaw, 2.2f, FtHalfLen, 0.6f)      // trunk (about 4 m thick)
+                            || EA_RectBlocked(p + inward * 0.5f, yaw, FtHalfW, 3f, 0.6f)               // root plate
+                            || z.Weight(p + inward * (FtCentre + FtHalfLen)) < 0.6f || z.Weight(p - inward * 2f) < 0.6f;
+                    for (float s = FtCentre; s <= FtCentre + FtHalfLen; s += 3f) { samples++; if (GroundY(p + inward * s) < LagoonLevel - 0.1f) wet++; }
+                    if (bad) { rjBlock++; continue; }
+                    if (wet * 2 < samples || SolidAt(p, 2f, ZoneRoot(z))) { rjWet++; continue; }
                     float score = -new Vector2(p.x - view.x, p.z - view.z).magnitude + wet * 2f;
                     if (score > bestS) { bestS = score; best = Ground(p); dir = inward; }
                     break;                                                                     // first dry shore along this ray

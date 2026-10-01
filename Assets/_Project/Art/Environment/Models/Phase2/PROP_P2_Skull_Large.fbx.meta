@@ -3,9 +3,84 @@ guid: 6c26f5e20c7c5994c94e68afb76fcc60
 ModelImporter:
   serializedVersion: 24200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: M_P2_AncientFallenTree
+    second: {fileID: 2100000, guid: 1b826371b852e3a4a92d93999997f349, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: M_P2_BlackRidge
+    second: {fileID: 2100000, guid: 9b874557c5f40844fbbd8df3035c3a83, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: M_P2_BoneScatter_A
+    second: {fileID: 2100000, guid: 3b53f92198cc4cf43a33f635414ea8fc, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: M_P2_BoneScatter_B
+    second: {fileID: 2100000, guid: 3243d82d0ef2e484692e872253447c6d, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: M_P2_Calcite
+    second: {fileID: 2100000, guid: 8e5a3476262f9b64d824ad8421194137, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: M_P2_Canopy
+    second: {fileID: 2100000, guid: 3550ef2bb189bd04b9209fae5bffa336, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: M_P2_CaveRock
+    second: {fileID: 2100000, guid: 0e9e3a8d05fd01b49ab904b0f9aea83a, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: M_P2_CaveWet
+    second: {fileID: 2100000, guid: 2422db2a3d394304980ce20ee8840706, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: M_P2_DeadSnag_A
+    second: {fileID: 2100000, guid: f18e975b53eb6fc49be1dcb8bacf0ce8, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: M_P2_DeadSnag_B
+    second: {fileID: 2100000, guid: 35159505e3ec6a046bf8e65d4f6b7d2f, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: M_P2_FossilSkeleton
+    second: {fileID: 2100000, guid: 47aad0d2d1184de4fb4583fc1904cd8d, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: M_P2_GiantTree
+    second: {fileID: 2100000, guid: 27a148525f435574db15f043ed2650f0, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: M_P2_Ribcage
+    second: {fileID: 2100000, guid: 24e3d2a858dea9f4ebadb7473f7ea0ce, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: M_P2_RockRidge
+    second: {fileID: 2100000, guid: 509b248eab6c585488a1f9ac4b883906, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: M_P2_Skull_Large
+    second: {fileID: 2100000, guid: 695653df4a738454ba52985299d0407d, type: 2}
   materials:
-    materialImportMode: 2
+    materialImportMode: 1
     materialName: 0
     materialSearch: 1
     materialLocation: 1
@@ -42,10 +117,10 @@ ModelImporter:
     useSRGBMaterialColor: 1
     sortHierarchyByName: 1
     importPhysicalCameras: 1
-    importVisibility: 1
-    importBlendShapes: 1
-    importCameras: 1
-    importLights: 1
+    importVisibility: 0
+    importBlendShapes: 0
+    importCameras: 0
+    importLights: 0
     nodeNameCollisionStrategy: 1
     fileIdsGeneration: 2
     swapUVChannels: 0
@@ -82,7 +157,7 @@ ModelImporter:
     blendShapeNormalImportMode: 1
     normalSmoothingSource: 0
   referencedClips: []
-  importAnimation: 1
+  importAnimation: 0
   humanDescription:
     serializedVersion: 3
     human: []
@@ -101,7 +176,7 @@ ModelImporter:
     skeletonHasParents: 1
   lastHumanDescriptionAvatarSource: {instanceID: 0}
   autoGenerateAvatarMappingIfUnspecified: 1
-  animationType: 2
+  animationType: 0
   humanoidOversampling: 1
   avatarSetup: 0
   addHumanoidExtraRootOnlyWhenUsingAvatar: 1

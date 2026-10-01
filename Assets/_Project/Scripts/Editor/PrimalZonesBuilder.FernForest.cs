@@ -115,17 +115,19 @@ namespace PrimalFrontier.EditorTools
         /// random scatter in an area; long = check both ends of the long axis (fallen trunks). Returns the placed objects.
         /// </summary>
         static List<GameObject> EBScatter(Transform parent, string[] names, int want, float spacing, EBDensity density, EBOk ok, float sMin, float sMax,
-            float sink, bool align, int seed, Rect area, Dictionary<long, List<Vector3>> placed, bool isLong = false, bool colliderProp = false, Transform ignoreRoot = null)
+            float sink, bool align, int seed, Rect area, Dictionary<long, List<Vector3>> placed, bool isLong = false, bool colliderProp = false, Transform ignoreRoot = null,
+            Dictionary<string, int> rej = null)
         {
             var res = new List<GameObject>();
+            void R(string why) { if (rej == null) return; rej.TryGetValue(why, out var v); rej[why] = v + 1; }
             var pfs = names.Select(n => Prefab(n)).Where(p => p).ToArray(); if (pfs.Length == 0 || want <= 0) return res;
             int tries = 0;
             while (res.Count < want && tries < want * 300)
             {
                 tries++;
                 var p = new Vector3(area.xMin + Rand01(seed, tries * 2) * area.width, 0f, area.yMin + Rand01(seed + 1, tries * 2 + 1) * area.height);
-                float d = density(p); if (d <= 0f || Rand01(seed + 2, tries) > d) continue;
-                if (Near(placed, p, spacing)) continue;
+                float d = density(p); if (d <= 0f || Rand01(seed + 2, tries) > d) { R("density"); continue; }
+                if (Near(placed, p, spacing)) { R("spacing"); continue; }
                 var pf = pfs[(res.Count + tries) % pfs.Length];
                 float s = Mathf.Lerp(sMin, sMax, Rand01(seed + 4, tries)), yaw = Rand01(seed + 3, tries) * 360f;
                 var bb = EBPrefabBounds(pf);
@@ -136,20 +138,120 @@ namespace PrimalFrontier.EditorTools
                     float half = (alongX ? bb.extents.x : bb.extents.z) * s, thick = (alongX ? bb.extents.z : bb.extents.x) * s;
                     var ctr = p + Quaternion.Euler(0f, yaw, 0f) * new Vector3(bb.center.x, 0f, bb.center.z) * s;
                     var e0 = ctr + axis * half; var e1 = ctr - axis * half;
-                    if (!ok(ctr, thick) || !ok(e0, thick) || !ok(e1, thick) || !ok((ctr + e0) * 0.5f, thick) || !ok((ctr + e1) * 0.5f, thick)) continue;
-                    if (Mathf.Abs(GroundY(e0) - GroundY(e1)) > half * 0.5f) continue;             // too steep along the trunk
-                    if (colliderProp && (SolidAt(e0, thick + 0.3f, ignoreRoot) || SolidAt(e1, thick + 0.3f, ignoreRoot) || SolidAt(ctr, thick + 0.3f, ignoreRoot))) continue;
+                    if (!ok(ctr, thick)) { R("clearance centre"); continue; }
+                    if (!ok(e0, thick) || !ok(e1, thick) || !ok((ctr + e0) * 0.5f, thick) || !ok((ctr + e1) * 0.5f, thick)) { R("clearance ends"); continue; }
+                    if (Mathf.Abs(GroundY(e0) - GroundY(e1)) > half * 0.5f) { R("steep along"); continue; }             // too steep along the trunk
+                    if (colliderProp) { var hit = EBSolid(e0, thick + 0.3f, ignoreRoot) ?? EBSolid(e1, thick + 0.3f, ignoreRoot) ?? EBSolid(ctr, thick + 0.3f, ignoreRoot); if (hit != null) { R("solid " + hit); continue; } }
                 }
                 else
                 {
                     float rad = Mathf.Max(bb.extents.x, bb.extents.z) * s;
-                    if (!ok(p, rad)) continue;
-                    if (colliderProp && SolidAt(p, Mathf.Min(rad, 2.5f) + 0.3f, ignoreRoot)) continue;
+                    if (!ok(p, rad)) { R("clearance"); continue; }
+                    if (colliderProp) { var hit = EBSolid(p, Mathf.Min(rad, 2.5f) + 0.3f, ignoreRoot); if (hit != null) { R("solid " + hit); continue; } }
                 }
                 var go = Place(parent, pf, p, yaw, s, align, sink);
                 if (go) { res.Add(go); Add(placed, p); }
             }
             return res;
+        }
+
+        /// <summary>like the core SolidAt, but returns the first collider's group (null = free)</summary>
+        static string EBSolid(Vector3 p, float r, Transform ignoreRoot)
+        {
+            var c = new Vector3(p.x, GroundY(p) + r * 0.5f + 0.2f, p.z);
+            foreach (var col in Physics.OverlapSphere(c, r, ~0, QueryTriggerInteraction.Ignore))
+                if (!(col is TerrainCollider) && (!ignoreRoot || !col.transform.IsChildOf(ignoreRoot)))
+                { var t = col.transform; var path = PathOf(t.parent ? t.parent : t); return path.Length > 60 ? path.Substring(0, 60) : path; }
+            return null;
+        }
+        static string EBRej(Dictionary<string, int> rej) => string.Join(", ", rej.OrderByDescending(kv => kv.Value).Take(6).Select(kv => kv.Key + " " + kv.Value));
+
+        /// <summary>xz radius (from the prefab origin) of the prefab's colliders, from their local shapes</summary>
+        static float EBColliderRadius(GameObject pf)
+        {
+            if (!pf) return 0f; float best = 0f; var inv = pf.transform.worldToLocalMatrix;
+            foreach (var col in pf.GetComponentsInChildren<Collider>(true))
+            {
+                if (col.isTrigger) continue;
+                Bounds b;
+                if (col is MeshCollider mc && mc.sharedMesh) b = mc.sharedMesh.bounds;
+                else if (col is BoxCollider bc) b = new Bounds(bc.center, bc.size);
+                else if (col is CapsuleCollider cc) b = new Bounds(cc.center, Vector3.one * Mathf.Max(cc.radius * 2f, cc.height));
+                else if (col is SphereCollider sc) b = new Bounds(sc.center, Vector3.one * sc.radius * 2f);
+                else continue;
+                var m = inv * col.transform.localToWorldMatrix;
+                for (int i = 0; i < 8; i++)
+                {
+                    var c = m.MultiplyPoint3x4(b.center + Vector3.Scale(b.extents, new Vector3((i & 1) == 0 ? -1f : 1f, (i & 2) == 0 ? -1f : 1f, (i & 4) == 0 ? -1f : 1f)));
+                    best = Mathf.Max(best, new Vector2(c.x, c.z).magnitude);
+                }
+            }
+            return best;
+        }
+
+        /// <summary>
+        /// the real footprint of a prefab's colliders at walking height (0.4-2.2 m over the ground): a temporary instance at pos,
+        /// 72 directions marched out in 0.25 m steps with 0.3 m probes; returns the largest radius that still hits it
+        /// </summary>
+        static float EBWalkRadius(GameObject pf, Vector3 pos, GameObject existing = null)
+        {
+            var go = existing ? existing : (GameObject)PrefabUtility.InstantiatePrefab(pf);
+            if (!existing) go.transform.SetPositionAndRotation(Ground(pos), Quaternion.identity);
+            Physics.SyncTransforms();
+            var mine = new HashSet<Collider>(go.GetComponentsInChildren<Collider>(true));
+            float best = 0f;
+            for (int k = 0; k < 72; k++)
+            {
+                var dir = Quaternion.Euler(0f, k * 5f, 0f) * Vector3.forward;
+                for (float r = 30f; r > 0.5f; r -= 0.25f)
+                {
+                    var q = Ground(pos + dir * r); bool hit = false;
+                    foreach (float h in new[] { 0.4f, 1.3f, 2.2f })
+                    {
+                        foreach (var c in Physics.OverlapSphere(q + Vector3.up * h, 0.3f, ~0, QueryTriggerInteraction.Ignore)) if (mine.Contains(c)) { hit = true; break; }
+                        if (hit) break;
+                    }
+                    if (hit) { best = Mathf.Max(best, r + 0.3f); break; }
+                }
+            }
+            if (!existing) { UnityEngine.Object.DestroyImmediate(go); Physics.SyncTransforms(); }
+            return best;
+        }
+
+        /// <summary>
+        /// after placement: every own prefab instance (under root, not under keep) whose collider touches one of the probe
+        /// spheres is removed, so corridors stay free. Returns the removed count.
+        /// </summary>
+        static int EBClearCorridor(Transform root, Transform keep, List<(Vector3 c, float r)> probes, List<string> keepHits)
+        {
+            Physics.SyncTransforms();
+            var kill = new HashSet<GameObject>();
+            foreach (var pr in probes)
+                foreach (var col in Physics.OverlapSphere(pr.c, pr.r, ~0, QueryTriggerInteraction.Ignore))
+                {
+                    if (col is TerrainCollider || !col.transform.IsChildOf(root)) continue;
+                    if (keep && col.transform.IsChildOf(keep)) { if (keepHits != null && keepHits.Count < 6) keepHits.Add(V(pr.c)); continue; }
+                    var go = PrefabUtility.GetOutermostPrefabInstanceRoot(col.gameObject); if (!go) go = col.gameObject;
+                    kill.Add(go);
+                }
+            foreach (var g in kill) if (g) UnityEngine.Object.DestroyImmediate(g);
+            return kill.Count;
+        }
+        /// <summary>the same probes the check uses on the fern trails (1 m steps inside the zone), a little larger</summary>
+        static List<(Vector3 c, float r)> FernTrailProbes(Zone z, float extra)
+        {
+            var l = new List<(Vector3 c, float r)>();
+            foreach (var t in _fernTrails)
+                for (int i = 0; i + 1 < t.pts.Length; i++)
+                {
+                    float len = EBFlat(t.pts[i], t.pts[i + 1]);
+                    for (float d = 0f; d < len; d += 0.5f)
+                    {
+                        var p = Ground(Vector3.Lerp(t.pts[i], t.pts[i + 1], d / Mathf.Max(0.01f, len))); if (z.Weight(p) <= 0f) continue;
+                        l.Add((new Vector3(p.x, p.y + t.halfWidth * 0.5f + 0.2f, p.z), t.halfWidth * 0.8f + extra));
+                    }
+                }
+            return l;
         }
 
         /// <summary>best-scoring random spot (score &lt;= 0 rejected), at least minSep from the taken ones</summary>
@@ -204,14 +306,26 @@ namespace PrimalFrontier.EditorTools
 
         // ================================================================== Zone 4: Giant Fern Forest
         static readonly Vector2 FernClearingDefault = new Vector2(160f, 24f);
-        const float FernClearingR = 11f;
+        const float FernClearingMin = 11f;
+        /// <summary>clearing radius and the trail ring round the landmark: grown to clear the LM_GiantTree collider</summary>
+        static float FernClearingR = 11f, _fernRing = 8f;
         static Vector3 _fernClearing;
+        /// <summary>existing = the placed landmark instance (read-only check: measured in place, nothing instantiated)</summary>
+        static void FernSetup(Vector3 clearing, GameObject existing = null)
+        {
+            _fernClearing = Ground(clearing);
+            var art = Prefab("LM_GiantTree", false);
+            float rad = art || existing ? EBWalkRadius(art, _fernClearing, existing) : 0f;
+            _fernRing = Mathf.Max(8f, rad + 2.4f); FernClearingR = Mathf.Max(FernClearingMin, _fernRing + 3.5f);
+            _fernTrails = FernTrails(_fernClearing);
+            L($"clearing {V(_fernClearing)}: LM_GiantTree collider radius at walking height {F(rad)} m -> trail ring {F(_fernRing)} m, clearing radius {F(FernClearingR)} m");
+        }
         static List<EBTrail> _fernTrails;
 
         /// <summary>points on the clearing ring (radius R - 3) that take a trail round the landmark instead of through it</summary>
         static IEnumerable<Vector3> FernRing(Vector3 c, Vector3 from, Vector3 to, bool end)
         {
-            float r = FernClearingR - 3f;
+            float r = _fernRing;
             float aIn = Mathf.Atan2(from.x - c.x, from.z - c.z);
             yield return Ground(c + new Vector3(Mathf.Sin(aIn), 0f, Mathf.Cos(aIn)) * r);
             if (end) yield break;
@@ -225,6 +339,7 @@ namespace PrimalFrontier.EditorTools
             Vector3 P(float x, float z) => Ground(new Vector3(x, 0f, z));
             EBTrail MkT(string name, float hw, string note, Vector3[] before, Vector3[] after)
             {
+                before = before.Where(q => EBFlat(q, c) > _fernRing + 2f).ToArray(); after = after.Where(q => EBFlat(q, c) > _fernRing + 2f).ToArray();
                 var pts = new List<Vector3>(before);
                 pts.AddRange(FernRing(c, before[before.Length - 1], after.Length > 0 ? after[0] : c, after.Length == 0));
                 pts.AddRange(after);
@@ -258,8 +373,7 @@ namespace PrimalFrontier.EditorTools
             if (!OpenIsland(out var scene, out bool wasDirty)) return End();
             if (!FindTerrain() || LoadFeat() == null) { W("no terrain or features"); return End(); }
             var z = ZoneById("fern"); if (z == null) { W("zone fern missing in the core"); return End(); }
-            _fernClearing = Ground(EBXZ(a, "clearing", FernClearingDefault));
-            _fernTrails = FernTrails(_fernClearing);
+            FernSetup(EBXZ(a, "clearing", FernClearingDefault));
             int blockers = BuildBlockers(scene);
             var others = EBTreeGrid("EB_fern");
             L($"zone {z.id}: centre {V(z.centre)} r {F(z.radius)} blend {F(z.blend)}; clearing {V(_fernClearing)} r {F(FernClearingR)}; blockers {blockers}");
@@ -312,6 +426,10 @@ namespace PrimalFrontier.EditorTools
             }, out long dBefore, out long dAfter);
             L($"details: {nDet} cells, layers [{string.Join(", ", layers.Select(l => TD.detailPrototypes[l].prototype ? TD.detailPrototypes[l].prototype.name : "?"))}] {dBefore} -> {dAfter} instances in the zone rect");
 
+            // ---- v1 / Phase 1 terrain trees in the zone core moved out of the clearing and the trail lanes (index kept)
+            L(FernRelocateTrees(z));
+            others = EBTreeGrid("EB_fern");
+
             // ---- own terrain trees (key EB_fern)
             int[] pFern = new[] { "ENV_PC_TreeFern_A", "ENV_PC_TreeFern_B", "ENV_PC_TreeFern_C" }.Select(n => TreeProto(n)).Where(i => i >= 0).ToArray();
             int[] pCyc = new[] { "ENV_PC_Cycad_A", "ENV_PC_Cycad_B", "ENV_PC_Cycad_C" }.Select(n => TreeProto(n)).Where(i => i >= 0).ToArray();
@@ -358,18 +476,29 @@ namespace PrimalFrontier.EditorTools
             }
             var gf = EBScatter(under, new[] { "ENV_PC_GiantFern_A", "ENV_PC_GiantFern_B" }, 220, 3.2f,
                 p => { float ow = OwnWeight(z, p); float th = Smooth01((Noise(p.x, p.z, 9f, 51) - 0.28f) / 0.45f); return ow * (0.35f + 0.65f * th); },
-                (p, r) => Base(p, r, 0.4f) && Slope(p) < 32f && !Near(allTrees, p, 1.1f, 4f), 1.15f, 1.85f, 0.05f, false, 4101, area, placed);
-            var mag = EBScatter(under, new[] { "ENV_PC_Magnolia_A", "ENV_PC_Magnolia_B" }, 70, 7f,
-                p => OwnWeight(z, p) * 0.55f, (p, r) => Base(p, r, 0.6f) && Slope(p) < 24f && !Near(allTrees, p, 1.4f, 4f), 0.9f, 1.35f, 0.08f, false, 4102, area, placed);
-            var trunks = EBScatter(dead, new[] { "ENV_PC_FallenTrunk_A", "ENV_PC_FallenTrunk_B" }, 12, 16f,
-                p => OwnWeight(z, p) > 0.4f ? 0.7f : 0f, (p, r) => Base(p, r, 1.2f) && Slope(p) < 14f && !Near(allTrees, p, 1.2f, 4f), 0.9f, 1.2f, 0.12f, true, 4103, area, placed, isLong: true, colliderProp: true, ignoreRoot: root);
+                (p, r) => Base(p, r, 0.4f) && Slope(p) < 32f && !Near(allTrees, p, 1.1f, 4f), 1.3f, 2.3f, 0.05f, false, 4101, area, placed);
+            var mag = EBScatter(under, new[] { "ENV_PC_Magnolia_A", "ENV_PC_Magnolia_B" }, 90, 6.5f,
+                p => OwnWeight(z, p) * 0.55f, (p, r) => Base(p, r, 0.6f) && Slope(p) < 24f && !Near(allTrees, p, 1.4f, 4f), 1.0f, 1.4f, 0.08f, false, 4102, area, placed);
+            var rejT = new Dictionary<string, int>(); var rejL = new Dictionary<string, int>(); var rejR = new Dictionary<string, int>();
+            var placedD = new Dictionary<long, List<Vector3>>();
+            var trunks = EBScatter(dead, new[] { "ENV_PC_FallenTrunk_A", "ENV_PC_FallenTrunk_B" }, 8, 16f,
+                p => OwnWeight(z, p) > 0.4f ? 0.7f : 0f, (p, r) => Base(p, r, 1.2f) && Slope(p) < 16f && !Near(allTrees, p, 0.9f, 4f), 0.75f, 1.05f, 0.12f, true, 4103, area, placedD, isLong: true, colliderProp: true, ignoreRoot: root, rej: rejT);
+            L($"fallen trunk rejections: {EBRej(rejT)}");
+            if (trunks.Count < 8)
+            {
+                var logs = EBScatter(dead, new[] { "PFB_ENV_FallenLog_01" }, 8 - trunks.Count, 12f,
+                    p => OwnWeight(z, p) > 0.35f ? 0.7f : 0f, (p, r) => Base(p, r, 1f) && Slope(p) < 18f && !Near(allTrees, p, 0.9f, 4f), 0.9f, 1.2f, 0.08f, true, 4110, area, placedD, isLong: true, colliderProp: true, ignoreRoot: root, rej: rejL);
+                L($"fallen logs (PFB_ENV_FallenLog_01) added: {logs.Count}; rejections: {EBRej(rejL)}");
+                trunks.AddRange(logs);
+            }
             var rocks = EBScatter(dead, new[] { "ENV_PC_MossRock_A", "ENV_PC_MossRock_B", "ENV_PC_MossRock_C" }, 16, 9f,
-                p => OwnWeight(z, p) * 0.45f, (p, r) => Base(p, r, 1f) && Slope(p) < 26f && !Near(allTrees, p, 1.2f, 4f), 0.6f, 1.3f, 0.3f, true, 4104, area, placed, colliderProp: true, ignoreRoot: root);
+                p => OwnWeight(z, p) * 0.45f, (p, r) => Base(p, r, 1f) && Slope(p) < 26f && !Near(allTrees, p, 1.0f, 4f), 0.6f, 1.3f, 0.3f, true, 4104, area, placedD, colliderProp: true, ignoreRoot: root, rej: rejR);
+            L($"moss rock rejections: {EBRej(rejR)}");
             // root plates at the new araucarias
             int nRoots = 0; var rootPf = new[] { Prefab("ENV_PC_Roots_A"), Prefab("ENV_PC_Roots_B") }.Where(p => p).ToArray();
             for (int i = 0; i < araPos.Count && nRoots < 10 && rootPf.Length > 0; i++)
             {
-                var p = araPos[i]; if (Rand01(i, 4105) > 0.45f || FernTrailClear(p) < 3f || IsBlocked(p, 2.6f) || Slope(p) > 20f) continue;
+                var p = araPos[i]; if (Rand01(i, 4105) > 0.45f || FernTrailClear(p) < 5.5f || IsBlocked(p, 5f) || Slope(p) > 20f || EBFlat(p, _fernClearing) < FernClearingR + 6f) continue;
                 var go = Place(dead, rootPf[nRoots % rootPf.Length], p, Rand01(i, 4106) * 360f, 0.8f + Rand01(i, 4107) * 0.3f, false, 0.15f);
                 if (go) nRoots++;
             }
@@ -399,6 +528,11 @@ namespace PrimalFrontier.EditorTools
             var art = Prefab("LM_GiantTree", false);
             if (art) { var go = (GameObject)PrefabUtility.InstantiatePrefab(art, lm); go.transform.localPosition = Vector3.zero; go.transform.localRotation = Quaternion.identity; L($"landmark: ART LM_GiantTree placed at {V(_fernClearing)}"); }
             else L($"landmark: placeholder LM_GiantFernForest at {V(_fernClearing)} (LM_GiantTree not delivered yet)");
+            var lmHits = new List<string>();
+            int cleared = EBClearCorridor(root, lm, FernTrailProbes(z, 0.4f), lmHits);
+            L($"trail corridors: {cleared} own props with a collider on a trail removed{(lmHits.Count > 0 ? "; WARNING landmark collider on a trail at " + string.Join(" ", lmHits) : "")}");
+            if (lmHits.Count > 0) W("the landmark collider touches a trail: widen the ring");
+            L($"final own props: {EBModelCounts(root)}");
             var fx = Group2(root, "FX_Anchors");
             void Fx(string name, Vector3 p, float up) { var g = Ground(p); Marker(fx, name, g + Vector3.up * up, Quaternion.identity); L($"  FX anchor {name} {V(g + Vector3.up * up)}"); }
             Fx("FX_GroundMist_01", new Vector3(116f, 0f, 40f), 0.3f); Fx("FX_GroundMist_02", new Vector3(134f, 0f, -8f), 0.3f);
@@ -413,6 +547,75 @@ namespace PrimalFrontier.EditorTools
             return End();
         }
 
+        /// <summary>
+        /// other terrain trees (v1 / Phase 1 ENV, never another agent's recorded ones) in the zone core that stand in the clearing
+        /// or on a trail lane are moved just outside it; index, prototype, rotation and scale are kept (TreeHarvest indices and
+        /// saves stay valid). Idempotent: a moved tree is outside, so a re-run moves nothing.
+        /// </summary>
+        static string FernRelocateTrees(Zone z)
+        {
+            var skip = new HashSet<int>();
+            if (System.IO.Directory.Exists(TreeRecordDir))
+                foreach (var f in System.IO.Directory.GetFiles(TreeRecordDir, "*_trees.json"))
+                {
+                    var rec = JsonUtility.FromJson<TreeRecord>(System.IO.File.ReadAllText(f));
+                    if (rec != null && rec.slots != null) foreach (var sl in rec.slots) skip.Add(sl.i);
+                }
+            var all = TD.treeInstances; int movedC = 0, movedT = 0, failed = 0;
+            var grid = new Dictionary<long, List<Vector3>>();
+            foreach (var t in all) if (t.widthScale > 0.001f) Add(grid, TreeWorld(t), 4f);
+            var moves = new List<string>();
+            for (int i = 0; i < all.Length; i++)
+            {
+                var t = all[i]; if (t.widthScale < 0.001f || skip.Contains(i)) continue;
+                var p = TreeWorld(t); if (OwnWeight(z, p) < 0.99f) continue;
+                bool inClear = EBFlat(p, _fernClearing) < FernClearingR - 0.5f, onTrail = FernTrailClear(p) < 0.6f;
+                if (!inClear && !onTrail) continue;
+                if (grid.TryGetValue(Key(p.x, p.z, 4f), out var own)) own.Remove(p);
+                bool ok = false;
+                EBTrail tr = null; Vector3 cp = p, dirS = Vector3.forward;
+                if (!inClear)
+                {
+                    float bt = 1e9f;
+                    foreach (var x in _fernTrails)
+                        for (int s = 0; s + 1 < x.pts.Length; s++)
+                        {
+                            float dd = SegDist(p, x.pts[s], x.pts[s + 1]) - x.halfWidth; if (dd >= bt) continue;
+                            bt = dd; tr = x; var a = x.pts[s]; var ab = x.pts[s + 1] - a; ab.y = 0f;
+                            float u = ab.sqrMagnitude < 1e-4f ? 0f : Mathf.Clamp01(Vector3.Dot(new Vector3(p.x - a.x, 0f, p.z - a.z), ab) / ab.sqrMagnitude);
+                            cp = a + ab * u; cp.y = 0f; dirS = ab.sqrMagnitude < 1e-4f ? Vector3.forward : ab.normalized;
+                        }
+                }
+                for (int k = 0; k < 16 && !ok; k++)
+                {
+                    Vector3 q;
+                    if (inClear)
+                    {
+                        var d = p - _fernClearing; d.y = 0f; if (d.sqrMagnitude < 0.01f) d = Vector3.forward;
+                        float ang = (k % 2 == 0 ? 1f : -1f) * (k / 2) * 12f;
+                        q = _fernClearing + Quaternion.Euler(0f, ang, 0f) * d.normalized * (FernClearingR + 1.5f + Rand01(i, 7300 + k) * 2.5f);
+                    }
+                    else
+                    {
+                        var nrm = Vector3.Cross(Vector3.up, dirS).normalized;
+                        float side = Vector3.Dot(new Vector3(p.x - cp.x, 0f, p.z - cp.z), nrm) >= 0f ? 1f : -1f; if (k >= 8) side = -side;
+                        float along = ((k % 8) / 2) * 1.5f * (k % 2 == 0 ? 1f : -1f);
+                        q = new Vector3(cp.x, 0f, cp.z) + nrm * side * (tr.halfWidth + 1.3f + Rand01(i, 7400 + k) * 1.5f) + dirS * along;
+                    }
+                    q.y = 0f; q = Ground(q);
+                    if (q.y < 2.5f || Slope(q) > 30f || FernTrailClear(q) < 0.8f || EBFlat(q, _fernClearing) < FernClearingR + 0.5f || IsBlocked(q, 1.2f) || WaterDist(q) < 2f) continue;
+                    if (EBCount(grid, q, 2f) > 0) continue;
+                    t.position = new Vector3((q.x - TPos.x) / TD.size.x, (q.y - TPos.y) / TD.size.y, (q.z - TPos.z) / TD.size.z);
+                    all[i] = t; Add(grid, q, 4f); ok = true;
+                    if (moves.Count < 12) moves.Add($"#{i} {V(p)} -> {V(q)}");
+                }
+                if (ok) { if (inClear) movedC++; else movedT++; }
+                else { failed++; Add(grid, p, 4f); if (moves.Count < 12) moves.Add($"#{i} {V(p)} NOT moved (no free spot)"); }
+            }
+            if (movedC + movedT > 0) TD.SetTreeInstances(all, true);
+            return $"other terrain trees moved out of the clearing: {movedC}, off the trail lanes: {movedT}, could not move: {failed} (index / prototype / scale kept; agents' recorded trees never touched){(moves.Count > 0 ? ": " + string.Join("; ", moves) : "")}";
+        }
+
         static void FernSurvey(Zone z, Dictionary<long, List<Vector3>> trees)
         {
             foreach (var n in new[] { "ENV_PC_GiantFern_A", "ENV_PC_GiantFern_B", "ENV_PC_Magnolia_A", "ENV_PC_Magnolia_B", "ENV_PC_FallenTrunk_A", "ENV_PC_FallenTrunk_B",
@@ -424,18 +627,18 @@ namespace PrimalFrontier.EditorTools
             }
             int inZone = 0; foreach (var kv in trees) foreach (var p in kv.Value) if (z.Weight(p) > 0f) inZone++;
             L($"  other terrain trees in the zone + blend: {inZone}");
-            var cands = new List<(Vector3 p, int n, float s)>();
+            var cands = new List<(Vector3 p, int n, float s, int blk)>();
             for (float dx = -24f; dx <= 24f; dx += 4f) for (float dz = -24f; dz <= 24f; dz += 4f)
                 {
                     var p = Ground(new Vector3(FernClearingDefault.x + dx, 0f, FernClearingDefault.y + dz)); float s = 0f;
                     for (int k = 0; k < 8; k++) s = Mathf.Max(s, Slope(p + Quaternion.Euler(0, k * 45f, 0) * Vector3.forward * 6f));
-                    if (IsBlocked(p, FernClearingR)) continue;
-                    cands.Add((p, EBCount(trees, p, FernClearingR), s));
+                    int blk = 0; foreach (var l in Blockers.Values) foreach (var q in l) if (EBFlat(q, p) < FernClearingR + q.y) blk++;
+                    cands.Add((p, EBCount(trees, p, FernClearingR), s, blk));
                 }
-            foreach (var c in cands.OrderBy(c => c.n * 10 + c.s).Take(8)) L($"  clearing candidate {V(c.p)}: {c.n} trees within {F(FernClearingR)} m, max slope {F(c.s)}");
+            foreach (var c in cands.OrderBy(c => c.n * 4 + c.s + c.blk * 6).Take(10)) L($"  clearing candidate {V(c.p)}: {c.n} trees within {F(FernClearingR)} m, max slope {F(c.s)}, blockers {c.blk}");
             foreach (var t in _fernTrails)
             {
-                float maxS = 0f, minW = 999f; int blocked = 0, solid = 0, treesIn = 0, samples = 0;
+                float maxS = 0f, minW = 999f; int blocked = 0, solid = 0, treesIn = 0, samples = 0; var names = new List<string>();
                 for (int i = 0; i + 1 < t.pts.Length; i++)
                 {
                     float len = EBFlat(t.pts[i], t.pts[i + 1]);
@@ -443,10 +646,14 @@ namespace PrimalFrontier.EditorTools
                     {
                         var p = Ground(Vector3.Lerp(t.pts[i], t.pts[i + 1], d / len)); samples++;
                         maxS = Mathf.Max(maxS, Slope(p)); minW = Mathf.Min(minW, WaterDist(p));
-                        if (IsBlocked(p, 0f)) blocked++; if (SolidAt(p, t.halfWidth)) solid++; treesIn += EBCount(trees, p, t.halfWidth + 0.5f);
+                        if (IsBlocked(p, 0f)) { blocked++; if (names.Count < 8) names.Add("blocked at " + V(p)); }
+                        var c = new Vector3(p.x, p.y + t.halfWidth * 0.5f + 0.2f, p.z);
+                        foreach (var col in Physics.OverlapSphere(c, t.halfWidth, ~0, QueryTriggerInteraction.Ignore))
+                            if (!(col is TerrainCollider)) { solid++; if (names.Count < 8) names.Add(PathOf(col.transform) + " " + V(col.transform.position)); }
+                        treesIn += EBCount(trees, p, t.halfWidth + 0.5f);
                     }
                 }
-                L($"  trail {t.name}: {F(t.Length)} m, {samples} samples, max slope {F(maxS)}, min water {F(minW)}, blocked {blocked}, colliders {solid}, tree hits {treesIn}");
+                L($"  trail {t.name}: {F(t.Length)} m, {samples} samples, max slope {F(maxS)}, min water {F(minW)}, blocked {blocked}, colliders {solid}, tree hits {treesIn}; " + string.Join("; ", names));
             }
         }
 
@@ -459,9 +666,8 @@ namespace PrimalFrontier.EditorTools
             if (!FindTerrain() || LoadFeat() == null) { W("no terrain or features"); return End(); }
             int problems = 0;
             var fern = ZoneById("fern"); var foot = ZoneById("foothills");
-            _fernClearing = Ground(new Vector3(FernClearingDefault.x, 0f, FernClearingDefault.y));
-            var lmT = SceneRootsFind(fern.GroupPath + "/LM_GiantFernForest"); if (lmT) _fernClearing = lmT.position;
-            _fernTrails = FernTrails(_fernClearing);
+            var lmT = SceneRootsFind(fern.GroupPath + "/LM_GiantFernForest");
+            FernSetup(lmT ? lmT.position : new Vector3(FernClearingDefault.x, 0f, FernClearingDefault.y), lmT && lmT.childCount > 0 ? lmT.GetChild(0).gameObject : null);
             FootLoad();
             foreach (var (z, key) in new[] { (fern, "EB_fern"), (foot, "EB_foothills") })
             {

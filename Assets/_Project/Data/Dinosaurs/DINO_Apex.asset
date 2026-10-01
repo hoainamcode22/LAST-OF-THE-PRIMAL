@@ -82,25 +82,25 @@ MonoBehaviour:
   drinkSearchRadius: 160
   unarmedDamageScale: -1
   behaviour:
-    nightFear: 0.5
-    aggression: 0.5
-    investigation: 0.5
+    nightFear: 0.1
+    aggression: 0.9
+    investigation: 0.7
   locomotion:
-    weight: -1
-    swayDegrees: 1.2
-    leanDegrees: 2.5
+    weight: 1
+    swayDegrees: 2.4
+    leanDegrees: 2
     tailBalance: 12
-    accelPitch: 0.8
-    stepShake: 0
-    pivotRate: 0.6
+    accelPitch: 1.5
+    stepShake: 0.032
+    pivotRate: 0.55
   tracks:
     shape: 0
-    printSize: 0.4
-    stride: 2
-    gauge: 0.6
-    droppingsSize: 0
-    scratchHeight: 0
-  wildlifeTuned: 0
+    printSize: 0.95
+    stride: 3.6
+    gauge: 1.1
+    droppingsSize: 0.45
+    scratchHeight: 3.2
+  wildlifeTuned: 1
   hunt:
     hunts: 1
     prey: triceratops,parasaurolophus

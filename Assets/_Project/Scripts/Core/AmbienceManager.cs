@@ -14,6 +14,9 @@ namespace PrimalFrontier.Core
     /// with its size) or has just noticed the player (GameEventType.PlayerNoticed from a predator); they come back slowly.
     /// Indoors (cave zone) the outside is muffled through a low-pass filter. All clips are original (Tools/Audio/
     /// ambience_synth.py); a missing PC-phase clip falls back to the older six loops, so nothing goes silent.
+    /// Phase 2 zones: <see cref="zoneBeds"/> (2D beds weighted by a ZoneManager zone's blend band: valley grass wind, wetland
+    /// frogs and insects, bone valley dry wind, fern forest insects, foothills wind) and <see cref="zoneCalls"/> (distant herd
+    /// calls, scavenger cries, tree creaks, the mountain's low rumble) made by PrimalAtmosphereBuilder.Zones2.
     /// Volumes ease, nothing pops. The legacy <see cref="stormOn"/> / <see cref="SnapStorm"/> (intro) keep working.
     /// </summary>
     public class AmbienceManager : MonoBehaviour
@@ -46,6 +49,38 @@ namespace PrimalFrontier.Core
         [Tooltip("seconds of silence after a predator noticed the player")] public float noticedSilenceSeconds = 24f;
         [Tooltip("seconds to fall silent / to come back")] public float hushSeconds = 2.5f, returnSeconds = 9f;
 
+        [Header("Phase 2 zones (PrimalAtmosphereBuilder.Zones2)")]
+        [Tooltip("2D beds that fade in with a ZoneManager zone's weight (inside = 1, fading over its blend band)")] public List<ZoneBed> zoneBeds = new List<ZoneBed>();
+        [Tooltip("one-shots around the listener while inside a zone (distant herd calls, scavenger calls, creaks, low rumble)")] public List<ZoneCall> zoneCalls = new List<ZoneCall>();
+
+        [System.Serializable]
+        public class ZoneBed
+        {
+            [Tooltip("ZoneManager zone id")] public string zone;
+            public AudioClip day; [Tooltip("empty = the day clip at night too")] public AudioClip night;
+            [Range(0, 1)] public float volume = 0.25f, nightVolume = 0.25f;
+            [Tooltip("goes quiet with the predator silence (insects, frogs)")] public bool hushable;
+            [Tooltip("heavy rain masks it this much")] [Range(0, 1)] public float rainMask = 0.5f;
+            [Tooltip("indoors (cave) x this")] [Range(0, 1)] public float indoor = 0.3f;
+        }
+
+        [System.Serializable]
+        public class ZoneCall
+        {
+            [Tooltip("ZoneManager zone id")] public string zone;
+            public AudioClip[] clips = new AudioClip[0];
+            [Tooltip("real seconds between calls")] public Vector2 every = new Vector2(25f, 70f);
+            [Range(0, 1)] public float volume = 0.4f;
+            public Vector2 pitch = new Vector2(0.95f, 1.05f);
+            [Tooltip("metres from the listener")] public Vector2 distance = new Vector2(40f, 80f);
+            [Tooltip("metres above the listener")] public Vector2 height = new Vector2(2f, 12f);
+            [Tooltip("low-pass cutoff, Hz (far calls are dull)")] public float cutoff = 22000f;
+            [Range(0, 1)] public float dayChance = 1f, nightChance = 1f;
+            [Tooltip("goes quiet with the predator silence")] public bool hushable;
+            [Tooltip("heard indoors too (the cave)")] public bool indoorsToo;
+            [System.NonSerialized] public float nextAt = -1f; [System.NonSerialized] public int last = -1;
+        }
+
         [Header("Cave")]
         [Tooltip("low-pass cutoff of the outside sounds while indoors, Hz")] public float indoorCutoff = 850f;
 
@@ -61,6 +96,10 @@ namespace PrimalFrontier.Core
         float _oceanness, _next, _nextScan, _silenceTarget, _hushUntil = -1f;
         float _nextBird = 3f, _nextCall = 30f, _nextCritter = 10f, _answerAt = -1f; Vector3 _answerFrom;
         int _lastBird = -1, _lastCall = -1;
+        class ZoneLayer { public ZoneBed bed; public Layer day, night; public World.ZoneManager.Zone zone; }
+        readonly List<ZoneLayer> _zoneLayers = new List<ZoneLayer>();
+        readonly List<World.ZoneManager.Zone> _callZones = new List<World.ZoneManager.Zone>();
+        float _nextZoneLookup;
 
         void Awake() { Instance = this; }
         void OnDestroy() { if (Instance == this) Instance = null; GameEvents.Raised -= OnEvent; }
@@ -100,6 +139,13 @@ namespace PrimalFrontier.Core
                 _pool.Add(a);
             }
             if (!terrain) terrain = Terrain.activeTerrain;
+            foreach (var b in zoneBeds)
+            {
+                if (b == null || !b.day || string.IsNullOrEmpty(b.zone)) continue;
+                var zl = new ZoneLayer { bed = b, day = Make(b.day, "Zone_" + b.zone) };
+                if (b.night && b.night != b.day) zl.night = Make(b.night, "Zone_" + b.zone + "_Night");
+                _zoneLayers.Add(zl);
+            }
         }
 
         void OnEvent(GameEvent e)
@@ -176,6 +222,47 @@ namespace PrimalFrontier.Core
             _thunderLp.cutoffFrequency = Mathf.Lerp(22000f, 500f, Indoor01);
 
             OneShots(p, dayK, nightK, rainK, life, outK, k);
+            ZoneSounds(p, dt, nightK, rainK, life, k);
+        }
+
+        /// <summary>Phase 2 zone beds (weighted by the zone's blend band) and zone one-shots</summary>
+        void ZoneSounds(Vector3 p, float dt, float nightK, float rainK, float life, float k)
+        {
+            var zm = World.ZoneManager.Instance;
+            if (!zm) return;
+            if (Time.time >= _nextZoneLookup)
+            {
+                _nextZoneLookup = Time.time + 5f;
+                foreach (var zl in _zoneLayers) zl.zone = zm.Find(zl.bed.zone);
+                _callZones.Clear(); foreach (var c in zoneCalls) _callZones.Add(c != null ? zm.Find(c.zone) : null);
+            }
+            float rainMaskK = Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(0.5f, 1f, rainK));
+            foreach (var zl in _zoneLayers)
+            {
+                var b = zl.bed; float w = zl.zone != null ? zl.zone.Weight(p) : 0f;
+                float g = w * (1f - b.rainMask * rainMaskK) * (b.hushable ? life : 1f) * Mathf.Lerp(1f, b.indoor, Indoor01) * k;
+                float nk = Mathf.SmoothStep(0f, 1f, nightK);
+                if (zl.night != null) { Ease(zl.day, b.volume * (1f - nk) * g, dt); Ease(zl.night, b.nightVolume * nk * g, dt); }
+                else Ease(zl.day, Mathf.Lerp(b.volume, b.nightVolume, nk) * g, dt);
+            }
+            float now = Time.time;
+            for (int i = 0; i < zoneCalls.Count && i < _callZones.Count; i++)
+            {
+                var c = zoneCalls[i]; var z = _callZones[i];
+                if (c == null || z == null || c.clips == null || c.clips.Length == 0) continue;
+                if (c.nextAt < 0f) c.nextAt = now + Random.Range(c.every.x * 0.3f, c.every.y);
+                if (now < c.nextAt) continue;
+                c.nextAt = now + Random.Range(c.every.x, c.every.y);
+                float w = z.Weight(p); if (w < 0.35f) continue;
+                if (!c.indoorsToo && Indoor01 > 0.5f) continue;
+                if (c.hushable && life < 0.7f) continue;
+                if (rainK > 0.85f) continue;
+                if (Random.value > Mathf.Lerp(c.dayChance, c.nightChance, nightK)) continue;
+                int j = Pick(c.clips, ref c.last); var clip = c.clips[j]; if (!clip) continue;
+                var at = Around(p, c.distance.x, c.distance.y, c.height.x, c.height.y);
+                Play(clip, at, c.volume * w * (1f - rainK * 0.6f) * k * Random.Range(0.75f, 1f), Random.Range(c.pitch.x, c.pitch.y),
+                     Mathf.Lerp(c.cutoff, Mathf.Min(c.cutoff, indoorCutoff), Indoor01), Mathf.Max(90f, c.distance.y * 1.6f));
+            }
         }
 
         /// <summary>0..1: how close an awake predator is (size widens the range; awareness of the player hushes further)</summary>

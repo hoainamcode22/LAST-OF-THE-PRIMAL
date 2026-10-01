@@ -81,6 +81,9 @@ namespace PrimalFrontier.Story
             A("volcano", "The ground is warm here.", "ZoneEntered|HazardWarning", "volcano|lava*");
             A("respawn", "Still breathing. Barely.", "PlayerRespawned");
             A("belongings", "My things. Still here.", "BelongingsRecovered");
+            // Phase 2 (WORLD): Bone Valley's lesson, and a thought when a landmark is first seen or reached
+            A("bone_valley", StoryTexts.BoneValleyLesson.thought, "ZoneEntered", "bone_valley", fear: true);
+            foreach (var m in StoryTexts.Landmarks) A(m.id, m.thought, "ZoneEntered", m.id);
             return l;
         }
 

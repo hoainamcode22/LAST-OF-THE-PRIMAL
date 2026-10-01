@@ -19,6 +19,11 @@ namespace PrimalFrontier.Story
             "volcano", "predator_territory", "herbivore_valley", "old_camp", "fossil_bed", "nest", "migration_view",
         };
 
+        /// <summary>Phase 2 environments (ZoneManager Region zones, PrimalAtmosphereBuilder.Zones2)</summary>
+        public static readonly string[] Regions = { "migration_valley", "prehistoric_wetland", "bone_valley", "giant_fern_forest", "volcanic_foothills", "deep_water_cave" };
+        /// <summary>Phase 2 landmarks and hidden spots (ZoneManager Landmark zones: found when seen or reached)</summary>
+        public static readonly string[] Landmarks = { "lm_rock_ridge", "lm_fallen_tree", "lm_fossil_skeleton", "lm_giant_tree", "lm_black_ridge", "lm_underground_pool", "cave_hidden_chamber" };
+
         static readonly Dictionary<string, string> LegacyLocations = new Dictionary<string, string>(StringComparer.Ordinal)
         {
             { "start_beach", "beach" }, { "startbeach", "beach" }, { "wreck", "shipwreck" }, { "ship_wreck", "shipwreck" },

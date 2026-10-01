@@ -38,7 +38,7 @@ Mesh:
   m_IndexBuffer: 
   m_VertexData:
     serializedVersion: 3
-    m_VertexCount: 16
+    m_VertexCount: 13
     m_Channels:
     - stream: 0
       offset: 0
@@ -96,8 +96,8 @@ Mesh:
       offset: 0
       format: 0
       dimension: 0
-    m_DataSize: 192
-    _typelessdata: a0c878c080d7db3e00167e3f80a13ac040d4ca3e00eac03f80f4f8bf40d1b93e80640140004c79bf40209d3e0054224000f7edbe8001983e806e14400048353dc0e2923ec08806400043b03e00c48d3e0089c43f00ee243f40a5883e0001783f00bb713f0033583e00e0cd3e80ee893f001e97be00a84abec0ff9a3fc0aea3be00434cbfc010ac3f80cda8be80eeb2bf4088a33f40ecadbe80bbffbfc0ff9a3f000bb3be004426c04077923f005518bf80aa4cc000bb713f60e41abf405586c0
+    m_DataSize: 156
+    _typelessdata: e02c79c0800ccc3e80852ec0602145c0401bc23e40f812c0c01511c0402ab83e00d6eebf4014babf0039ae3e80bbb7bf00fa23bf00739f3e00a180bf00fcbebd8048883e00502dbf0075e83e80b67d3e00bab2be803a743f8067283e0078803e401dba3f0038d8bd00d6593f00eae63fc0e9a0be00b8b93f60db0940c0dc21bf40420340c041104080e133bf8075264020a81640e07036bfc0a84940
   m_CompressedMesh:
     m_Vertices:
       m_NumItems: 0
@@ -151,8 +151,8 @@ Mesh:
       m_BitSize: 0
     m_UVInfo: 0
   m_LocalAABB:
-    m_Center: {x: -1.271492, y: -0.08783436, z: -0.8307648}
-    m_Extent: {x: 2.6157532, y: 0.51721287, z: 3.3671417}
+    m_Center: {x: -0.7696762, y: -0.15706348, z: 0.21201324}
+    m_Extent: {x: 3.1236877, y: 0.55559635, z: 2.9389114}
   m_MeshUsageFlags: 0
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 

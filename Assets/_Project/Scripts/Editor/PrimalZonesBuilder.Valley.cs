@@ -244,26 +244,55 @@ namespace PrimalFrontier.EditorTools
         // ------------------------------------------------------------------ ridge pose (ART LM_RockRidge: 57 x 15.7 x 20.7 m, long axis local X, pivot base centre)
         static Vector3 _ridgePos; static float _ridgeYaw, _ridgeRange; static bool _ridgeOk;
         const float RidgeHalfX = 28.5f, RidgeHalfZ = 10.4f, RidgeH = 15.7f;
-        /// <summary>yaw (+-40 deg round "facing the valley centre") with the flattest footprint that keeps the route, gameplay objects and the knoll view clear; y = lowest footprint ground (the 2 m skirt covers the rest)</summary>
+        /// <summary>an oriented rectangle (centre, yaw, half sizes) within margin of a blocker circle (exact, every blocker in the cells it covers)</summary>
+        static bool EA_RectBlocked(Vector3 c, float yaw, float hx, float hz, float margin)
+        {
+            var inv = Quaternion.Euler(0f, -yaw, 0f); float reach = Mathf.Sqrt(hx * hx + hz * hz) + margin + 6f;
+            int cx0 = Mathf.FloorToInt((c.x - reach) / 4f), cx1 = Mathf.FloorToInt((c.x + reach) / 4f), cz0 = Mathf.FloorToInt((c.z - reach) / 4f), cz1 = Mathf.FloorToInt((c.z + reach) / 4f);
+            for (int cx = cx0; cx <= cx1; cx++) for (int cz = cz0; cz <= cz1; cz++)
+                if (Blockers.TryGetValue(((long)cx << 32) ^ (uint)cz, out var l))
+                    foreach (var q in l)
+                    {
+                        var lp = inv * new Vector3(q.x - c.x, 0f, q.z - c.z);
+                        float dx = Mathf.Max(0f, Mathf.Abs(lp.x) - hx), dz = Mathf.Max(0f, Mathf.Abs(lp.z) - hz);
+                        if (dx * dx + dz * dz < (q.y + margin) * (q.y + margin)) return true;
+                    }
+            return false;
+        }
+        /// <summary>
+        /// Ridge spot on the west / north-west edge of the valley (65-110 m from the centre, 30+ m from the route): the whole 57 x 21 m
+        /// footprint clear of gameplay objects (exact test), 6 m off the route, out of the knoll view lines; the flattest one near
+        /// (-72, -8) wins. Yaw: long side along the edge (+-30 deg), +Z / moss side to the valley. y = lowest footprint ground.
+        /// </summary>
         static void EA_RidgePose(Zone z)
         {
-            var p0 = Ground(ValleyLandmark); var face = z.centre - p0; face.y = 0f;
-            float baseYaw = Quaternion.LookRotation(face.normalized, Vector3.up).eulerAngles.y;
-            _ridgePos = p0; _ridgeYaw = baseYaw; _ridgeRange = 99f; _ridgeOk = false; float bestScore = 1e9f;
-            for (float dy = -40f; dy <= 40f; dy += 5f)
-            {
-                var rot = Quaternion.Euler(0f, baseYaw + dy, 0f); float mn = 1e9f, mx = -1e9f; bool bad = false;
-                for (float x = -RidgeHalfX; x <= RidgeHalfX + 0.1f; x += 3f)
-                    for (float zz = -RidgeHalfZ; zz <= RidgeHalfZ + 0.1f; zz += 3.5f)
+            _ridgeOk = false; _ridgeRange = 99f; float bestScore = 1e9f; int tried = 0, rjBlock = 0, rjOther = 0;
+            _ridgePos = Ground(ValleyLandmark); _ridgeYaw = 90f;
+            for (float cz = -60f; cz <= 40f; cz += 4f)
+                for (float cx = -112f; cx <= -40f; cx += 4f)
+                {
+                    var c = new Vector3(cx, 0f, cz); float dc = z.Dist(c);
+                    if (dc < 65f || dc > 110f || OwnWeight(z, c) < 0.5f || RouteDist(c) < 30f) continue;
+                    var face = z.centre - c; face.y = 0f; float baseYaw = Quaternion.LookRotation(face.normalized, Vector3.up).eulerAngles.y;
+                    for (float dy = -30f; dy <= 30f; dy += 10f)
                     {
-                        var q = p0 + rot * new Vector3(x, 0f, zz); float y = GroundY(q); mn = Mathf.Min(mn, y); mx = Mathf.Max(mx, y);
-                        if (IsBlocked(q, 0.8f) || RouteDist(q) < 6f || WaterDist(q) < 1f || EA_BlocksKnollView(q, RidgeH, 3f)) bad = true;
+                        float yaw = baseYaw + dy; tried++;
+                        if (EA_RectBlocked(c, yaw, RidgeHalfX, RidgeHalfZ, 1f)) { rjBlock++; continue; }
+                        var rot = Quaternion.Euler(0f, yaw, 0f); float mn = 1e9f, mx = -1e9f; bool bad = false;
+                        for (float x = -RidgeHalfX; x <= RidgeHalfX + 0.1f && !bad; x += 3f)
+                            for (float zz = -RidgeHalfZ; zz <= RidgeHalfZ + 0.1f; zz += 3.5f)
+                            {
+                                var q = c + rot * new Vector3(x, 0f, zz); float y = GroundY(q); mn = Mathf.Min(mn, y); mx = Mathf.Max(mx, y);
+                                if (RouteDist(q) < 6f || WaterDist(q) < 1f || OwnWeight(z, q) < 0.2f || EA_BlocksKnollView(q, RidgeH, 3f)) { bad = true; break; }
+                            }
+                        if (bad) { rjOther++; continue; }
+                        float score = (mx - mn) + 0.03f * new Vector2(cx - ValleyLandmark.x, cz - ValleyLandmark.z).magnitude + 0.02f * Mathf.Abs(dy);
+                        if (score < bestScore) { bestScore = score; _ridgeYaw = yaw; _ridgeRange = mx - mn; _ridgePos = new Vector3(cx, mn, cz); _ridgeOk = true; }
                     }
-                float score = (mx - mn) + Mathf.Abs(dy) * 0.02f + (bad ? 1000f : 0f);
-                if (score < bestScore) { bestScore = score; _ridgeYaw = baseYaw + dy; _ridgeRange = mx - mn; _ridgePos = new Vector3(p0.x, mn, p0.z); _ridgeOk = !bad; }
-            }
-            if (!_ridgeOk) W("ridge: no yaw keeps the whole footprint clear of the route / gameplay / knoll view");
-            if (_ridgeRange > 2f) W($"ridge: ground range {F(_ridgeRange)} m under the footprint is more than the 2 m skirt: the downhill edge may show a gap");
+                }
+            L($"ridge spot: {tried} poses tried, {rjBlock} on gameplay objects, {rjOther} on the route / water / knoll view / outside; chosen {V(_ridgePos)} yaw {F(_ridgeYaw)}, ground range {F(_ridgeRange)} m, ok {_ridgeOk}");
+            if (!_ridgeOk) W("ridge: no clear pose on the west edge: kept the default spot");
+            else if (_ridgeRange > 2f) W($"ridge: ground range {F(_ridgeRange)} m under the footprint is more than the 2 m skirt: the downhill edge may show a gap");
         }
         static bool EA_InRidge(Vector3 p, float margin)
         {

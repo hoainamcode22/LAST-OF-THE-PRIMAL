@@ -46,19 +46,19 @@ Material:
     m_Ints: []
     m_Floats:
     - _AlphaClip: 0
-    - _BaseWetness: 0.78
+    - _BaseWetness: 0.08
     - _BumpScale: 0.8
     - _ColorVariation: 0
     - _Cull: 2
     - _Cutoff: 0.5
     - _Metallic: 0
-    - _MossAmount: 0.18
+    - _MossAmount: 0
     - _MossTiling: 2.5
     - _OcclusionStrength: 0.41234043
     - _Porosity: 0.55
-    - _Smoothness: 0.35
+    - _Smoothness: 0.1
     - _WetResponse: 0
-    - _WetSmoothness: 0.8
+    - _WetSmoothness: 0.5
     m_Colors:
     - _BaseColor: {r: 0.5, g: 0.48, b: 0.45, a: 1}
     - _MossColor: {r: 1, g: 1, b: 1, a: 1}

@@ -49,7 +49,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _BankFoam: 0.5
+    - _BankFoam: 0.3
     - _BankFoamWidth: 0.3
     - _BankRange: 3
     - _CausticsStrength: 0.15
@@ -62,13 +62,13 @@ Material:
     - _Opacity: 1.1
     - _RainStrength: 0
     - _RainTiling: 1.6
-    - _RapidsFoam: 0.45
+    - _RapidsFoam: 0.25
     - _ReflectionStrength: 0.85
     - _RefractionStrength: 0.035
     - _RippleStrength: 0.12
     - _RippleTiling: 1.4
     - _SSRStrength: 1
-    - _ShallowFoam: 0.35
+    - _ShallowFoam: 0.12
     - _Smoothness: 0.94
     - _SpecStrength: 0.35
     - _StreakStrength: 0.32

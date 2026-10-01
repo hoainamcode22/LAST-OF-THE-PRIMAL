@@ -71,6 +71,9 @@ namespace PrimalFrontier.EditorTools
             // shipwreck salvage (Phase 1): by hand at the wreck, slow to come back (the tide washes up more)
             D("salvage_planks", "Broken planks", ResourceCategory.Rare, ResourceSize.Medium, "Salvage", "wreck_scraps", 2, 3, ToolKind.None, ToolKind.None, 1f, 1.2f, PlayerActions.GatherBranch, PlayerActions.GatherBranch, 72f, DepletedLook.Hide, 0.85f, 0.45f, 0.05f, 0.7f, 4f, null, false),
             D("salvage_nails", "Nailed timber", ResourceCategory.Rare, ResourceSize.Medium, "Salvage", "wreck_nails", 2, 4, ToolKind.None, ToolKind.None, 1f, 1.4f, PlayerActions.GatherBranch, PlayerActions.GatherBranch, 96f, DepletedLook.Hide, 0.85f, 0.45f, 0.05f, 0.7f, 4f, null, false),
+            // Phase 2 zones (R3): reeds at the wetland reed beds, loose basalt on the foothills' black rock band (both by hand)
+            D("fiber_reeds", "Reeds", ResourceCategory.Fiber, ResourceSize.Small, "Gather Fiber", "fiber", 2, 4, ToolKind.Cut, ToolKind.None, 1f, 1.0f, PlayerActions.GatherPlant, PlayerActions.GatherPlant, 16f, DepletedLook.Hide, 0.75f, 0.45f, 0.05f, 0.45f),
+            D("stone_basalt", "Basalt chunks", ResourceCategory.Stone, ResourceSize.Small, "Gather Stone", "stone", 2, 4, ToolKind.Mine, ToolKind.None, 1f, 1.1f, PlayerActions.GatherStoneHand, PlayerActions.GatherStone, 36f, DepletedLook.Hide, 0.7f, 0.45f, 0.1f, 0.4f),
             D("salvage_sail", "Torn sail", ResourceCategory.Rare, ResourceSize.Medium, "Salvage", "sailcloth", 1, 2, ToolKind.None, ToolKind.None, 1f, 1.3f, PlayerActions.GatherPlant, PlayerActions.GatherPlant, 120f, DepletedLook.Hide, 0.85f, 0.45f, 0f, 0.8f, 4f, null, false),
         };
 
@@ -228,6 +231,8 @@ namespace PrimalFrontier.EditorTools
             new NodeKind { prefab = "Resource_Fiber_Fern", def = "fiber_fern", model = "Assets/_Project/Prefabs/Environment/PFB_ENV_Fern_01.prefab", scale = 0.8f, col = Col.Trigger, lod = false },
             new NodeKind { prefab = "Resource_Fiber_SmallBush", def = "fiber_bush", model = "Assets/_Project/Prefabs/Environment/PFB_ENV_Bush_01.prefab", scale = 0.38f, col = Col.Trigger, lod = false },
             new NodeKind { prefab = "Resource_Food_BerryBush", def = "food_berry_bush", model = "Assets/_Project/Art/Models/Resources/RES_BerryPlant_01.fbx", scale = 0.65f, col = Col.Trigger, lod = true },
+            new NodeKind { prefab = "Resource_Fiber_Reeds", def = "fiber_reeds", model = "Assets/_Project/Prefabs/Environment/PC/DET_PC_Reeds.prefab", scale = 1f, col = Col.Trigger, lod = true, copies = 3, fit = 1.1f },
+            new NodeKind { prefab = "Resource_Stone_Basalt", def = "stone_basalt", model = "Assets/_Project/Prefabs/Environment/PC/ENV_PC_Basalt_A.prefab", scale = 1f, col = Col.Solid, lod = true, fit = 0.75f },
             new NodeKind { prefab = "Resource_Food_FallenFruit", def = "food_fallen_fruit", model = "Assets/_Project/Art/Models/Props/PROP_FruitBunch.fbx", scale = 1f, euler = new Vector3(0, 0, 90), col = Col.Trigger, lod = true, copies = 2 },
         };
 

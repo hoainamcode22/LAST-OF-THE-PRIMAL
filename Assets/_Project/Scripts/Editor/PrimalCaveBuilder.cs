@@ -56,8 +56,8 @@ namespace PrimalFrontier.EditorTools
         /// <summary>stream passage: waterfall mouth (outside, mouth) -> chamber east edge</summary>
         static readonly N[] PassA =
         {
-            new N(91.4f, -0.15f, -157.1f, 2.0f, 3.2f, true),
-            new N(90.0f, -0.02f, -157.4f, 2.1f, 3.3f, true),
+            new N(92.1f, 0.03f, -156.4f, 2.0f, 3.2f, true),
+            new N(90.0f, 0.03f, -157.4f, 2.1f, 3.3f, true),
             new N(85.0f, 19.72f, -159.6f, 2.3f, 3.4f),
             new N(79.2f, 19.92f, -161.6f, 2.5f, 3.6f),
             new N(73.2f, 20.12f, -161.3f, 2.2f, 3.2f),
@@ -75,14 +75,14 @@ namespace PrimalFrontier.EditorTools
             new N(17.5f, 21.80f, -160.0f, 2.3f, 3.3f),
             new N(14.8f, 22.00f, -154.0f, 2.0f, 3.0f),
             new N(13.2f, 22.15f, -148.0f, 1.9f, 2.9f),
-            new N(12.4f, -0.02f, -141.4f, 1.9f, 2.9f, true),
-            new N(12.1f, -0.15f, -140.0f, 1.8f, 2.8f, true),
+            new N(12.4f, 0.03f, -141.4f, 1.9f, 2.9f, true),
+            new N(12.15f, 0.03f, -139.2f, 1.8f, 2.8f, true),
         };
         /// <summary>hidden branch: chamber south wall (behind the curtain) -> low crawl -> hidden chamber</summary>
         static readonly N[] PassH =
         {
             new N(41.6f, 20.92f, -180.6f, 1.5f, 2.6f),
-            new N(42.2f, 20.97f, -184.4f, 0.95f, 1.55f),
+            new N(42.2f, 20.97f, -184.4f, 0.95f, 1.3f),
             new N(43.1f, 21.05f, -187.3f, 1.3f, 2.4f),
             new N(44.2f, 21.20f, -190.2f, 1.8f, 3.0f),
         };
@@ -91,13 +91,13 @@ namespace PrimalFrontier.EditorTools
         static readonly R Alcove = new R("Alcove", new Vector3(67.8f, 20.34f, -162.3f), 2.7f, 2.4f, 3.1f);
         static readonly R Hidden = new R("HiddenChamber", new Vector3(44.8f, 21.25f, -192.4f), 4.4f, 3.8f, 4.3f);
         /// <summary>pool basins: centre at the water surface, radii (x, depth, z)</summary>
-        static readonly Vector3 PoolC = new Vector3(39.2f, 20.78f, -175.2f), PoolR = new Vector3(5.8f, 1.7f, 4.3f);
-        static readonly Vector3 AlcPoolC = new Vector3(68.0f, 20.20f, -161.7f), AlcPoolR = new Vector3(1.5f, 0.75f, 1.2f);
+        static readonly Vector3 PoolC = new Vector3(39.2f, 20.62f, -175.2f), PoolR = new Vector3(5.8f, 1.7f, 4.3f);
+        static readonly Vector3 AlcPoolC = new Vector3(68.0f, 20.06f, -161.7f), AlcPoolR = new Vector3(1.5f, 0.75f, 1.2f);
         /// <summary>the ceiling cleft over the pool (daylight shaft)</summary>
         static readonly Vector3 CleftC = new Vector3(37.2f, 31.6f, -174.4f), CleftR = new Vector3(0.45f, 2.3f, 1.7f);
         /// <summary>stream 1 after the mouth: over the rock into the plunge pool (y from the live terrain)</summary>
-        static readonly Vector2[] StreamOut = { new Vector2(91.2f, -158.3f), new Vector2(92.1f, -160.0f), new Vector2(92.5f, -161.8f), new Vector2(92.3f, -163.6f), new Vector2(92.1f, -164.6f) };
-        const float PlungePoolLevel = 18.5f;
+        static readonly Vector2[] StreamOut = { new Vector2(91.3f, -157.2f), new Vector2(92.3f, -156.0f), new Vector2(93.0f, -154.8f), new Vector2(93.2f, -153.7f) };
+        const float PlungePoolLevel = 18.45f;                                  // the river surface just below the plunge pool
         /// <summary>runnel from the curtain foot to the pool</summary>
         static readonly Vector2[] Runnel = { new Vector2(41.7f, -181.9f), new Vector2(41.1f, -180.6f), new Vector2(40.5f, -179.4f), new Vector2(40.2f, -178.7f) };
         static Vector3 MouthE, MouthW;                                           // mouth points (after the live terrain fix-up)
@@ -126,6 +126,8 @@ namespace PrimalFrontier.EditorTools
             float bx = q.x / (r.x * r.x), by = q.y / (r.y * r.y), bz = q.z / (r.z * r.z); float k1 = Mathf.Sqrt(bx * bx + by * by + bz * bz);
             return k1 < 1e-5f ? -Mathf.Min(r.x, Mathf.Min(r.y, r.z)) : k0 * (k0 - 1f) / k1;
         }
+        /// <summary>smooth intersection: rounds the floor / wall crease (a sharp crease meshes into lit stair-step teeth)</summary>
+        static float SMax(float a, float b, float k) => -SMin(-a, -b, k);
         static float SMin(float a, float b, float k) { float h = Mathf.Max(k - Mathf.Abs(a - b), 0f) / k; return Mathf.Min(a, b) - h * h * k * 0.25f; }
 
         /// <summary>segment frame at p: t along a->b (xz projection), lateral distance, floor y, width, height</summary>
@@ -147,13 +149,13 @@ namespace PrimalFrontier.EditorTools
                     SegAt(s, p, out _, out float lat, out float fy, out float w, out float h);
                     floorY = fy;
                     float de = EllipseD(lat, p.y - (fy + 0.42f * h), w, 0.6f * h);
-                    return noFloor ? de : Mathf.Max(de, fy - p.y);
+                    return noFloor ? de : SMax(de, fy - p.y, 0.3f);
                 }
                 case 1:
                 {
                     floorY = s.c.y;
                     float de = EllipsoidD(p, new Vector3(s.c.x, s.c.y + 0.2f * s.r.y, s.c.z), new Vector3(s.r.x, 0.8f * s.r.y, s.r.z));
-                    return noFloor ? de : Mathf.Max(de, s.c.y - p.y);
+                    return noFloor ? de : SMax(de, s.c.y - p.y, 0.3f);
                 }
                 case 3:
                 {
@@ -177,7 +179,9 @@ namespace PrimalFrontier.EditorTools
                 if (p.x < s.min.x || p.y < s.min.y || p.z < s.min.z || p.x > s.max.x || p.y > s.max.y || p.z > s.max.z) continue;
                 if (forHoles && !s.hole) continue;
                 float di = PrimD(s, p, out float f, forHoles);
-                if (s.kind == 0 || s.kind == 1) d = SMin(d, di, _smoothK); else dPlain = Mathf.Min(dPlain, di);
+                if (s.kind == 0 || s.kind == 1) d = SMin(d, di, _smoothK);
+                else if (s.kind == 2) d = SMin(d, di, 0.35f);                    // pool basins / cleft: a rounded rim (no stair-step teeth at the waterline)
+                else dPlain = Mathf.Min(dPlain, di);
                 if (di < best) { best = di; fy = f; ns = s.noise; }
             }
             d = Mathf.Min(d, dPlain);
@@ -211,10 +215,37 @@ namespace PrimalFrontier.EditorTools
             var q = new Vector3(p.x * 0.36f, p.y * 0.3f, p.z * 0.36f);
             return VNoise(q) * 0.66f + VNoise(q * 2.55f + new Vector3(17.3f, 3.1f, 41.7f)) * 0.34f;
         }
+        /// <summary>mouth zone (horizontal radius around each mouth): the shell is a solid rock band (inner face, outer skin
+        /// ShellT out, top cap just above the terrain) so the terrain hole edges sit inside rock and nothing shows through</summary>
+        const float PortalR = 7f, ShellT = 1.25f;                            // band > cell diagonal: a cell touching the air is always inside the band (no terrain teeth)
+        static bool InPortal(Vector3 p)
+        {
+            float dx = p.x - MouthE.x, dz = p.z - MouthE.z; if (dx * dx + dz * dz < PortalR * PortalR) return true;
+            dx = p.x - MouthW.x; dz = p.z - MouthW.z; return dx * dx + dz * dz < PortalR * PortalR;
+        }
+        /// <summary>cap of the rock band: ground in front of a mouth (terrain at the cave floor): 0.1 m over the terrain (the
+        /// a low rock apron, 0.12 m, that covers the hole edge on the ground); cliff: 0.45 m over the terrain (a rock lip round the opening)</summary>
+        static float CapY(float x, float z)
+        {
+            float ty = TY(x, z), fl = FloorAt(x, z);
+            bool ground = !float.IsNaN(fl) && ty < fl + 0.12f;
+            // the lip grows with the terrain's height over the cave floor: a full 0.3 m rim on the cliff, thin on gentle ground
+            if (!ground) return float.IsNaN(fl) ? ty + 0.3f : ty + Mathf.Lerp(0.06f, 0.3f, Mathf.InverseLerp(fl + 0.12f, fl + 1.4f, ty));
+            // on the ground: a thin rock apron right at the mouth (covers the hole edge at the cliff foot), elsewhere under the turf
+            float dm = Mathf.Min(new Vector2(x - MouthE.x, z - MouthE.z).magnitude, new Vector2(x - MouthW.x, z - MouthW.z).magnitude);
+            return ty + Mathf.Lerp(0.06f, -0.06f, Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(1.6f, 2.8f, dm)));     // tapers: no edge to trip on
+        }
+        /// <summary>the meshed field: the cave air field, inside the mouth zones the rock band (negative = not rock)</summary>
+        static float FieldA(Vector3 p)
+        {
+            float f = Field(p);
+            if (!InPortal(p)) return f;
+            return Mathf.Min(ShellT * 0.5f - Mathf.Abs(f - ShellT * 0.5f), CapY(p.x, p.z) - p.y);
+        }
         static Vector3 FieldNormal(Vector3 p)
         {
             const float e = 0.12f;
-            var g = new Vector3(Field(p + Vector3.right * e) - Field(p - Vector3.right * e), Field(p + Vector3.up * e) - Field(p - Vector3.up * e), Field(p + Vector3.forward * e) - Field(p - Vector3.forward * e));
+            var g = new Vector3(FieldA(p + Vector3.right * e) - FieldA(p - Vector3.right * e), FieldA(p + Vector3.up * e) - FieldA(p - Vector3.up * e), FieldA(p + Vector3.forward * e) - FieldA(p - Vector3.forward * e));
             return g.sqrMagnitude < 1e-10f ? Vector3.up : (-g).normalized;
         }
 
@@ -395,7 +426,7 @@ namespace PrimalFrontier.EditorTools
                 for (int j = 0; j < _ny; j++)
                     for (int i = 0; i < _nx; i++)
                     {
-                        float v = (i == 0 || j == 0 || k == 0 || i == _nx - 1 || j == _ny - 1 || k == _nz - 1) ? 1f : Field(_o + new Vector3(i, j, k) * Cell);
+                        float v = (i == 0 || j == 0 || k == 0 || i == _nx - 1 || j == _ny - 1 || k == _nz - 1) ? 1f : FieldA(_o + new Vector3(i, j, k) * Cell);
                         _f[FI(i, j, k)] = v; if (v < 0f) air++;
                     }
             L($"field: {_nx} x {_ny} x {_nz} samples at {F(Cell)} m from {V(_o)}, air {F(air * Cell * Cell * Cell)} m3");
@@ -490,6 +521,19 @@ namespace PrimalFrontier.EditorTools
         static T SaveAsset<T>(T obj, string path) where T : Object
         {
             var existing = AssetDatabase.LoadAssetAtPath<T>(path);
+            if (existing && obj is Mesh src && existing is Mesh dst)
+            {
+                // meshes are rewritten through the Mesh API: CopySerialized updated the asset (and the collider) but the
+                // renderer kept drawing the old GPU buffers in this editor session
+                dst.Clear(); dst.indexFormat = src.indexFormat;
+                dst.SetVertices(src.vertices); if (src.normals.Length > 0) dst.SetNormals(src.normals);
+                if (src.tangents.Length > 0) dst.SetTangents(src.tangents); if (src.uv.Length > 0) dst.SetUVs(0, src.uv);
+                if (src.colors.Length > 0) dst.SetColors(src.colors);
+                dst.subMeshCount = src.subMeshCount;
+                for (int i = 0; i < src.subMeshCount; i++) dst.SetTriangles(src.GetTriangles(i), i);
+                dst.RecalculateBounds(); dst.UploadMeshData(false);
+                Object.DestroyImmediate(src); EditorUtility.SetDirty(dst); return existing;
+            }
             if (existing) { EditorUtility.CopySerialized(obj, existing); Object.DestroyImmediate(obj); EditorUtility.SetDirty(existing); return existing; }
             AssetDatabase.CreateAsset(obj, path); return obj;
         }
@@ -528,10 +572,11 @@ namespace PrimalFrontier.EditorTools
             if (d) m.SetTexture("_BaseMap", d); if (nm) m.SetTexture("_BumpMap", nm); if (mk) m.SetTexture("_MetallicGlossMap", mk);
             m.SetTexture("_OcclusionMap", _ao); m.SetFloat("_OcclusionStrength", OccStrength(BandOcc[band]));
             m.SetColor("_BaseColor", floor ? new Color(0.5f, 0.48f, 0.45f) : new Color(0.6f, 0.58f, 0.55f));
-            m.SetFloat("_Smoothness", floor ? 0.35f : 0.25f); m.SetFloat("_BumpScale", floor ? 0.8f : 1.1f);
+            m.SetFloat("_Smoothness", band <= 1 ? 0.1f : floor ? 0.35f : 0.25f); m.SetFloat("_BumpScale", floor ? 0.8f : 1.1f);
             m.SetFloat("_WetResponse", 0f);                                   // rain never reaches it
-            m.SetFloat("_BaseWetness", floor ? 0.78f : 0.38f); m.SetFloat("_Porosity", 0.55f); m.SetFloat("_WetSmoothness", 0.8f);
-            m.SetFloat("_MossAmount", band == 0 ? 0.18f : 0f); m.SetFloat("_ColorVariation", 0f);
+            float wet = band <= 1 ? (floor ? 0.08f : 0.05f) : (floor ? 0.78f : 0.38f);
+            m.SetFloat("_BaseWetness", wet); m.SetFloat("_Porosity", 0.55f); m.SetFloat("_WetSmoothness", band <= 1 ? 0.5f : 0.8f);
+            m.SetFloat("_MossAmount", 0f);                                    // no _MossMap on these: moss would render as flat white m.SetFloat("_ColorVariation", 0f);
             m.SetFloat("_Cull", 2f); m.enableInstancing = true;
             EditorUtility.SetDirty(m);
             return m;
@@ -565,7 +610,7 @@ namespace PrimalFrontier.EditorTools
         }
 
         // ================================================================== shell meshes
-        static int _shellTris, _shellChunks, _shellVerts;
+        static int _shellTris, _shellChunks, _shellVerts, _flipped, _strayLog;
         static void BuildShell(Transform root, List<Quad> quads, List<Vector3> verts)
         {
             var wall = new Material[BandOcc.Length]; var floor = new Material[BandOcc.Length];
@@ -576,6 +621,21 @@ namespace PrimalFrontier.EditorTools
             foreach (var q in quads)
             {
                 var cen = (q.a + q.b + q.c + q.d) * 0.25f;
+                if (InPortal(cen))
+                {
+                    // mouth zone: the rock band (inner face, outer skin, cap); nothing above the cap or deep in the rock
+                    // (where the band field meets the plain field at the zone edge)
+                    if (cen.y > CapY(cen.x, cen.z) + 0.12f || Field(cen) > ShellT + 0.3f) { dropped++; continue; }
+                    if (_strayLog < 12)
+                    {
+                        float best = float.MaxValue;
+                        foreach (var nn in _a.Concat(_b)) best = Mathf.Min(best, new Vector2(nn.x - cen.x, nn.z - cen.z).magnitude);
+                        if (best > 4.5f) { _strayLog++; L($"  stray portal quad at {V(cen)}: node dist {F(best)}, field {F(Field(cen))}, fieldA {F(FieldA(cen))}, terrain {F(TY(cen.x, cen.z))}, cap {F(CapY(cen.x, cen.z))}, floor {F(FloorAt(cen.x, cen.z))}"); }
+                    }
+                    keep.Add(q); needN[q.ia] = needN[q.ib] = needN[q.ic] = needN[q.id] = true; continue;
+                }
+                // outside the mouth zones only the cave wall itself (field ~0); anything else is the seam with the band field at the zone edge
+                if (Field(cen) > 0.6f) { dropped++; continue; }
                 float ty = TY(cen.x, cen.z);
                 bool outside = ty < AirTop(cen.x, cen.z) - 0.3f;                 // open ground in front of a mouth: only the floor + walls below the ground
                 bool isFloor = (Vector3.Cross(q.b - q.a, q.c - q.a) + Vector3.Cross(q.c - q.a, q.d - q.a)).normalized.y > 0.55f;
@@ -593,7 +653,7 @@ namespace PrimalFrontier.EditorTools
                 l.Add(q);
             }
             var shellRoot = Child(root, "Shell");
-            _shellTris = 0; _shellChunks = 0; _shellVerts = 0;
+            _shellTris = 0; _shellChunks = 0; _shellVerts = 0; _flipped = 0; _strayLog = 0;
             foreach (var kv in groups.OrderBy(k => k.Key.x).ThenBy(k => k.Key.y))
             {
                 var map = new Dictionary<int, int>();
@@ -619,7 +679,17 @@ namespace PrimalFrontier.EditorTools
                     int slot = Band(cen) * 2 + (isFloor ? 1 : 0);
                     if (!subs.TryGetValue(slot, out var li)) subs[slot] = li = new List<int>();
                     int a = Vi(q.ia), b = Vi(q.ib), c = Vi(q.ic), d = Vi(q.id);
-                    li.AddRange(new[] { a, b, c, a, c, d });
+                    // a surface-nets quad is often not planar (floor / wall junctions, the band's cap edge): pick the diagonal whose
+                    // two triangles both face the air, and flip any triangle that still faces the rock (else it is culled: a see-through tooth)
+                    var want = vn[q.ia] + vn[q.ib] + vn[q.ic] + vn[q.id];
+                    float Tri(Vector3 p0, Vector3 p1, Vector3 p2) => Vector3.Dot(Vector3.Cross(p1 - p0, p2 - p0), want);
+                    float s1 = Mathf.Min(Tri(q.a, q.b, q.c), Tri(q.a, q.c, q.d)), s2 = Mathf.Min(Tri(q.a, q.b, q.d), Tri(q.b, q.c, q.d));
+                    var tri = s1 >= s2 ? new[] { (a, b, c, q.a, q.b, q.c), (a, c, d, q.a, q.c, q.d) } : new[] { (a, b, d, q.a, q.b, q.d), (b, c, d, q.b, q.c, q.d) };
+                    foreach (var (i0, i1, i2, p0, p1, p2) in tri)
+                    {
+                        if (Tri(p0, p1, p2) < 0f) { li.AddRange(new[] { i0, i2, i1 }); _flipped++; }
+                        else li.AddRange(new[] { i0, i1, i2 });
+                    }
                 }
                 var mesh = new Mesh { name = $"ME_CV_Shell_{kv.Key.x}_{kv.Key.y}", indexFormat = pv.Count > 65000 ? IndexFormat.UInt32 : IndexFormat.UInt16 };
                 mesh.SetVertices(pv); mesh.SetNormals(pn); mesh.SetUVs(0, puv);
@@ -639,7 +709,7 @@ namespace PrimalFrontier.EditorTools
                 GameObjectUtility.SetStaticEditorFlags(go, StaticEditorFlags.OccluderStatic | StaticEditorFlags.OccludeeStatic | StaticEditorFlags.BatchingStatic);
                 _shellChunks++; _shellVerts += pv.Count;
             }
-            L($"shell: {keep.Count} quads kept ({dropped} above the terrain dropped), {_shellChunks} chunks, {_shellVerts} verts, {_shellTris} tris, {BandOcc.Length * 2} rock materials (ambient bands {string.Join("/", BandOcc.Select(F))})");
+            L($"shell: {keep.Count} quads kept ({dropped} above the terrain dropped), {_shellChunks} chunks, {_shellVerts} verts, {_shellTris} tris ({_flipped} twisted-quad triangles re-wound), {BandOcc.Length * 2} rock materials (ambient bands {string.Join("/", BandOcc.Select(F))})");
         }
 
         static Transform Child(Transform parent, string name)
@@ -667,6 +737,9 @@ namespace PrimalFrontier.EditorTools
                 L($"terrain backup: {tdPath} -> {BackupPath}");
             }
             var bak = AssetDatabase.LoadAssetAtPath<TerrainData>(BackupPath);
+            // compressed hole textures are drawn in 4 x 4 cell blocks (2.5 m): the rendered holes grow past the cut cells and the
+            // void shows through. Uncompressed: the drawn holes match the cut cells exactly (1024 x 1024 R8, 1 MB)
+            if (td.enableHolesTextureCompression) { td.enableHolesTextureCompression = false; L("terrain: holes texture compression off (exact hole edges)"); }
             int res = td.holesResolution; var size = td.size; var tp = _t.transform.position;
             float cx = size.x / res, cz = size.z / res;
             _holeCells = 0;
@@ -680,20 +753,27 @@ namespace PrimalFrontier.EditorTools
                 for (int j = 0; j < h; j++)
                     for (int i = 0; i < w; i++)
                     {
-                        bool inside = true;
+                        bool inside = true, anyAir = false, anyHigh = false;
                         for (int c = 0; c < 4 && inside; c++)
                         {
                             int hx = x0 + i + (c & 1), hz = z0 + j + (c >> 1);
                             var p = new Vector3(tp.x + hx * cx, tp.y + td.GetHeight(hx, hz), tp.z + hz * cz);
-                            float fl = FloorAt(p.x, p.z);
-                            if (float.IsNaN(fl) || p.y < fl - 0.3f || Field(p, true) > -HoleInset) inside = false;
+                            // inside the rock band's outer skin (the band covers what is under the hole)
+                            float fc = Field(p, true), fl = FloorAt(p.x, p.z);
+                            bool ground = !float.IsNaN(fl) && p.y < fl + 0.12f;            // the ground in front of a mouth stays (it covers the floor)
+                            // a corner beyond the band is fine on the cliff (the band's outer skin is behind it), not on the ground
+                            if (!InPortal(p) || (fc > ShellT - 0.15f && (ground || fc > ShellT + 1.5f))) inside = false;
+                            else { if (!ground) anyHigh = true; if (fc < -0.02f) anyAir = true; }
                         }
-                        if (inside) { holes[j, i] = false; cut++; }
+                        if (inside && anyAir && anyHigh) { holes[j, i] = false; cut++; }
                     }
                 td.SetHoles(x0, z0, holes);
                 _holeCells += cut;
                 L($"terrain holes at the mouth {V(m)}: region {w} x {h} cells restored from the backup, {cut} cells cut ({F(cut * cx * cz)} m2)");
             }
+            // push the hole mask to the GPU texture now (the drawn holes otherwise kept an older mask in edit mode)
+            td.SyncTexture(TerrainData.HolesTextureName);
+            _t.Flush();
             EditorUtility.SetDirty(td);
             return true;
         }
@@ -719,7 +799,7 @@ namespace PrimalFrontier.EditorTools
             m.SetFloat("_RainStrength", 0f); m.SetFloat("_WindDrift", calm ? 0.01f : 0.02f);
             m.SetFloat("_SpecStrength", 0.35f); m.SetFloat("_ReflectionStrength", 0.85f);
             if (calm) { m.SetFloat("_FlowSpeed", 0.25f); m.SetFloat("_WaveStrength", 0.02f); m.SetFloat("_RippleStrength", 0.03f); m.SetFloat("_BankFoam", 0f); m.SetFloat("_RapidsFoam", 0f); m.SetFloat("_ShallowFoam", 0f); m.SetFloat("_Smoothness", 0.97f); }
-            else { m.SetFloat("_FlowSpeed", 1.0f); m.SetFloat("_WaveStrength", 0.03f); m.SetFloat("_BankFoam", 0.5f); }
+            else { m.SetFloat("_FlowSpeed", 1.0f); m.SetFloat("_WaveStrength", 0.03f); m.SetFloat("_BankFoam", 0.3f); m.SetFloat("_ShallowFoam", 0.12f); m.SetFloat("_RapidsFoam", 0.25f); }
             m.SetFloat("_CausticsStrength", 0.15f);
             m.renderQueue = -1; m.enableInstancing = true;
             EditorUtility.SetDirty(m);
@@ -797,7 +877,7 @@ namespace PrimalFrontier.EditorTools
         /// <summary>still pool: an ellipse disc at the surface, tucked under the rim, calm flow map (drift towards the outlet)</summary>
         static GameObject Pool(Transform parent, string name, Vector3 c, Vector3 r, Vector3 outlet)
         {
-            float ex = r.x * 1.05f, ez = r.z * 1.05f; int seg = 48, rings = 4;
+            float ex = r.x * 0.96f, ez = r.z * 0.96f; int seg = 48, rings = 4;
             var verts = new List<Vector3> { c }; var tris = new List<int>();
             for (int ri = 1; ri <= rings; ri++) for (int s = 0; s < seg; s++) { float a = s / (float)seg * Mathf.PI * 2f, f = ri / (float)rings; verts.Add(c + new Vector3(Mathf.Cos(a) * ex * f, 0f, Mathf.Sin(a) * ez * f)); }
             for (int s = 0; s < seg; s++) tris.AddRange(new[] { 0, 1 + (s + 1) % seg, 1 + s });
@@ -866,8 +946,9 @@ namespace PrimalFrontier.EditorTools
         }
         static void Probe(Transform parent, string name, Vector3 min, Vector3 max, Cubemap cube)
         {
-            var go = Empty(parent, name, (min + max) * 0.5f);
-            var p = go.AddComponent<ReflectionProbe>();
+            var t = parent.Find(name); var go = t ? t.gameObject : Empty(parent, name, (min + max) * 0.5f);
+            go.transform.position = (min + max) * 0.5f;
+            var p = go.GetComponent<ReflectionProbe>(); if (!p) p = go.AddComponent<ReflectionProbe>();
             p.mode = ReflectionProbeMode.Custom; p.customBakedTexture = cube; p.size = max - min; p.center = Vector3.zero;
             p.importance = 10; p.blendDistance = 1.5f; p.boxProjection = false; p.intensity = 1f;
         }
@@ -921,6 +1002,7 @@ namespace PrimalFrontier.EditorTools
                     if (name == "A") left = -left;                                          // A is listed mouth -> chamber: its left is the flow's right; flip to the walkway side
                     if (!Physics.Raycast(p + Vector3.up * 0.5f, left, out var wh, w * 2.5f, ~0, QueryTriggerInteraction.Ignore)) continue;
                     var at = wh.point - left * 0.25f; if (!FloorHit(at, out var fh)) continue;
+                    if (fh.normal.y < 0.7f || Mathf.Abs(fh.point.y - p.y) > 0.6f) continue;      // only on the real floor (no ledge, no floating rock)
                     var pf = rocks[(int)(Rnd(ri, 1) * rocks.Length) % rocks.Length];
                     Put(props, pf, fh.point + Vector3.down * 0.12f, Quaternion.Euler(Rnd(ri, 2) * 20f, Rnd(ri, 3) * 360f, Rnd(ri, 4) * 20f), 0.55f + Rnd(ri, 5) * 0.4f, $"Rubble_{name}_{ri}");
                     ri++;
@@ -959,62 +1041,95 @@ namespace PrimalFrontier.EditorTools
             L($"props: {_props} (rubble {ri}, mouth rocks {fi}, bones {bi}, nest ring 9 + 3 bones), Examinable cave_hidden_nest at {V(nc)}");
         }
 
-        static int _kit;
+        static int _kit, _kitRejected;
+        /// <summary>ART cave kit, only the pieces that fit the generated shell: stalactites hung by raycast on flat enough
+        /// ceilings (attach point top centre, hang 3.4 m x scale) and rubble set on the floor at the wall bases (base centre),
+        /// each checked flush (all probes on the surface) and clear of the walk lines, the pools and the stream. The modular
+        /// walls, tunnels, the dome and the pool rim (circular, radius 8.4 m) do not match the generated rock and are skipped.</summary>
         static void PlaceKit(Transform root)
         {
-            var found = new Dictionary<string, GameObject>();
+            GameObject sta = null, rub = null; var skipped = new List<string>();
             if (AssetDatabase.IsValidFolder(KitDir))
                 foreach (var g in AssetDatabase.FindAssets("t:Prefab", new[] { KitDir }))
                 {
                     var p = AssetDatabase.GUIDToAssetPath(g); var n = Path.GetFileNameWithoutExtension(p);
-                    foreach (var k in new[] { "CAVE_Wall_A", "CAVE_Wall_B", "CAVE_Tunnel_Straight", "CAVE_Tunnel_Bend", "CAVE_Chamber_Dome", "CAVE_PoolRim", "CAVE_Stalactites", "CAVE_Rubble" })
-                        if (n.Contains(k) && !found.ContainsKey(k)) found[k] = Prefab(p);
+                    if (n.Contains("CAVE_Stalactites")) sta = Prefab(p);
+                    else if (n.Contains("CAVE_Rubble")) rub = Prefab(p);
+                    else if (n.Contains("CAVE_")) skipped.Add(n);
                 }
-            if (found.Count == 0) { L($"ART cave kit: not delivered yet ({KitDir}/*CAVE_*): shell only, kit dressing skipped"); return; }
+            if (!sta && !rub) { L($"ART cave kit: not delivered yet ({KitDir}/*CAVE_*): shell only"); return; }
             var kit = Child(root, "Kit");
             Physics.SyncTransforms();
-            float Size(GameObject pf) { var rs = pf.GetComponentsInChildren<Renderer>(); if (rs.Length == 0) return 1f; var b = rs[0].bounds; foreach (var r in rs) b.Encapsulate(r.bounds); return Mathf.Max(0.1f, Mathf.Max(b.size.x, b.size.z)); }
-            // pool rim: stones round the big pool at the waterline
-            if (found.TryGetValue("CAVE_PoolRim", out var rim))
+            var route = new List<Vector3>();
+            foreach (var w in Walk(_a.Skip(1).ToArray(), 1f).Concat(Walk(_b.Take(_b.Length - 1).ToArray(), 1f)).Concat(Walk(_h, 1f))) route.Add(w.p);
+            for (int k = 0; k < 48; k++) { float a = k / 48f * Mathf.PI * 2f; route.Add(PoolC + new Vector3(Mathf.Cos(a) * (PoolR.x + 1.8f), 0f, Mathf.Sin(a) * (PoolR.z + 1.8f))); }
+            float RouteDist(Vector3 q) { float best = float.MaxValue; foreach (var r in route) best = Mathf.Min(best, new Vector2(r.x - q.x, r.z - q.z).magnitude); return best; }
+            bool OverWater(Vector3 q, float m)
             {
-                float s = Size(rim); int n = Mathf.Clamp(Mathf.RoundToInt(2f * Mathf.PI * Mathf.Sqrt((PoolR.x * PoolR.x + PoolR.z * PoolR.z) * 0.5f) / 2.6f), 6, 20);
-                for (int i = 0; i < n; i++)
+                float kx = (q.x - PoolC.x) / (PoolR.x + m), kz = (q.z - PoolC.z) / (PoolR.z + m);
+                float ax = (q.x - AlcPoolC.x) / (AlcPoolR.x + m), az = (q.z - AlcPoolC.z) / (AlcPoolR.z + m);
+                return kx * kx + kz * kz < 1f || ax * ax + az * az < 1f || NearLine(q, _stream, 0.75f + m) || NearLine(q, _runnel, 0.5f + m);
+            }
+            int ns = 0, nr = 0, rjN = 0, rjF = 0, rjH = 0;
+            // ---- stalactites: chamber ring + the taller passage spots
+            if (sta)
+            {
+                var spots = new List<Vector3>();
+                for (int k = 0; k < 12; k++) { float a = (k + 0.5f) / 12f * Mathf.PI * 2f; float f = k % 2 == 0 ? 0.45f : 0.7f; spots.Add(new Vector3(Chamber.c.x + Mathf.Cos(a) * Chamber.rx * f, Chamber.c.y, Chamber.c.z + Mathf.Sin(a) * Chamber.rz * f)); }
+                foreach (var w in Walk(_a.Skip(2).ToArray(), 5f).Concat(Walk(_b.Take(_b.Length - 2).ToArray(), 5f))) spots.Add(w.p);
+                int i = 0;
+                foreach (var sp in spots)
                 {
-                    float a = i / (float)n * Mathf.PI * 2f; var p = new Vector3(PoolC.x + Mathf.Cos(a) * PoolR.x * 1.02f, PoolC.y - 0.05f, PoolC.z + Mathf.Sin(a) * PoolR.z * 1.02f);
-                    var outward = new Vector3(Mathf.Cos(a) / PoolR.x, 0f, Mathf.Sin(a) / PoolR.z).normalized;
-                    if (i == 0) continue;                                                   // leave the outlet (east) open for the stream
-                    Put(kit, rim, p, Quaternion.LookRotation(outward), 2.6f / s, $"PoolRim_{i}"); _kit++;
+                    if (ns >= 10) break;
+                    i++;
+                    if (MouthDist(sp) < 8f) continue;
+                    float s = 0.75f + Rnd(i, 31) * 0.25f, hang = 3.4f * s;
+                    var top0 = new Vector3(sp.x, sp.y + 1.2f, sp.z);
+                    if (!FloorHit(top0, out var fh)) { _kitRejected++; continue; }
+                    if (!Physics.Raycast(fh.point + Vector3.up * 0.3f, Vector3.up, out var ch, 14f, ~0, QueryTriggerInteraction.Ignore) || ch.normal.y > -0.4f) { _kitRejected++; rjN++; continue; }
+                    // flush: the ceiling under the cluster's footprint within 0.45 m of the attach point
+                    bool flush = true;
+                    foreach (var o in new[] { new Vector3(1.0f, 0f, 0f), new Vector3(-1.0f, 0f, 0f), new Vector3(0f, 0f, 0.9f), new Vector3(0f, 0f, -0.9f) })
+                        if (!Physics.Raycast(fh.point + o * s + Vector3.up * 0.3f, Vector3.up, out var c2, 14f, ~0, QueryTriggerInteraction.Ignore) || c2.point.y < ch.point.y - 0.7f || c2.point.y > ch.point.y + 0.7f) { flush = false; break; }
+                    float tip = ch.point.y + 0.3f - hang;
+                    bool overPool = OverWater(fh.point, 0f) && !NearLine(fh.point, _stream, 1.2f);
+                    if (!flush) { _kitRejected++; rjF++; continue; }
+                    if (overPool ? tip < PoolC.y + 0.6f : tip < fh.point.y + 2.4f) { _kitRejected++; rjH++; continue; }
+                    Put(kit, sta, ch.point + Vector3.up * 0.3f, Quaternion.Euler(0f, Rnd(i, 32) * 360f, 0f), s, $"Stalactites_{ns++}"); _kit++;
                 }
             }
-            // stalactites: on ceiling hits over the chamber and the passages
-            if (found.TryGetValue("CAVE_Stalactites", out var sta))
+            // ---- rubble: at the chamber wall and the passage walls, on the floor, off the walk lines and the water
+            if (rub)
             {
-                float s = Size(sta); int i = 0;
-                var spots = Walk(_a, 7f).Concat(Walk(_b, 7f)).Select(w => w.p).ToList();
-                for (int k = 0; k < 10; k++) { float a = k / 10f * Mathf.PI * 2f; spots.Add(Chamber.c + new Vector3(Mathf.Cos(a) * Chamber.rx * 0.55f, 0f, Mathf.Sin(a) * Chamber.rz * 0.55f)); }
-                foreach (var p in spots)
+                var cand = new List<(Vector3 from, Vector3 dir)>();
+                for (int k = 0; k < 14; k++) { float a = k / 14f * Mathf.PI * 2f; cand.Add((Chamber.c + Vector3.up * 0.6f, new Vector3(Mathf.Cos(a), 0f, Mathf.Sin(a)))); }
+                int wi = 0;
+                foreach (var w in Walk(_a.Skip(2).ToArray(), 7f).Concat(Walk(_b.Take(_b.Length - 2).ToArray(), 7f)))
+                { var side = new Vector3(-w.dir.z, 0f, w.dir.x) * ((wi++ & 1) == 0 ? 1f : -1f); cand.Add((w.p + Vector3.up * 0.6f, side)); }
+                int i = 0;
+                foreach (var (src0, dir) in cand)
                 {
-                    if (MouthDist(p) < 5f) continue;
-                    if (!Physics.Raycast(p + Vector3.up * 1.0f, Vector3.up, out var h, 14f, ~0, QueryTriggerInteraction.Ignore)) continue;
-                    if (h.point.y - p.y < 2.9f) continue;                                    // keep 2.2 m headroom under the tips
-                    Put(kit, sta, h.point + Vector3.up * 0.1f, Quaternion.Euler(0f, Rnd(i, 21) * 360f, 0f), Mathf.Clamp(1.4f / s, 0.3f, 3f), $"Stalactites_{i++}"); _kit++;
+                    if (nr >= 12) break;
+                    i++;
+                    if (MouthDist(src0) < 7f) continue;
+                    if (!Physics.Raycast(src0, dir, out var wh, 16f, ~0, QueryTriggerInteraction.Ignore)) { _kitRejected++; continue; }
+                    float s = 0.45f + Rnd(i, 33) * 0.15f, halfX = 2.15f * s, halfZ = 1.7f * s;
+                    var at = wh.point - dir * (halfZ + 0.15f);
+                    if (!FloorHit(at, out var fh) || Vector3.Angle(fh.normal, Vector3.up) > 22f) { _kitRejected++; continue; }
+                    var rot = Quaternion.FromToRotation(Vector3.up, fh.normal) * Quaternion.LookRotation(-dir);
+                    bool ok = !OverWater(fh.point, halfX) && RouteDist(fh.point) > halfX + 0.9f;
+                    var right = rot * Vector3.right; var fwd = rot * Vector3.forward;
+                    foreach (var o in new[] { right * halfX * 0.8f + fwd * halfZ * 0.8f, right * halfX * 0.8f - fwd * halfZ * 0.8f, -right * halfX * 0.8f + fwd * halfZ * 0.8f, -right * halfX * 0.8f - fwd * halfZ * 0.8f })
+                    {
+                        if (!ok) break;
+                        // every footprint corner on the floor within -0.3 .. +0.35 m of the base (no overhang, not sunk into a slope)
+                        if (!FloorHit(fh.point + o, out var c2) || c2.point.y < fh.point.y - 0.3f || c2.point.y > fh.point.y + 0.35f) ok = false;
+                    }
+                    if (!ok) { _kitRejected++; continue; }
+                    Put(kit, rub, fh.point - fh.normal * 0.08f, rot * Quaternion.Euler(0f, (Rnd(i, 34) - 0.5f) * 40f, 0f), s, $"Rubble_{nr++}"); _kit++;
                 }
             }
-            // rubble and wall panels at the wall bases
-            foreach (var key in new[] { "CAVE_Rubble", "CAVE_Wall_A", "CAVE_Wall_B" })
-            {
-                if (!found.TryGetValue(key, out var pf)) continue;
-                float s = Size(pf); int i = 0; bool wallPiece = key.Contains("Wall");
-                foreach (var (p, dir, w) in Walk(_b, wallPiece ? 9f : 8f).Concat(Walk(_a, wallPiece ? 11f : 9f)))
-                {
-                    if (MouthDist(p) < 5f) continue;
-                    var side = new Vector3(-dir.z, 0f, dir.x) * ((i & 1) == 0 ? 1f : -1f);
-                    if (!Physics.Raycast(p + Vector3.up * (wallPiece ? 1.4f : 0.4f), side, out var h, w * 2.5f, ~0, QueryTriggerInteraction.Ignore)) { i++; continue; }
-                    var at = h.point + side * (wallPiece ? 0.35f : -0.1f); if (!wallPiece && FloorHit(at, out var fh)) at = fh.point;
-                    Put(kit, pf, at, Quaternion.LookRotation(-side), Mathf.Clamp((wallPiece ? 3f : 1.4f) / s, 0.3f, 3f), $"{key.Replace("CAVE_", "")}_{i++}"); _kit++;
-                }
-            }
-            L($"ART cave kit: {string.Join(", ", found.Keys)} found, {_kit} pieces placed" + (found.ContainsKey("CAVE_Chamber_Dome") ? " (CAVE_Chamber_Dome found but not placed: the generated dome is the chamber; place by hand if wanted)" : ""));
+            L($"ART cave kit: {ns} stalactite clusters + {nr} rubble piles placed (flush + clear of the route), {_kitRejected} spots rejected (stalactites: ceiling too steep {rjN}, not flush {rjF}, too low {rjH}); not used (do not match the generated rock): {string.Join(", ", skipped)}");
         }
 
         static void Anchors(Transform root)
@@ -1108,13 +1223,15 @@ namespace PrimalFrontier.EditorTools
         [PrimalBridgeCommand]
         public static string Build(string arg)
         {
-            Log.Clear(); _warn = 0; _lights = 0; _props = 0; _kit = 0; _variants.Clear();
+            Log.Clear(); _warn = 0; _lights = 0; _props = 0; _kit = 0; _kitRejected = 0; _strayLog = 0; _variants.Clear();
             var clock = System.Diagnostics.Stopwatch.StartNew();
             if (!SceneOk(out var scene) || !Setup()) return Log.ToString();
             EnsureFolder(GenDir); EnsureFolder(MatDir); EnsureFolder(VarDir);
             _ao = AoTexture();
             var root = SceneRoots.Find(RootPath, true);
-            for (int i = root.childCount - 1; i >= 0; i--) Object.DestroyImmediate(root.GetChild(i).gameObject);
+            // reflection probes are kept and updated in place: destroying them in edit mode leaves URP's probe atlas with a dead
+            // probe (NullReference in ReflectionProbeManager on every render until the scene is reloaded)
+            for (int i = root.childCount - 1; i >= 0; i--) if (root.GetChild(i).name != "ReflectionProbes") Object.DestroyImmediate(root.GetChild(i).gameObject);
             root.position = Vector3.zero; root.rotation = Quaternion.identity; root.localScale = Vector3.one;
 
             SampleField();
@@ -1198,19 +1315,25 @@ namespace PrimalFrontier.EditorTools
             Physics.SyncTransforms();
             int chunks = root.Find("Shell") ? root.Find("Shell").childCount : 0;
             int cols = root.GetComponentsInChildren<MeshCollider>(true).Length, lights = root.GetComponentsInChildren<Light>(true).Length;
-            int tris = 0; foreach (var mf in root.GetComponentsInChildren<MeshFilter>(true)) if (mf.sharedMesh && mf.GetComponent<MeshRenderer>()) tris += mf.sharedMesh.triangles.Length / 3;
+            int tris = 0, kitTris = 0;
+            foreach (var mf in root.GetComponentsInChildren<MeshFilter>(true))
+            {
+                if (!mf.sharedMesh || !mf.GetComponent<MeshRenderer>() || mf.name.Contains("_LOD1") || mf.name.Contains("_LOD2") || mf.name.Contains("_LOD3")) continue;
+                int t = (int)(mf.sharedMesh.GetIndexCount(0) / 3); for (int sm = 1; sm < mf.sharedMesh.subMeshCount; sm++) t += (int)(mf.sharedMesh.GetIndexCount(sm) / 3);
+                tris += t; if (mf.transform.IsChildOf(root.Find("Kit") ? root.Find("Kit") : root) && root.Find("Kit")) kitTris += t;
+            }
             int ws = root.GetComponentsInChildren<WaterSource>(true).Length, exm = root.GetComponentsInChildren<Examinable>(true).Length;
             int missing = 0;
             foreach (var r in root.GetComponentsInChildren<Renderer>(true)) foreach (var m in r.sharedMaterials) if (!m || !m.shader || m.shader.name.Contains("Error")) missing++;
             foreach (var mf in root.GetComponentsInChildren<MeshFilter>(true)) if (!mf.sharedMesh) missing++;
-            L($"DeepWaterCave: {chunks} shell chunks, {cols} mesh colliders, {tris} rendered tris, {lights} lights, {ws} WaterSources, {exm} Examinables, missing refs {missing}");
+            L($"DeepWaterCave: {chunks} shell chunks, {cols} mesh colliders, {tris} rendered tris at LOD0 (kit {kitTris}, kit pieces {Count(root, "Kit")}), {lights} lights, {ws} WaterSources, {exm} Examinables, missing refs {missing}");
             L($"anchors: AI {Count(root, "AI_Anchors")}, RES {Count(root, "RES_Anchors")}, FX {Count(root, "FX_Anchors")}");
 
             // ---- the walk
             var lines = new List<(string name, List<(Vector3 p, Vector3 dir, float w)> pts)>
             {
-                ("stream passage", Walk(_a.Skip(1).ToArray(), 0.5f)),
-                ("west passage", Walk(_b.Take(_b.Length - 1).ToArray(), 0.5f)),
+                ("stream passage", Walk(new[] { Beyond(_a[0], _a[1]) }.Concat(_a).ToArray(), 0.5f)),
+                ("west passage", Walk(_b.Concat(new[] { Beyond(_b[_b.Length - 1], _b[_b.Length - 2]) }).ToArray(), 0.5f)),
                 ("hidden branch", Walk(_h, 0.5f)),
             };
             var ringPts = new List<(Vector3, Vector3, float)>();
@@ -1220,10 +1343,10 @@ namespace PrimalFrontier.EditorTools
             for (int i = 0; i <= 12; i++) { var p = Vector3.Lerp(h3, Hidden.c + new Vector3(0f, 0f, -Hidden.rz * 0.6f), i / 12f); hid.Add((p, Vector3.back, 1.4f)); }
             lines.Add(("hidden chamber", hid));
             var h1 = new Vector3(_h[1].x, 0f, _h[1].z);
-            int total = 0, holes = 0, steep = 0, low = 0, blocked = 0; float crawlMin = float.MaxValue, minHead = float.MaxValue;
+            int total = 0, holes = 0, steep = 0, low = 0, blocked = 0, steps = 0; float crawlMin = float.MaxValue, minHead = float.MaxValue;
             foreach (var (name, pts) in lines)
             {
-                int lh = 0, ls = 0, ll = 0, lb = 0;
+                int lh = 0, ls = 0, ll = 0, lb = 0, lst = 0; float prevY = float.NaN; Vector3 prevP = Vector3.zero;
                 foreach (var (p, dir, w) in pts)
                 {
                     var side = new Vector3(-dir.z, 0f, dir.x);
@@ -1244,20 +1367,23 @@ namespace PrimalFrontier.EditorTools
                         }
                         if (o == 0f)
                         {
+                            if (!float.IsNaN(prevY) && !nearWater && name != "pool walkway" && (q - prevP).magnitude < 0.8f && Mathf.Abs(hit.point.y - prevY) > Mathf.Max(0.32f, new Vector2(q.x - prevP.x, q.z - prevP.z).magnitude * 0.9f))
+                            { lst++; if (lst <= 3) L($"  STEP {name} at {V(hit.point)}: {F(hit.point.y - prevY)} m ({hit.collider.name})"); }
+                            prevY = hit.point.y; prevP = q;
                             float top = crawl ? 1.1f : 1.75f;
                             if (Physics.CheckCapsule(hit.point + Vector3.up * 0.62f, hit.point + Vector3.up * Mathf.Max(0.62f, top - 0.3f), 0.3f, ~0, QueryTriggerInteraction.Ignore))
                             { lb++; if (lb <= 3) L($"  BLOCKED {name} at {V(hit.point)}"); }
                         }
                     }
                 }
-                L($"walk {name}: {pts.Count} points x 3, holes {lh}, too steep {ls}, headroom < 2.2 m {ll}, capsule blocked {lb}");
-                holes += lh; steep += ls; low += ll; blocked += lb;
+                L($"walk {name}: {pts.Count} points x 3, holes {lh}, too steep {ls}, headroom < 2.2 m {ll}, capsule blocked {lb}, steps (> 0.32 m and steeper than 42 deg) {lst}");
+                holes += lh; steep += ls; low += ll; blocked += lb; steps += lst;
             }
-            L($"walk total: {total} probes, holes {holes}, too steep {steep}, low {low}, blocked {blocked}; lowest headroom outside the crawl {F(minHead)} m; crawl clearance {F(crawlMin)} m (crouch height 1.15, stand 1.8)");
+            L($"walk total: {total} probes, holes {holes}, too steep {steep}, low {low}, blocked {blocked}, steps {steps}; lowest headroom outside the crawl {F(minHead)} m; crawl clearance {F(crawlMin)} m (crouch height 1.15, stand 1.8)");
             if (crawlMin < 1.25f) W($"crawl too low ({F(crawlMin)} m)");
 
             // ---- void leaks: rays that leave the cave (away from the mouths) and hit nothing
-            int rays = 0, leaks = 0;
+            int rays = 0, leaks = 0, longSight = 0;
             var dirs = new List<Vector3>();
             for (int a = 0; a < 12; a++) for (int e = -1; e <= 2; e++) dirs.Add(Quaternion.Euler(-e * 30f, a * 30f, 0f) * Vector3.forward);
             dirs.Add(Vector3.up); dirs.Add(Vector3.down);
@@ -1269,10 +1395,14 @@ namespace PrimalFrontier.EditorTools
                     foreach (var d in dirs)
                     {
                         rays++;
-                        if (!Physics.Raycast(o, d, 40f, ~0, QueryTriggerInteraction.Ignore)) { leaks++; if (leaks <= 4) L($"  LEAK from {V(o)} towards {V(d)}"); }
+                        if (Physics.RaycastAll(o, d, 40f, ~0, QueryTriggerInteraction.Ignore).Any(h => !(h.collider is TerrainCollider))) continue;
+                        // no hit in 40 m: fine when the ray is still in the cave air (a long passage) or left through a mouth
+                        var end = o + d * 40f;
+                        if (Field(end) < 0f || SegDist(MouthE, o, end) < 4f || SegDist(MouthW, o, end) < 4f) { longSight++; continue; }
+                        leaks++; if (leaks <= 4) L($"  LEAK from {V(o)} towards {V(d)}");
                     }
                 }
-            L($"void check: {rays} rays from the route (> 9 m from the mouths), {leaks} escaped");
+            L($"void check: {rays} rays from the route (> 9 m from the mouths), {leaks} escaped into the void ({longSight} ran 40 m along the cave or out of a mouth)");
 
             // ---- rock cover over the ceiling and the sun: terrain above the cave
             int thin = 0; float minCover = float.MaxValue;
@@ -1297,8 +1427,144 @@ namespace PrimalFrontier.EditorTools
                 var g = td.GetHoles(x0, z0, w, h); int n = 0; foreach (var b in g) if (!b) n++;
                 holeCells += n; L($"terrain holes around the mouth {V(m)}: {n} cells");
             }
-            bool ok = holes == 0 && steep == 0 && low == 0 && blocked == 0 && leaks == 0 && missing == 0 && up == 0 && crawlMin >= 1.25f;
+            bool ok = steps == 0 && holes == 0 && steep == 0 && low == 0 && blocked == 0 && leaks == 0 && missing == 0 && up == 0 && crawlMin >= 1.25f;
             L(ok ? "CAVE CHECK OK" : "CAVE CHECK: issues above");
+            return Log.ToString();
+        }
+
+        static float SegDist(Vector3 p, Vector3 a, Vector3 b) { var ab = b - a; float t = Mathf.Clamp01(Vector3.Dot(p - a, ab) / Mathf.Max(1e-6f, ab.sqrMagnitude)); return Vector3.Distance(p, a + ab * t); }
+
+        /// <summary>edit-mode captures (1600x900) into Documentation/Screenshots/Phase2/Cave: arg "tag" (views with and without a torch light)</summary>
+        [PrimalBridgeCommand]
+        public static string Capture(string arg)
+        {
+            Log.Clear(); _warn = 0;
+            if (!SceneOk(out var scene) || !Setup()) return Log.ToString();
+            string tag = string.IsNullOrEmpty(arg) ? "CV" : arg.Split(';')[0]; bool wasClean = !scene.isDirty;
+            if (arg != null && arg.Contains("reload"))
+            {
+                // a clean reload of the saved scene resets URP's probe state after edit-mode rebuilds
+                if (scene.isDirty) { W("reload skipped: the scene has unsaved changes"); }
+                else { scene = EditorSceneManager.OpenScene(scene.path, OpenSceneMode.Single); Setup(); L("scene reloaded from disk"); }
+            }
+            const string dir = "Documentation/Screenshots/Phase2/Cave"; Directory.CreateDirectory(dir);
+            var views = new List<(string n, Vector3 eye, Vector3 at, bool torch)>
+            {
+                ("east_mouth_outside", new Vector3(96.5f, 21.2f, -155.2f), MouthE + Vector3.up * 1.2f, false),
+                ("stream_passage", new Vector3(_a[2].x, _a[2].y + 1.6f, _a[2].z), new Vector3(_a[4].x, _a[4].y + 1.2f, _a[4].z), false),
+                ("stream_passage_torch", new Vector3(_a[4].x, _a[4].y + 1.6f, _a[4].z), new Vector3(_a[6].x, _a[6].y + 1.0f, _a[6].z), true),
+                ("chamber_pool", new Vector3(49.0f, Chamber.c.y + 2.2f, -172.0f), PoolC + Vector3.up * 0.5f, false),
+                ("chamber_pool_torch", new Vector3(46.5f, Chamber.c.y + 1.7f, -170.5f), PoolC, true),
+                ("curtain", new Vector3(40.5f, Chamber.c.y + 1.6f, -177.5f), new Vector3(42f, Chamber.c.y + 1.2f, -183f), true),
+                ("hidden_nest_torch", new Vector3(_h[3].x, _h[3].y + 1.5f, _h[3].z), Hidden.c + Vector3.up * 0.3f, true),
+                ("west_passage_torch", new Vector3(_b[1].x, _b[1].y + 1.6f, _b[1].z), new Vector3(_b[3].x, _b[3].y + 1.2f, _b[3].z), true),
+                ("west_mouth_outside", new Vector3(10.5f, 23.5f, -133.5f), MouthW + Vector3.up * 1.2f, false),
+            };
+            var camGo = new GameObject("__CaveCaptureCam") { hideFlags = HideFlags.HideAndDontSave };
+            var cam = camGo.AddComponent<Camera>(); var main = Camera.main; if (main) cam.CopyFrom(main);
+            cam.enabled = false; cam.nearClipPlane = 0.05f; cam.farClipPlane = 1500f; cam.fieldOfView = 62f;
+            var urp = camGo.AddComponent<UnityEngine.Rendering.Universal.UniversalAdditionalCameraData>(); urp.renderPostProcessing = true;
+            // URP's probe atlas throws on a reflection probe without a texture (any probe in the scene): switched off while capturing
+            foreach (var rp in Object.FindObjectsByType<ReflectionProbe>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+                L($"probe {SceneRoots.PathOf(rp.transform)} active {rp.isActiveAndEnabled} mode {rp.mode} texture {(rp.texture ? rp.texture.name : "none")} size {V(rp.size)}");
+            bool noProbes = tag.Contains("noprobes");
+            var noTex = Object.FindObjectsByType<ReflectionProbe>(FindObjectsSortMode.None).Where(rp => rp.enabled && (!rp.texture || noProbes)).ToList();
+            foreach (var rp in noTex) { L($"capture: reflection probe without texture switched off meanwhile: {SceneRoots.PathOf(rp.transform)} (mode {rp.mode})"); rp.enabled = false; }
+            var hidden = new List<GameObject>();
+            foreach (var part in (arg ?? "").Split(';').Where(x => x.StartsWith("hide=")))
+                foreach (var n in part.Substring(5).Split('+'))
+                {
+                    var t = n.StartsWith("/") ? SceneRoots.Find(n.Substring(1)) : SceneRoots.Find(RootPath + "/" + n);       // "/World/..." = any scene path (restored after)
+                    if (t && t.gameObject.activeSelf) { t.gameObject.SetActive(false); hidden.Add(t.gameObject); L("capture: hidden " + n); }
+                }
+            if (arg != null && arg.Contains("only="))
+            {
+                var only = arg.Split(';').First(x => x.StartsWith("only=")).Substring(5).Split('+');
+                views = views.Where(v => only.Contains(v.n)).ToList();
+            }
+            var torchGo = new GameObject("__CaveTorch") { hideFlags = HideFlags.HideAndDontSave };
+            var torch = torchGo.AddComponent<Light>(); torch.type = LightType.Point; torch.color = new Color(1f, 0.68f, 0.38f); torch.intensity = 3.5f; torch.range = 11f; torch.shadows = LightShadows.Soft;
+            try
+            {
+                foreach (var v in views)
+                {
+                    cam.transform.SetPositionAndRotation(v.eye, Quaternion.LookRotation((v.at - v.eye).normalized));
+                    torchGo.SetActive(v.torch); torchGo.transform.position = v.eye + cam.transform.right * 0.4f - Vector3.up * 0.35f;
+                    const int w = 1600, h = 900;
+                    var rt = new RenderTexture(w, h, 24, RenderTextureFormat.ARGB32) { antiAliasing = 4 };
+                    cam.targetTexture = rt; cam.Render(); cam.Render();
+                    var tex = new Texture2D(w, h, TextureFormat.RGB24, false);
+                    RenderTexture.active = rt; tex.ReadPixels(new Rect(0, 0, w, h), 0, 0); tex.Apply(); RenderTexture.active = null; cam.targetTexture = null;
+                    string path = $"{dir}/{tag}_{v.n}.png"; File.WriteAllBytes(path, tex.EncodeToPNG());
+                    Object.DestroyImmediate(tex); Object.DestroyImmediate(rt);
+                    L($"wrote {path}");
+                }
+            }
+            finally
+            {
+                Object.DestroyImmediate(camGo); Object.DestroyImmediate(torchGo);
+                foreach (var rp in noTex) if (rp) rp.enabled = true;
+                foreach (var g in hidden) if (g) g.SetActive(true);
+                if (wasClean && scene.isDirty) EditorSceneManager.SaveScene(scene);
+            }
+            return Log.ToString();
+        }
+
+        /// <summary>a node 1.2 m further out than 'outer' (seen from 'inner'), on the terrain: the approach to a mouth</summary>
+        static N Beyond(N outer, N inner)
+        {
+            var d = new Vector3(outer.x - inner.x, 0f, outer.z - inner.z).normalized * 1.2f;
+            float x = outer.x + d.x, z = outer.z + d.z;
+            return new N(x, TY(x, z), z, outer.w, outer.h);
+        }
+
+        /// <summary>debug (read only): "x,z": every hit straight down, the terrain, the hole state, the cave fields there</summary>
+        [PrimalBridgeCommand]
+        public static string Probe(string arg)
+        {
+            Log.Clear(); if (!Setup()) return Log.ToString();
+            Physics.SyncTransforms();
+            foreach (var spec in (arg ?? "").Split(';'))
+            {
+                var s = spec.Split(','); if (s.Length < 2) continue;
+                float x = float.Parse(s[0], CultureInfo.InvariantCulture), z = float.Parse(s[1], CultureInfo.InvariantCulture);
+                float ty = TY(x, z), fl = FloorAt(x, z);
+                var td = _t.terrainData; var tp = _t.transform.position; int res = td.holesResolution;
+                int hx = Mathf.Clamp(Mathf.FloorToInt((x - tp.x) / (td.size.x / res)), 0, res - 1), hz = Mathf.Clamp(Mathf.FloorToInt((z - tp.z) / (td.size.z / res)), 0, res - 1);
+                bool solid = td.GetHoles(hx, hz, 1, 1)[0, 0];
+                L($"({F(x)}, {F(z)}): terrain {F(ty)} {(solid ? "solid" : "HOLE")}, floor {F(fl)}, cap {F(CapY(x, z))}, field at terrain {F(Field(new Vector3(x, ty, z)))}, portal {InPortal(new Vector3(x, ty, z))}");
+                var hits = Physics.RaycastAll(new Vector3(x, ty + 6f, z), Vector3.down, 12f, ~0, QueryTriggerInteraction.Ignore).OrderBy(h => h.distance);
+                foreach (var h in hits) L($"   hit {F(h.point.y)} n {V(h.normal)} {h.collider.name}");
+                var sb = new StringBuilder("   fieldA by height:"); for (float y = ty - 1.5f; y <= ty + 1.6f; y += 0.25f) sb.Append($" {F(y)}:{F(FieldA(new Vector3(x, y, z)))}"); L(sb.ToString());
+            }
+            return Log.ToString();
+        }
+
+        /// <summary>debug (read only): "x,y,z": a dense fan of rays from an eye point; rays that hit nothing within 60 m are
+        /// gaps in the shell; prints where each such ray crosses the cave wall (field 0)</summary>
+        [PrimalBridgeCommand]
+        public static string Gaps(string arg)
+        {
+            Log.Clear(); if (!Setup()) return Log.ToString();
+            Physics.SyncTransforms();
+            var s = (arg ?? "").Split(',');
+            var eye = new Vector3(float.Parse(s[0], CultureInfo.InvariantCulture), float.Parse(s[1], CultureInfo.InvariantCulture), float.Parse(s[2], CultureInfo.InvariantCulture));
+            int rays = 0, esc = 0;
+            float step = s.Length > 3 ? float.Parse(s[3], CultureInfo.InvariantCulture) : 2f;
+            for (float a = 0; a < 360; a += step)
+                for (float e = -40; e <= 60; e += step)
+                {
+                    rays++;
+                    var d = Quaternion.Euler(-e, a, 0f) * Vector3.forward;
+                    // the terrain collider answers rays from below too: only hits on anything else count as the cave wall
+                    var root0 = SceneRoots.Find(RootPath);
+                    if (Physics.RaycastAll(eye, d, 60f, ~0, QueryTriggerInteraction.Ignore).Any(h => root0 && h.collider.transform.IsChildOf(root0))) continue;
+                    esc++;
+                    if (esc > 25) continue;
+                    Vector3 cross = Vector3.zero; for (float t = 0.2f; t < 40f; t += 0.1f) { var q = eye + d * t; if (FieldA(q) > 0f) { cross = q; break; } }
+                    L($"  escape az {F(a)} el {F(e)}: crosses the wall at {V(cross)} (chunk {Mathf.FloorToInt(cross.x / ChunkSize)}_{Mathf.FloorToInt(cross.z / ChunkSize)}, field {F(Field(cross))}, ty {F(TY(cross.x, cross.z))})");
+                }
+            L($"gaps from {V(eye)}: {rays} rays, {esc} hit nothing within 60 m");
             return Log.ToString();
         }
 

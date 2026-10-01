@@ -5,6 +5,7 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
+using PrimalFrontier.World;
 
 namespace PrimalFrontier.EditorTools
 {
@@ -29,6 +30,119 @@ namespace PrimalFrontier.EditorTools
         static List<Vector3> _footCanyon, _footLava; static Vector3 _footVent = new Vector3(-100f, 44.7f, -232f);
         static readonly Vector2 FootRidgeDefault = new Vector2(-150f, -198f);
         static Vector3 _footRidge;
+        static Quaternion _footRidgeRot = Quaternion.identity;
+        static Bounds _footRidgeB = new Bounds(Vector3.zero, new Vector3(20f, 10f, 20f));
+        static Vector3 FootExit => _footCanyon != null && _footCanyon.Count > 0 ? _footCanyon[_footCanyon.Count - 1] : new Vector3(-162f, 42.5f, -210f);
+        /// <summary>local -Z (ART: the steep face) towards the canyon exit, plus a yaw offset</summary>
+        static Quaternion FootRidgeRotAt(Vector3 c, float yawOff)
+        {
+            var away = c - FootExit; away.y = 0f;
+            var q = away.sqrMagnitude > 1e-3f ? Quaternion.LookRotation(away.normalized, Vector3.up) : Quaternion.identity;
+            return Quaternion.Euler(0f, yawOff, 0f) * q;
+        }
+        /// <summary>is p inside the landmark footprint (local bounds rectangle + margin)?</summary>
+        static bool FootInRidge(Vector3 p, float margin) => FootInRect(p, _footRidge, _footRidgeRot, margin);
+        static bool FootInRect(Vector3 p, Vector3 c, Quaternion rot, float margin)
+        {
+            var q = Quaternion.Inverse(rot) * new Vector3(p.x - c.x, 0f, p.z - c.z); var b = _footRidgeB;
+            return q.x > b.min.x - margin && q.x < b.max.x + margin && q.z > b.min.z - margin && q.z < b.max.z + margin;
+        }
+        /// <summary>
+        /// with ART's LM_BlackRidge: a temporary instance is tried at poses round the requested spot (closest first, -6..6 m,
+        /// yaw -30..30 deg, steep face towards the canyon exit first, then turned round); the first pose whose real colliders
+        /// touch no canyon path probe, no lava probe and no gameplay object (resource node 0.55 m probe, others 0.4 m) wins
+        /// </summary>
+        static bool FootFitRidge(Zone z, Vector3 want, UnityEngine.SceneManagement.Scene scene)
+        {
+            var art = Prefab("LM_BlackRidge", false); if (!art) return false;
+            _footRidgeB = EBPrefabBounds(art);
+            var go = (GameObject)PrefabUtility.InstantiatePrefab(art);
+            var mine = new HashSet<Collider>(go.GetComponentsInChildren<Collider>(true));
+            float reach = Mathf.Max(_footRidgeB.extents.x, _footRidgeB.extents.z) + 12f;
+            var probes = new List<(Vector3 c, float r)>();
+            for (int i = 0; i + 1 < _footCanyon.Count; i++)
+                for (float f = 0f; f < 1f; f += 0.25f) { var q = Vector3.Lerp(_footCanyon[i], _footCanyon[i + 1], f); if (q.z <= -100f && EBFlat(q, want) < reach) probes.Add((Ground(q) + Vector3.up * 1.2f, 2.6f)); }
+            int nCanyon = probes.Count;
+            for (int i = 0; i + 1 < _footLava.Count; i++) { var q = _footLava[i]; if (EBFlat(q, want) < reach) probes.Add((Ground(q) + Vector3.up * 0.5f, 3f)); }
+            int nLava = probes.Count - nCanyon;
+            foreach (var root in scene.GetRootGameObjects())
+                foreach (var it in root.GetComponentsInChildren<Interactable>(false))
+                {
+                    var q = it.transform.position; if (EBFlat(q, want) >= reach) continue;
+                    probes.Add((q + Vector3.up * 0.5f, it is ResourceNode ? 0.55f : 0.4f));
+                }
+            var poses = new List<(Vector3 c, float yaw, float cost)>();
+            for (float dx = -6f; dx <= 6.01f; dx += 1f) for (float dz = -6f; dz <= 6.01f; dz += 1f)
+                    foreach (float flip in new[] { 0f, 180f })
+                        for (float yo = -30f; yo <= 30.01f; yo += 5f)
+                            poses.Add((new Vector3(want.x + dx, 0f, want.z + dz), flip + yo, Mathf.Sqrt(dx * dx + dz * dz) + 0.1f * Mathf.Abs(yo) + (flip > 0f ? 4f : 0f)));
+            poses.Sort((x, y) => x.cost.CompareTo(y.cost));
+            bool found = false; int tried = 0, bestHits = int.MaxValue; Vector3 bc = Ground(want); float by = 0f;
+            foreach (var ps in poses)
+            {
+                tried++;
+                var c = Ground(ps.c); var rot = FootRidgeRotAt(c, ps.yaw);
+                go.transform.SetPositionAndRotation(c, rot); Physics.SyncTransforms();
+                int hits = 0;
+                foreach (var pr in probes) { foreach (var col in Physics.OverlapSphere(pr.c, pr.r, ~0, QueryTriggerInteraction.Ignore)) if (mine.Contains(col)) { hits++; break; } if (hits > bestHits) break; }
+                if (hits < bestHits) { bestHits = hits; bc = c; by = ps.yaw; }
+                if (hits == 0) { found = true; break; }
+            }
+            UnityEngine.Object.DestroyImmediate(go); Physics.SyncTransforms();
+            _footRidge = bc; _footRidgeRot = FootRidgeRotAt(bc, by);
+            L($"landmark fit (real LM_BlackRidge colliders): {tried} poses tried, probes canyon {nCanyon} / lava {nLava} / gameplay {probes.Count - nCanyon - nLava}; spot {V(bc)} yaw offset {F(by)} ({F(EBFlat(bc, want))} m from {V(Ground(want))}), touching probes {bestHits}");
+            if (!found) W($"LM_BlackRidge still touches {bestHits} probe(s) at the best pose");
+            return true;
+        }
+
+        /// <summary>
+        /// the landmark spot: near the requested spot, the whole footprint (+3 m) on open ground of the upper zone, at least
+        /// 5 m from the canyon path, 7 m from the lava, no gameplay object, no more than 5 m of relief under it.
+        /// </summary>
+        static void FootPlaceRidge(Zone z, Vector3 want, bool fixedSpot)
+        {
+            var art = Prefab("LM_BlackRidge", false);
+            if (art) _footRidgeB = EBPrefabBounds(art);
+            float bestS = -1e9f; Vector3 best = Ground(want); float bestYaw = 0f; string info = "";
+            var b = _footRidgeB;
+            var offs = Enumerable.Range(0, 18).Select(i => i <= 9 ? i * 10f : (i - 18) * 10f).ToArray();   // 0..90, -80..-10
+            var why = new Dictionary<string, int>(); void Why(string w) { why.TryGetValue(w, out var v); why[w] = v + 1; }
+            const float mg = 1.5f;
+            int bestBlk = 0;
+            for (float dx = -39f; dx <= 39f; dx += 3f) for (float dz = -39f; dz <= 39f; dz += 3f)
+                {
+                    if (fixedSpot && (dx != 0f || dz != 0f)) continue;
+                    var c = Ground(new Vector3(want.x + dx, 0f, want.z + dz));
+                    if (OwnWeight(z, c) < 0.5f || FootMouth(c) < 1f) continue;
+                    foreach (var yo in offs)
+                    {
+                        var rot = FootRidgeRotAt(c, yo); bool ok = true; float lo = 1e9f, hi = -1e9f; int blk = 0;
+                        for (float lx = b.min.x - mg; lx <= b.max.x + mg + 0.01f && ok; lx += 3f)
+                            for (float lz = b.min.z - mg; lz <= b.max.z + mg + 0.01f && ok; lz += 3f)
+                            {
+                                var q = c + rot * new Vector3(lx, 0f, lz); q.y = GroundY(q);
+                                string w = FootCanyonDist(q) < 4.5f ? "canyon" : FootLavaDist(q) < 6f ? "lava" : FootMouth(q) < 0.95f ? "mouth" : q.y < 12f ? "low / sea cliff" : null;
+                                if (w != null) { Why(w); ok = false; break; }
+                                if (IsBlocked(q, 0f)) blk++;
+                                lo = Mathf.Min(lo, q.y); hi = Mathf.Max(hi, q.y);
+                            }
+                        if (!ok) continue;
+                        if (hi - lo > 8f) { Why("relief"); continue; }
+                        float score = -60f * blk - EBFlat(c, want) - 2f * (hi - lo) - 0.15f * Mathf.Abs(yo);
+                        if (score > bestS) { bestS = score; best = c; bestYaw = yo; bestBlk = blk; info = $"relief {F(hi - lo)} m, {F(EBFlat(c, FootExit))} m from the canyon exit, yaw offset {F(yo)}, {blk} footprint samples near a gameplay object"; }
+                    }
+                }
+            L("landmark footprint rejections: " + string.Join(", ", why.OrderByDescending(kv => kv.Value).Select(kv => kv.Key + " " + kv.Value)));
+            if (bestS <= -1e8f) { W($"no free landmark footprint near {V(want)}: kept the requested spot"); _footRidge = Ground(want); _footRidgeRot = FootRidgeRotAt(_footRidge, 0f); return; }
+            _footRidge = best; _footRidgeRot = FootRidgeRotAt(best, bestYaw);
+            if (bestBlk > 0)
+            {
+                var near = new List<string>();
+                foreach (var l in Blockers.Values) foreach (var q in l) if (FootInRect(q, best, _footRidgeRot, q.y) && near.Count < 8) near.Add(V(q));
+                W($"landmark footprint is near {bestBlk} gameplay sample(s): blockers {string.Join(" ", near)}");
+            }
+            L($"landmark spot {V(best)} (footprint {F(b.size.x)} x {F(b.size.z)} m, {info})");
+        }
 
         static void FootLoad()
         {
@@ -119,8 +233,9 @@ namespace PrimalFrontier.EditorTools
             if (!FindTerrain() || LoadFeat() == null) { W("no terrain or features"); return End(); }
             var z = ZoneById("foothills"); if (z == null) { W("zone foothills missing in the core"); return End(); }
             FootLoad();
-            _footRidge = Ground(EBXZ(a, "ridge", FootRidgeDefault));
             int blockers = BuildBlockers(scene);
+            var wantRidge = EBXZ(a, "ridge", FootRidgeDefault);
+            if (!FootFitRidge(z, wantRidge, scene)) FootPlaceRidge(z, wantRidge, a.ContainsKey("ridge"));
             var others = EBTreeGrid("EB_foothills");
             L($"zone {z.id}: {V(z.centre)} -> {V(z.end)} r {F(z.radius)} blend {F(z.blend)}; canyon {_footCanyon.Count} pts, lava {_footLava.Count} pts, vent {V(_footVent)}; ridge {V(_footRidge)} s {F(FootS(_footRidge))}; blockers {blockers}");
             if (dry) { FootSurvey(z, others); return End(); }
@@ -198,7 +313,7 @@ namespace PrimalFrontier.EditorTools
                     float s = FootS(p), dryK = EBRamp(s, 0.14f, 0.3f), blk = EBRamp(s, 0.44f, 0.6f), r = Rand01(ix + 57, iz + 91);
                     float pC = pCyc.Length > 0 ? ow * dryK * (1f - blk) * 0.07f : 0f, pF = pFern.Length > 0 ? ow * (1f - dryK) * 0.025f : 0f;
                     int kind = r < pC ? 1 : r < pC + pF ? 0 : -1; if (kind < 0) continue;
-                    if (FootCanyonDist(p) < 4f || FootLavaDist(p) < 8f || EBFlat(p, _footRidge) < 12f || IsBlocked(p, 1.5f) || Near(others, p, 3.5f, 4f) || Near(myG, p, 3.5f, 4f)) continue;
+                    if (FootCanyonDist(p) < 4f || FootLavaDist(p) < 8f || FootInRidge(p, 4f) || IsBlocked(p, 1.5f) || Near(others, p, 3.5f, 4f) || Near(myG, p, 3.5f, 4f)) continue;
                     float yaw = Rand01(ix + 1, iz + 13) * Mathf.PI * 2f, sc;
                     int proto;
                     if (kind == 1) { proto = pCyc[(int)(r * 173f) % pCyc.Length]; sc = 0.75f + Rand01(ix, iz + 5) * 0.45f; nC++; }
@@ -218,31 +333,42 @@ namespace PrimalFrontier.EditorTools
                 if (OwnWeight(z, p) <= 0.1f || FootMouth(p) < 0.9f) return false;
                 if (GroundY(p) < 3f || WaterDist(p) < 2f) return false;
                 if (FootCanyonDist(p) < 3.5f + r * 0.6f + pathExtra || FootLavaDist(p) < 5f + r) return false;
-                if (EBFlat(p, _footRidge) < 10f + r * 0.5f || IsBlocked(p, r * 0.5f + 1f)) return false;
+                if (FootInRidge(p, 3f + r * 0.5f) || IsBlocked(p, r * 0.5f + 1f)) return false;
                 return true;
             }
             float DryK(Vector3 p) { var g = Ground(p); float s = FootS(g); return EBRamp(s, 0.16f, 0.3f) * (1f - EBRamp(s, 0.62f, 0.74f)); }
             float BlkK(Vector3 p) { var g = Ground(p); float s = FootS(g); return EBRamp(s, 0.44f, 0.56f) * (1f - 0.6f * EBRamp(s, 0.86f, 0.95f)) * 0.9f + EBRamp(s, 0.66f, 0.8f) * 0.25f; }
+            var rejD = new Dictionary<string, int>(); var rejF = new Dictionary<string, int>();
             var deadT = EBScatter(deadG, new[] { "PROP_PC_BrokenTree_A", "PROP_PC_BrokenTree_B" }, 24, 9f,
-                p => OwnWeight(z, p) * DryK(p) * 0.85f, (p, r) => Base(p, r, 0.5f) && Slope(p) < 26f && !Near(allTrees, p, 2f, 4f), 0.85f, 1.25f, 0.1f, false, 5101, area, placed, colliderProp: true, ignoreRoot: root);
-            var dryTr = EBScatter(deadG, new[] { "ENV_PC_FallenTrunk_A", "ENV_PC_FallenTrunk_B" }, 6, 14f,
-                p => OwnWeight(z, p) * DryK(p) * 0.7f, (p, r) => Base(p, r, 1f) && Slope(p) < 14f && !Near(allTrees, p, 1.5f, 4f), 0.85f, 1.1f, 0.12f, true, 5102, area, placed, isLong: true, colliderProp: true, ignoreRoot: root);
+                p => OwnWeight(z, p) * DryK(p) * 0.85f, (p, r) => Base(p, r, 0.5f) && Slope(p) < 26f && !Near(allTrees, p, 2f, 4f), 0.85f, 1.25f, 0.1f, false, 5101, area, placed, colliderProp: true, ignoreRoot: root, rej: rejD);
+            var dryTr = EBScatter(deadG, new[] { "ENV_PC_FallenTrunk_A", "ENV_PC_FallenTrunk_B", "PFB_ENV_FallenLog_01" }, 6, 14f,
+                p => OwnWeight(z, p) * Mathf.Max(DryK(p), 0.5f * BlkK(p)) * 0.9f, (p, r) => Base(p, r, 1f) && Slope(p) < 18f && !Near(allTrees, p, 1.2f, 4f), 0.75f, 1.05f, 0.12f, true, 5102, area, new Dictionary<long, List<Vector3>>(), isLong: true, colliderProp: true, ignoreRoot: root, rej: rejF);
+            L($"dead tree rejections: {EBRej(rejD)}; dry trunk rejections: {EBRej(rejF)}");
             var basalt = EBScatter(rockG, new[] { "ENV_PC_Basalt_A", "ENV_PC_Basalt_B", "ENV_PC_BasaltBoulder" }, 90, 5.5f,
                 p => { float cl = Smooth01((Noise(p.x, p.z, 18f, 81) - 0.35f) / 0.3f); return OwnWeight(z, p) * BlkK(p) * (0.25f + 0.75f * cl); },
                 (p, r) => Base(p, r, 0.5f) && Slope(p) < 40f, 0.8f, 2.0f, 0.25f, true, 5103, area, placed, colliderProp: true, ignoreRoot: root);
             L($"placed: {deadT.Count} dead / broken trees, {dryTr.Count} dry fallen trunks, {basalt.Count} basalt groups; models {EBModelCounts(root)}");
 
             // ---- landmark + FX anchors
-            var toCanyon = (_footCanyon.Count > 0 ? _footCanyon[_footCanyon.Count - 1] : z.centre) - _footRidge; toCanyon.y = 0f;
-            var lm = Marker(root, "LM_VolcanicFoothills", _footRidge, toCanyon.sqrMagnitude > 1e-3f ? Quaternion.LookRotation(toCanyon.normalized, Vector3.up) : Quaternion.identity);
+            var lm = Marker(root, "LM_VolcanicFoothills", _footRidge, _footRidgeRot);
             var art = Prefab("LM_BlackRidge", false);
             if (art) { var go = (GameObject)PrefabUtility.InstantiatePrefab(art, lm); go.transform.localPosition = Vector3.zero; go.transform.localRotation = Quaternion.identity; L($"landmark: ART LM_BlackRidge placed at {V(_footRidge)}"); }
             else L($"landmark: placeholder LM_VolcanicFoothills at {V(_footRidge)}, facing the canyon exit (LM_BlackRidge not delivered yet)");
+            // the canyon path stays free of own colliders (same probes as the check, a little larger)
+            var probes = new List<(Vector3 c, float r)>();
+            for (int i = 0; i + 1 < _footCanyon.Count; i++)
+                for (float f = 0f; f < 1f; f += 0.25f) { var q = Vector3.Lerp(_footCanyon[i], _footCanyon[i + 1], f); if (q.z <= -100f) probes.Add((Ground(q) + Vector3.up * 1.2f, 2.6f)); }
+            var lmHits = new List<string>();
+            int cleared = EBClearCorridor(root, lm, probes, lmHits);
+            L($"canyon path: {cleared} own props with a collider within 2.6 m removed{(lmHits.Count > 0 ? "; landmark touches the path at " + string.Join(" ", lmHits) : "")}");
+            if (lmHits.Count > 0) W("the landmark collider touches the canyon path");
+            L($"final own props: {EBModelCounts(root)}");
             var fx = Group2(root, "FX_Anchors"); var taken = new List<Vector3> { _footRidge };
             int nFx = 0;
             void Fx(string name, Func<Vector3, float> score, int seed, float minSep, float up)
             {
-                if (EBFindSpot(p => { if (OwnWeight(z, p) < 0.4f || FootMouth(p) < 0.95f) return 0f; var g = Ground(p); if (g.y < 4f || IsBlocked(g, 1f)) return 0f; return score(g); }, area, seed, 1500, taken, minSep, out var spot))
+                Func<Vector3, float> sc = p => { if (OwnWeight(z, p) < 0.4f || FootMouth(p) < 0.95f) return 0f; var g = Ground(p); if (g.y < 4f || IsBlocked(g, 1f)) return 0f; return score(g); };
+                if (EBFindSpot(sc, area, seed, 1500, taken, minSep, out var spot) || EBFindSpot(sc, area, seed + 1, 3000, taken, minSep * 0.6f, out spot))
                 { Marker(fx, name, spot + Vector3.up * up, Quaternion.identity); nFx++; L($"  FX anchor {name} {V(spot + Vector3.up * up)} s {F(FootS(spot))}"); }
                 else W($"no spot for FX anchor {name}");
             }
@@ -250,7 +376,7 @@ namespace PrimalFrontier.EditorTools
             for (int i = 1; i <= 4; i++) Fx($"FX_AshFall_{i:00}", g => Slope(g) < 25f && FootLavaDist(g) > 10f ? Band(g, 0.82f, 0.12f) : 0f, 5200 + i * 7, 25f, 8f);
             for (int i = 1; i <= 3; i++) Fx($"FX_Fumarole_{i:00}", g => Slope(g) < 18f && FootCanyonDist(g) > 8f && FootLavaDist(g) > 12f ? Band(g, 0.62f, 0.12f) : 0f, 5300 + i * 7, 20f, 0.1f);
             for (int i = 1; i <= 2; i++) Fx($"FX_HeatShimmer_{i:00}", g => { float ld = FootLavaDist(g); return Slope(g) < 15f && ld > 6f && ld < 20f && FootS(g) > 0.85f ? 1f - ld / 25f : 0f; }, 5400 + i * 7, 20f, 0.5f);
-            for (int i = 1; i <= 2; i++) Fx($"FX_DustDevil_{i:00}", g => Slope(g) < 12f && FootCanyonDist(g) > 6f && !Near(allTrees, g, 5f, 4f) ? Band(g, 0.36f, 0.12f) : 0f, 5500 + i * 7, 30f, 0.2f);
+            for (int i = 1; i <= 2; i++) Fx($"FX_DustDevil_{i:00}", g => Slope(g) < 12f && FootCanyonDist(g) > 6f && !Near(allTrees, g, 5f, 4f) ? Band(g, 0.36f, 0.16f) : 0f, 5500 + i * 7, 22f, 0.2f);
             Marker(fx, "FX_SmokeDrift_01", _footRidge + Vector3.up * 10f, Quaternion.identity); nFx++; L($"  FX anchor FX_SmokeDrift_01 {V(_footRidge + Vector3.up * 10f)} (over the landmark)");
             L($"FX anchors: {nFx} (WORLD attaches smoke / ash / heat / dust; hazard zones HZ_volcano / HZ_vent unchanged)");
 

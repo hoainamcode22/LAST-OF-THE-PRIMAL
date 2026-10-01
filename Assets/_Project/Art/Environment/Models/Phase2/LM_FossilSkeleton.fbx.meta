@@ -17,8 +17,43 @@ ModelImporter:
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
+      name: M_P2_BoneScatter_A
+    second: {fileID: 2100000, guid: 3b53f92198cc4cf43a33f635414ea8fc, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: M_P2_BoneScatter_B
+    second: {fileID: 2100000, guid: 3243d82d0ef2e484692e872253447c6d, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: M_P2_Calcite
+    second: {fileID: 2100000, guid: 8e5a3476262f9b64d824ad8421194137, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
       name: M_P2_Canopy
     second: {fileID: 2100000, guid: 3550ef2bb189bd04b9209fae5bffa336, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: M_P2_CaveRock
+    second: {fileID: 2100000, guid: 0e9e3a8d05fd01b49ab904b0f9aea83a, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: M_P2_CaveWet
+    second: {fileID: 2100000, guid: 2422db2a3d394304980ce20ee8840706, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: M_P2_DeadSnag_A
+    second: {fileID: 2100000, guid: f18e975b53eb6fc49be1dcb8bacf0ce8, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: M_P2_DeadSnag_B
+    second: {fileID: 2100000, guid: 35159505e3ec6a046bf8e65d4f6b7d2f, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
@@ -32,8 +67,18 @@ ModelImporter:
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
+      name: M_P2_Ribcage
+    second: {fileID: 2100000, guid: 24e3d2a858dea9f4ebadb7473f7ea0ce, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
       name: M_P2_RockRidge
     second: {fileID: 2100000, guid: 509b248eab6c585488a1f9ac4b883906, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: M_P2_Skull_Large
+    second: {fileID: 2100000, guid: 695653df4a738454ba52985299d0407d, type: 2}
   materials:
     materialImportMode: 1
     materialName: 0

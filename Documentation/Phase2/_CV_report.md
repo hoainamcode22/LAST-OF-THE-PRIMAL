@@ -13,7 +13,7 @@
 |---|---|---|
 | East mouth (waterfall) | (90.0, 19.45, -157.4), faces +x | 4 m wide, 3.3 m high, stream spills 1.0 m down to the pool (18.5) |
 | Stream passage | (85, 19.7, -159.6) -> (49.6, 20.9, -173) | 46 m, 3 bends, stream groove on the south side, side alcove pool at (68, 20.2, -161.7) |
-| Chamber dome (landmark) | centre (40, 20.9, -173.6), 21 x 19 m, 10.8 m high | still pool 11.6 x 8.6 m, surface 20.78, 1.7 m deep; ceiling cleft over the pool (daylight spot) |
+| Chamber dome (landmark) | centre (40, 20.9, -173.6), 21 x 19 m, 10.8 m high | still pool 11.6 x 8.6 m, surface 20.62, 1.7 m deep; ceiling cleft over the pool (daylight spot) |
 | West passage (branch 1) | (30.4, 20.9, -173.4) -> back door (12.4, 22.49, -141.4), faces +z | 40 m, climbs 1.6 m, 2 bends |
 | Hidden branch (branch 2) | behind the water curtain (41.96, 23.62, -182.85) on the chamber south wall | low crawl (crouch) at (42.2, 21.0, -184.4), then hidden chamber (44.8, 21.25, -192.4) 8.8 x 7.6 x 4.3 m |
 | Hidden nest | (45.4, 21.25, -192.8) | ring of 9 stones + 3 bone piles, Examinable `cave_hidden_nest` |
@@ -36,11 +36,10 @@ Walkable length: stream passage 46 m + chamber 21 m + west passage 40 m + hidden
 - Light: 4 realtime lights, no shadows: east / west mouth daylight bounce and the pool shaft follow `TimeManager.Daylight01`
   (new runtime `Scripts/World/CaveDaylightLight.cs`, off at night), one dim cool chamber fill (3.4, range 15). 4 custom
   reflection probes with a dark cubemap (no sky reflections on wet rock / water inside). No emissive or fantasy glow.
-- Terrain holes: only at the two mouths, 21 + 27 cells (8.2 + 10.6 m2). TerrainData backed up once to
+- Terrain holes: only at the two mouths (final 47 + 52 cells, see the fix pass). TerrainData backed up once to
   `Art/Terrain/_Backup/TD_Island_before_CV.asset`; each build restores the two 20 x 20 m mouth regions from it first.
 - Props: 11 rubble rocks (wall bases), 4 framing boulders at the mouths, 4 bone piles, the nest (existing PFB_ENV_Rock_*,
-  PROP_PC_Bones). ART kit: `PlaceKit` picks up `Prefabs/Environment/Phase2/*CAVE_*` (pool rim, stalactites, rubble, wall
-  panels) on the next Build; batch 2 was not delivered yet.
+  PROP_PC_Bones). ART kit: 7 stalactite clusters + 6 rubble piles that fit (see the fix pass).
 
 ## Anchors (empty transforms under DeepWaterCave)
 - `AI_Anchors` (9): AI_SmallCreature_0_lizards (57.5, -170.4), _1_crickets (34.6, -167), _2_lizards (21.2, -164.6),
@@ -75,7 +74,55 @@ Walkable length: stream passage 46 m + chamber 21 m + west passage 40 m + hidden
 - Lead: bridge lock contention: EA 13:39-14:08, BONE 14:08-14:40, P from 16:10; my own first hold ran 15:24-15:44
   (20 min, over the 10 min limit: build + check + save in one hold).
 
+## Visual fix pass (2026-10-01, Lead's finish queue, bridge ids CVf_1..120)
+Lead's captures (F6c) showed white sawtooth gaps round both mouths, a floating kit wall slab and a stalactite "disc" in the
+chamber, and white slivers along the pool rim. Causes found and fixed:
+- **Stale meshes in the editor (main cause of what the captures showed):** `SaveAsset` rewrote existing mesh assets with
+  `EditorUtility.CopySerialized`. The collider took the new data but the renderer kept drawing the first build's GPU buffers
+  in the same editor session, so every rebuild looked identical. Meshes are now rewritten through the Mesh API (Clear, Set*,
+  UploadMeshData). The first capture after this change (CV7) was the first that showed the real geometry.
+- **Mouths:** a solid rock band in a 7 m zone round each mouth: inner face, outer skin 1.25 m out, and a top cap. The cap is
+  0.06-0.3 m above the cliff surface (a rock lip round the opening, thicker where the cliff is higher). On the ground it is a thin
+  apron at the cliff foot that tapers away under the turf. Terrain holes are cut only where a cell touches the cave air and
+  lies in the band or on the cliff behind it; flat ground in front stays terrain. East: 47 cells (18.4 m2), west: 52 cells
+  (20.3 m2). The holes texture is now uncompressed and synced: compressed holes were drawn in 4 x 4-cell (2.5 m) blocks,
+  larger than the cut cells. Outside the zones the shell keeps only the cave wall itself (no seam pieces at the zone edge).
+- **White surfaces:** the band-0 rock material had `_MossAmount` 0.18 but no `_MossMap`, so up-facing rock drew flat white.
+  Moss is off. Rock near daylight is now matte (smoothness 0.1, wetness 0.05-0.08).
+- **Shell quality:** non-planar surface-nets quads are split on the diagonal that faces the air (about 21 triangles re-wound
+  per build). The floor / wall crease and the pool rim are rounded (smooth max 0.3 m, smooth basin union 0.35 m). The pool
+  water is now 0.28 m below the rim (20.62) with the disc at 0.96 of the basin, so it no longer shows through the rim steps.
+- **ART kit:** only pieces that fit the generated rock are placed. 7 `CAVE_Stalactites` hang from the chamber ceiling by
+  raycast at scale 0.75-1.0, attach point embedded 0.3 m. Each is checked flush on 4 probes and needs tip headroom 2.4 m
+  (0.6 m over the pool). 6 `CAVE_Rubble` sit on the floor at the wall bases, aligned to the floor normal. Each has all 4 footprint corners on
+  the floor within -0.3..+0.35 m, stays clear of the walk lines by its half size + 0.9 m, and avoids the pools and stream.
+  Skipped: CAVE_Wall_A/B, Tunnel_Straight/Bend, Chamber_Dome, PoolRim (modular or circular r 8.4 m, they do not match
+  the generated shell; this removed the floating slab). My own rubble rocks are also checked now (one floated in the west
+  passage).
+- Reflection probes are now updated in place (destroying them in edit mode left URP's probe atlas throwing NullReference in
+  `ReflectionProbeManager` on every render). Capture takes `reload` (reopen the saved scene first), `only=` and `hide=`.
+
+### Results (final)
+- CVf_115b Build: 42 s, 0 warnings. Shell 46,034 tris, 23,858 verts, 12 chunks.
+- CVf_116k Check: **CAVE CHECK OK**. 828 probes, including 1.2 m of approach outside each mouth:
+  - holes 0, too steep 0, headroom < 2.2 m 0, capsule blocked 0;
+  - steps (> 0.32 m and steeper than 42 deg) 0; lowest headroom 2.5 m; crawl 1.6 m (crouch);
+  - void rays 2000, 0 into the void (the test now ignores terrain hits, because the terrain collider also answers from below);
+  - stream downhill.
+- **Rendered tris at LOD0: 116,474** (kit 52,200 in 13 pieces). The earlier 491k counted every LOD level and 73 kit pieces.
+- CVf_117s SaveScene saved. CVf_118p Capture CV12 (9 views, 0 exceptions). CVf_119c ConsoleCheck: 0 errors, 0 warnings.
+  Scene clean.
+- Looked at the captures myself (CV12_*):
+  - west mouth: clean rock arch, no white or sky;
+  - east mouth: rock lip all round, no white or sky; a darker rock apron / lip in front-left where the ground rises to the cliff;
+  - chamber: no floating pieces and no see-through slivers; the faint light flecks left are lit rock facets of the basin
+    wall under the shaft light.
+
 ## Not done / notes
 - No PlayMode, no git, no deletes. Only my files (PrimalCaveBuilder.cs, CaveDaylightLight.cs, Art/Environment/Cave/*,
   terrain holes at the two mouths, the backup asset).
-- ART cave kit not yet placed (not delivered); CAVE_Chamber_Dome will not replace the generated dome automatically.
+- ART kit pieces CAVE_Wall_A/B, Tunnel_*, Chamber_Dome and PoolRim are not used (they do not fit the generated rock).
+- The earlier pending update (crawl, void check, Capture) ran in the fix pass above.
+- Remaining look notes: surface-nets facets (0.4 m) still show on the steep basin wall under the shaft light; the east mouth's
+  front-left lip is a broad rock shelf where the ground rises to the cliff. Shell resolution or a hand-placed rock there would
+  refine it.

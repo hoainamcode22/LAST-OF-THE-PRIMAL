@@ -277,6 +277,10 @@ namespace PrimalFrontier.Story
             foreach (var l in StoryTexts.Locations) Add(l.page, JournalCategory.Locations, l.title, GameEventType.ZoneEntered, l.id, l.sketch, l.text);
             foreach (var d in StoryTexts.Discoveries)
                 Add(d.page, JournalCategory.Discoveries, d.title, d.id == "footprint" ? GameEventType.FootprintFound : GameEventType.Discovery, d.id, d.sketch, d.text);
+            // Phase 2: landmarks / hidden spots (found by seeing or reaching them) and Bone Valley's lesson
+            foreach (var m in StoryTexts.Landmarks) Add(m.page, JournalCategory.Discoveries, m.title, GameEventType.ZoneEntered, m.id, m.sketch, m.text);
+            var lesson = StoryTexts.BoneValleyLesson;
+            Add(lesson.page, JournalCategory.Survival, lesson.title, GameEventType.ZoneEntered, lesson.id, lesson.sketch, lesson.text);
             foreach (var r in StoryTexts.Resources) Add(r.page, JournalCategory.Resources, r.title, GameEventType.ItemAdded, r.items, r.sketch, r.text);
             foreach (var c in StoryTexts.Creatures) Add(c.id, JournalCategory.Creatures, c.title, GameEventType.CreatureSighted, c.id, c.sketch, c.appearance, c.id);
             Add("wounds", JournalCategory.Survival, "Wounds", GameEventType.StatusApplied, "bleeding|leg_injury|arm_injury", "claw",

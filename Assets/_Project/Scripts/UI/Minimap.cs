@@ -32,7 +32,7 @@ namespace PrimalFrontier.UI
         [Tooltip("metres across the small map")] public float viewSize = 140f;
         [Tooltip("metres revealed around the player")] public float revealRadius = 42f;
         [Tooltip("texels across the reveal (the whole map area)")] public int revealResolution = 128;
-        [Tooltip("places marked once visited ('|')")] public string markedPlaces = "shipwreck|cave|volcano|waterfall|old_camp|fossil_bed|nest|migration_view|pond|canyon|ridge|wetland";
+        [Tooltip("places marked once visited ('|')")] public string markedPlaces = "shipwreck|cave|volcano|waterfall|old_camp|fossil_bed|nest|migration_view|pond|canyon|ridge|wetland|lm_rock_ridge|lm_fallen_tree|lm_fossil_skeleton|lm_giant_tree|lm_black_ridge|lm_underground_pool|cave_hidden_chamber";
         [Tooltip("big landmarks marked once the player has been this close (m)")] public float landmarkSeeRadius = 120f;
         [Tooltip("landmarks known from afar ('|')")] public string landmarks = "shipwreck|volcano|waterfall";
         [Tooltip("metres to a fresh water source that count as having seen it")] public float waterSeeRange = 22f;
@@ -201,6 +201,13 @@ namespace PrimalFrontier.UI
             return m;
         }
 
+        readonly List<Vector2> _labelAt = new List<Vector2>();
+        bool Crowded(Vector2 ui)
+        {
+            for (int i = 0; i < _labelAt.Count; i++) { var d = _labelAt[i] - ui; if (Mathf.Abs(d.x) < 110f && Mathf.Abs(d.y) < 20f) return true; }
+            return false;
+        }
+
         Text Label(string text, Vector2 at)
         {
             Text t;
@@ -264,18 +271,26 @@ namespace PrimalFrontier.UI
             var mis = MissionSystem.Instance;
             if (mis)
             {
-                foreach (var id in _known)
-                {
-                    if (!mis.TryLocation(id, out var at)) continue;
-                    bool point = Array.IndexOf(_markedIds, id) >= 0;
-                    var ui = ToUi(at);
-                    if (point && Inside(ui)) Marker(placeColor, ms, true).rectTransform.anchoredPosition = ui;
-                    if (k > 0.6f && Inside(ui))
+                // the Phase 2 environments first: an older place at the same spot (wetland, deep forest...) does not print over their name
+                _labelAt.Clear();
+                for (int pass = 0; pass < 2; pass++)
+                    foreach (var id in _known)
                     {
-                        var t = StoryTexts.Location(id);
-                        if (t != null) Label(t.title, ui);
+                        bool region = Array.IndexOf(StoryIds.Regions, id) >= 0;
+                        if (region != (pass == 0)) continue;
+                        if (!mis.TryLocation(id, out var at)) continue;
+                        bool point = Array.IndexOf(_markedIds, id) >= 0;
+                        var ui = ToUi(at);
+                        if (point && Inside(ui)) Marker(placeColor, ms, true).rectTransform.anchoredPosition = ui;
+                        if (k > 0.6f && Inside(ui))
+                        {
+                            var t = StoryTexts.Location(id);
+                            string title = t != null ? t.title : StoryTexts.Landmark(id)?.title;
+                            if (title == null || Crowded(ui)) continue;
+                            _labelAt.Add(ui);
+                            Label(title, ui);
+                        }
                     }
-                }
                 var target = mis.MarkerTarget;
                 if (target.HasValue) PutClamped(target.Value, UIStyle.Accent, ms + 3);
             }

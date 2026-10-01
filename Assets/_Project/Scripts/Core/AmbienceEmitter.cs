@@ -3,7 +3,8 @@ using UnityEngine;
 namespace PrimalFrontier.Core
 {
     /// <summary>
-    /// A 3D ambience loop at a place: river, stream, waterfall, wetland (day insects and water, frogs at night), surf, lava.
+    /// A 3D ambience loop at a place: river, stream, waterfall, wetland (day insects and water, frogs at night), surf, lava,
+    /// flies over a carcass (Phase 2), a cave stream.
     /// Plays <see cref="clip"/> by day and cross-fades to <see cref="nightClip"/> at night when one is set; frogs and insects
     /// (<see cref="hushable"/>) go quiet with AmbienceManager.Silence01 when a predator is near; heavy rain masks the quieter
     /// ones a little. Stops its voice while the listener is beyond maxDistance (no cost far away). Placed by
@@ -11,7 +12,7 @@ namespace PrimalFrontier.Core
     /// </summary>
     public class AmbienceEmitter : MonoBehaviour
     {
-        public enum Kind { River, Stream, Waterfall, Wetland, Surf, Lava, Cave, Custom }
+        public enum Kind { River, Stream, Waterfall, Wetland, Surf, Lava, Cave, Custom, Flies, Insects }       // append only (serialised)
         public Kind kind = Kind.River;
         public AudioClip clip;
         [Tooltip("played instead at night (cross-fade over dusk / dawn); empty = the same clip all day")] public AudioClip nightClip;
@@ -21,6 +22,7 @@ namespace PrimalFrontier.Core
         [Range(0, 360)] public float spread = 90f;
         [Tooltip("goes quiet when a predator is near (frogs, insects)")] public bool hushable;
         [Tooltip("heavy rain masks it this much (0..1)")] [Range(0, 1)] public float rainMask = 0.3f;
+        [Tooltip("without a night clip: x volume at night (flies and day insects go quiet after dark)")] [Range(0, 1)] public float nightScale = 1f;
 
         AudioSource _day, _night; float _next; bool _near;
 
@@ -55,9 +57,10 @@ namespace PrimalFrontier.Core
             if (!_near) return;
             var tm = TimeManager.Instance; var wm = WeatherManager.Instance; var amb = AmbienceManager.Instance;
             float nightK = _night && tm ? Mathf.SmoothStep(0f, 1f, tm.NightFactor) : 0f;
+            float dayOnly = !_night && tm && nightScale < 1f ? Mathf.Lerp(1f, nightScale, Mathf.SmoothStep(0f, 1f, tm.NightFactor)) : 1f;
             float life = hushable && amb ? 1f - amb.Silence01 : 1f;
             float rain = wm ? 1f - rainMask * Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(0.5f, 1f, wm.Intensity)) : 1f;
-            float k = AudioBus.Ambience * rain * life;
+            float k = AudioBus.Ambience * rain * life * dayOnly;
             Fade(_day, volume * (1f - nightK) * k);
             if (_night) Fade(_night, nightVolume * nightK * k);
         }

@@ -82,25 +82,25 @@ MonoBehaviour:
   drinkSearchRadius: 160
   unarmedDamageScale: -1
   behaviour:
-    nightFear: 0.5
-    aggression: 0.5
-    investigation: 0.5
+    nightFear: 0.2
+    aggression: 0.7
+    investigation: 0.2
   locomotion:
-    weight: -1
-    swayDegrees: 1.2
-    leanDegrees: 2.5
-    tailBalance: 12
-    accelPitch: 0.8
-    stepShake: 0
-    pivotRate: 0.6
+    weight: 0.9
+    swayDegrees: 2.6
+    leanDegrees: 1
+    tailBalance: 8
+    accelPitch: 1.4
+    stepShake: 0.02
+    pivotRate: 0.55
   tracks:
-    shape: 0
-    printSize: 0.4
-    stride: 2
-    gauge: 0.6
-    droppingsSize: 0
+    shape: 4
+    printSize: 0.48
+    stride: 1.6
+    gauge: 1.4
+    droppingsSize: 0.42
     scratchHeight: 0
-  wildlifeTuned: 0
+  wildlifeTuned: 1
   hunt:
     hunts: 0
     prey: 

@@ -206,7 +206,7 @@ namespace PrimalFrontier.EditorTools
             if (float.IsNegativeInfinity(best))
             {
                 W("landmark: no clear footprint found: only the marker LM_BoneValley is placed (at the fewest-blockers spot), the prefab is NOT placed");
-                P.lmBlocked = true;
+                P.lmBlocked = !_bvForceLm; // Lead 2026-10-01: arg "force" places the prefab at the fewest-blockers spot (RES moves the blockers)
                 var at = bestBlocked < int.MaxValue ? bestBlockedAt : new Vector3(-120f, 0f, -32f);
                 P.landmark = Ground(at); P.lmScale = bestBlocked < int.MaxValue ? bestBlockedScale : 0.7f; P.lmHx = HX * P.lmScale; P.lmHz = HZ * P.lmScale; P.landmarkYaw = bestBlockedYaw;
                 P.lmRot = Quaternion.Euler(0f, P.landmarkYaw, 0f); P.lmFwd = P.lmRot * Vector3.forward; P.lmRight = P.lmRot * Vector3.right;
@@ -257,10 +257,12 @@ namespace PrimalFrontier.EditorTools
         }
 
         // ------------------------------------------------------------------ bridge command
+        static bool _bvForceLm;
         [PrimalBridgeCommand]
         public static string BoneValley(string arg)
         {
             var a = Args(arg);
+            _bvForceLm = a.ContainsKey("force");
             bool all = !a.ContainsKey("terrain") && !a.ContainsKey("props");
             Begin("BV", "BoneValley " + arg);
             if (!OpenIsland(out var scene, out bool wasDirty)) return End();
@@ -493,8 +495,27 @@ namespace PrimalFrontier.EditorTools
             var ribPf = Prefab("PROP_P2_Ribcage", false); var skullPf = Prefab("PROP_P2_Skull_Large", false);
             L($"ART kit: BoneScatter_A/B {(Prefab("PROP_P2_BoneScatter_A", false) ? "yes" : "no (PROP_PC_Bones)")}, Ribcage {(ribPf ? "yes" : "no")}, Skull_Large {(skullPf ? "yes" : "no")}, LM_FossilSkeleton {(HasPrefab("LM_FossilSkeleton") ? "yes" : "no (marker)")}");
             int nBones = 0, nPrints = 0, nDecals = 0, nEx = 0, nTrees = 0, nSnags = 0;
+            // points of my own interactables (examine props, carcass bodies): no other bone prop may cover them, so the
+            // interaction / examine checks reach them (BoneValleyCheck "other interactables covered")
+            var keep = new List<Vector3>(); int nPushed = 0, nDropped = 0;
             GameObject Bone(Transform parent, GameObject pf, Vector3 p, float yaw, float s, string name, float sink = 0.04f)
-            { var go = Place(parent, pf, p, yaw, s, true, sink); if (go) { go.name = name; nBones++; } return go; }
+            {
+                var go = Place(parent, pf, p, yaw, s, true, sink); if (!go) return null;
+                go.name = name;
+                for (int tries = 0; tries < 6; tries++)
+                {
+                    var rs = go.GetComponentsInChildren<Renderer>(); if (rs.Length == 0) break;
+                    var bb = rs[0].bounds; foreach (var r in rs) bb.Encapsulate(r.bounds);
+                    float rad = Mathf.Max(bb.extents.x, bb.extents.z) + 0.6f; var cen = BVFlat(bb.center);
+                    int hit = keep.FindIndex(kp => BVFlat(kp - cen).magnitude < rad);
+                    if (hit < 0) { nBones++; return go; }
+                    var away = cen - BVFlat(keep[hit]); away = away.sqrMagnitude > 1e-4f ? away.normalized : Vector3.right;
+                    var np = go.transform.position + away * (rad - BVFlat(keep[hit] - cen).magnitude + 0.2f);
+                    go.transform.position = new Vector3(np.x, GroundY(np) - sink * s, np.z); nPushed++;
+                }
+                UnityEngine.Object.DestroyImmediate(go); nDropped++; return null;
+            }
+            void Keep(GameObject go) { if (go) keep.Add(go.transform.position); }
             GameObject Print(Transform parent, string name, Vector3 p, Vector3 dir, bool left, Material m, float scale = 1.15f)
             {
                 if (!fpMesh || !m) return null;
@@ -518,6 +539,7 @@ namespace PrimalFrontier.EditorTools
                 var cap = freshGo.AddComponent<CapsuleCollider>(); cap.direction = alongZ ? 2 : 0; cap.center = b.center;
                 cap.radius = Mathf.Clamp(Mathf.Min(b.extents.y, alongZ ? b.extents.x : b.extents.z), 0.3f, 1.3f); cap.height = Mathf.Max(cap.radius * 2f, (alongZ ? b.size.z : b.size.x) * 0.9f);
                 var car = freshGo.AddComponent<Carcass>(); car.displayName = "half-eaten carcass"; car.creatureId = "parasaurolophus"; car.meat = 3; car.hide = 2; car.bone = 2; car.expireHours = 100000f; car.body = freshGo; car.SaveId = "bv_carcass_fresh";
+                Keep(freshGo);
                 var zc = freshGo.AddComponent<ZoneCarcass>(); zc.stage = ZoneCarcass.Stage.Fresh; zc.id = "bv_carcass_fresh"; zc.creatureId = "parasaurolophus"; zc.displayName = "half-eaten carcass";
                 zc.meat = 3; zc.hide = 2; zc.bone = 2; zc.expireHours = 100000f; zc.radius = Mathf.Max(b.extents.x, b.extents.z);
                 if (blood) for (int k = 0; k < 6; k++)
@@ -537,6 +559,7 @@ namespace PrimalFrontier.EditorTools
                 if (blood && i % 2 == 0) { BVDecal(gTracks, $"DragBlood_{i}", quad, blood, c + new Vector3(-dragDir.z, 0, dragDir.x) * 0.7f, 0.45f, 0.6f, Rand01(i, 53) * 360f); nDecals++; }
             }
             if (firstDrag && BVExam(firstDrag, "bv_drag_marks", 3f)) nEx++;
+            Keep(firstDrag);
 
             // ---- 2. rotting carcass, days old (sunk, dark, bones showing)
             var trikeMesh = BVDeadMesh("Triceratops", rebake, out var trikeMats);
@@ -551,6 +574,7 @@ namespace PrimalFrontier.EditorTools
                 cap.radius = Mathf.Clamp(Mathf.Min(b.extents.y, alongZ ? b.extents.x : b.extents.z) * 0.8f, 0.3f, 1.4f); cap.height = Mathf.Max(cap.radius * 2f, (alongZ ? b.size.z : b.size.x) * 0.85f);
                 var zc = rotGo.AddComponent<ZoneCarcass>(); zc.stage = ZoneCarcass.Stage.Rotting; zc.id = "bv_carcass_rotting"; zc.creatureId = "triceratops"; zc.displayName = "rotting carcass"; zc.meat = zc.hide = zc.bone = 0; zc.radius = Mathf.Max(b.extents.x, b.extents.z);
                 if (BVExam(rotGo, "bv_rotting_carcass", 5f)) nEx++;
+                Keep(rotGo);
                 if (bonesPf) for (int k = 0; k < 3; k++) { float an = P.rotYaw * Mathf.Deg2Rad + k * 2.1f; Bone(gCar, bonesPf, P.rot + new Vector3(Mathf.Sin(an), 0, Mathf.Cos(an)) * (zc.radius * 0.8f + 0.8f), Rand01(k, 61) * 360f, 0.9f + Rand01(k, 62) * 0.2f, $"RotBones_{k}"); }
                 if (blood) for (int k = 0; k < 4; k++) { float an = k * 1.6f; BVDecal(gCar, $"RotStain_{k}", quad, blood, P.rot + new Vector3(Mathf.Sin(an), 0, Mathf.Cos(an)) * zc.radius * 0.6f, 1.6f, 1.3f, Rand01(k, 63) * 360f); nDecals++; }
             }
@@ -560,23 +584,24 @@ namespace PrimalFrontier.EditorTools
             {
                 var zc = oldGo.AddComponent<ZoneCarcass>(); zc.stage = ZoneCarcass.Stage.Old; zc.id = "bv_carcass_old"; zc.creatureId = ""; zc.displayName = "old bones"; zc.meat = zc.hide = zc.bone = 0; zc.radius = 2.5f;
                 GameObject first = null;
-                if (ribPf) first = Bone(oldGo.transform, ribPf, P.old, 70f, 1f, "Ribcage", 0.25f);
-                for (int k = 0; k < 4; k++) { float an = k * 1.7f + 0.4f; var go = Bone(oldGo.transform, k % 2 == 0 ? scatterPf : bonesPf, P.old + new Vector3(Mathf.Sin(an), 0, Mathf.Cos(an)) * (1.2f + k * 0.5f), Rand01(k, 71) * 360f, 0.85f + Rand01(k, 72) * 0.3f, $"OldBones_{k}"); if (!first) first = go; }
+                if (ribPf) { first = Bone(oldGo.transform, ribPf, P.old, 70f, 1f, "Ribcage", 0.25f); Keep(first); }
+                for (int k = 0; k < 4; k++) { float an = k * 1.7f + 0.4f; var go = Bone(oldGo.transform, k % 2 == 0 ? scatterPf : bonesPf, P.old + new Vector3(Mathf.Sin(an), 0, Mathf.Cos(an)) * (1.2f + k * 0.5f), Rand01(k, 71) * 360f, 0.85f + Rand01(k, 72) * 0.3f, $"OldBones_{k}"); if (!first && go) { first = go; Keep(first); } }
                 if (skullPf) Bone(oldGo.transform, skullPf, P.old + new Vector3(1.8f, 0, -1.2f), 140f, 0.9f, "Skull", 0.2f);
                 if (first && BVExam(first, "bv_old_bones", 3.5f)) nEx++;
             }
 
             // ---- 4. entrance: a bone line across the path, a skull at its side, fresh prints branching off to the carcass
             var eDir = P.entranceDir; var eSide = new Vector3(-eDir.z, 0f, eDir.x);
+            var skullAt = P.entrance + eSide * 2.6f + eDir * 0.6f;
+            var skull = skullPf ? Bone(gEnt, skullPf, skullAt, Quaternion.LookRotation(-eDir).eulerAngles.y, 1f, "Skull_Entrance", 0.15f)
+                                : Bone(gEnt, bonesPf, skullAt, Quaternion.LookRotation(-eDir).eulerAngles.y, 1.3f, "Skull_Entrance_Placeholder", 0.04f);
+            if (skull && BVExam(skull, "bv_bone_line", 3.5f)) nEx++;
+            Keep(skull);
             if (bonesPf)
             {
                 var lineAt = P.entrance + eDir * 1.5f;
                 for (int k = -2; k <= 2; k++) Bone(gEnt, k % 2 == 0 ? scatterPf : bonesPf, lineAt + eSide * (k * 1.5f) + eDir * ((Rand01(k + 5, 81) - 0.5f) * 0.8f), Quaternion.LookRotation(eSide).eulerAngles.y + (Rand01(k + 5, 82) - 0.5f) * 40f, 0.8f + Rand01(k + 5, 83) * 0.25f, $"BoneLine_{k + 2}");
             }
-            var skullAt = P.entrance + eSide * 2.6f + eDir * 0.6f;
-            var skull = skullPf ? Bone(gEnt, skullPf, skullAt, Quaternion.LookRotation(-eDir).eulerAngles.y, 1f, "Skull_Entrance", 0.15f)
-                                : Bone(gEnt, bonesPf, skullAt, Quaternion.LookRotation(-eDir).eulerAngles.y, 1.3f, "Skull_Entrance_Placeholder", 0.04f);
-            if (skull && BVExam(skull, "bv_bone_line", 3.5f)) nEx++;
             GameObject firstFresh = null;
             {
                 // prints from the entrance down to the fresh carcass (a big hunter, hours ago)
@@ -589,6 +614,7 @@ namespace PrimalFrontier.EditorTools
                     if (!firstFresh) firstFresh = go;
                 }
                 if (firstFresh && BVExam(firstFresh, "bv_fresh_tracks", 3.5f)) nEx++;
+                Keep(firstFresh);
                 // prints out: from the carcass back to the path, then along it to the canyon mouth
                 float outArc = BVArcOf(new Vector3(-122f, 0f, -64f), out _);
                 var join = BVAt(outArc, out _);
@@ -694,6 +720,7 @@ namespace PrimalFrontier.EditorTools
             }
             var cc = (P.fresh + P.rot + skelP) / 3f; cc = Ground(cc) + Vector3.up * 28f;
             BVAnchor(gAi, "BV_CircleCentre", cc, Vector3.forward, 26f, "pteranodons circle here over the carcasses (radius = circle), 28 m above the basin floor");
+            L($"bone props kept clear of {keep.Count} own interactables: {nPushed} pushes, {nDropped} dropped");
             L($"props: {nBones} bone props, {nPrints} prints, {nDecals} decals (drag marks, blood), {nSnags} claw snags, {nTrees} broken trees, {nEx} Examinables; carcasses: fresh {(freshGo ? "yes" : "NO")}, rotting {(trikeMesh ? "yes" : "NO")}, old yes");
             L($"AI anchors: {nSc} scavenge, {route.Count} predator route, {nPe} perches, 1 circle centre");
             foreach (var zc in gCar.GetComponentsInChildren<ZoneCarcass>()) L($"  carcass {zc.id} ({zc.stage}, {zc.creatureId}) at {V(zc.transform.position)} r {F(zc.radius)}{(zc.GetComponent<Carcass>() ? " + Carcass (butcher: meat " + zc.meat + ", hide " + zc.hide + ", bone " + zc.bone + ")" : "")}");

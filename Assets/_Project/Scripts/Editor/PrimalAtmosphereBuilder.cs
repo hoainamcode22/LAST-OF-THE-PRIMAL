@@ -25,9 +25,10 @@ namespace PrimalFrontier.EditorTools
     /// lava loops at the WaterSources, ENV's water objects and markers), Hazards (HazardZone at the volcano marker and along
     /// lava) and Reverb (cave reverb zones). Generated children (EMIT_, HZ_, REV_) are rebuilt on every run from ENV's current
     /// objects, snapped to the terrain; anything else placed under [Atmosphere] by hand is kept.
-    /// Other commands: Capture (edit-mode lighting / weather review shots), Status (what is in the scene).
+    /// Other commands: Capture (edit-mode lighting / weather review shots), Status (what is in the scene), Zones2 / Zones2Check
+    /// (Phase 2 environments: PrimalAtmosphereBuilder.Zones2.cs).
     /// </summary>
-    public static class PrimalAtmosphereBuilder
+    public static partial class PrimalAtmosphereBuilder
     {
         const string ScenePath = "Assets/_Project/Scenes/Island_VerticalSlice.unity";
         const string AmbDir = "Assets/_Project/Audio/Ambience", OneShotDir = "Assets/_Project/Audio/Ambience/OneShots";
@@ -525,7 +526,7 @@ namespace PrimalFrontier.EditorTools
             if (zm)
                 foreach (var z in zm.zones)
                 {
-                    if (!z.indoor) continue;
+                    if (!z.indoor || z.kind != ZoneManager.ZoneKind.Place) continue;     // Phase 2 zones: Zones2 places their reverb
                     var p = z.center; p.y = Ground(terrain, p) + 2f;
                     bool dup = false;
                     foreach (Transform t in parent) if (t.name.StartsWith("REV_") && (t.position - p).sqrMagnitude < 36f) { dup = true; break; }

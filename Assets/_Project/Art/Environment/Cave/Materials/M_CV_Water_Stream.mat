@@ -49,7 +49,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _BankFoam: 0.5
+    - _BankFoam: 0.3
     - _BankFoamWidth: 0.3
     - _BankRange: 3
     - _CausticsStrength: 0.15
@@ -62,13 +62,13 @@ Material:
     - _Opacity: 1.1
     - _RainStrength: 0
     - _RainTiling: 1.6
-    - _RapidsFoam: 0.45
+    - _RapidsFoam: 0.25
     - _ReflectionStrength: 0.85
     - _RefractionStrength: 0.035
     - _RippleStrength: 0.12
     - _RippleTiling: 1.4
     - _SSRStrength: 1
-    - _ShallowFoam: 0.35
+    - _ShallowFoam: 0.12
     - _Smoothness: 0.94
     - _SpecStrength: 0.35
     - _StreakStrength: 0.32
@@ -79,7 +79,7 @@ Material:
     - _WindDrift: 0.02
     m_Colors:
     - _AbsorbColor: {r: 0.9, g: 0.34, b: 0.27, a: 0}
-    - _FlowMapRect: {r: 44.004948, g: -176.40956, b: 0.020237016, a: 0.051399052}
+    - _FlowMapRect: {r: 44.004948, g: -176.40956, b: 0.019956784, a: 0.04294666}
     - _FoamColor: {r: 0.93, g: 0.95, b: 0.94, a: 1}
     - _ScatterColor: {r: 0.059999965, g: 0.11999995, b: 0.10999996, a: 1}
   m_BuildTextureStacks: []

@@ -29,3 +29,721 @@ zone fern: centre (168, 8, 20) r 70 blend 30; clearing (160, 8.8, 24) r 11; bloc
   trail Trail_C_StalkerPath: 79.37 m, 43 samples, max slope 13.32, min water 40.12, blocked 0, colliders 6, tree hits 4
 finished, 0 warning(s)
 
+EB FernForest  started 2026-10-01 12:36:40
+zone fern: centre (168, 8, 20) r 70 blend 30; clearing (160, 8.8, 24) r 11; blockers 1625
+terrain backup made: Assets/_Project/Art/Terrain/TD_Island.asset -> Assets/_Project/Art/Terrain/_Backup/TD_Island_before_EB.asset
+splat: 77834 texels (forest floor + moss, worn trails, clearing grass / moss)
+details: 19454 cells, layers [DET_ENV_Fern_01, DET_ENV_Grass_01, DET_ENV_Bush_01, DET_PC_GiantFern] 15749 -> 43050 instances in the zone rect
+other terrain trees moved out of the clearing: 8, off the trail lanes: 13, could not move: 0 (index / prototype / scale kept; agents' recorded trees never touched): #63 (136.2, 10.3, -37.4) -> (138.5, 9.9, -38.7); #146 (180.6, 6.5, 73.4) -> (178.3, 6.5, 74.4); #258 (153.2, 9.6, 16.2) -> (151.7, 9.8, 14.4); #462 (169.8, 7.8, 49.8) -> (171.7, 7.7, 49); #582 (118.1, 11.9, 42.3) -> (119.8, 11.9, 40.6); #596 (155.6, 9.1, 34.6) -> (152.4, 9.7, 33.3); #690 (166.3, 8.1, 17.1) -> (169.2, 7.9, 14); #758 (163, 8.4, 39.6) -> (161.9, 8.5, 40.1); #797 (166.9, 8.4, 28.8) -> (171.6, 7.8, 32); #865 (153.5, 9.8, 43.5) -> (154.6, 9.6, 44); #996 (159.8, 9, 20.2) -> (159.2, 8.8, 10.8); #1008 (124.9, 12, 13.1) -> (123.8, 12, 15.2)
+EB_fern: 197 own terrain trees (0 in recorded slots, 197 appended, 0 surplus removed from the tail, 0 surplus parked), total terrain trees 1691
+own terrain trees: 179 tree ferns, 14 cycads, 4 tall araucarias (canopy)
+placed: 220 giant fern clumps, 90 magnolia shrubs, 0 fallen trunks, 2 root plates, 0 moss rocks, 17 vine curtains on tree fern trunks
+trail Trail_A_RiverApproach (half width 1.5 m, 130.98 m, 13 WP): main lane west -> east: river side (96, 6) -> clearing -> coast side (210, 8); player / herd width; (96, 11.7, 6) (108, 11.8, 10) (120, 12, 9) (132, 12.4, 15) (144, 10.9, 20) (152.2, 9.9, 22.1) (157.7, 9.3, 16.3) (165.4, 8.3, 18.1) (167.8, 8.2, 25.7) (174, 7.8, 27) (186, 6.7, 22) (198, 4.9, 14) (210, 3.7, 8)
+trail Trail_B_GameTrail (half width 1.2 m, 148.07 m, 12 WP): game trail south -> north: from the old camp side (130, -46) -> clearing -> (185, 82); (130, 11, -46) (138, 10.4, -32) (147, 10, -16) (154, 9, -2) (158.2, 9.3, 16.2) (165.8, 8.3, 18.4) (167.7, 8.3, 26.1) (162.2, 8.6, 31.7) (164, 8.3, 38) (170, 7.8, 52) (178, 7.4, 66) (185, 5.6, 82)
+trail Trail_C_StalkerPath (half width 0.9 m, 79.37 m, 7 WP): narrow winding path through the thickest understory (stealth / ambush): (100, 24) -> clearing; (100, 11.3, 24) (108, 11.3, 34) (118, 11.8, 44) (130, 12, 51) (142, 10.8, 52) (152, 10.1, 44) (157, 8.9, 31.4)
+landmark: ART LM_GiantTree placed at (160, 8.8, 24)
+  FX anchor FX_GroundMist_01 (116, 12, 40)
+  FX anchor FX_GroundMist_02 (134, 12.6, -8)
+  FX anchor FX_GroundMist_03 (184, 6.9, 48)
+  FX anchor FX_GroundMist_04 (194, 5.9, -18)
+  FX anchor FX_Insects_01 (153, 10.6, 29)
+  FX anchor FX_Insects_02 (168, 9.2, 18)
+  FX anchor FX_LightShaft_01 (160, 22.8, 24)
+  FX anchor FX_Drip_01 (146, 13.9, 46)
+scene saved: Assets/_Project/Scenes/Island_VerticalSlice.unity
+finished, 0 warning(s)
+
+EB Foothills  started 2026-10-01 12:36:59
+zone foothills: (-136, 23, -125) -> (-122, 44, -216) r 40 blend 30; canyon 104 pts, lava 56 pts, vent (-100, 44.7, -232); ridge (-150, 44.2, -198) s 1; blockers 1625
+terrain baseline: Assets/_Project/Art/Terrain/_Backup/TD_Island_before_EB.asset (existing backup, kept)
+splat: 60931 texels (dry soil -> basalt rock + dark soil -> ash; Phase 1 ash kept, vent / lava ground untouched)
+dry grass texture: Assets/_Project/Art/Environment/Materials/Zones/T_EB_DryGrass.png (1024 x 1024, recoloured from T_FoliageAtlas_D)
+dry grass detail: layer 7
+details: 15227 cells, layers [DET_ENV_Fern_01, DET_ENV_Grass_01, DET_ENV_Bush_01, DET_PC_Horsetail, DET_PC_Reeds, DET_PC_GiantFern, DET_EB_DryGrass] 7348 -> 6375 instances in the zone rect
+EB_foothills: 6 own terrain trees (0 in recorded slots, 6 appended, 0 surplus removed from the tail, 0 surplus parked), total terrain trees 1697
+own terrain trees: 5 cycads (dry band), 1 tree ferns (lower transition)
+placed: 24 dead / broken trees, 0 dry fallen trunks, 90 basalt groups; models ENV_PC_Basalt_A 24, ENV_PC_Basalt_B 47, ENV_PC_BasaltBoulder 19, PROP_PC_BrokenTree_A 14, PROP_PC_BrokenTree_B 10
+landmark: ART LM_BlackRidge placed at (-150, 44.2, -198)
+  FX anchor FX_AshFall_01 (-130.9, 50.4, -181.1) s 0.83
+  FX anchor FX_AshFall_02 (-177, 51.2, -184.3) s 0.86
+  FX anchor FX_AshFall_03 (-102.6, 49.4, -184) s 0.83
+  FX anchor FX_AshFall_04 (-69.7, 55, -183.8) s 0.92
+  FX anchor FX_Fumarole_01 (-115.1, 35.4, -166.4) s 0.59
+  FX anchor FX_Fumarole_02 (-162.1, 38.1, -169) s 0.63
+  FX anchor FX_Fumarole_03 (-92.1, 27.8, -157.9) s 0.52
+  FX anchor FX_HeatShimmer_01 (-112.1, 45.5, -232.6) s 1
+  FX anchor FX_HeatShimmer_02 (-119.5, 45, -211.7) s 1
+  FX anchor FX_DustDevil_01 (-148.9, 33.9, -135.6) s 0.26
+WARNING: no spot for FX anchor FX_DustDevil_02
+  FX anchor FX_SmokeDrift_01 (-150, 54.2, -198) (over the landmark)
+FX anchors: 11 (WORLD attaches smoke / ash / heat / dust; hazard zones HZ_volcano / HZ_vent unchanged)
+scene saved: Assets/_Project/Scenes/Island_VerticalSlice.unity
+finished, 1 warning(s)
+
+EB FernFoothillsCheck  started 2026-10-01 12:37:19
+[fern] objects under World/Environment/Forest/GiantFernForest: 1133
+  ENV_PC_GiantFern_A: 114
+  ENV_PC_GiantFern_B: 106
+  ENV_PC_Magnolia_A: 40
+  ENV_PC_Magnolia_B: 50
+  ENV_PC_Roots_A: 1
+  ENV_PC_Roots_B: 1
+  ENV_PC_VineCurtain_A: 9
+  ENV_PC_VineCurtain_B: 8
+  LM_GiantTree: 1
+  own terrain trees: 197 (ENV_PC_Cycad_A 3, ENV_PC_Cycad_B 3, ENV_PC_Cycad_C 8, ENV_PC_TreeFern_A 60, ENV_PC_TreeFern_B 47, ENV_PC_TreeFern_C 72, PFB_ENV_Tree_01 4)
+  missing refs: prefab 0, mesh 0, material 0, broken shader 0, script 0, LOD renderer 0, collider mesh 0; terrain prototypes without asset 0
+  resource nodes in the zone + blend: 147; covered by a zone collider 0, own terrain tree within 1.2 m 0
+  other interactables covered: 0
+  objects within 20 m of the player spawn (-20, 1.5, 211): 0
+  [fern] models: ENV_PC_GiantFern_A 114, ENV_PC_GiantFern_B 106, ENV_PC_Magnolia_A 40, ENV_PC_Magnolia_B 50, ENV_PC_Roots_A 1, ENV_PC_Roots_B 1, ENV_PC_VineCurtain_A 9, ENV_PC_VineCurtain_B 8, LM_GiantTree 1
+  [fern] FX anchor FX_GroundMist_01 (116, 12, 40)
+  [fern] FX anchor FX_GroundMist_02 (134, 12.6, -8)
+  [fern] FX anchor FX_GroundMist_03 (184, 6.9, 48)
+  [fern] FX anchor FX_GroundMist_04 (194, 5.9, -18)
+  [fern] FX anchor FX_Insects_01 (153, 10.6, 29)
+  [fern] FX anchor FX_Insects_02 (168, 9.2, 18)
+  [fern] FX anchor FX_LightShaft_01 (160, 22.8, 24)
+  [fern] FX anchor FX_Drip_01 (146, 13.9, 46)
+  [fern] landmark LM_GiantFernForest (160, 8.8, 24) (art: LM_GiantTree)
+  [fern] detail instances (own weight > 0): DET_ENV_Fern_01 25499; DET_ENV_Grass_01 678; DET_ENV_Bush_01 3095; DET_PC_Horsetail 254; DET_PC_Reeds 0; DET_PC_GiantFern 13778; DET_Z_TallGrass 0; DET_EB_DryGrass 0; 
+[foothills] objects under World/Environment/Volcano/VolcanicFoothills: 476
+  ENV_PC_Basalt_A: 24
+  ENV_PC_Basalt_B: 47
+  ENV_PC_BasaltBoulder: 19
+  LM_BlackRidge: 1
+  PROP_PC_BrokenTree_A: 14
+  PROP_PC_BrokenTree_B: 10
+  own terrain trees: 6 (ENV_PC_Cycad_A 2, ENV_PC_Cycad_B 1, ENV_PC_Cycad_C 2, ENV_PC_TreeFern_A 1)
+  missing refs: prefab 0, mesh 0, material 0, broken shader 0, script 0, LOD renderer 0, collider mesh 0; terrain prototypes without asset 0
+  resource nodes in the zone + blend: 207; covered by a zone collider 6, own terrain tree within 1.2 m 0
+    covered by PROP_PC_BrokenTree_A: World/Environment/Terrain/Rocks/PFB_ENV_Rock_Large_01 (-162.1, 31.2, -133.8)
+    covered by PROP_PC_BrokenTree_B: World/Environment/Terrain/Rocks/PFB_ENV_Rock_Large_03 (-130, 36.7, -165.4)
+    covered by LM_BlackRidge: World/Environment/Terrain/Rocks/PFB_ENV_Rock_Large_01 (-142.6, 44.6, -211.5)
+    covered by LM_BlackRidge: World/Environment/Terrain/Rocks/PFB_ENV_Rock_Large_01 (-166.2, 42.8, -188.4)
+    covered by PROP_PC_BrokenTree_B: World/Gameplay/Resources/Resources/PFB_RES_Stone_01 (-74.3, 22.1, -137.2)
+    covered by LM_BlackRidge: World/Gameplay/Resources/[Resources]/Island/Cluster_017_Rocky/Resource_Stone_Medium_02_0120 (-156.5, 41.7, -199.1)
+  other interactables covered: 0
+  objects within 20 m of the player spawn (-20, 1.5, 211): 0
+  [foothills] models: ENV_PC_Basalt_A 24, ENV_PC_Basalt_B 47, ENV_PC_BasaltBoulder 19, LM_BlackRidge 1, PROP_PC_BrokenTree_A 14, PROP_PC_BrokenTree_B 10
+  [foothills] FX anchor FX_AshFall_01 (-130.9, 50.4, -181.1)
+  [foothills] FX anchor FX_AshFall_02 (-177, 51.2, -184.3)
+  [foothills] FX anchor FX_AshFall_03 (-102.6, 49.4, -184)
+  [foothills] FX anchor FX_AshFall_04 (-69.7, 55, -183.8)
+  [foothills] FX anchor FX_Fumarole_01 (-115.1, 35.4, -166.4)
+  [foothills] FX anchor FX_Fumarole_02 (-162.1, 38.1, -169)
+  [foothills] FX anchor FX_Fumarole_03 (-92.1, 27.8, -157.9)
+  [foothills] FX anchor FX_HeatShimmer_01 (-112.1, 45.5, -232.6)
+  [foothills] FX anchor FX_HeatShimmer_02 (-119.5, 45, -211.7)
+  [foothills] FX anchor FX_DustDevil_01 (-148.9, 33.9, -135.6)
+  [foothills] FX anchor FX_SmokeDrift_01 (-150, 54.2, -198)
+  [foothills] landmark LM_VolcanicFoothills (-150, 44.2, -198) (art: LM_BlackRidge)
+  [foothills] detail instances (own weight > 0): DET_ENV_Fern_01 2791; DET_ENV_Grass_01 969; DET_ENV_Bush_01 14; DET_PC_Horsetail 21; DET_PC_Reeds 0; DET_PC_GiantFern 363; DET_Z_TallGrass 1; DET_EB_DryGrass 2217; 
+  trail Trail_A_RiverApproach: 135 samples (1 m) in the zone, max slope 12.75; own colliders 8, own trees 0 (must be 0); other colliders 7, other agents' / v1 trees 0 [World/Environment/Terrain/Rocks/PFB_ENV_Rock_Medium_01; World/Gameplay/Resources/[Resources]/Island/Cluster_139_Forest/Resource_Stone_Medium_0448]
+    WP: (96, 11.7, 6) (108, 11.8, 10) (120, 12, 9) (132, 12.4, 15) (144, 10.9, 20) (152.2, 9.9, 22.1) (157.7, 9.3, 16.3) (165.4, 8.3, 18.1) (167.8, 8.2, 25.7) (174, 7.8, 27) (186, 6.7, 22) (198, 4.9, 14) (210, 3.7, 8)
+  trail Trail_B_GameTrail: 153 samples (1 m) in the zone, max slope 11.24; own colliders 7, own trees 0 (must be 0); other colliders 1, other agents' / v1 trees 0 [World/Environment/Terrain/Rocks/PFB_ENV_Rock_Small_01]
+    WP: (130, 11, -46) (138, 10.4, -32) (147, 10, -16) (154, 9, -2) (158.2, 9.3, 16.2) (165.8, 8.3, 18.4) (167.7, 8.3, 26.1) (162.2, 8.6, 31.7) (164, 8.3, 38) (170, 7.8, 52) (178, 7.4, 66) (185, 5.6, 82)
+  trail Trail_C_StalkerPath: 82 samples (1 m) in the zone, max slope 13.7; own colliders 0, own trees 0 (must be 0); other colliders 11, other agents' / v1 trees 0 [World/Environment/Forest/ForestDressing/ENV_PC_Roots_B; World/Environment/Forest/ForestDressing/ENV_PC_FallenTrunk_A]
+    WP: (100, 11.3, 24) (108, 11.3, 34) (118, 11.8, 44) (130, 12, 51) (142, 10.8, 52) (152, 10.1, 44) (157, 8.9, 31.4)
+  canyon path (z < -100): 66 samples, own colliders within 2 m 3, own trees within 3 m 0 (must be 0)
+  own objects within 4 m of the lava channel / vent: 0
+EB check problems: 9
+finished, 0 warning(s)
+
+EB FernFoothillsCheck  started 2026-10-01 14:52:30
+[fern] objects under World/Environment/Forest/GiantFernForest: 1133
+  ENV_PC_GiantFern_A: 114
+  ENV_PC_GiantFern_B: 106
+  ENV_PC_Magnolia_A: 40
+  ENV_PC_Magnolia_B: 50
+  ENV_PC_Roots_A: 1
+  ENV_PC_Roots_B: 1
+  ENV_PC_VineCurtain_A: 9
+  ENV_PC_VineCurtain_B: 8
+  LM_GiantTree: 1
+  own terrain trees: 197 (ENV_PC_Cycad_A 3, ENV_PC_Cycad_B 3, ENV_PC_Cycad_C 8, ENV_PC_TreeFern_A 60, ENV_PC_TreeFern_B 47, ENV_PC_TreeFern_C 72, PFB_ENV_Tree_01 4)
+  missing refs: prefab 0, mesh 0, material 0, broken shader 0, script 0, LOD renderer 0, collider mesh 0; terrain prototypes without asset 0
+  resource nodes in the zone + blend: 147; covered by a zone collider 0, own terrain tree within 1.2 m 0
+  other interactables covered: 0
+  objects within 20 m of the player spawn (-20, 1.5, 211): 0
+  [fern] models: ENV_PC_GiantFern_A 114, ENV_PC_GiantFern_B 106, ENV_PC_Magnolia_A 40, ENV_PC_Magnolia_B 50, ENV_PC_Roots_A 1, ENV_PC_Roots_B 1, ENV_PC_VineCurtain_A 9, ENV_PC_VineCurtain_B 8, LM_GiantTree 1
+  [fern] FX anchor FX_GroundMist_01 (116, 12, 40)
+  [fern] FX anchor FX_GroundMist_02 (134, 12.6, -8)
+  [fern] FX anchor FX_GroundMist_03 (184, 6.9, 48)
+  [fern] FX anchor FX_GroundMist_04 (194, 5.9, -18)
+  [fern] FX anchor FX_Insects_01 (153, 10.6, 29)
+  [fern] FX anchor FX_Insects_02 (168, 9.2, 18)
+  [fern] FX anchor FX_LightShaft_01 (160, 22.8, 24)
+  [fern] FX anchor FX_Drip_01 (146, 13.9, 46)
+  [fern] landmark LM_GiantFernForest (160, 8.8, 24) (art: LM_GiantTree)
+  [fern] detail instances (own weight > 0): DET_ENV_Fern_01 25499; DET_ENV_Grass_01 678; DET_ENV_Bush_01 3095; DET_PC_Horsetail 254; DET_PC_Reeds 0; DET_PC_GiantFern 13778; DET_Z_TallGrass 0; DET_EB_DryGrass 0; 
+[foothills] objects under World/Environment/Volcano/VolcanicFoothills: 476
+  ENV_PC_Basalt_A: 24
+  ENV_PC_Basalt_B: 47
+  ENV_PC_BasaltBoulder: 19
+  LM_BlackRidge: 1
+  PROP_PC_BrokenTree_A: 14
+  PROP_PC_BrokenTree_B: 10
+  own terrain trees: 6 (ENV_PC_Cycad_A 2, ENV_PC_Cycad_B 1, ENV_PC_Cycad_C 2, ENV_PC_TreeFern_A 1)
+  missing refs: prefab 0, mesh 0, material 0, broken shader 0, script 0, LOD renderer 0, collider mesh 0; terrain prototypes without asset 0
+  resource nodes in the zone + blend: 207; covered by a zone collider 6, own terrain tree within 1.2 m 0
+    covered by PROP_PC_BrokenTree_A: World/Environment/Terrain/Rocks/PFB_ENV_Rock_Large_01 (-162.1, 31.2, -133.8)
+    covered by PROP_PC_BrokenTree_B: World/Environment/Terrain/Rocks/PFB_ENV_Rock_Large_03 (-130, 36.7, -165.4)
+    covered by LM_BlackRidge: World/Environment/Terrain/Rocks/PFB_ENV_Rock_Large_01 (-142.6, 44.6, -211.5)
+    covered by LM_BlackRidge: World/Environment/Terrain/Rocks/PFB_ENV_Rock_Large_01 (-166.2, 42.8, -188.4)
+    covered by PROP_PC_BrokenTree_B: World/Gameplay/Resources/Resources/PFB_RES_Stone_01 (-74.3, 22.1, -137.2)
+    covered by LM_BlackRidge: World/Gameplay/Resources/[Resources]/Island/Cluster_017_Rocky/Resource_Stone_Medium_02_0120 (-156.5, 41.7, -199.1)
+  other interactables covered: 0
+  objects within 20 m of the player spawn (-20, 1.5, 211): 0
+  [foothills] models: ENV_PC_Basalt_A 24, ENV_PC_Basalt_B 47, ENV_PC_BasaltBoulder 19, LM_BlackRidge 1, PROP_PC_BrokenTree_A 14, PROP_PC_BrokenTree_B 10
+  [foothills] FX anchor FX_AshFall_01 (-130.9, 50.4, -181.1)
+  [foothills] FX anchor FX_AshFall_02 (-177, 51.2, -184.3)
+  [foothills] FX anchor FX_AshFall_03 (-102.6, 49.4, -184)
+  [foothills] FX anchor FX_AshFall_04 (-69.7, 55, -183.8)
+  [foothills] FX anchor FX_Fumarole_01 (-115.1, 35.4, -166.4)
+  [foothills] FX anchor FX_Fumarole_02 (-162.1, 38.1, -169)
+  [foothills] FX anchor FX_Fumarole_03 (-92.1, 27.8, -157.9)
+  [foothills] FX anchor FX_HeatShimmer_01 (-112.1, 45.5, -232.6)
+  [foothills] FX anchor FX_HeatShimmer_02 (-119.5, 45, -211.7)
+  [foothills] FX anchor FX_DustDevil_01 (-148.9, 33.9, -135.6)
+  [foothills] FX anchor FX_SmokeDrift_01 (-150, 54.2, -198)
+  [foothills] landmark LM_VolcanicFoothills (-150, 44.2, -198) (art: LM_BlackRidge)
+  [foothills] detail instances (own weight > 0): DET_ENV_Fern_01 2824; DET_ENV_Grass_01 976; DET_ENV_Bush_01 14; DET_PC_Horsetail 21; DET_PC_Reeds 0; DET_PC_GiantFern 362; DET_Z_TallGrass 1; DET_EB_DryGrass 2217; 
+  trail Trail_A_RiverApproach: 135 samples (1 m) in the zone, max slope 12.75; own colliders 8, own trees 0 (must be 0); other colliders 7, other agents' / v1 trees 0 [World/Environment/Terrain/Rocks/PFB_ENV_Rock_Medium_01; World/Gameplay/Resources/[Resources]/Island/Cluster_139_Forest/Resource_Stone_Medium_0448]
+    WP: (96, 11.7, 6) (108, 11.8, 10) (120, 12, 9) (132, 12.4, 15) (144, 10.9, 20) (152.2, 9.9, 22.1) (157.7, 9.3, 16.3) (165.4, 8.3, 18.1) (167.8, 8.2, 25.7) (174, 7.8, 27) (186, 6.7, 22) (198, 4.9, 14) (210, 3.7, 8)
+  trail Trail_B_GameTrail: 153 samples (1 m) in the zone, max slope 11.24; own colliders 7, own trees 0 (must be 0); other colliders 9, other agents' / v1 trees 0 [World/Gameplay/Wildlife/[Dinosaurs]/Ankylosaurus/Ankylosaurus_1/DINO_ankylosaurus_Rig/Root/Pelvis/Spine_01/Spine_02/Chest/Neck_01/Neck_02/Neck_03/Head/HitZone_Head; World/Gameplay/Wildlife/[Dinosaurs]/Ankylosaurus/Ankylosaurus_1; World/Gameplay/Wildlife/[Dinosaurs]/Ankylosaurus/Ankylosaurus_0; World/Environment/Terrain/Rocks/PFB_ENV_Rock_Small_01]
+    WP: (130, 11, -46) (138, 10.4, -32) (147, 10, -16) (154, 9, -2) (158.2, 9.3, 16.2) (165.8, 8.3, 18.4) (167.7, 8.3, 26.1) (162.2, 8.6, 31.7) (164, 8.3, 38) (170, 7.8, 52) (178, 7.4, 66) (185, 5.6, 82)
+  trail Trail_C_StalkerPath: 82 samples (1 m) in the zone, max slope 13.7; own colliders 0, own trees 0 (must be 0); other colliders 11, other agents' / v1 trees 0 [World/Environment/Forest/ForestDressing/ENV_PC_Roots_B; World/Environment/Forest/ForestDressing/ENV_PC_FallenTrunk_A]
+    WP: (100, 11.3, 24) (108, 11.3, 34) (118, 11.8, 44) (130, 12, 51) (142, 10.8, 52) (152, 10.1, 44) (157, 8.9, 31.4)
+  canyon path (z < -100): 66 samples, own colliders within 2 m 3, own trees within 3 m 0 (must be 0)
+  own objects within 4 m of the lava channel / vent: 0
+EB check problems: 9
+finished, 0 warning(s)
+
+EB FernFoothillsCheck  started 2026-10-01 15:21:45
+[fern] objects under World/Environment/Forest/GiantFernForest: 1133
+  ENV_PC_GiantFern_A: 114
+  ENV_PC_GiantFern_B: 106
+  ENV_PC_Magnolia_A: 40
+  ENV_PC_Magnolia_B: 50
+  ENV_PC_Roots_A: 1
+  ENV_PC_Roots_B: 1
+  ENV_PC_VineCurtain_A: 9
+  ENV_PC_VineCurtain_B: 8
+  LM_GiantTree: 1
+  own terrain trees: 197 (ENV_PC_Cycad_A 3, ENV_PC_Cycad_B 3, ENV_PC_Cycad_C 8, ENV_PC_TreeFern_A 60, ENV_PC_TreeFern_B 47, ENV_PC_TreeFern_C 72, PFB_ENV_Tree_01 4)
+  missing refs: prefab 0, mesh 0, material 0, broken shader 0, script 0, LOD renderer 0, collider mesh 0; terrain prototypes without asset 0
+  resource nodes in the zone + blend: 167; covered by a zone collider 0, own terrain tree within 1.2 m 0
+  other interactables covered: 0
+  objects within 20 m of the player spawn (-20, 1.5, 211): 0
+  [fern] models: ENV_PC_GiantFern_A 114, ENV_PC_GiantFern_B 106, ENV_PC_Magnolia_A 40, ENV_PC_Magnolia_B 50, ENV_PC_Roots_A 1, ENV_PC_Roots_B 1, ENV_PC_VineCurtain_A 9, ENV_PC_VineCurtain_B 8, LM_GiantTree 1
+  [fern] FX anchor FX_GroundMist_01 (116, 12, 40)
+  [fern] FX anchor FX_GroundMist_02 (134, 12.6, -8)
+  [fern] FX anchor FX_GroundMist_03 (184, 6.9, 48)
+  [fern] FX anchor FX_GroundMist_04 (194, 5.9, -18)
+  [fern] FX anchor FX_Insects_01 (153, 10.6, 29)
+  [fern] FX anchor FX_Insects_02 (168, 9.2, 18)
+  [fern] FX anchor FX_LightShaft_01 (160, 22.8, 24)
+  [fern] FX anchor FX_Drip_01 (146, 13.9, 46)
+  [fern] landmark LM_GiantFernForest (160, 8.8, 24) (art: LM_GiantTree)
+  [fern] detail instances (own weight > 0): DET_ENV_Fern_01 25499; DET_ENV_Grass_01 678; DET_ENV_Bush_01 3095; DET_PC_Horsetail 254; DET_PC_Reeds 0; DET_PC_GiantFern 13778; DET_Z_TallGrass 0; DET_EB_DryGrass 0; 
+[foothills] objects under World/Environment/Volcano/VolcanicFoothills: 476
+  ENV_PC_Basalt_A: 24
+  ENV_PC_Basalt_B: 47
+  ENV_PC_BasaltBoulder: 19
+  LM_BlackRidge: 1
+  PROP_PC_BrokenTree_A: 14
+  PROP_PC_BrokenTree_B: 10
+  own terrain trees: 6 (ENV_PC_Cycad_A 2, ENV_PC_Cycad_B 1, ENV_PC_Cycad_C 2, ENV_PC_TreeFern_A 1)
+  missing refs: prefab 0, mesh 0, material 0, broken shader 0, script 0, LOD renderer 0, collider mesh 0; terrain prototypes without asset 0
+  resource nodes in the zone + blend: 227; covered by a zone collider 0, own terrain tree within 1.2 m 0
+  other interactables covered: 0
+  objects within 20 m of the player spawn (-20, 1.5, 211): 0
+  [foothills] models: ENV_PC_Basalt_A 24, ENV_PC_Basalt_B 47, ENV_PC_BasaltBoulder 19, LM_BlackRidge 1, PROP_PC_BrokenTree_A 14, PROP_PC_BrokenTree_B 10
+  [foothills] FX anchor FX_AshFall_01 (-130.9, 50.4, -181.1)
+  [foothills] FX anchor FX_AshFall_02 (-177, 51.2, -184.3)
+  [foothills] FX anchor FX_AshFall_03 (-102.6, 49.4, -184)
+  [foothills] FX anchor FX_AshFall_04 (-69.7, 55, -183.8)
+  [foothills] FX anchor FX_Fumarole_01 (-115.1, 35.4, -166.4)
+  [foothills] FX anchor FX_Fumarole_02 (-162.1, 38.1, -169)
+  [foothills] FX anchor FX_Fumarole_03 (-92.1, 27.8, -157.9)
+  [foothills] FX anchor FX_HeatShimmer_01 (-112.1, 45.5, -232.6)
+  [foothills] FX anchor FX_HeatShimmer_02 (-119.5, 45, -211.7)
+  [foothills] FX anchor FX_DustDevil_01 (-148.9, 33.9, -135.6)
+  [foothills] FX anchor FX_SmokeDrift_01 (-150, 54.2, -198)
+  [foothills] landmark LM_VolcanicFoothills (-150, 44.2, -198) (art: LM_BlackRidge)
+  [foothills] detail instances (own weight > 0): DET_ENV_Fern_01 2824; DET_ENV_Grass_01 976; DET_ENV_Bush_01 14; DET_PC_Horsetail 21; DET_PC_Reeds 0; DET_PC_GiantFern 362; DET_Z_TallGrass 1; DET_EB_DryGrass 2217; 
+  trail Trail_A_RiverApproach: 135 samples (1 m) in the zone, max slope 12.75; own colliders 8, own trees 0 (must be 0); other colliders 7, other agents' / v1 trees 0 [World/Environment/Terrain/Rocks/PFB_ENV_Rock_Medium_01; World/Gameplay/Resources/[Resources]/Island/Cluster_139_Forest/Resource_Stone_Medium_0448]
+    WP: (96, 11.7, 6) (108, 11.8, 10) (120, 12, 9) (132, 12.4, 15) (144, 10.9, 20) (152.2, 9.9, 22.1) (157.7, 9.3, 16.3) (165.4, 8.3, 18.1) (167.8, 8.2, 25.7) (174, 7.8, 27) (186, 6.7, 22) (198, 4.9, 14) (210, 3.7, 8)
+  trail Trail_B_GameTrail: 153 samples (1 m) in the zone, max slope 11.24; own colliders 7, own trees 0 (must be 0); other colliders 9, other agents' / v1 trees 0 [World/Gameplay/Wildlife/[Dinosaurs]/Ankylosaurus/Ankylosaurus_1/DINO_ankylosaurus_Rig/Root/Pelvis/Spine_01/Spine_02/Chest/Neck_01/Neck_02/Neck_03/Head/HitZone_Head; World/Gameplay/Wildlife/[Dinosaurs]/Ankylosaurus/Ankylosaurus_1; World/Gameplay/Wildlife/[Dinosaurs]/Ankylosaurus/Ankylosaurus_0; World/Environment/Terrain/Rocks/PFB_ENV_Rock_Small_01]
+    WP: (130, 11, -46) (138, 10.4, -32) (147, 10, -16) (154, 9, -2) (158.2, 9.3, 16.2) (165.8, 8.3, 18.4) (167.7, 8.3, 26.1) (162.2, 8.6, 31.7) (164, 8.3, 38) (170, 7.8, 52) (178, 7.4, 66) (185, 5.6, 82)
+  trail Trail_C_StalkerPath: 82 samples (1 m) in the zone, max slope 13.7; own colliders 0, own trees 0 (must be 0); other colliders 11, other agents' / v1 trees 0 [World/Environment/Forest/ForestDressing/ENV_PC_Roots_B; World/Environment/Forest/ForestDressing/ENV_PC_FallenTrunk_A]
+    WP: (100, 11.3, 24) (108, 11.3, 34) (118, 11.8, 44) (130, 12, 51) (142, 10.8, 52) (152, 10.1, 44) (157, 8.9, 31.4)
+  canyon path (z < -100): 66 samples, own colliders within 2 m 3, own trees within 3 m 0 (must be 0)
+  own objects within 4 m of the lava channel / vent: 0
+EB check problems: 3
+finished, 0 warning(s)
+
+EB FernFoothillsCheck  started 2026-10-01 15:23:54
+[fern] objects under World/Environment/Forest/GiantFernForest: 1133
+  ENV_PC_GiantFern_A: 114
+  ENV_PC_GiantFern_B: 106
+  ENV_PC_Magnolia_A: 40
+  ENV_PC_Magnolia_B: 50
+  ENV_PC_Roots_A: 1
+  ENV_PC_Roots_B: 1
+  ENV_PC_VineCurtain_A: 9
+  ENV_PC_VineCurtain_B: 8
+  LM_GiantTree: 1
+  own terrain trees: 197 (ENV_PC_Cycad_A 3, ENV_PC_Cycad_B 3, ENV_PC_Cycad_C 8, ENV_PC_TreeFern_A 60, ENV_PC_TreeFern_B 47, ENV_PC_TreeFern_C 72, PFB_ENV_Tree_01 4)
+  missing refs: prefab 0, mesh 0, material 0, broken shader 0, script 0, LOD renderer 0, collider mesh 0; terrain prototypes without asset 0
+  resource nodes in the zone + blend: 167; covered by a zone collider 0, own terrain tree within 1.2 m 0
+  other interactables covered: 0
+  objects within 20 m of the player spawn (-20, 1.5, 211): 0
+  [fern] models: ENV_PC_GiantFern_A 114, ENV_PC_GiantFern_B 106, ENV_PC_Magnolia_A 40, ENV_PC_Magnolia_B 50, ENV_PC_Roots_A 1, ENV_PC_Roots_B 1, ENV_PC_VineCurtain_A 9, ENV_PC_VineCurtain_B 8, LM_GiantTree 1
+  [fern] FX anchor FX_GroundMist_01 (116, 12, 40)
+  [fern] FX anchor FX_GroundMist_02 (134, 12.6, -8)
+  [fern] FX anchor FX_GroundMist_03 (184, 6.9, 48)
+  [fern] FX anchor FX_GroundMist_04 (194, 5.9, -18)
+  [fern] FX anchor FX_Insects_01 (153, 10.6, 29)
+  [fern] FX anchor FX_Insects_02 (168, 9.2, 18)
+  [fern] FX anchor FX_LightShaft_01 (160, 22.8, 24)
+  [fern] FX anchor FX_Drip_01 (146, 13.9, 46)
+  [fern] landmark LM_GiantFernForest (160, 8.8, 24) (art: LM_GiantTree)
+  [fern] detail instances (own weight > 0): DET_ENV_Fern_01 25499; DET_ENV_Grass_01 678; DET_ENV_Bush_01 3095; DET_PC_Horsetail 254; DET_PC_Reeds 0; DET_PC_GiantFern 13778; DET_Z_TallGrass 0; DET_EB_DryGrass 0; 
+[foothills] objects under World/Environment/Volcano/VolcanicFoothills: 476
+  ENV_PC_Basalt_A: 24
+  ENV_PC_Basalt_B: 47
+  ENV_PC_BasaltBoulder: 19
+  LM_BlackRidge: 1
+  PROP_PC_BrokenTree_A: 14
+  PROP_PC_BrokenTree_B: 10
+  own terrain trees: 6 (ENV_PC_Cycad_A 2, ENV_PC_Cycad_B 1, ENV_PC_Cycad_C 2, ENV_PC_TreeFern_A 1)
+  missing refs: prefab 0, mesh 0, material 0, broken shader 0, script 0, LOD renderer 0, collider mesh 0; terrain prototypes without asset 0
+  resource nodes in the zone + blend: 227; covered by a zone collider 0, own terrain tree within 1.2 m 0
+  other interactables covered: 0
+  objects within 20 m of the player spawn (-20, 1.5, 211): 0
+  [foothills] models: ENV_PC_Basalt_A 24, ENV_PC_Basalt_B 47, ENV_PC_BasaltBoulder 19, LM_BlackRidge 1, PROP_PC_BrokenTree_A 14, PROP_PC_BrokenTree_B 10
+  [foothills] FX anchor FX_AshFall_01 (-130.9, 50.4, -181.1)
+  [foothills] FX anchor FX_AshFall_02 (-177, 51.2, -184.3)
+  [foothills] FX anchor FX_AshFall_03 (-102.6, 49.4, -184)
+  [foothills] FX anchor FX_AshFall_04 (-69.7, 55, -183.8)
+  [foothills] FX anchor FX_Fumarole_01 (-115.1, 35.4, -166.4)
+  [foothills] FX anchor FX_Fumarole_02 (-162.1, 38.1, -169)
+  [foothills] FX anchor FX_Fumarole_03 (-92.1, 27.8, -157.9)
+  [foothills] FX anchor FX_HeatShimmer_01 (-112.1, 45.5, -232.6)
+  [foothills] FX anchor FX_HeatShimmer_02 (-119.5, 45, -211.7)
+  [foothills] FX anchor FX_DustDevil_01 (-148.9, 33.9, -135.6)
+  [foothills] FX anchor FX_SmokeDrift_01 (-150, 54.2, -198)
+  [foothills] landmark LM_VolcanicFoothills (-150, 44.2, -198) (art: LM_BlackRidge)
+  [foothills] detail instances (own weight > 0): DET_ENV_Fern_01 2824; DET_ENV_Grass_01 976; DET_ENV_Bush_01 14; DET_PC_Horsetail 21; DET_PC_Reeds 0; DET_PC_GiantFern 362; DET_Z_TallGrass 1; DET_EB_DryGrass 2217; 
+  trail Trail_A_RiverApproach: 135 samples (1 m) in the zone, max slope 12.75; own colliders 8, own trees 0 (must be 0); other colliders 0, other agents' / v1 trees 0
+    WP: (96, 11.7, 6) (108, 11.8, 10) (120, 12, 9) (132, 12.4, 15) (144, 10.9, 20) (152.2, 9.9, 22.1) (157.7, 9.3, 16.3) (165.4, 8.3, 18.1) (167.8, 8.2, 25.7) (174, 7.8, 27) (186, 6.7, 22) (198, 4.9, 14) (210, 3.7, 8)
+  trail Trail_B_GameTrail: 153 samples (1 m) in the zone, max slope 11.24; own colliders 7, own trees 0 (must be 0); other colliders 8, other agents' / v1 trees 0 [World/Gameplay/Wildlife/[Dinosaurs]/Ankylosaurus/Ankylosaurus_1/DINO_ankylosaurus_Rig/Root/Pelvis/Spine_01/Spine_02/Chest/Neck_01/Neck_02/Neck_03/Head/HitZone_Head; World/Gameplay/Wildlife/[Dinosaurs]/Ankylosaurus/Ankylosaurus_1; World/Gameplay/Wildlife/[Dinosaurs]/Ankylosaurus/Ankylosaurus_0]
+    WP: (130, 11, -46) (138, 10.4, -32) (147, 10, -16) (154, 9, -2) (158.2, 9.3, 16.2) (165.8, 8.3, 18.4) (167.7, 8.3, 26.1) (162.2, 8.6, 31.7) (164, 8.3, 38) (170, 7.8, 52) (178, 7.4, 66) (185, 5.6, 82)
+  trail Trail_C_StalkerPath: 82 samples (1 m) in the zone, max slope 13.7; own colliders 0, own trees 0 (must be 0); other colliders 11, other agents' / v1 trees 0 [World/Environment/Forest/ForestDressing/ENV_PC_Roots_B; World/Environment/Forest/ForestDressing/ENV_PC_FallenTrunk_A]
+    WP: (100, 11.3, 24) (108, 11.3, 34) (118, 11.8, 44) (130, 12, 51) (142, 10.8, 52) (152, 10.1, 44) (157, 8.9, 31.4)
+  canyon path (z < -100): 66 samples, own colliders within 2 m 3, own trees within 3 m 0 (must be 0)
+  own objects within 4 m of the lava channel / vent: 0
+EB check problems: 3
+finished, 0 warning(s)
+
+EB FernForest  started 2026-10-01 15:33:13
+clearing (160, 8.8, 24): LM_GiantTree collider radius 15.02 m -> trail ring 17.62 m, clearing radius 21.12 m
+zone fern: centre (168, 8, 20) r 70 blend 30; clearing (160, 8.8, 24) r 21.12; blockers 1698
+terrain baseline: Assets/_Project/Art/Terrain/_Backup/TD_Island_before_EB.asset (existing backup, kept)
+splat: 77834 texels (forest floor + moss, worn trails, clearing grass / moss)
+details: 19454 cells, layers [DET_ENV_Fern_01, DET_ENV_Grass_01, DET_ENV_Bush_01, DET_PC_GiantFern] 43050 -> 42386 instances in the zone rect
+other terrain trees moved out of the clearing: 19, off the trail lanes: 0, could not move: 0 (index / prototype / scale kept; agents' recorded trees never touched): #135 (162.4, 8.4, 11.2) -> (164.3, 8.2, 0.9); #258 (151.7, 9.8, 14.4) -> (141.3, 11.1, 9.9); #403 (172.3, 7.5, 8.3) -> (175.5, 7.1, 4.2); #596 (152.4, 9.7, 33.3) -> (140.6, 12.1, 39.5); #626 (177.3, 7.4, 21.4) -> (182.7, 7.1, 20.6); #664 (146.1, 10.8, 27.5) -> (139.6, 12.2, 34); #690 (169.2, 7.9, 14) -> (172.1, 7.5, 3.4); #758 (161.9, 8.5, 40.1) -> (162.8, 8.4, 47.4); #797 (171.6, 7.8, 32) -> (175.8, 7.5, 40.7); #853 (176.9, 7.7, 29) -> (180.4, 7.1, 35.2); #856 (159.6, 8.8, 5.2) -> (159.5, 8.8, -0.2); #877 (149.9, 9.7, 8.8) -> (136.1, 12.1, 20.5)
+EB_fern: 186 own terrain trees (186 in recorded slots, 0 appended, 0 surplus removed from the tail, 11 surplus parked), total terrain trees 1697
+own terrain trees: 168 tree ferns, 14 cycads, 4 tall araucarias (canopy)
+fallen trunk rejections: density 1401, spacing 921, clearance centre 78
+fallen logs (PFB_ENV_FallenLog_01) added: 0; rejections: density 1441, spacing 835, clearance centre 124
+moss rock rejections: density 3538, spacing 1057, clearance 205
+placed: 220 giant fern clumps, 90 magnolia shrubs, 0 fallen trunks, 2 root plates, 0 moss rocks, 14 vine curtains on tree fern trunks
+trail Trail_A_RiverApproach (half width 1.5 m, 149.2 m, 13 WP): main lane west -> east: river side (96, 6) -> clearing -> coast side (210, 8); player / herd width; (96, 11.7, 6) (108, 11.8, 10) (120, 12, 9) (132, 12.4, 15) (144, 10.9, 20) (142.9, 11, 19.7) (155, 9.3, 7.1) (172, 7.6, 11.1) (177.2, 7.6, 27.7) (174, 7.8, 27) (186, 6.7, 22) (198, 4.9, 14) (210, 3.7, 8)
+trail Trail_B_GameTrail (half width 1.2 m, 163.38 m, 12 WP): game trail south -> north: from the old camp side (130, -46) -> clearing -> (185, 82); (130, 11, -46) (138, 10.4, -32) (147, 10, -16) (154, 9, -2) (156, 9.1, 6.8) (172.7, 7.6, 11.8) (177, 7.6, 28.6) (164.8, 8.1, 40.9) (164, 8.3, 38) (170, 7.8, 52) (178, 7.4, 66) (185, 5.6, 82)
+trail Trail_C_StalkerPath (half width 0.9 m, 69.71 m, 7 WP): narrow winding path through the thickest understory (stealth / ambush): (100, 24) -> clearing; (100, 11.3, 24) (108, 11.3, 34) (118, 11.8, 44) (130, 12, 51) (142, 10.8, 52) (152, 10.1, 44) (153.5, 9.8, 40.4)
+landmark: ART LM_GiantTree placed at (160, 8.8, 24)
+trail corridors: 0 own props with a collider on a trail removed
+final own props: ENV_PC_GiantFern_A 102, ENV_PC_GiantFern_B 118, ENV_PC_Magnolia_A 46, ENV_PC_Magnolia_B 44, ENV_PC_Roots_A 1, ENV_PC_Roots_B 1, ENV_PC_VineCurtain_A 7, ENV_PC_VineCurtain_B 7, LM_GiantTree 1
+  FX anchor FX_GroundMist_01 (116, 12, 40)
+  FX anchor FX_GroundMist_02 (134, 12.6, -8)
+  FX anchor FX_GroundMist_03 (184, 6.9, 48)
+  FX anchor FX_GroundMist_04 (194, 5.9, -18)
+  FX anchor FX_Insects_01 (153, 10.6, 29)
+  FX anchor FX_Insects_02 (168, 9.2, 18)
+  FX anchor FX_LightShaft_01 (160, 22.8, 24)
+  FX anchor FX_Drip_01 (146, 13.9, 46)
+scene saved: Assets/_Project/Scenes/Island_VerticalSlice.unity
+finished, 0 warning(s)
+
+EB FernForest  started 2026-10-01 15:35:25
+clearing (160, 8.8, 24): LM_GiantTree collider radius at walking height 11.55 m -> trail ring 13.95 m, clearing radius 17.45 m
+zone fern: centre (168, 8, 20) r 70 blend 30; clearing (160, 8.8, 24) r 17.45; blockers 1698
+terrain baseline: Assets/_Project/Art/Terrain/_Backup/TD_Island_before_EB.asset (existing backup, kept)
+splat: 77834 texels (forest floor + moss, worn trails, clearing grass / moss)
+details: 19454 cells, layers [DET_ENV_Fern_01, DET_ENV_Grass_01, DET_ENV_Bush_01, DET_PC_GiantFern] 42386 -> 42688 instances in the zone rect
+other terrain trees moved out of the clearing: 0, off the trail lanes: 1, could not move: 0 (index / prototype / scale kept; agents' recorded trees never touched): #626 (182.7, 7.1, 20.6) -> (182.5, 7, 18.9)
+EB_fern: 191 own terrain trees (191 in recorded slots, 0 appended, 0 surplus removed from the tail, 6 surplus parked), total terrain trees 1697
+own terrain trees: 173 tree ferns, 14 cycads, 4 tall araucarias (canopy)
+fallen trunk rejections: density 31, clearance centre 10, clearance ends 4, spacing 2
+moss rock rejections: density 128, clearance 18, spacing 6, solid World/Environment/Forest/ForestDressing 2
+placed: 220 giant fern clumps, 90 magnolia shrubs, 8 fallen trunks, 2 root plates, 16 moss rocks, 17 vine curtains on tree fern trunks
+trail Trail_A_RiverApproach (half width 1.5 m, 131.97 m, 12 WP): main lane west -> east: river side (96, 6) -> clearing -> coast side (210, 8); player / herd width; (96, 11.7, 6) (108, 11.8, 10) (120, 12, 9) (132, 12.4, 15) (144, 10.9, 20) (146.5, 10.5, 20.6) (154.7, 9.5, 11.1) (167.3, 8.1, 12.1) (173.9, 7.8, 22.9) (186, 6.7, 22) (198, 4.9, 14) (210, 3.7, 8)
+trail Trail_B_GameTrail (half width 1.2 m, 152.89 m, 11 WP): game trail south -> north: from the old camp side (130, -46) -> clearing -> (185, 82); (130, 11, -46) (138, 10.4, -32) (147, 10, -16) (154, 9, -2) (156.9, 9.1, 10.4) (169.8, 7.8, 14.1) (173.6, 7.9, 27) (164.7, 8.2, 37.1) (170, 7.8, 52) (178, 7.4, 66) (185, 5.6, 82)
+trail Trail_C_StalkerPath (half width 0.9 m, 73.4 m, 7 WP): narrow winding path through the thickest understory (stealth / ambush): (100, 24) -> clearing; (100, 11.3, 24) (108, 11.3, 34) (118, 11.8, 44) (130, 12, 51) (142, 10.8, 52) (152, 10.1, 44) (154.8, 9.5, 37)
+landmark: ART LM_GiantTree placed at (160, 8.8, 24)
+trail corridors: 0 own props with a collider on a trail removed
+final own props: ENV_PC_FallenTrunk_A 5, ENV_PC_FallenTrunk_B 3, ENV_PC_GiantFern_A 101, ENV_PC_GiantFern_B 119, ENV_PC_Magnolia_A 41, ENV_PC_Magnolia_B 49, ENV_PC_MossRock_A 5, ENV_PC_MossRock_B 3, ENV_PC_MossRock_C 8, ENV_PC_Roots_A 1, ENV_PC_Roots_B 1, ENV_PC_VineCurtain_A 9, ENV_PC_VineCurtain_B 8, LM_GiantTree 1
+  FX anchor FX_GroundMist_01 (116, 12, 40)
+  FX anchor FX_GroundMist_02 (134, 12.6, -8)
+  FX anchor FX_GroundMist_03 (184, 6.9, 48)
+  FX anchor FX_GroundMist_04 (194, 5.9, -18)
+  FX anchor FX_Insects_01 (153, 10.6, 29)
+  FX anchor FX_Insects_02 (168, 9.2, 18)
+  FX anchor FX_Insects_03 (171.5, 8.2, -33.7)
+  FX anchor FX_LightShaft_01 (160, 22.8, 24)
+  FX anchor FX_Drip_01 (146, 13.9, 46)
+scene saved: Assets/_Project/Scenes/Island_VerticalSlice.unity
+finished, 0 warning(s)
+
+EB Foothills  started 2026-10-01 15:35:51
+WARNING: no free landmark footprint near (-150, 0, -198): kept the requested spot
+zone foothills: (-136, 23, -125) -> (-122, 44, -216) r 40 blend 30; canyon 104 pts, lava 56 pts, vent (-100, 44.7, -232); ridge (-150, 44.2, -198) s 1; blockers 1698
+terrain baseline: Assets/_Project/Art/Terrain/_Backup/TD_Island_before_EB.asset (existing backup, kept)
+splat: 60931 texels (dry soil -> basalt rock + dark soil -> ash; Phase 1 ash kept, vent / lava ground untouched)
+dry grass detail: layer 7
+details: 15227 cells, layers [DET_ENV_Fern_01, DET_ENV_Grass_01, DET_ENV_Bush_01, DET_PC_Horsetail, DET_PC_Reeds, DET_PC_GiantFern, DET_EB_DryGrass] 6414 -> 6375 instances in the zone rect
+EB_foothills: 4 own terrain trees (4 in recorded slots, 0 appended, 2 surplus removed from the tail, 0 surplus parked), total terrain trees 1695
+own terrain trees: 3 cycads (dry band), 1 tree ferns (lower transition)
+dead tree rejections: density 4669, spacing 290, clearance 253; dry trunk rejections: density 1464, clearance centre 257, clearance ends 48, spacing 24, solid World/Environment/Volcano/Basalt 2
+placed: 24 dead / broken trees, 5 dry fallen trunks, 90 basalt groups; models ENV_FallenLog_01 3, ENV_PC_Basalt_A 31, ENV_PC_Basalt_B 38, ENV_PC_BasaltBoulder 21, ENV_PC_FallenTrunk_A 2, PROP_PC_BrokenTree_A 12, PROP_PC_BrokenTree_B 12
+landmark: ART LM_BlackRidge placed at (-150, 44.2, -198)
+canyon path: 0 own props with a collider within 2.6 m removed; landmark touches the path at (-158.6, 39.5, -191.2) (-158.7, 39.7, -191.6) (-158.8, 39.9, -192.1) (-158.9, 40, -192.5) (-159, 40.2, -192.9) (-159.2, 40.3, -193.4)
+WARNING: the landmark collider touches the canyon path
+final own props: ENV_FallenLog_01 3, ENV_PC_Basalt_A 31, ENV_PC_Basalt_B 38, ENV_PC_BasaltBoulder 21, ENV_PC_FallenTrunk_A 2, LM_BlackRidge 1, PROP_PC_BrokenTree_A 12, PROP_PC_BrokenTree_B 12
+  FX anchor FX_AshFall_01 (-130.9, 50.4, -181.1) s 0.83
+  FX anchor FX_AshFall_02 (-177, 51.2, -184.3) s 0.86
+  FX anchor FX_AshFall_03 (-102.6, 49.4, -184) s 0.83
+  FX anchor FX_AshFall_04 (-69.7, 55, -183.8) s 0.92
+  FX anchor FX_Fumarole_01 (-115.1, 35.4, -166.4) s 0.59
+  FX anchor FX_Fumarole_02 (-162.1, 38.1, -169) s 0.63
+  FX anchor FX_Fumarole_03 (-92.1, 27.8, -157.9) s 0.52
+  FX anchor FX_HeatShimmer_01 (-112.1, 45.5, -232.6) s 1
+  FX anchor FX_HeatShimmer_02 (-119.5, 45, -211.7) s 1
+  FX anchor FX_DustDevil_01 (-76.9, 22.8, -141.2) s 0.39
+  FX anchor FX_DustDevil_02 (-124.4, 34.5, -144.8) s 0.4
+  FX anchor FX_SmokeDrift_01 (-150, 54.2, -198) (over the landmark)
+FX anchors: 12 (WORLD attaches smoke / ash / heat / dust; hazard zones HZ_volcano / HZ_vent unchanged)
+scene saved: Assets/_Project/Scenes/Island_VerticalSlice.unity
+finished, 2 warning(s)
+
+EB Foothills dry started 2026-10-01 15:37:31
+landmark footprint rejections: gameplay object 6086, outside zone 2075, lava 1097, canyon 1052, low / sea cliff 553, mouth 369
+WARNING: no free landmark footprint near (-150, 0, -198): kept the requested spot
+zone foothills: (-136, 23, -125) -> (-122, 44, -216) r 40 blend 30; canyon 104 pts, lava 56 pts, vent (-100, 44.7, -232); ridge (-150, 44.2, -198) s 1; blockers 1698
+  canyon 0: (-128, 12.3, -36) s 0 mouth 0 own 0 slope 1.5
+  canyon 8: (-130.8, 11.5, -47.3) s 0 mouth 0 own 0 slope 6.4
+  canyon 16: (-134.4, 12.5, -63.9) s 0 mouth 0 own 0 slope 4.33
+  canyon 24: (-136.3, 14, -77.9) s 0 mouth 0 own 0 slope 6.14
+  canyon 32: (-135.9, 15.7, -91.9) s 0 mouth 0 own 0 slope 6.35
+  canyon 40: (-133, 17.8, -105.9) s 0 mouth 0.48 own 0 slope 10.48
+  canyon 48: (-132.1, 20.4, -119.9) s 0.08 mouth 1 own 0.04 slope 10.66
+  canyon 56: (-134.8, 23.3, -133.9) s 0.24 mouth 1 own 1 slope 10.8
+  canyon 64: (-140.2, 26.6, -147.9) s 0.38 mouth 1 own 1 slope 12.72
+  canyon 72: (-146.9, 30, -161.9) s 0.54 mouth 1 own 1 slope 13.5
+  canyon 80: (-153.4, 33.4, -175.9) s 0.7 mouth 1 own 1 slope 13.69
+  canyon 88: (-158.3, 37.8, -189.9) s 0.87 mouth 1 own 1 slope 24.48
+  canyon 96: (-161.1, 41.5, -203.9) s 1 mouth 1 own 1 slope 16.12
+  other terrain trees in the zone (z < -100): 96
+  Volcano/Basalt: 188 objects
+  Volcano/Lava: 23 objects
+  Volcano/Hazards: 7 objects
+  Volcano/Landmarks: 19 objects
+  Volcano/VolcanicFoothills: 493 objects
+finished, 1 warning(s)
+
+EB Foothills dry started 2026-10-01 15:39:03
+landmark footprint rejections: canyon 2278, lava 261, low / sea cliff 62
+WARNING: no free landmark footprint near (-150, 0, -198): kept the requested spot
+zone foothills: (-136, 23, -125) -> (-122, 44, -216) r 40 blend 30; canyon 104 pts, lava 56 pts, vent (-100, 44.7, -232); ridge (-150, 44.2, -198) s 1; blockers 1698
+  canyon 0: (-128, 12.3, -36) s 0 mouth 0 own 0 slope 1.5
+  canyon 8: (-130.8, 11.5, -47.3) s 0 mouth 0 own 0 slope 6.4
+  canyon 16: (-134.4, 12.5, -63.9) s 0 mouth 0 own 0 slope 4.33
+  canyon 24: (-136.3, 14, -77.9) s 0 mouth 0 own 0 slope 6.14
+  canyon 32: (-135.9, 15.7, -91.9) s 0 mouth 0 own 0 slope 6.35
+  canyon 40: (-133, 17.8, -105.9) s 0 mouth 0.48 own 0 slope 10.48
+  canyon 48: (-132.1, 20.4, -119.9) s 0.08 mouth 1 own 0.04 slope 10.66
+  canyon 56: (-134.8, 23.3, -133.9) s 0.24 mouth 1 own 1 slope 10.8
+  canyon 64: (-140.2, 26.6, -147.9) s 0.38 mouth 1 own 1 slope 12.72
+  canyon 72: (-146.9, 30, -161.9) s 0.54 mouth 1 own 1 slope 13.5
+  canyon 80: (-153.4, 33.4, -175.9) s 0.7 mouth 1 own 1 slope 13.69
+  canyon 88: (-158.3, 37.8, -189.9) s 0.87 mouth 1 own 1 slope 24.48
+  canyon 96: (-161.1, 41.5, -203.9) s 1 mouth 1 own 1 slope 16.12
+  other terrain trees in the zone (z < -100): 96
+  Volcano/Basalt: 188 objects
+  Volcano/Lava: 23 objects
+  Volcano/Hazards: 7 objects
+  Volcano/Landmarks: 19 objects
+  Volcano/VolcanicFoothills: 493 objects
+finished, 1 warning(s)
+
+EB Foothills dry started 2026-10-01 15:41:13
+landmark footprint rejections: canyon 6271, lava 3421, low / sea cliff 928, relief 613
+WARNING: landmark footprint is near 13 gameplay sample(s): blockers (-119.7, 2.2, -191.8) (-93.7, 2.2, -203.4) (-134.7, 2.2, -197.7) (-110.5, 2.2, -195.9) (-137.3, 2.2, -180.8) (-100.6, 2.2, -187.4) (-104.6, 2.2, -196.7) (-103.7, 2.2, -199.2)
+landmark spot (-112, 43.9, -193) (footprint 52.76 x 20.45 m, relief 6.39 m, 52.81 m from the canyon exit, yaw offset -50, 13 footprint samples near a gameplay object)
+zone foothills: (-136, 23, -125) -> (-122, 44, -216) r 40 blend 30; canyon 104 pts, lava 56 pts, vent (-100, 44.7, -232); ridge (-112, 43.9, -193) s 0.98; blockers 1698
+  canyon 0: (-128, 12.3, -36) s 0 mouth 0 own 0 slope 1.5
+  canyon 8: (-130.8, 11.5, -47.3) s 0 mouth 0 own 0 slope 6.4
+  canyon 16: (-134.4, 12.5, -63.9) s 0 mouth 0 own 0 slope 4.33
+  canyon 24: (-136.3, 14, -77.9) s 0 mouth 0 own 0 slope 6.14
+  canyon 32: (-135.9, 15.7, -91.9) s 0 mouth 0 own 0 slope 6.35
+  canyon 40: (-133, 17.8, -105.9) s 0 mouth 0.48 own 0 slope 10.48
+  canyon 48: (-132.1, 20.4, -119.9) s 0.08 mouth 1 own 0.04 slope 10.66
+  canyon 56: (-134.8, 23.3, -133.9) s 0.24 mouth 1 own 1 slope 10.8
+  canyon 64: (-140.2, 26.6, -147.9) s 0.38 mouth 1 own 1 slope 12.72
+  canyon 72: (-146.9, 30, -161.9) s 0.54 mouth 1 own 1 slope 13.5
+  canyon 80: (-153.4, 33.4, -175.9) s 0.7 mouth 1 own 1 slope 13.69
+  canyon 88: (-158.3, 37.8, -189.9) s 0.87 mouth 1 own 1 slope 24.48
+  canyon 96: (-161.1, 41.5, -203.9) s 1 mouth 1 own 1 slope 16.12
+  other terrain trees in the zone (z < -100): 96
+  Volcano/Basalt: 188 objects
+  Volcano/Lava: 23 objects
+  Volcano/Hazards: 7 objects
+  Volcano/Landmarks: 19 objects
+  Volcano/VolcanicFoothills: 493 objects
+finished, 1 warning(s)
+
+EB Foothills dry started 2026-10-01 15:47:01
+landmark fit (real LM_BlackRidge colliders): 511 poses tried, probes canyon 128 / lava 26 / gameplay 35; spot (-148, 44.1, -198) yaw offset 30 (2 m from (-150, 44.2, -198)), touching probes 0
+zone foothills: (-136, 23, -125) -> (-122, 44, -216) r 40 blend 30; canyon 104 pts, lava 56 pts, vent (-100, 44.7, -232); ridge (-148, 44.1, -198) s 1; blockers 1698
+  canyon 0: (-128, 12.3, -36) s 0 mouth 0 own 0 slope 1.5
+  canyon 8: (-130.8, 11.5, -47.3) s 0 mouth 0 own 0 slope 6.4
+  canyon 16: (-134.4, 12.5, -63.9) s 0 mouth 0 own 0 slope 4.33
+  canyon 24: (-136.3, 14, -77.9) s 0 mouth 0 own 0 slope 6.14
+  canyon 32: (-135.9, 15.7, -91.9) s 0 mouth 0 own 0 slope 6.35
+  canyon 40: (-133, 17.8, -105.9) s 0 mouth 0.48 own 0 slope 10.48
+  canyon 48: (-132.1, 20.4, -119.9) s 0.08 mouth 1 own 0.04 slope 10.66
+  canyon 56: (-134.8, 23.3, -133.9) s 0.24 mouth 1 own 1 slope 10.8
+  canyon 64: (-140.2, 26.6, -147.9) s 0.38 mouth 1 own 1 slope 12.72
+  canyon 72: (-146.9, 30, -161.9) s 0.54 mouth 1 own 1 slope 13.5
+  canyon 80: (-153.4, 33.4, -175.9) s 0.7 mouth 1 own 1 slope 13.69
+  canyon 88: (-158.3, 37.8, -189.9) s 0.87 mouth 1 own 1 slope 24.48
+  canyon 96: (-161.1, 41.5, -203.9) s 1 mouth 1 own 1 slope 16.12
+  other terrain trees in the zone (z < -100): 96
+  Volcano/Basalt: 188 objects
+  Volcano/Lava: 23 objects
+  Volcano/Hazards: 7 objects
+  Volcano/Landmarks: 19 objects
+  Volcano/VolcanicFoothills: 493 objects
+finished, 0 warning(s)
+
+EB Foothills  started 2026-10-01 15:47:28
+landmark fit (real LM_BlackRidge colliders): 511 poses tried, probes canyon 128 / lava 26 / gameplay 35; spot (-148, 44.1, -198) yaw offset 30 (2 m from (-150, 44.2, -198)), touching probes 0
+zone foothills: (-136, 23, -125) -> (-122, 44, -216) r 40 blend 30; canyon 104 pts, lava 56 pts, vent (-100, 44.7, -232); ridge (-148, 44.1, -198) s 1; blockers 1698
+terrain baseline: Assets/_Project/Art/Terrain/_Backup/TD_Island_before_EB.asset (existing backup, kept)
+splat: 60931 texels (dry soil -> basalt rock + dark soil -> ash; Phase 1 ash kept, vent / lava ground untouched)
+dry grass detail: layer 7
+details: 15227 cells, layers [DET_ENV_Fern_01, DET_ENV_Grass_01, DET_ENV_Bush_01, DET_PC_Horsetail, DET_PC_Reeds, DET_PC_GiantFern, DET_EB_DryGrass] 6375 -> 6375 instances in the zone rect
+EB_foothills: 4 own terrain trees (4 in recorded slots, 0 appended, 0 surplus removed from the tail, 0 surplus parked), total terrain trees 1695
+own terrain trees: 3 cycads (dry band), 1 tree ferns (lower transition)
+dead tree rejections: density 4669, spacing 290, clearance 253; dry trunk rejections: density 1464, clearance centre 259, clearance ends 46, spacing 24, solid World/Environment/Volcano/Basalt 2
+placed: 24 dead / broken trees, 5 dry fallen trunks, 90 basalt groups; models ENV_FallenLog_01 3, ENV_PC_Basalt_A 28, ENV_PC_Basalt_B 39, ENV_PC_BasaltBoulder 23, ENV_PC_FallenTrunk_A 2, PROP_PC_BrokenTree_A 12, PROP_PC_BrokenTree_B 12
+landmark: ART LM_BlackRidge placed at (-148, 44.1, -198)
+canyon path: 0 own props with a collider within 2.6 m removed
+final own props: ENV_FallenLog_01 3, ENV_PC_Basalt_A 28, ENV_PC_Basalt_B 39, ENV_PC_BasaltBoulder 23, ENV_PC_FallenTrunk_A 2, LM_BlackRidge 1, PROP_PC_BrokenTree_A 12, PROP_PC_BrokenTree_B 12
+  FX anchor FX_AshFall_01 (-172.5, 50.6, -182.1) s 0.83
+  FX anchor FX_AshFall_02 (-118.2, 50.4, -181.1) s 0.82
+  FX anchor FX_AshFall_03 (-72.1, 54.4, -183.9) s 0.92
+WARNING: no spot for FX anchor FX_AshFall_04
+  FX anchor FX_Fumarole_01 (-127, 35.9, -163) s 0.55
+  FX anchor FX_Fumarole_02 (-93.9, 28.9, -161.4) s 0.54
+  FX anchor FX_Fumarole_03 (-159.8, 37.7, -163.1) s 0.56
+  FX anchor FX_HeatShimmer_01 (-112.1, 45.5, -232.6) s 1
+  FX anchor FX_HeatShimmer_02 (-119.5, 45, -211.7) s 1
+  FX anchor FX_DustDevil_01 (-76.9, 22.8, -141.2) s 0.39
+  FX anchor FX_DustDevil_02 (-146.4, 34.1, -138.2) s 0.28
+  FX anchor FX_SmokeDrift_01 (-148, 54.1, -198) (over the landmark)
+FX anchors: 11 (WORLD attaches smoke / ash / heat / dust; hazard zones HZ_volcano / HZ_vent unchanged)
+scene saved: Assets/_Project/Scenes/Island_VerticalSlice.unity
+finished, 1 warning(s)
+
+EB Foothills  started 2026-10-01 15:49:04
+landmark fit (real LM_BlackRidge colliders): 511 poses tried, probes canyon 128 / lava 26 / gameplay 35; spot (-148, 44.1, -198) yaw offset 30 (2 m from (-150, 44.2, -198)), touching probes 0
+zone foothills: (-136, 23, -125) -> (-122, 44, -216) r 40 blend 30; canyon 104 pts, lava 56 pts, vent (-100, 44.7, -232); ridge (-148, 44.1, -198) s 1; blockers 1698
+terrain baseline: Assets/_Project/Art/Terrain/_Backup/TD_Island_before_EB.asset (existing backup, kept)
+splat: 60931 texels (dry soil -> basalt rock + dark soil -> ash; Phase 1 ash kept, vent / lava ground untouched)
+dry grass detail: layer 7
+details: 15227 cells, layers [DET_ENV_Fern_01, DET_ENV_Grass_01, DET_ENV_Bush_01, DET_PC_Horsetail, DET_PC_Reeds, DET_PC_GiantFern, DET_EB_DryGrass] 6375 -> 6375 instances in the zone rect
+EB_foothills: 4 own terrain trees (4 in recorded slots, 0 appended, 0 surplus removed from the tail, 0 surplus parked), total terrain trees 1695
+own terrain trees: 3 cycads (dry band), 1 tree ferns (lower transition)
+dead tree rejections: density 4669, spacing 290, clearance 253; dry trunk rejections: density 1464, clearance centre 259, clearance ends 46, spacing 24, solid World/Environment/Volcano/Basalt 2
+placed: 24 dead / broken trees, 5 dry fallen trunks, 90 basalt groups; models ENV_FallenLog_01 3, ENV_PC_Basalt_A 28, ENV_PC_Basalt_B 39, ENV_PC_BasaltBoulder 23, ENV_PC_FallenTrunk_A 2, PROP_PC_BrokenTree_A 12, PROP_PC_BrokenTree_B 12
+landmark: ART LM_BlackRidge placed at (-148, 44.1, -198)
+canyon path: 0 own props with a collider within 2.6 m removed
+final own props: ENV_FallenLog_01 3, ENV_PC_Basalt_A 28, ENV_PC_Basalt_B 39, ENV_PC_BasaltBoulder 23, ENV_PC_FallenTrunk_A 2, LM_BlackRidge 1, PROP_PC_BrokenTree_A 12, PROP_PC_BrokenTree_B 12
+  FX anchor FX_AshFall_01 (-172.5, 50.6, -182.1) s 0.83
+  FX anchor FX_AshFall_02 (-118.2, 50.4, -181.1) s 0.82
+  FX anchor FX_AshFall_03 (-72.1, 54.4, -183.9) s 0.92
+  FX anchor FX_AshFall_04 (-142.7, 50.4, -183.1) s 0.82
+  FX anchor FX_Fumarole_01 (-127, 35.9, -163) s 0.55
+  FX anchor FX_Fumarole_02 (-93.9, 28.9, -161.4) s 0.54
+  FX anchor FX_Fumarole_03 (-159.8, 37.7, -163.1) s 0.56
+  FX anchor FX_HeatShimmer_01 (-112.1, 45.5, -232.6) s 1
+  FX anchor FX_HeatShimmer_02 (-119.5, 45, -211.7) s 1
+  FX anchor FX_DustDevil_01 (-76.9, 22.8, -141.2) s 0.39
+  FX anchor FX_DustDevil_02 (-146.4, 34.1, -138.2) s 0.28
+  FX anchor FX_SmokeDrift_01 (-148, 54.1, -198) (over the landmark)
+FX anchors: 12 (WORLD attaches smoke / ash / heat / dust; hazard zones HZ_volcano / HZ_vent unchanged)
+scene saved: Assets/_Project/Scenes/Island_VerticalSlice.unity
+finished, 0 warning(s)
+
+EB FernFoothillsCheck  started 2026-10-01 15:49:34
+clearing (160, 8.8, 24): LM_GiantTree collider radius at walking height 11.55 m -> trail ring 13.95 m, clearing radius 17.45 m
+[fern] objects under World/Environment/Forest/GiantFernForest: 1228
+  ENV_PC_FallenTrunk_A: 5
+  ENV_PC_FallenTrunk_B: 3
+  ENV_PC_GiantFern_A: 101
+  ENV_PC_GiantFern_B: 119
+  ENV_PC_Magnolia_A: 41
+  ENV_PC_Magnolia_B: 49
+  ENV_PC_MossRock_A: 5
+  ENV_PC_MossRock_B: 3
+  ENV_PC_MossRock_C: 8
+  ENV_PC_Roots_A: 1
+  ENV_PC_Roots_B: 1
+  ENV_PC_VineCurtain_A: 9
+  ENV_PC_VineCurtain_B: 8
+  LM_GiantTree: 1
+  own terrain trees: 191 (ENV_PC_Cycad_A 3, ENV_PC_Cycad_B 3, ENV_PC_Cycad_C 8, ENV_PC_TreeFern_A 59, ENV_PC_TreeFern_B 44, ENV_PC_TreeFern_C 70, PFB_ENV_Tree_01 4)
+  missing refs: prefab 0, mesh 0, material 0, broken shader 0, script 0, LOD renderer 0, collider mesh 0; terrain prototypes without asset 0
+  resource nodes in the zone + blend: 167; covered by a zone collider 0, own terrain tree within 1.2 m 0
+  other interactables covered: 0
+  objects within 20 m of the player spawn (-20, 1.5, 211): 0
+  [fern] models: ENV_PC_FallenTrunk_A 5, ENV_PC_FallenTrunk_B 3, ENV_PC_GiantFern_A 101, ENV_PC_GiantFern_B 119, ENV_PC_Magnolia_A 41, ENV_PC_Magnolia_B 49, ENV_PC_MossRock_A 5, ENV_PC_MossRock_B 3, ENV_PC_MossRock_C 8, ENV_PC_Roots_A 1, ENV_PC_Roots_B 1, ENV_PC_VineCurtain_A 9, ENV_PC_VineCurtain_B 8, LM_GiantTree 1
+  [fern] FX anchor FX_GroundMist_01 (116, 12, 40)
+  [fern] FX anchor FX_GroundMist_02 (134, 12.6, -8)
+  [fern] FX anchor FX_GroundMist_03 (184, 6.9, 48)
+  [fern] FX anchor FX_GroundMist_04 (194, 5.9, -18)
+  [fern] FX anchor FX_Insects_01 (153, 10.6, 29)
+  [fern] FX anchor FX_Insects_02 (168, 9.2, 18)
+  [fern] FX anchor FX_Insects_03 (171.5, 8.2, -33.7)
+  [fern] FX anchor FX_LightShaft_01 (160, 22.8, 24)
+  [fern] FX anchor FX_Drip_01 (146, 13.9, 46)
+  [fern] landmark LM_GiantFernForest (160, 8.8, 24) (art: LM_GiantTree)
+  [fern] detail instances (own weight > 0): DET_ENV_Fern_01 24950; DET_ENV_Grass_01 1296; DET_ENV_Bush_01 3035; DET_PC_Horsetail 254; DET_PC_Reeds 0; DET_PC_GiantFern 13407; DET_Z_TallGrass 0; DET_EB_DryGrass 0; 
+[foothills] objects under World/Environment/Volcano/VolcanicFoothills: 494
+  ENV_FallenLog_01: 3
+  ENV_PC_Basalt_A: 28
+  ENV_PC_Basalt_B: 39
+  ENV_PC_BasaltBoulder: 23
+  ENV_PC_FallenTrunk_A: 2
+  LM_BlackRidge: 1
+  PROP_PC_BrokenTree_A: 12
+  PROP_PC_BrokenTree_B: 12
+  own terrain trees: 4 (ENV_PC_Cycad_A 2, ENV_PC_Cycad_C 1, ENV_PC_TreeFern_A 1)
+  missing refs: prefab 0, mesh 0, material 0, broken shader 0, script 0, LOD renderer 0, collider mesh 0; terrain prototypes without asset 0
+  resource nodes in the zone + blend: 227; covered by a zone collider 0, own terrain tree within 1.2 m 0
+  other interactables covered: 0
+  objects within 20 m of the player spawn (-20, 1.5, 211): 0
+  [foothills] models: ENV_FallenLog_01 3, ENV_PC_Basalt_A 28, ENV_PC_Basalt_B 39, ENV_PC_BasaltBoulder 23, ENV_PC_FallenTrunk_A 2, LM_BlackRidge 1, PROP_PC_BrokenTree_A 12, PROP_PC_BrokenTree_B 12
+  [foothills] FX anchor FX_AshFall_01 (-172.5, 50.6, -182.1)
+  [foothills] FX anchor FX_AshFall_02 (-118.2, 50.4, -181.1)
+  [foothills] FX anchor FX_AshFall_03 (-72.1, 54.4, -183.9)
+  [foothills] FX anchor FX_AshFall_04 (-142.7, 50.4, -183.1)
+  [foothills] FX anchor FX_Fumarole_01 (-127, 35.9, -163)
+  [foothills] FX anchor FX_Fumarole_02 (-93.9, 28.9, -161.4)
+  [foothills] FX anchor FX_Fumarole_03 (-159.8, 37.7, -163.1)
+  [foothills] FX anchor FX_HeatShimmer_01 (-112.1, 45.5, -232.6)
+  [foothills] FX anchor FX_HeatShimmer_02 (-119.5, 45, -211.7)
+  [foothills] FX anchor FX_DustDevil_01 (-76.9, 22.8, -141.2)
+  [foothills] FX anchor FX_DustDevil_02 (-146.4, 34.1, -138.2)
+  [foothills] FX anchor FX_SmokeDrift_01 (-148, 54.1, -198)
+  [foothills] landmark LM_VolcanicFoothills (-148, 44.1, -198) (art: LM_BlackRidge)
+  [foothills] detail instances (own weight > 0): DET_ENV_Fern_01 2791; DET_ENV_Grass_01 969; DET_ENV_Bush_01 14; DET_PC_Horsetail 21; DET_PC_Reeds 0; DET_PC_GiantFern 363; DET_Z_TallGrass 1; DET_EB_DryGrass 2217; 
+  trail Trail_A_RiverApproach: 137 samples (1 m) in the zone, max slope 12.75; own colliders 0, own trees 0 (must be 0); other colliders 2, other agents' / v1 trees 0 [World/Environment/Terrain/Rocks/PFB_ENV_Rock_Medium_03]
+    WP: (96, 11.7, 6) (108, 11.8, 10) (120, 12, 9) (132, 12.4, 15) (144, 10.9, 20) (146.5, 10.5, 20.6) (154.7, 9.5, 11.1) (167.3, 8.1, 12.1) (173.9, 7.8, 22.9) (186, 6.7, 22) (198, 4.9, 14) (210, 3.7, 8)
+  trail Trail_B_GameTrail: 158 samples (1 m) in the zone, max slope 11.24; own colliders 0, own trees 0 (must be 0); other colliders 10, other agents' / v1 trees 0 [World/Gameplay/Wildlife/[Dinosaurs]/Ankylosaurus/Ankylosaurus_1/DINO_ankylosaurus_Rig/Root/Pelvis/Spine_01/Spine_02/Chest/Neck_01/Neck_02/Neck_03/Head/HitZone_Head; World/Gameplay/Wildlife/[Dinosaurs]/Ankylosaurus/Ankylosaurus_1; World/Gameplay/Wildlife/[Dinosaurs]/Ankylosaurus/Ankylosaurus_0; World/Environment/Terrain/Rocks/PFB_ENV_Rock_Medium_03]
+    WP: (130, 11, -46) (138, 10.4, -32) (147, 10, -16) (154, 9, -2) (156.9, 9.1, 10.4) (169.8, 7.8, 14.1) (173.6, 7.9, 27) (164.7, 8.2, 37.1) (170, 7.8, 52) (178, 7.4, 66) (185, 5.6, 82)
+  trail Trail_C_StalkerPath: 76 samples (1 m) in the zone, max slope 13.7; own colliders 0, own trees 0 (must be 0); other colliders 11, other agents' / v1 trees 0 [World/Environment/Forest/ForestDressing/ENV_PC_Roots_B; World/Environment/Forest/ForestDressing/ENV_PC_FallenTrunk_A]
+    WP: (100, 11.3, 24) (108, 11.3, 34) (118, 11.8, 44) (130, 12, 51) (142, 10.8, 52) (152, 10.1, 44) (154.8, 9.5, 37)
+  canyon path (z < -100): 66 samples, own colliders within 2 m 0, own trees within 3 m 0 (must be 0)
+  own objects within 4 m of the lava channel / vent: 0
+EB check problems: 0
+finished, 0 warning(s)
+
+EB FernFoothillsCheck  started 2026-10-01 16:00:09
+clearing (160, 8.8, 24): LM_GiantTree collider radius at walking height 11.55 m -> trail ring 13.95 m, clearing radius 17.45 m
+[fern] objects under World/Environment/Forest/GiantFernForest: 1228
+  ENV_PC_FallenTrunk_A: 5
+  ENV_PC_FallenTrunk_B: 3
+  ENV_PC_GiantFern_A: 101
+  ENV_PC_GiantFern_B: 119
+  ENV_PC_Magnolia_A: 41
+  ENV_PC_Magnolia_B: 49
+  ENV_PC_MossRock_A: 5
+  ENV_PC_MossRock_B: 3
+  ENV_PC_MossRock_C: 8
+  ENV_PC_Roots_A: 1
+  ENV_PC_Roots_B: 1
+  ENV_PC_VineCurtain_A: 9
+  ENV_PC_VineCurtain_B: 8
+  LM_GiantTree: 1
+  own terrain trees: 191 (ENV_PC_Cycad_A 3, ENV_PC_Cycad_B 3, ENV_PC_Cycad_C 8, ENV_PC_TreeFern_A 59, ENV_PC_TreeFern_B 44, ENV_PC_TreeFern_C 70, PFB_ENV_Tree_01 4)
+  missing refs: prefab 0, mesh 0, material 0, broken shader 0, script 0, LOD renderer 0, collider mesh 0; terrain prototypes without asset 0
+  resource nodes in the zone + blend: 167; covered by a zone collider 0, own terrain tree within 1.2 m 0
+  other interactables covered: 0
+  objects within 20 m of the player spawn (-20, 1.5, 211): 0
+  [fern] models: ENV_PC_FallenTrunk_A 5, ENV_PC_FallenTrunk_B 3, ENV_PC_GiantFern_A 101, ENV_PC_GiantFern_B 119, ENV_PC_Magnolia_A 41, ENV_PC_Magnolia_B 49, ENV_PC_MossRock_A 5, ENV_PC_MossRock_B 3, ENV_PC_MossRock_C 8, ENV_PC_Roots_A 1, ENV_PC_Roots_B 1, ENV_PC_VineCurtain_A 9, ENV_PC_VineCurtain_B 8, LM_GiantTree 1
+  [fern] FX anchor FX_GroundMist_01 (116, 12, 40)
+  [fern] FX anchor FX_GroundMist_02 (134, 12.6, -8)
+  [fern] FX anchor FX_GroundMist_03 (184, 6.9, 48)
+  [fern] FX anchor FX_GroundMist_04 (194, 5.9, -18)
+  [fern] FX anchor FX_Insects_01 (153, 10.6, 29)
+  [fern] FX anchor FX_Insects_02 (168, 9.2, 18)
+  [fern] FX anchor FX_Insects_03 (171.5, 8.2, -33.7)
+  [fern] FX anchor FX_LightShaft_01 (160, 22.8, 24)
+  [fern] FX anchor FX_Drip_01 (146, 13.9, 46)
+  [fern] landmark LM_GiantFernForest (160, 8.8, 24) (art: LM_GiantTree)
+  [fern] detail instances (own weight > 0): DET_ENV_Fern_01 24950; DET_ENV_Grass_01 1296; DET_ENV_Bush_01 3035; DET_PC_Horsetail 254; DET_PC_Reeds 0; DET_PC_GiantFern 13407; DET_Z_TallGrass 0; DET_EB_DryGrass 0; 
+[foothills] objects under World/Environment/Volcano/VolcanicFoothills: 494
+  ENV_FallenLog_01: 3
+  ENV_PC_Basalt_A: 28
+  ENV_PC_Basalt_B: 39
+  ENV_PC_BasaltBoulder: 23
+  ENV_PC_FallenTrunk_A: 2
+  LM_BlackRidge: 1
+  PROP_PC_BrokenTree_A: 12
+  PROP_PC_BrokenTree_B: 12
+  own terrain trees: 4 (ENV_PC_Cycad_A 2, ENV_PC_Cycad_C 1, ENV_PC_TreeFern_A 1)
+  missing refs: prefab 0, mesh 0, material 0, broken shader 0, script 0, LOD renderer 0, collider mesh 0; terrain prototypes without asset 0
+  resource nodes in the zone + blend: 228; covered by a zone collider 0, own terrain tree within 1.2 m 0
+  other interactables covered: 0
+  objects within 20 m of the player spawn (-20, 1.5, 211): 0
+  [foothills] models: ENV_FallenLog_01 3, ENV_PC_Basalt_A 28, ENV_PC_Basalt_B 39, ENV_PC_BasaltBoulder 23, ENV_PC_FallenTrunk_A 2, LM_BlackRidge 1, PROP_PC_BrokenTree_A 12, PROP_PC_BrokenTree_B 12
+  [foothills] FX anchor FX_AshFall_01 (-172.5, 50.6, -182.1)
+  [foothills] FX anchor FX_AshFall_02 (-118.2, 50.4, -181.1)
+  [foothills] FX anchor FX_AshFall_03 (-72.1, 54.4, -183.9)
+  [foothills] FX anchor FX_AshFall_04 (-142.7, 50.4, -183.1)
+  [foothills] FX anchor FX_Fumarole_01 (-127, 35.9, -163)
+  [foothills] FX anchor FX_Fumarole_02 (-93.9, 28.9, -161.4)
+  [foothills] FX anchor FX_Fumarole_03 (-159.8, 37.7, -163.1)
+  [foothills] FX anchor FX_HeatShimmer_01 (-112.1, 45.5, -232.6)
+  [foothills] FX anchor FX_HeatShimmer_02 (-119.5, 45, -211.7)
+  [foothills] FX anchor FX_DustDevil_01 (-76.9, 22.8, -141.2)
+  [foothills] FX anchor FX_DustDevil_02 (-146.4, 34.1, -138.2)
+  [foothills] FX anchor FX_SmokeDrift_01 (-148, 54.1, -198)
+  [foothills] landmark LM_VolcanicFoothills (-148, 44.1, -198) (art: LM_BlackRidge)
+  [foothills] detail instances (own weight > 0): DET_ENV_Fern_01 2824; DET_ENV_Grass_01 976; DET_ENV_Bush_01 14; DET_PC_Horsetail 21; DET_PC_Reeds 0; DET_PC_GiantFern 362; DET_Z_TallGrass 1; DET_EB_DryGrass 2217; 
+  trail Trail_A_RiverApproach: 137 samples (1 m) in the zone, max slope 12.75; own colliders 0, own trees 0 (must be 0); other colliders 2, other agents' / v1 trees 0 [World/Environment/Terrain/Rocks/PFB_ENV_Rock_Medium_03]
+    WP: (96, 11.7, 6) (108, 11.8, 10) (120, 12, 9) (132, 12.4, 15) (144, 10.9, 20) (146.5, 10.5, 20.6) (154.7, 9.5, 11.1) (167.3, 8.1, 12.1) (173.9, 7.8, 22.9) (186, 6.7, 22) (198, 4.9, 14) (210, 3.7, 8)
+  trail Trail_B_GameTrail: 158 samples (1 m) in the zone, max slope 11.24; own colliders 0, own trees 0 (must be 0); other colliders 10, other agents' / v1 trees 0 [World/Gameplay/Wildlife/[Dinosaurs]/Ankylosaurus/Ankylosaurus_1/DINO_ankylosaurus_Rig/Root/Pelvis/Spine_01/Spine_02/Chest/Neck_01/Neck_02/Neck_03/Head/HitZone_Head; World/Gameplay/Wildlife/[Dinosaurs]/Ankylosaurus/Ankylosaurus_1; World/Gameplay/Wildlife/[Dinosaurs]/Ankylosaurus/Ankylosaurus_0; World/Environment/Terrain/Rocks/PFB_ENV_Rock_Medium_03]
+    WP: (130, 11, -46) (138, 10.4, -32) (147, 10, -16) (154, 9, -2) (156.9, 9.1, 10.4) (169.8, 7.8, 14.1) (173.6, 7.9, 27) (164.7, 8.2, 37.1) (170, 7.8, 52) (178, 7.4, 66) (185, 5.6, 82)
+  trail Trail_C_StalkerPath: 76 samples (1 m) in the zone, max slope 13.7; own colliders 0, own trees 0 (must be 0); other colliders 11, other agents' / v1 trees 0 [World/Environment/Forest/ForestDressing/ENV_PC_Roots_B; World/Environment/Forest/ForestDressing/ENV_PC_FallenTrunk_A]
+    WP: (100, 11.3, 24) (108, 11.3, 34) (118, 11.8, 44) (130, 12, 51) (142, 10.8, 52) (152, 10.1, 44) (154.8, 9.5, 37)
+  canyon path (z < -100): 66 samples, own colliders within 2 m 0, own trees within 3 m 0 (must be 0)
+  own objects within 4 m of the lava channel / vent: 0
+EB check problems: 0
+finished, 0 warning(s)
+

@@ -161,7 +161,11 @@ namespace PrimalFrontier.AI
         [Tooltip("heat ring even a chasing creature turns away from")] [Range(1, 3)] public int heatChaseLevel = 3;
         public System.Collections.Generic.List<NoGoArea> noGoAreas = new System.Collections.Generic.List<NoGoArea>
         {
-            new NoGoArea { id = "deep_water_cave", anchor = "cave_mouth", center = new Vector3(-18f, 18.4f, -131f), radius = 14f, hard = true },
+            // the Deep Water Cave (CAVE): the old grotto, the east mouth on the waterfall pool, the back door; the chamber and passages
+            // lie under the cliff, so these circles are where a land creature could walk in
+            new NoGoArea { id = "cave_grotto", anchor = "cave_mouth", center = new Vector3(-18f, 18.4f, -134f), radius = 13f, hard = true },
+            new NoGoArea { id = "cave_east_mouth", anchor = "cave_east_mouth", center = new Vector3(90f, 19.45f, -157.4f), radius = 7f, hard = true },
+            new NoGoArea { id = "cave_back_door", anchor = "cave_back_door", center = new Vector3(12.4f, 22.5f, -141.4f), radius = 8f, hard = true },
             new NoGoArea { id = "start_beach", anchor = "spawn", center = new Vector3(0f, 1.8f, 205f), radius = 55f, predatorsOnly = true, flyers = false },
         };
 

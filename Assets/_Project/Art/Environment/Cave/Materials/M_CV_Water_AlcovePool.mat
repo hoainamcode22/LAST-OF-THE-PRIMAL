@@ -79,7 +79,7 @@ Material:
     - _WindDrift: 0.01
     m_Colors:
     - _AbsorbColor: {r: 0.75, g: 0.3, b: 0.24, a: 0}
-    - _FlowMapRect: {r: 65.925, g: -163.45999, b: 0.23809524, a: 0.27777776}
+    - _FlowMapRect: {r: 66.06, g: -163.35199, b: 0.25, a: 0.29411763}
     - _FoamColor: {r: 0.93, g: 0.95, b: 0.94, a: 1}
     - _ScatterColor: {r: 0.055, g: 0.12, b: 0.11, a: 1}
   m_BuildTextureStacks: []

@@ -59,3 +59,279 @@ AI anchors: 11 scavenge, 9 predator route, 4 perches, 1 circle centre
 scene saved: Assets/_Project/Scenes/Island_VerticalSlice.unity
 finished, 1 warning(s)
 
+BV BoneValley  started 2026-10-01 12:37:34
+blockers: 1618
+landmark search: 429 blockers near the zone, 160 footprints clear of the path and inside the zone, 0 also clear of every blocker, best score -Infinity
+  fewest blockers of the others: 10 at (-114, 0, -30) scale 0.7 yaw 75: [node] World/Environment/Terrain/Rocks/PFB_ENV_Rock_Medium_03; [node] World/Environment/Terrain/Rocks/PFB_ENV_Rock_Medium_02; [node] World/Environment/Forest/Vegetation/InteractiveBushes/Bush_053_Berries; [node] World/Environment/Forest/Vegetation/Thickets/Thicket_25/ThicketBush_25_2_Berries; [node] World/Gameplay/Resources/[Resources]/Island/Cluster_032_Forest/Resource_Fiber_Fern_0167; [node] World/Gameplay/Resources/[Resources]/Island/Cluster_032_Forest/Resource_Fiber_Fern_0168; 
+WARNING: landmark: no clear footprint found: only the marker LM_BoneValley is placed (at the fewest-blockers spot), the prefab is NOT placed
+plan rejections (fresh + rotting search): slope 169, path 174, blocked / zone 459
+plan: entrance (-98.9, 13.6, -62.1) (path arc 44.1 of 96.79), fresh (-107.6, 14.6, -55.1), rotting (-129.1, 12.3, -34.7), old (-136, 13.3, -72), landmark (-114, 15.7, -30) scale 0.7 yaw 75 pitch 0 roll 0 ground fit 0 m, footprint 28.46 x 16.42 m
+terrain baseline: Assets/_Project/Art/Terrain/_Backup/TD_Island_before_BV.asset (existing backup, kept)
+splat: 22945 texels (TL_DarkSoil through the zone core, darker at the carcasses / landmark / kill site, TL_Mud along the path; rock kept)
+details: 5728 cells on 4 layers (0, 1, 2, 5), 3941 -> 3866 instances in the zone rect
+ART kit: BoneScatter_A/B yes, Ribcage yes, Skull_Large yes, LM_FossilSkeleton yes
+landmark: marker LM_BoneValley (no clear footprint for the prefab) at (-114, 15.5, -30) scale 0.7 yaw 75 (exposed side faces (1, 0, 0.3), bank behind)
+props: 29 bone props, 16 prints, 18 decals (drag marks, blood), 3 claw snags, 5 broken trees, 5 Examinables; carcasses: fresh yes, rotting yes, old yes
+AI anchors: 11 scavenge, 9 predator route, 4 perches, 1 circle centre
+  carcass bv_carcass_fresh (Fresh, parasaurolophus) at (-107.6, 14.5, -55.1) r 4.5 + Carcass (butcher: meat 3, hide 2, bone 2)
+  carcass bv_carcass_rotting (Rotting, triceratops) at (-129.1, 11.6, -34.7) r 4.56
+  carcass bv_carcass_old (Old, ) at (-136, 13.3, -72) r 2.5
+  examinable bv_rotting_carcass at (-129.1, 11.6, -34.7)
+  examinable bv_old_bones at (-136, 13, -72)
+  examinable bv_drag_marks at (-102.5, 13.7, -62.5)
+  examinable bv_fresh_tracks at (-102, 14.3, -64.3)
+  examinable bv_bone_line at (-97.9, 13.8, -64.6)
+scene saved: Assets/_Project/Scenes/Island_VerticalSlice.unity
+finished, 1 warning(s)
+
+BV BoneValley force started 2026-10-01 12:40:26
+blockers: 1618
+landmark search: 429 blockers near the zone, 160 footprints clear of the path and inside the zone, 0 also clear of every blocker, best score -Infinity
+  fewest blockers of the others: 10 at (-114, 0, -30) scale 0.7 yaw 75: [node] World/Environment/Terrain/Rocks/PFB_ENV_Rock_Medium_03; [node] World/Environment/Terrain/Rocks/PFB_ENV_Rock_Medium_02; [node] World/Environment/Forest/Vegetation/InteractiveBushes/Bush_053_Berries; [node] World/Environment/Forest/Vegetation/Thickets/Thicket_25/ThicketBush_25_2_Berries; [node] World/Gameplay/Resources/[Resources]/Island/Cluster_032_Forest/Resource_Fiber_Fern_0167; [node] World/Gameplay/Resources/[Resources]/Island/Cluster_032_Forest/Resource_Fiber_Fern_0168; 
+WARNING: landmark: no clear footprint found: only the marker LM_BoneValley is placed (at the fewest-blockers spot), the prefab is NOT placed
+plan rejections (fresh + rotting search): slope 169, path 174, blocked / zone 459
+plan: entrance (-98.9, 13.6, -62.1) (path arc 44.1 of 96.79), fresh (-107.6, 14.6, -55.1), rotting (-129.1, 12.3, -34.7), old (-136, 13.3, -72), landmark (-114, 15.7, -30) scale 0.7 yaw 75 pitch 0 roll 0 ground fit 0 m, footprint 28.46 x 16.42 m
+terrain baseline: Assets/_Project/Art/Terrain/_Backup/TD_Island_before_BV.asset (existing backup, kept)
+splat: 22945 texels (TL_DarkSoil through the zone core, darker at the carcasses / landmark / kill site, TL_Mud along the path; rock kept)
+details: 5728 cells on 4 layers (0, 1, 2, 5), 3866 -> 3866 instances in the zone rect
+ART kit: BoneScatter_A/B yes, Ribcage yes, Skull_Large yes, LM_FossilSkeleton yes
+landmark: LM_FossilSkeleton placed at (-114, 15.5, -30) scale 0.7 yaw 75 (exposed side faces (1, 0, 0.3), bank behind)
+props: 29 bone props, 16 prints, 18 decals (drag marks, blood), 3 claw snags, 5 broken trees, 6 Examinables; carcasses: fresh yes, rotting yes, old yes
+AI anchors: 11 scavenge, 9 predator route, 4 perches, 1 circle centre
+  carcass bv_carcass_fresh (Fresh, parasaurolophus) at (-107.6, 14.5, -55.1) r 4.5 + Carcass (butcher: meat 3, hide 2, bone 2)
+  carcass bv_carcass_rotting (Rotting, triceratops) at (-129.1, 11.6, -34.7) r 4.56
+  carcass bv_carcass_old (Old, ) at (-136, 13.3, -72) r 2.5
+  examinable bv_rotting_carcass at (-129.1, 11.6, -34.7)
+  examinable bv_old_bones at (-136, 13, -72)
+  examinable bv_drag_marks at (-102.5, 13.7, -62.5)
+  examinable bv_fresh_tracks at (-102, 14.3, -64.3)
+  examinable bv_bone_line at (-97.9, 13.8, -64.6)
+  examinable bv_fossil_skeleton at (-114, 15.5, -30)
+scene saved: Assets/_Project/Scenes/Island_VerticalSlice.unity
+finished, 1 warning(s)
+
+BV BoneValleyCheck  started 2026-10-01 12:41:26
+[bone] objects under World/Environment/Forest/BoneValley: 192
+  LM_FossilSkeleton: 1
+  PROP_P2_BoneScatter_A: 10
+  PROP_P2_BoneScatter_B: 5
+  PROP_P2_Ribcage: 1
+  PROP_P2_Skull_Large: 2
+  PROP_PC_Bones: 11
+  PROP_PC_BrokenTree_A: 3
+  PROP_PC_BrokenTree_B: 2
+  PROP_PC_ClawSnag: 3
+  own terrain trees: 0 ()
+  missing refs: prefab 0, mesh 0, material 0, broken shader 0, script 0, LOD renderer 0, collider mesh 0; terrain prototypes without asset 0
+  resource nodes in the zone + blend: 135; covered by a zone collider 2, own terrain tree within 1.2 m 0
+    covered by BrokenTree_0: World/Environment/Terrain/Rocks/PFB_ENV_Rock_Medium_01 (-107.4, 15.2, -47)
+    covered by Skull_Entrance: World/Gameplay/Resources/[Resources]/Island/Cluster_043_Forest/Resource_Fiber_SmallBush_0199 (-98.7, 13.7, -63.9)
+    interactable covered by OldBones_0: World/Environment/Forest/BoneValley/Carcasses/BV_Carcass_Old/Ribcage
+    interactable covered by BoneLine_4: World/Environment/Forest/BoneValley/Entrance/Skull_Entrance
+  other interactables covered: 2
+  objects within 20 m of the player spawn (-20, 1.5, 211): 0
+ZoneCarcass: 3 (bv_carcass_fresh Fresh, bv_carcass_rotting Rotting, bv_carcass_old Old); with Carcass: 1
+  bv_carcass_fresh: mesh ME_BV_Dead_Parasaurolophus 26267 verts, collider capsule r 0.85 h 8.11, SaveId bv_carcass_fresh, loot preset 3/2/2, ground dy -0.12
+AI anchors: 25 (scavenge 11, route 9, perch 4, circle 1)
+Examinables: 6 (bv_rotting_carcass, bv_old_bones, bv_drag_marks, bv_fresh_tracks, bv_bone_line, bv_fossil_skeleton); duplicate SaveIds: 0
+landmark: LM_FossilSkeleton (-114, 15.5, -30)
+  resource node within 2 m of a BONE prop: World/Gameplay/Resources/[Resources]/Island/Cluster_043_Forest/Resource_Fiber_SmallBush_0199 (-98.7, 13.7, -63.9)
+resource nodes within 2 m of a BONE prop: 1
+renderers 128, colliders 29 solid / 0 trigger, lights 0
+problems: 4
+finished, 0 warning(s)
+
+BV BoneValleyCheck  started 2026-10-01 14:52:35
+[bone] objects under World/Environment/Forest/BoneValley: 192
+  LM_FossilSkeleton: 1
+  PROP_P2_BoneScatter_A: 10
+  PROP_P2_BoneScatter_B: 5
+  PROP_P2_Ribcage: 1
+  PROP_P2_Skull_Large: 2
+  PROP_PC_Bones: 11
+  PROP_PC_BrokenTree_A: 3
+  PROP_PC_BrokenTree_B: 2
+  PROP_PC_ClawSnag: 3
+  own terrain trees: 0 ()
+  missing refs: prefab 0, mesh 0, material 0, broken shader 0, script 0, LOD renderer 0, collider mesh 0; terrain prototypes without asset 0
+  resource nodes in the zone + blend: 135; covered by a zone collider 2, own terrain tree within 1.2 m 0
+    covered by BrokenTree_0: World/Environment/Terrain/Rocks/PFB_ENV_Rock_Medium_01 (-107.4, 15.2, -47)
+    covered by Skull_Entrance: World/Gameplay/Resources/[Resources]/Island/Cluster_043_Forest/Resource_Fiber_SmallBush_0199 (-98.7, 13.7, -63.9)
+    interactable covered by OldBones_0: World/Environment/Forest/BoneValley/Carcasses/BV_Carcass_Old/Ribcage
+    interactable covered by BoneLine_4: World/Environment/Forest/BoneValley/Entrance/Skull_Entrance
+  other interactables covered: 2
+  objects within 20 m of the player spawn (-20, 1.5, 211): 0
+ZoneCarcass: 3 (bv_carcass_fresh Fresh, bv_carcass_rotting Rotting, bv_carcass_old Old); with Carcass: 1
+  bv_carcass_fresh: mesh ME_BV_Dead_Parasaurolophus 26267 verts, collider capsule r 0.85 h 8.11, SaveId bv_carcass_fresh, loot preset 3/2/2, ground dy -0.12
+AI anchors: 25 (scavenge 11, route 9, perch 4, circle 1)
+Examinables: 6 (bv_rotting_carcass, bv_old_bones, bv_drag_marks, bv_fresh_tracks, bv_bone_line, bv_fossil_skeleton); duplicate SaveIds: 0
+landmark: LM_FossilSkeleton (-114, 15.5, -30)
+  resource node within 2 m of a BONE prop: World/Gameplay/Resources/[Resources]/Island/Cluster_043_Forest/Resource_Fiber_SmallBush_0199 (-98.7, 13.7, -63.9)
+resource nodes within 2 m of a BONE prop: 1
+renderers 128, colliders 29 solid / 0 trigger, lights 0
+problems: 4
+finished, 0 warning(s)
+
+BV BoneValleyCheck  started 2026-10-01 15:21:50
+[bone] objects under World/Environment/Forest/BoneValley: 192
+  LM_FossilSkeleton: 1
+  PROP_P2_BoneScatter_A: 10
+  PROP_P2_BoneScatter_B: 5
+  PROP_P2_Ribcage: 1
+  PROP_P2_Skull_Large: 2
+  PROP_PC_Bones: 11
+  PROP_PC_BrokenTree_A: 3
+  PROP_PC_BrokenTree_B: 2
+  PROP_PC_ClawSnag: 3
+  own terrain trees: 0 ()
+  missing refs: prefab 0, mesh 0, material 0, broken shader 0, script 0, LOD renderer 0, collider mesh 0; terrain prototypes without asset 0
+  resource nodes in the zone + blend: 140; covered by a zone collider 0, own terrain tree within 1.2 m 0
+    interactable covered by OldBones_0: World/Environment/Forest/BoneValley/Carcasses/BV_Carcass_Old/Ribcage
+    interactable covered by BoneLine_4: World/Environment/Forest/BoneValley/Entrance/Skull_Entrance
+  other interactables covered: 2
+  objects within 20 m of the player spawn (-20, 1.5, 211): 0
+ZoneCarcass: 3 (bv_carcass_fresh Fresh, bv_carcass_rotting Rotting, bv_carcass_old Old); with Carcass: 1
+  bv_carcass_fresh: mesh ME_BV_Dead_Parasaurolophus 26267 verts, collider capsule r 0.85 h 8.11, SaveId bv_carcass_fresh, loot preset 3/2/2, ground dy -0.12
+AI anchors: 25 (scavenge 11, route 9, perch 4, circle 1)
+Examinables: 6 (bv_rotting_carcass, bv_old_bones, bv_drag_marks, bv_fresh_tracks, bv_bone_line, bv_fossil_skeleton); duplicate SaveIds: 0
+landmark: LM_FossilSkeleton (-114, 15.5, -30)
+resource nodes within 2 m of a BONE prop: 0
+renderers 128, colliders 29 solid / 0 trigger, lights 0
+problems: 2
+finished, 0 warning(s)
+
+BV BoneValleyCheck  started 2026-10-01 15:23:59
+[bone] objects under World/Environment/Forest/BoneValley: 192
+  LM_FossilSkeleton: 1
+  PROP_P2_BoneScatter_A: 10
+  PROP_P2_BoneScatter_B: 5
+  PROP_P2_Ribcage: 1
+  PROP_P2_Skull_Large: 2
+  PROP_PC_Bones: 11
+  PROP_PC_BrokenTree_A: 3
+  PROP_PC_BrokenTree_B: 2
+  PROP_PC_ClawSnag: 3
+  own terrain trees: 0 ()
+  missing refs: prefab 0, mesh 0, material 0, broken shader 0, script 0, LOD renderer 0, collider mesh 0; terrain prototypes without asset 0
+  resource nodes in the zone + blend: 140; covered by a zone collider 0, own terrain tree within 1.2 m 0
+    interactable covered by OldBones_0: World/Environment/Forest/BoneValley/Carcasses/BV_Carcass_Old/Ribcage
+    interactable covered by BoneLine_4: World/Environment/Forest/BoneValley/Entrance/Skull_Entrance
+  other interactables covered: 2
+  objects within 20 m of the player spawn (-20, 1.5, 211): 0
+ZoneCarcass: 3 (bv_carcass_fresh Fresh, bv_carcass_rotting Rotting, bv_carcass_old Old); with Carcass: 1
+  bv_carcass_fresh: mesh ME_BV_Dead_Parasaurolophus 26267 verts, collider capsule r 0.85 h 8.11, SaveId bv_carcass_fresh, loot preset 3/2/2, ground dy -0.12
+AI anchors: 25 (scavenge 11, route 9, perch 4, circle 1)
+Examinables: 6 (bv_rotting_carcass, bv_old_bones, bv_drag_marks, bv_fresh_tracks, bv_bone_line, bv_fossil_skeleton); duplicate SaveIds: 0
+landmark: LM_FossilSkeleton (-114, 15.5, -30)
+resource nodes within 2 m of a BONE prop: 0
+renderers 128, colliders 29 solid / 0 trigger, lights 0
+problems: 2
+finished, 0 warning(s)
+
+BV BoneValleyCheck  started 2026-10-01 15:54:08
+[bone] objects under World/Environment/Forest/BoneValley: 192
+  LM_FossilSkeleton: 1
+  PROP_P2_BoneScatter_A: 10
+  PROP_P2_BoneScatter_B: 5
+  PROP_P2_Ribcage: 1
+  PROP_P2_Skull_Large: 2
+  PROP_PC_Bones: 11
+  PROP_PC_BrokenTree_A: 3
+  PROP_PC_BrokenTree_B: 2
+  PROP_PC_ClawSnag: 3
+  own terrain trees: 0 ()
+  missing refs: prefab 0, mesh 0, material 0, broken shader 0, script 0, LOD renderer 0, collider mesh 0; terrain prototypes without asset 0
+  resource nodes in the zone + blend: 140; covered by a zone collider 0, own terrain tree within 1.2 m 0
+    interactable covered by OldBones_0: World/Environment/Forest/BoneValley/Carcasses/BV_Carcass_Old/Ribcage
+    interactable covered by BoneLine_4: World/Environment/Forest/BoneValley/Entrance/Skull_Entrance
+  other interactables covered: 2
+  objects within 20 m of the player spawn (-20, 1.5, 211): 0
+ZoneCarcass: 3 (bv_carcass_fresh Fresh, bv_carcass_rotting Rotting, bv_carcass_old Old); with Carcass: 1
+  bv_carcass_fresh: mesh ME_BV_Dead_Parasaurolophus 26267 verts, collider capsule r 0.85 h 8.11, SaveId bv_carcass_fresh, loot preset 3/2/2, ground dy -0.12
+AI anchors: 25 (scavenge 11, route 9, perch 4, circle 1)
+Examinables: 6 (bv_rotting_carcass, bv_old_bones, bv_drag_marks, bv_fresh_tracks, bv_bone_line, bv_fossil_skeleton); duplicate SaveIds: 0
+landmark: LM_FossilSkeleton (-114, 15.5, -30)
+resource nodes within 2 m of a BONE prop: 0
+renderers 128, colliders 29 solid / 0 trigger, lights 0
+problems: 2
+finished, 0 warning(s)
+
+BV BoneValley force started 2026-10-01 15:56:50
+blockers: 1691
+landmark search: 458 blockers near the zone, 160 footprints clear of the path and inside the zone, 0 also clear of every blocker, best score -Infinity
+  fewest blockers of the others: 11 at (-114, 0, -30) scale 0.7 yaw 75: [node] World/Environment/Terrain/Rocks/PFB_ENV_Rock_Medium_03; [node] World/Environment/Terrain/Rocks/PFB_ENV_Rock_Medium_02; [node] World/Environment/Forest/Vegetation/InteractiveBushes/Bush_053_Berries; [node] World/Environment/Forest/Vegetation/Thickets/Thicket_25/ThicketBush_25_2_Berries; [node] World/Gameplay/Resources/[Resources]/Island/Cluster_032_Forest/Resource_Fiber_Fern_0167; [node] World/Gameplay/Resources/[Resources]/Island/Cluster_032_Forest/Resource_Fiber_Fern_0168; 
+WARNING: landmark: no clear footprint found: only the marker LM_BoneValley is placed (at the fewest-blockers spot), the prefab is NOT placed
+plan rejections (fresh + rotting search): slope 169, path 174, blocked / zone 477
+plan: entrance (-98.9, 13.6, -62.1) (path arc 44.1 of 96.79), fresh (-108.4, 14.6, -55.1), rotting (-129.1, 12.3, -34.7), old (-137.3, 13.6, -73.5), landmark (-114, 15.7, -30) scale 0.7 yaw 75 pitch 0 roll 0 ground fit 0 m, footprint 28.46 x 16.42 m
+terrain baseline: Assets/_Project/Art/Terrain/_Backup/TD_Island_before_BV.asset (existing backup, kept)
+splat: 22945 texels (TL_DarkSoil through the zone core, darker at the carcasses / landmark / kill site, TL_Mud along the path; rock kept)
+details: 5728 cells on 4 layers (0, 1, 2, 5), 3827 -> 3867 instances in the zone rect
+ART kit: BoneScatter_A/B yes, Ribcage yes, Skull_Large yes, LM_FossilSkeleton yes
+landmark: LM_FossilSkeleton placed at (-114, 15.5, -30) scale 0.7 yaw 75 (exposed side faces (1, 0, 0.3), bank behind)
+bone props kept clear of 6 own interactables: 12 pushes, 1 dropped
+props: 28 bone props, 16 prints, 18 decals (drag marks, blood), 3 claw snags, 5 broken trees, 6 Examinables; carcasses: fresh yes, rotting yes, old yes
+AI anchors: 11 scavenge, 9 predator route, 4 perches, 1 circle centre
+  carcass bv_carcass_fresh (Fresh, parasaurolophus) at (-108.4, 14.4, -55.1) r 4.5 + Carcass (butcher: meat 3, hide 2, bone 2)
+  carcass bv_carcass_rotting (Rotting, triceratops) at (-129.1, 11.6, -34.7) r 4.56
+  carcass bv_carcass_old (Old, ) at (-137.3, 13.6, -73.5) r 2.5
+  examinable bv_rotting_carcass at (-129.1, 11.6, -34.7)
+  examinable bv_old_bones at (-137.3, 13.3, -73.5)
+  examinable bv_drag_marks at (-103.1, 13.8, -62.9)
+  examinable bv_fresh_tracks at (-102, 14.4, -64.3)
+  examinable bv_bone_line at (-97.9, 13.8, -64.6)
+  examinable bv_fossil_skeleton at (-114, 15.5, -30)
+scene saved: Assets/_Project/Scenes/Island_VerticalSlice.unity
+finished, 1 warning(s)
+
+BV BoneValleyCheck  started 2026-10-01 15:58:01
+[bone] objects under World/Environment/Forest/BoneValley: 191
+  LM_FossilSkeleton: 1
+  PROP_P2_BoneScatter_A: 10
+  PROP_P2_BoneScatter_B: 5
+  PROP_P2_Ribcage: 1
+  PROP_P2_Skull_Large: 2
+  PROP_PC_Bones: 10
+  PROP_PC_BrokenTree_A: 3
+  PROP_PC_BrokenTree_B: 2
+  PROP_PC_ClawSnag: 3
+  own terrain trees: 0 ()
+  missing refs: prefab 0, mesh 0, material 0, broken shader 0, script 0, LOD renderer 0, collider mesh 0; terrain prototypes without asset 0
+  resource nodes in the zone + blend: 140; covered by a zone collider 0, own terrain tree within 1.2 m 0
+  other interactables covered: 0
+  objects within 20 m of the player spawn (-20, 1.5, 211): 0
+ZoneCarcass: 3 (bv_carcass_fresh Fresh, bv_carcass_rotting Rotting, bv_carcass_old Old); with Carcass: 1
+  bv_carcass_fresh: mesh ME_BV_Dead_Parasaurolophus 26267 verts, collider capsule r 0.85 h 8.11, SaveId bv_carcass_fresh, loot preset 3/2/2, ground dy -0.12
+AI anchors: 25 (scavenge 11, route 9, perch 4, circle 1)
+Examinables: 6 (bv_rotting_carcass, bv_old_bones, bv_drag_marks, bv_fresh_tracks, bv_bone_line, bv_fossil_skeleton); duplicate SaveIds: 0
+landmark: LM_FossilSkeleton (-114, 15.5, -30)
+resource nodes within 2 m of a BONE prop: 0
+renderers 127, colliders 29 solid / 0 trigger, lights 0
+problems: 0
+finished, 0 warning(s)
+
+BV BoneValleyCheck  started 2026-10-01 16:00:05
+[bone] objects under World/Environment/Forest/BoneValley: 191
+  LM_FossilSkeleton: 1
+  PROP_P2_BoneScatter_A: 10
+  PROP_P2_BoneScatter_B: 5
+  PROP_P2_Ribcage: 1
+  PROP_P2_Skull_Large: 2
+  PROP_PC_Bones: 10
+  PROP_PC_BrokenTree_A: 3
+  PROP_PC_BrokenTree_B: 2
+  PROP_PC_ClawSnag: 3
+  own terrain trees: 0 ()
+  missing refs: prefab 0, mesh 0, material 0, broken shader 0, script 0, LOD renderer 0, collider mesh 0; terrain prototypes without asset 0
+  resource nodes in the zone + blend: 140; covered by a zone collider 0, own terrain tree within 1.2 m 0
+  other interactables covered: 0
+  objects within 20 m of the player spawn (-20, 1.5, 211): 0
+ZoneCarcass: 3 (bv_carcass_fresh Fresh, bv_carcass_rotting Rotting, bv_carcass_old Old); with Carcass: 1
+  bv_carcass_fresh: mesh ME_BV_Dead_Parasaurolophus 26267 verts, collider capsule r 0.85 h 8.11, SaveId bv_carcass_fresh, loot preset 3/2/2, ground dy -0.12
+AI anchors: 25 (scavenge 11, route 9, perch 4, circle 1)
+Examinables: 6 (bv_rotting_carcass, bv_old_bones, bv_drag_marks, bv_fresh_tracks, bv_bone_line, bv_fossil_skeleton); duplicate SaveIds: 0
+landmark: LM_FossilSkeleton (-114, 15.5, -30)
+resource nodes within 2 m of a BONE prop: 0
+renderers 127, colliders 29 solid / 0 trigger, lights 0
+problems: 0
+finished, 0 warning(s)
+

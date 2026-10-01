@@ -13,6 +13,8 @@ namespace PrimalFrontier.Story
         public class DiscoveryText { public string id, page, title, sketch, thought, text; }
         public class ResourceText { public string page, title, items, sketch, text; }
         public class CreatureText { public string id, title, sketch, appearance, diet; }
+        /// <summary>a landmark or hidden spot (ZoneManager Landmark zone): found by seeing or reaching it (ZoneEntered id); page in DISCOVERIES</summary>
+        public class LandmarkText { public string id, page, title, sketch, thought, text; }
 
         // ------------------------------------------------------------------ locations
         /// <summary>page = the journal page id (legacy pages keep their old ids so saves stay valid)</summary>
@@ -38,7 +40,37 @@ namespace PrimalFrontier.Story
             L("migration_view", "loc_migration_view", "The Lookout", "the lookout", "rocks", "High rocks over the valley. From here I can see the paths the herds follow far below, like lines drawn on the land."),
             L("pond", "pond", "The Pond", "the pond", "water", "A still pond in a hollow of the forest, fed by the stream. Animals come here to drink. I am not the only one who knows this place."),
             L("rocky", "rocky", "The Rocky Hills", "the rocky hills", "rocks", "Broken stone and cliffs. Good rock for tools. From up here the island looks bigger than I thought."),
+            // Phase 2 environments (ZoneManager Region zones, PrimalAtmosphereBuilder.Zones2; the title is also the zone toast and the map name)
+            L("migration_valley", "loc_migration_valley", "Migration Valley", "the migration valley", "meadow", "The land opens wide between the forest and the rocks. The grass is cropped short and trodden into paths as wide as a road, all running the same way. The herds pass through here, calling to each other. Whatever hunts them is never far behind."),
+            L("prehistoric_wetland", "loc_prehistoric_wetland", "Prehistoric Wetland", "the wetland", "water", "Where the river loses itself the land gives up and turns to water. Reeds over my head, mist lying on the pools until the sun is high, insects hanging in the air like smoke. Every step sinks. The frogs stop when I stop."),
+            L("bone_valley", "loc_bone_valley", "Bone Valley", "the bone valley", "claw", "A dry hollow below the canyon where nothing green grows tall. Bones everywhere: old ones grey as stone, new ones still dark. Flies, the smell, and a wind that carries only dust."),
+            L("giant_fern_forest", "loc_giant_fern_forest", "Giant Fern Forest", "the fern forest", "meadow", "Ferns as tall as trees, their fronds closing overhead until the day turns green and dim. The air is warm and wet and does not move. Thin shafts of sun come down through the gaps, full of drifting specks. Somewhere wood creaks, always."),
+            L("volcanic_foothills", "loc_volcanic_foothills", "Volcanic Foothills", "the foothills", "rocks", "Above the canyon the green gives out: dry scrub, then black rock, then ash. Smoke seeps from cracks in the ground and the air wavers over the stone. Now and then the mountain rumbles under my feet, low, like something breathing in its sleep."),
+            L("deep_water_cave", "loc_deep_water_cave", "Deep Water Cave", "the deep cave", "cave", "The cave goes on far past its mouth. Water drips from everywhere, and every drop comes back to me twice. Deeper in, the floor falls away into still black water. The air is cold and tastes of stone."),
         };
+
+        // ------------------------------------------------------------------ landmarks and hidden spots (ZoneEntered id: seen or reached)
+        public static readonly LandmarkText[] Landmarks =
+        {
+            M("lm_rock_ridge", "disc_lm_rock_ridge", "The Great Ridge", "rocks", "A wall of stone across the valley.",
+              "A long ridge of weathered rock rises out of the valley floor like the back of something buried. The herd paths bend around it and meet again beyond. From its foot the whole valley lies open, and the lines the herds have cut into it."),
+            M("lm_fallen_tree", "disc_lm_fallen_tree", "The Fallen Giant", "water", "That tree must have been enormous.",
+              "A trunk wider than I am tall lies across the marsh, grey and soft with age, half sunk in black water. Ferns grow along its back and frogs sit in its cracks. It fell long ago and the marsh has been eating it ever since. It makes a bridge, of a kind."),
+            M("lm_fossil_skeleton", "disc_lm_fossil_skeleton", "The Stone Giant", "claw", "Bones... turned to stone.",
+              "A skeleton so long I walked beside it twice to be sure. The bones have turned to stone and the ground has half swallowed them. It died long before anything alive here was born. The hunters leave their own kills around it, as if this were their table."),
+            M("lm_giant_tree", "disc_lm_giant_tree", "The Old Tree", "meadow", "The biggest tree I have ever seen.",
+              "One tree stands above the ferns, its roots like walls, its trunk too wide for ten men to reach around. Its crown shuts out the sky. Everything in this forest grows in its shade, and nothing grows close to it."),
+            M("lm_black_ridge", "disc_lm_black_ridge", "The Black Ridge", "rocks", "Black rock... still warm.",
+              "A ridge of black, glassy rock runs up towards the smoke, its edges sharp enough to cut a hand. It is warm in the sun and warm in the dark. Nothing grows on it. The heat comes from below."),
+            M("lm_underground_pool", "disc_lm_underground_pool", "The Underground Pool", "cave", "Water... down here in the dark.",
+              "The cave opens into a hall of wet stone around a pool so still it looks like a hole in the world. The water is clear and very cold, and deeper than my light can reach. Every drop that falls into it rings like struck stone."),
+            M("cave_hidden_chamber", "disc_cave_hidden_chamber", "The Hidden Chamber", "cave", "There's more cave back here...",
+              "Behind a crack in the wall I nearly walked past, a small chamber the water never reaches. The air is still and dry, the floor soft with old dust. No tracks in it but mine. Nothing has been in here for a very long time."),
+        };
+
+        /// <summary>Bone Valley's lesson (SURVIVAL page, unlocked on entering the valley; the survivor says "Something hunts here.")</summary>
+        public static readonly LandmarkText BoneValleyLesson = M("bone_valley", "lesson_bone_valley", "Where the Hunters Feed", "claw", "Something hunts here.",
+            "The bones in this valley are not all old. Something hunts here and brings what it kills back to eat. I keep to the edges, keep the wind in my face, never stop by fresh meat, and I leave before dark.");
 
         // ------------------------------------------------------------------ discoveries (Examinable.discoveryId)
         public static readonly DiscoveryText[] Discoveries =
@@ -87,6 +119,11 @@ namespace PrimalFrontier.Story
               "From the knoll the valley opens: the meadow, the ford, the white thread of the waterfall. The herds cross down there, on paths older than any of them."),
             D("spring", "disc_spring", "The Spring", "water", "Clean water, straight out of the rock.",
               "The river starts here, a cold spring welling out of the rock. Water this clear needs no fire. Something big drinks here too: its claw marks are on the boulder beside it."),
+            // Phase 2 cave props (CAVE's Examinables)
+            D("cave_deep_pool", "disc_cave_deep_pool", "Still Water", "cave", "So clear... I can see the bottom. Almost.",
+              "Kneeling at the rim I can see pale stones far down, and small pale fish turning in the cold. The water tastes of rock and nothing else. Whatever falls in here stays."),
+            D("cave_hidden_nest", "disc_cave_hidden_nest", "A Nest in the Dark", "claw", "Something sleeps in here. Or did.",
+              "A hollow scraped into the dust, ringed with stones rolled in from the passage, small bones heaped beside it. Something drags its food back here to eat where nothing can reach it. The bones are dry. I hope it has moved on."),
             D("captains_log", "captains_log", "Captain's Log", "log", "The captain's log. Most pages are ruined...",
               "Water-stained pages from the captain's chest: 'Day 41. Compass spinning. Charts useless. The men speak of an island that is not on any map. Storm rising from the south.' The rest is unreadable."),
         };
@@ -123,9 +160,15 @@ namespace PrimalFrontier.Story
         static LocationText L(string id, string page, string title, string place, string sketch, string text) => new LocationText { id = id, page = page, title = title, place = place, sketch = sketch, text = text };
         static DiscoveryText D(string id, string page, string title, string sketch, string thought, string text) => new DiscoveryText { id = id, page = page, title = title, sketch = sketch, thought = thought, text = text };
         static ResourceText R(string page, string title, string items, string sketch, string text) => new ResourceText { page = page, title = title, items = items, sketch = sketch, text = text };
+        static LandmarkText M(string id, string page, string title, string sketch, string thought, string text) => new LandmarkText { id = id, page = page, title = title, sketch = sketch, thought = thought, text = text };
         static CreatureText C(string id, string title, string sketch, string appearance, string diet) => new CreatureText { id = id, title = title, sketch = sketch, appearance = appearance, diet = diet };
 
-        static Dictionary<string, LocationText> _loc; static Dictionary<string, DiscoveryText> _disc; static Dictionary<string, CreatureText> _cre;
+        static Dictionary<string, LocationText> _loc; static Dictionary<string, DiscoveryText> _disc; static Dictionary<string, CreatureText> _cre; static Dictionary<string, LandmarkText> _lm;
+        public static LandmarkText Landmark(string id)
+        {
+            if (_lm == null) { _lm = new Dictionary<string, LandmarkText>(); foreach (var l in Landmarks) _lm[l.id] = l; }
+            return id != null && _lm.TryGetValue(id, out var t) ? t : null;
+        }
         public static LocationText Location(string id)
         {
             if (_loc == null) { _loc = new Dictionary<string, LocationText>(); foreach (var l in Locations) _loc[l.id] = l; }

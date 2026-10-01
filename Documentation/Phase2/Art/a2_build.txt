@@ -12,3 +12,40 @@ prefab Assets/_Project/Prefabs/Environment/Phase2/LM_GiantTree.prefab  zone=Gian
 prefab Assets/_Project/Prefabs/Environment/Phase2/LM_RockRidge.prefab  zone=Migration Valley  size 57x20,73x15,69 m  tris 28652/10999/3399  col 1800
 Build finished: 5 prefab(s), 0 warning(s)
 
+Build  started 2026-10-01 12:34:17
+material M_P2_AncientFallenTree (T_P2_AncientFallenTree)
+material M_P2_BlackRidge (T_P2_BlackRidge)
+material M_P2_BoneScatter_A (T_P2_BoneScatter_A)
+material M_P2_BoneScatter_B (T_P2_BoneScatter_B)
+material M_P2_Calcite (T_P2_CaveRock)
+material M_P2_Canopy (T_P2_Canopy)
+material M_P2_CaveRock (T_P2_CaveRock)
+material M_P2_CaveWet (T_P2_CaveWet)
+material M_P2_DeadSnag_A (T_P2_DeadSnag_A)
+material M_P2_DeadSnag_B (T_P2_DeadSnag_B)
+material M_P2_FossilSkeleton (T_P2_FossilSkeleton)
+material M_P2_GiantTree (T_P2_GiantTree)
+material M_P2_Ribcage (T_P2_Ribcage)
+material M_P2_RockRidge (T_P2_RockRidge)
+material M_P2_Skull_Large (T_P2_Skull_Large)
+prefab Assets/_Project/Prefabs/Environment/Phase2/CAVE_Chamber_Dome.prefab  zone=Deep Water Cave  size 31,29x31,7x16,2 m  tris 8327/2293  col 783
+prefab Assets/_Project/Prefabs/Environment/Phase2/CAVE_PoolRim.prefab  zone=Deep Water Cave  size 10,32x10,32x2,47 m  tris 3768/1004  col 304
+prefab Assets/_Project/Prefabs/Environment/Phase2/CAVE_Rubble.prefab  zone=Deep Water Cave  size 4,27x3,43x1,68 m  tris 3800/1398  col 1398
+prefab Assets/_Project/Prefabs/Environment/Phase2/CAVE_Stalactites.prefab  zone=Deep Water Cave  size 4,77x3,79x3,89 m  tris 4200/1500  col 0
+prefab Assets/_Project/Prefabs/Environment/Phase2/CAVE_Tunnel_Bend.prefab  zone=Deep Water Cave  size 9,98x9,98x7 m  tris 9472/2432  col 640
+prefab Assets/_Project/Prefabs/Environment/Phase2/CAVE_Tunnel_Straight.prefab  zone=Deep Water Cave  size 6,18x7,49x7 m  tris 6400/1664  col 448
+prefab Assets/_Project/Prefabs/Environment/Phase2/CAVE_Wall_A.prefab  zone=Deep Water Cave  size 6,18x6,47x8,04 m  tris 5408/1424  col 392
+prefab Assets/_Project/Prefabs/Environment/Phase2/CAVE_Wall_B.prefab  zone=Deep Water Cave  size 6,18x6,47x8,04 m  tris 5408/1424  col 392
+prefab Assets/_Project/Prefabs/Environment/Phase2/LM_AncientFallenTree.prefab  zone=Prehistoric Wetland  size 38,27x10,72x7,96 m  tris 31000/10999/3500  col 1600
+prefab Assets/_Project/Prefabs/Environment/Phase2/LM_BlackRidge.prefab  zone=Volcanic Foothills  size 52,76x20,45x19,04 m  tris 32797/12000/3600  col 1800
+prefab Assets/_Project/Prefabs/Environment/Phase2/LM_FossilSkeleton.prefab  zone=Bone / Carcass Valley  size 40,66x23,45x7,47 m  tris 36885/13000/4200  col 2600
+prefab Assets/_Project/Prefabs/Environment/Phase2/LM_GiantTree.prefab  zone=Giant Fern Forest  size 42,27x40,3x59,59 m  tris 31873/9753/2898  col 1500
+prefab Assets/_Project/Prefabs/Environment/Phase2/LM_RockRidge.prefab  zone=Migration Valley  size 57x20,73x15,69 m  tris 28652/10999/3399  col 1800
+prefab Assets/_Project/Prefabs/Environment/Phase2/PROP_P2_BoneScatter_A.prefab  zone=Bone / Carcass Valley  size 3,17x3,06x0,45 m  tris 4199/1500/500  col 500
+prefab Assets/_Project/Prefabs/Environment/Phase2/PROP_P2_BoneScatter_B.prefab  zone=Bone / Carcass Valley  size 3,68x2,98x0,46 m  tris 3999/1400/499  col 500
+prefab Assets/_Project/Prefabs/Environment/Phase2/PROP_P2_DeadSnag_A.prefab  zone=Prehistoric Wetland  size 2,13x2,15x9,78 m  tris 3770/1799/599  col 320
+prefab Assets/_Project/Prefabs/Environment/Phase2/PROP_P2_DeadSnag_B.prefab  zone=Prehistoric Wetland  size 4,92x2,54x8,12 m  tris 4156/1999/649  col 320
+prefab Assets/_Project/Prefabs/Environment/Phase2/PROP_P2_Ribcage.prefab  zone=Bone / Carcass Valley  size 4,31x4,25x1,45 m  tris 7000/2400/800  col 500
+prefab Assets/_Project/Prefabs/Environment/Phase2/PROP_P2_Skull_Large.prefab  zone=Bone / Carcass Valley  size 1,77x0,79x0,85 m  tris 6000/2000/700  col 500
+Build finished: 19 prefab(s), 0 warning(s)
+

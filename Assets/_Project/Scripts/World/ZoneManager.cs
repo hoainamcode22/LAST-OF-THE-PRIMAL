@@ -13,9 +13,19 @@ namespace PrimalFrontier.World
     /// temperature offset by day and by night (canyon / deep forest shade cooler by day, wetland cool, volcano warm),
     /// humidity, and a stable air temperature for caves (a cave is cooler than a hot afternoon and warmer than a cold
     /// night). Where zones overlap the smallest one decides the climate, with a soft edge (no step at the border).
+    /// Phase 2 (WORLD, PrimalAtmosphereBuilder.Zones2): <see cref="ZoneKind.Region"/> zones are the six explored environments
+    /// (Migration Valley, Prehistoric Wetland, Bone Valley, Giant Fern Forest, Volcanic Foothills, Deep Water Cave): a circle or
+    /// a capsule (<see cref="Zone.segment"/>) with a blend band that atmosphere, fog and sound read as a 0..1 weight
+    /// (<see cref="WeightOf"/>), announced by the zone toast on entry. <see cref="ZoneKind.Landmark"/> zones are landmarks and
+    /// hidden spots: they count as visited (ZoneEntered, amount 1) when the player walks in or, with a sight range, sees them
+    /// (in view and not hidden behind terrain), which unlocks their journal page and marks them on the map. A zone can have a
+    /// height band (a cave under a cliff: indoor only below the cliff top). A zone is left only a little past its edge.
     /// </summary>
     public class ZoneManager : MonoBehaviour
     {
+        /// <summary>Place = the older named places (0: every zone saved before Phase 2), Region = a Phase 2 environment, Landmark = a landmark / hidden spot</summary>
+        public enum ZoneKind { Place = 0, Region = 1, Landmark = 2 }
+
         [Serializable]
         public class Zone
         {
@@ -27,6 +37,72 @@ namespace PrimalFrontier.World
             [Tooltip("cave air: the air is pulled towards stableAirTemperature (stableAirWeight 0..1)")] public bool stableAir;
             public float stableAirTemperature = 15f;
             [Range(0, 1)] public float stableAirWeight = 0.8f;
+            [Header("Phase 2")]
+            public ZoneKind kind;
+            [Tooltip("capsule: the zone runs from center - segment to center + segment (flat); zero = a circle")] public Vector3 segment;
+            [Tooltip("metres past the radius over which the zone's atmosphere / sound weight fades to 0")] public float blend;
+            [Tooltip("the zone toast shows the display name on entry")] public bool announce;
+            [Tooltip("landmark: counts as found once seen from this far (m, in view, not behind terrain); 0 = only by walking in")] public float sightRange;
+            [Tooltip("landmark: the point looked at is this high above the centre (m)")] public float sightHeight = 3f;
+            [Tooltip("landmark: a line of sight that ends this close to the point still sees it (its own collider)")] public float sightSize = 4f;
+            [Tooltip("only between minY and maxY (world height) does the zone count (a cave below a cliff)")] public bool heightBand;
+            public float minY = -1000f, maxY = 1000f;
+            [Tooltip("a cave: the zone is only the inside of these capsules (passages / rooms with their own floor and height); empty = the circle / capsule above")]
+            public Part[] parts = new Part[0];
+
+            /// <summary>one passage segment or room of a part-built zone: flat capsule a -> b with half widths ra / rb, floor height a.y -> b.y, room height h</summary>
+            [Serializable]
+            public struct Part
+            {
+                public Vector3 a, b; public float ra, rb, height;
+                public Part(Vector3 a, Vector3 b, float ra, float rb, float height) { this.a = a; this.b = b; this.ra = ra; this.rb = rb; this.height = height; }
+            }
+
+            bool HasParts => parts != null && parts.Length > 0;
+
+            /// <summary>part-built zone: how far p is outside the nearest part whose floor / ceiling holds p (negative = inside); large when none does</summary>
+            float PartGap(Vector3 p)
+            {
+                float best = 1e6f;
+                for (int i = 0; i < parts.Length; i++)
+                {
+                    var q = parts[i];
+                    float abx = q.b.x - q.a.x, abz = q.b.z - q.a.z, l2 = abx * abx + abz * abz;
+                    float t = l2 < 1e-4f ? 0f : Mathf.Clamp01(((p.x - q.a.x) * abx + (p.z - q.a.z) * abz) / l2);
+                    float floor = Mathf.Lerp(q.a.y, q.b.y, t);
+                    if (p.y < floor - 1.5f || p.y > floor + q.height + 0.5f) continue;
+                    float dx = q.a.x + abx * t - p.x, dz = q.a.z + abz * t - p.z;
+                    float gap = Mathf.Sqrt(dx * dx + dz * dz) - Mathf.Lerp(q.ra, q.rb, t);
+                    if (gap < best) best = gap;
+                }
+                return best;
+            }
+
+            /// <summary>flat distance from p to the zone's centre (or its centre line)</summary>
+            public float Distance(Vector3 p)
+            {
+                if (HasParts) return radius + PartGap(p);
+                float x = p.x - center.x, z = p.z - center.z;
+                if (segment.x != 0f || segment.z != 0f)
+                {
+                    float sx = segment.x, sz = segment.z, l2 = sx * sx + sz * sz;
+                    float t = Mathf.Clamp((x * sx + z * sz) / l2, -1f, 1f);
+                    x -= sx * t; z -= sz * t;
+                }
+                return Mathf.Sqrt(x * x + z * z);
+            }
+            public bool InBand(Vector3 p) => !heightBand || (p.y >= minY && p.y <= maxY);
+            public bool Contains(Vector3 p, float margin = 0f) => InBand(p) && Distance(p) <= radius + margin;
+            /// <summary>1 inside the radius, smoothstep down to 0 at radius + blend (0 outside the height band)</summary>
+            public float Weight(Vector3 p)
+            {
+                if (!InBand(p)) return 0f;
+                float d = Distance(p);
+                if (d <= radius) return 1f;
+                if (blend <= 0.01f || d >= radius + blend) return 0f;
+                float t = 1f - (d - radius) / blend;
+                return t * t * (3f - 2f * t);
+            }
         }
 
         /// <summary>design values for a PC-phase location id (ENV markers)</summary>
@@ -70,14 +146,18 @@ namespace PrimalFrontier.World
 
         public List<Zone> zones = new List<Zone>();
         [Tooltip("part of a zone's radius over which its climate fades in at the border")] [Range(0.01f, 0.6f)] public float climateEdge = 0.2f;
+        [Tooltip("a zone is left only this far past its edge (m): no enter / leave flicker along a border")] [Min(0)] public float exitMargin = 3f;
         public static ZoneManager Instance { get; private set; }
         public Zone Current { get; private set; }
         readonly HashSet<string> _inside = new HashSet<string>();
         readonly HashSet<string> _visited = new HashSet<string>();
         public IEnumerable<string> Visited => _visited;
+        public bool WasVisited(string id) => id != null && _visited.Contains(id);
+        readonly Dictionary<string, int> _sightTicks = new Dictionary<string, int>(StringComparer.Ordinal);
         float _next;
 
         void Awake() { Instance = this; }
+        void Start() { if (Application.isPlaying) UI.ZoneToast.Ensure(); }
         void OnDestroy() { if (Instance == this) Instance = null; }
 
         void Update()
@@ -87,17 +167,49 @@ namespace PrimalFrontier.World
             var p = pp.Value; Zone best = null; float bestR = float.MaxValue;
             foreach (var z in zones)
             {
-                var d = p - z.center; d.y = 0;
-                bool inside = d.sqrMagnitude <= z.radius * z.radius;
-                if (inside && z.radius < bestR) { best = z; bestR = z.radius; }
-                if (inside && _inside.Add(z.id))
+                bool was = _inside.Contains(z.id);
+                bool inside = z.Contains(p, was ? exitMargin : 0f);
+                if (inside && z.kind != ZoneKind.Landmark && z.Distance(p) <= z.radius && z.radius < bestR) { best = z; bestR = z.radius; }
+                if (inside && !was)
                 {
+                    _inside.Add(z.id);
                     bool first = _visited.Add(z.id);
                     GameEvents.Raise(GameEventType.ZoneEntered, z.id, first ? 1 : 0, p);
                 }
-                else if (!inside) _inside.Remove(z.id);
+                else if (!inside && was) _inside.Remove(z.id);
             }
             Current = best;
+            Sight();
+        }
+
+        /// <summary>landmarks with a sight range: found once in view (inner 80 % of the screen) and not hidden behind terrain, two ticks in a row</summary>
+        void Sight()
+        {
+            var cam = Camera.main; if (!cam) return;
+            var eye = cam.transform.position;
+            for (int i = 0; i < zones.Count; i++)
+            {
+                var z = zones[i];
+                if (z.kind != ZoneKind.Landmark || z.sightRange <= 0f || _visited.Contains(z.id)) continue;
+                var target = z.center + Vector3.up * z.sightHeight;
+                var d = target - eye; float dist = d.magnitude;
+                bool seen = false;
+                if (dist <= z.sightRange && dist > 0.5f)
+                {
+                    var v = cam.WorldToViewportPoint(target);
+                    if (v.z > 0f && v.x > 0.1f && v.x < 0.9f && v.y > 0.1f && v.y < 0.9f)
+                    {
+                        // start past the player (third-person camera behind the survivor): only the land and big objects hide it
+                        var from = eye + d * (Mathf.Min(6f, dist * 0.5f) / dist);
+                        seen = !Physics.Linecast(from, target, out var hit, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore) || (hit.point - target).sqrMagnitude <= z.sightSize * z.sightSize;
+                    }
+                }
+                _sightTicks.TryGetValue(z.id, out int n);
+                n = seen ? n + 1 : 0; _sightTicks[z.id] = n;
+                if (n < 2) continue;
+                _visited.Add(z.id);
+                GameEvents.Raise(GameEventType.ZoneEntered, z.id, 1, eye);
+            }
         }
 
         public Zone Find(string id) => zones.Find(z => z.id == id);
@@ -113,9 +225,12 @@ namespace PrimalFrontier.World
 
         public bool IsIndoor(Vector3 p)
         {
-            foreach (var z in zones) { if (!z.indoor) continue; var d = p - z.center; d.y = 0; if (d.sqrMagnitude <= z.radius * z.radius) return true; }
+            foreach (var z in zones) { if (!z.indoor) continue; if (z.Contains(p)) return true; }
             return false;
         }
+
+        /// <summary>0..1 weight of zone id at p (1 inside, fading over its blend band); 0 when there is no such zone</summary>
+        public float WeightOf(string id, Vector3 p) { var z = Find(id); return z == null ? 0f : z.Weight(p); }
 
         /// <summary>the smallest zone at p with a climate (offset, humidity or stable air) and its edge weight 0..1</summary>
         Zone ClimateZone(Vector3 p, out float weight, bool humidityOnly = false)
@@ -125,13 +240,12 @@ namespace PrimalFrontier.World
             {
                 var z = zones[i];
                 bool has = humidityOnly ? z.humidity > 0f : (z.temperatureOffset != 0f || (z.separateNight && z.nightTemperatureOffset != 0f) || z.stableAir);
-                if (!has || z.radius >= bestR) continue;
-                var d = p - z.center; d.y = 0;
-                float r = z.radius; float d2 = d.sqrMagnitude;
-                if (d2 > r * r) continue;
+                if (!has || z.radius >= bestR || !z.InBand(p)) continue;
+                float r = z.radius; float dist = z.Distance(p);
+                if (dist > r) continue;
                 best = z; bestR = r;
                 float edge = Mathf.Max(0.5f, r * climateEdge);
-                weight = Mathf.Clamp01((r - Mathf.Sqrt(d2)) / edge);
+                weight = Mathf.Clamp01((r - dist) / edge);
                 weight = weight * weight * (3f - 2f * weight);
             }
             return best;
@@ -170,6 +284,6 @@ namespace PrimalFrontier.World
             return 1f - Mathf.Clamp01(tm.Daylight01 * 1.5f);
         }
 
-        public void SetVisited(IEnumerable<string> ids) { _visited.Clear(); foreach (var i in ids) _visited.Add(i); _inside.Clear(); }
+        public void SetVisited(IEnumerable<string> ids) { _visited.Clear(); foreach (var i in ids) _visited.Add(i); _inside.Clear(); _sightTicks.Clear(); }
     }
 }

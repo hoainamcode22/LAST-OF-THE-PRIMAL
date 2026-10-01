@@ -20,7 +20,7 @@ namespace PrimalFrontier.World
         public HazardZone.Level Level { get; private set; }
         public HazardZone CurrentZone { get; private set; }
         [Tooltip("a ring is left only this far (x radius) past its edge")] [Range(0f, 0.3f)] public float hysteresis = 0.06f;
-        float _next; float _smokeTarget; HazardZone.Level _warned;
+        float _next; float _smokeTarget; HazardZone.Level _warned; Color _fogTint = HazardZone.VolcanicSmokeColor;
         static StatusEffectDefinition _heat, _severe;
 
         public static void Ensure()
@@ -36,12 +36,17 @@ namespace PrimalFrontier.World
         void Update()
         {
             HazardZone.LocalSmoke = Mathf.MoveTowards(HazardZone.LocalSmoke, _smokeTarget, Time.deltaTime * 0.25f);
+            HazardZone.SmokeColor = Color.Lerp(HazardZone.SmokeColor, _fogTint, Mathf.Clamp01(Time.deltaTime * 0.8f));
             if (Time.time < _next) return;
             _next = Time.time + 0.25f;
             var cam = Camera.main;
             var pp = PlayerLocator.Position;
             Vector3 eye = cam ? cam.transform.position : pp ?? Vector3.zero;
-            _smokeTarget = HazardZone.All.Count > 0 && !(ZoneManager.Instance && ZoneManager.Instance.IsIndoor(eye)) ? HazardZone.TotalSmokeAt(eye) : 0f;
+            float smoke = HazardZone.All.Count > 0 && !(ZoneManager.Instance && ZoneManager.Instance.IsIndoor(eye)) ? HazardZone.TotalSmokeAt(eye) : 0f;
+            // Phase 2 zone haze (wetland mist, fern forest shade, cave dark; VFX.ZoneFxManager) joins the volcanic smoke in the local fog
+            float haze = VFX.ZoneFxManager.HazeAmount;
+            _smokeTarget = 1f - (1f - smoke) * (1f - haze);
+            _fogTint = smoke + haze > 0.001f ? (HazardZone.VolcanicSmokeColor * smoke + VFX.ZoneFxManager.HazeColor * haze) / (smoke + haze) : HazardZone.VolcanicSmokeColor;
             if (!pp.HasValue) return;
             var p = pp.Value;
             var up = HazardZone.MaxLevelAt(p, out var zUp);

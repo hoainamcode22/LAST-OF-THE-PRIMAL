@@ -35,6 +35,8 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 31a79dc95eaed464180d6437220aa7df, type: 2}
   - {fileID: 11400000, guid: d58dfb7feb9b4004fbd6085b5dd4874d, type: 2}
   - {fileID: 11400000, guid: f173198913abc534d9f29e1a596ab84c, type: 2}
+  - {fileID: 11400000, guid: 5146881f07d4b37458d6ce9fd611bea2, type: 2}
+  - {fileID: 11400000, guid: 365e7861eb790b94eb75533d12eb3a82, type: 2}
   - {fileID: 11400000, guid: bc31156dd3a59454bb176e5314ce95dd, type: 2}
   hands: {fileID: 11400000, guid: e5209f72bc37654479b609b3800cdb8f, type: 2}
   tools:

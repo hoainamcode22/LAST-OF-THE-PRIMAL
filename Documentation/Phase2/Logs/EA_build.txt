@@ -965,3 +965,176 @@ terrain TD_Island size (640, 80, 640) at (-320, -10, -320); heightmap 1025, alph
   point (-105.8, 17.1, -23.8): slope 5.88, water 150.45, route 97.04, blocked False, solid False, own 0.84
 finished, 0 warning(s)
 
+EA Valley terrain;props started 2026-10-01 12:35:46
+tall grass: detail layer 6 = DET_Z_TallGrass (w 1.5-2.2, h 1.7-2.6 x 0.7 m mesh = about 1.2-1.8 m tall), PF/Foliage Wind
+terrain baseline: Assets/_Project/Art/Terrain/_Backup/TD_Island_before_EA.asset (existing backup, kept)
+ridge spot: 1414 poses tried, 1409 on gameplay objects, 0 on the route / water / knoll view / outside; chosen (-48, 9.2, 12) yaw 104.4, ground range 2.3 m, ok True
+WARNING: ridge: ground range 2.3 m under the footprint is more than the 2 m skirt: the downhill edge may show a gap
+valley splat: 110878 texels written (lerp by OwnWeight from the EA baseline)
+valley details: 27729 texels, layers fern 0 grass 1 horsetail 3 reeds 4 giantfern 5 tallgrass 6; instances in the rect 72952 -> 73134
+knoll view: 13 moved trees put back
+valley trees: 11 own terrain trees (araucaria 2, cycad 4, tree fern 5); rejected route / wallow / landmark 2, knoll view 23, gameplay 17, spacing 9
+EA_valley: 11 own terrain trees (11 in recorded slots, 0 appended, 0 surplus removed from the tail, 0 surplus parked), total terrain trees 1494
+knoll view: 0 trees put back from the last run, 13 trees that cut a view line (knoll -> ford / waterfall / meadow) moved aside (same index), 0 without a free spot
+ridge spot: 1414 poses tried, 1409 on gameplay objects, 0 on the route / water / knoll view / outside; chosen (-48, 9.2, 12) yaw 104.4, ground range 2.3 m, ok True
+WARNING: ridge: ground range 2.3 m under the footprint is more than the 2 m skirt: the downhill edge may show a gap
+valley props: 28 boulders (Rocks), 26 giant ferns, 0 fallen trunks, 14 horsetail clumps (Props)
+landmark: LM_RockRidge (ART) placed under LM_MigrationValley
+landmark LM_MigrationValley at (-48, 9.2, 12), yaw 104.4 (valley side (1, 0, -0.2)), footprint 57 x 21 m: ground range 2.3 m (buried skirt 2 m), footprint clear of route / gameplay / knoll view: True; route 34 m from the centre
+valley FX anchors: FXA_Valley_Pollen_Meadow (-2, 10.7, -28), FXA_Valley_Mist_Ford (84.6, 11.4, -97.5), FXA_Valley_Dust_Trail (18, 10.9, -72), FXA_Valley_Pollen_Knoll (-40, 27.4, -92), FXA_Valley_Insects_Wallow_0 (16, 9.7, 2), FXA_Valley_Insects_Wallow_1 (-24, 9.7, -50), FXA_Valley_Insects_Wallow_2 (4, 9.7, -76)
+scene saved: Assets/_Project/Scenes/Island_VerticalSlice.unity
+finished, 2 warning(s)
+
+EA Wetland  started 2026-10-01 12:36:15
+terrain baseline: Assets/_Project/Art/Terrain/_Backup/TD_Island_before_EA.asset (existing backup, kept)
+fallen tree spot: 305 shore candidates, 300 footprint on gameplay objects / outside the zone core, 0 crown not in the water; chosen (85.9, 2.1, 194.5) dir (0.5, 0, -0.9)
+wetland splat: 39412 texels written
+wetland details: 9851 texels, layers fern 0 grass 1 horsetail 3 reeds 4 giantfern 5 bush 2; instances in the rect 13266 -> 13266
+wetland trees: 4 own terrain trees (tree fern 3, cycad 1), rejected 22
+EA_wetland: 4 own terrain trees (4 in recorded slots, 0 appended, 0 surplus removed from the tail, 0 surplus parked), total terrain trees 1494
+fallen tree spot: 305 shore candidates, 300 footprint on gameplay objects / outside the zone core, 0 crown not in the water; chosen (85.9, 2.1, 194.5) dir (0.5, 0, -0.9)
+wetland props: 11 dead snags (PROP_P2_DeadSnag_A/..), 4 root plates, 2 fallen trunks, 16 horsetail clumps, 12 giant ferns
+landmark: LM_AncientFallenTree (ART) placed under LM_PrehistoricWetland
+landmark LM_PrehistoricWetland (root end) at (85.9, 2.1, 194.5), trunk direction (0.5, 0, -0.9), tree pivot (94.1, 0.9, 179) at the water line, crown end (103.1, 0.7, 162.3) (lagoon bed 0.66, water 0.85)
+wetland FX anchors: FXA_Wetland_Fog_Lagoon (100, 1.5, 168), FXA_Wetland_Fog_West (83, 1.5, 175), FXA_Wetland_Fog_East (118, 1.5, 174), FXA_Wetland_Mist_RiverMouth (106, 1, 200), FXA_Wetland_Insects_Landmark (88.7, 3.6, 189.2), FXA_Wetland_Insects_Reeds_0 (123, 2.1, 169), FXA_Wetland_Insects_Reeds_1 (99, 2.1, 187), FXA_Wetland_Insects_Reeds_2 (87, 2.1, 157)
+scene saved: Assets/_Project/Scenes/Island_VerticalSlice.unity
+finished, 0 warning(s)
+
+EA ValleyCheck  started 2026-10-01 12:36:27
+[valley] objects under World/Environment/Forest/MigrationValley: 249
+  ENV_PC_GiantFern_A: 13
+  ENV_PC_GiantFern_B: 13
+  ENV_PC_HorsetailClump: 14
+  ENV_PC_MossRock_A: 10
+  ENV_PC_MossRock_B: 9
+  ENV_PC_MossRock_C: 9
+  LM_RockRidge: 1
+  own terrain trees: 11 (ENV_PC_Cycad_C 4, ENV_PC_TreeFern_A 5, PFB_ENV_Tree_01 2)
+  missing refs: prefab 0, mesh 0, material 0, broken shader 0, script 0, LOD renderer 0, collider mesh 0; terrain prototypes without asset 0
+  resource nodes in the zone + blend: 341; covered by a zone collider 0, own terrain tree within 1.2 m 0
+  other interactables covered: 0
+  objects within 20 m of the player spawn (-20, 1.5, 211): 0
+  route: zone props within 3 m 0, own trees within 8 m 0; knoll view lines (ford, waterfall, meadow): own trees in the way 0, other trees that cut a line 0 (outside the zone weight they are not moved)
+  wallows (mud weight at the centre): (16, 8.9, 2) mud 0.75, (-24, 8.9, -50) mud 0.82, (4, 8.9, -76) mud 0.82
+  tall grass layer 6: DET_Z_TallGrass / PF/Foliage Wind
+  terrain draw settings (scene): detail distance 90 m, density 1, tree distance 450 m, billboard 450 m; runtime presets (Core/TerrainQuality) override these per quality level
+  landmark: (-48, 9.2, 12) with LM_RockRidge
+VALLEY CHECK OK: 0 problem(s)
+finished, 0 warning(s)
+
+EA WetlandCheck  started 2026-10-01 12:36:31
+[wetland] objects under World/Environment/Wetlands/PrehistoricWetland: 169
+  ENV_PC_FallenTrunk_A: 1
+  ENV_PC_FallenTrunk_B: 1
+  ENV_PC_GiantFern_A: 6
+  ENV_PC_GiantFern_B: 6
+  ENV_PC_HorsetailClump: 16
+  ENV_PC_Roots_A: 2
+  ENV_PC_Roots_B: 2
+  LM_AncientFallenTree: 1
+  PROP_P2_DeadSnag_A: 6
+  PROP_P2_DeadSnag_B: 5
+  own terrain trees: 4 (ENV_PC_Cycad_B 1, ENV_PC_TreeFern_A 1, ENV_PC_TreeFern_B 2)
+  missing refs: prefab 0, mesh 0, material 0, broken shader 0, script 0, LOD renderer 0, collider mesh 0; terrain prototypes without asset 0
+  resource nodes in the zone + blend: 95; covered by a zone collider 0, own terrain tree within 1.2 m 0
+  other interactables covered: 0
+  objects within 20 m of the player spawn (-20, 1.5, 211): 0
+  props standing in water deeper than 0.6 m: 0
+  lagoon water ENV_Wetland_Water: on at (0, 0, 0)
+  landmark: (85.9, 2.1, 194.5) with LM_AncientFallenTree
+  FX anchors: 8: FXA_Wetland_Fog_Lagoon (100, 1.5, 168), FXA_Wetland_Fog_West (83, 1.5, 175), FXA_Wetland_Fog_East (118, 1.5, 174), FXA_Wetland_Mist_RiverMouth (106, 1, 200), FXA_Wetland_Insects_Landmark (88.7, 3.6, 189.2), FXA_Wetland_Insects_Reeds_0 (123, 2.1, 169), FXA_Wetland_Insects_Reeds_1 (99, 2.1, 187), FXA_Wetland_Insects_Reeds_2 (87, 2.1, 157)
+WETLAND CHECK OK: 0 problem(s)
+finished, 0 warning(s)
+
+EA ValleyCheck  started 2026-10-01 15:24:02
+[valley] objects under World/Environment/Forest/MigrationValley: 249
+  ENV_PC_GiantFern_A: 13
+  ENV_PC_GiantFern_B: 13
+  ENV_PC_HorsetailClump: 14
+  ENV_PC_MossRock_A: 10
+  ENV_PC_MossRock_B: 9
+  ENV_PC_MossRock_C: 9
+  LM_RockRidge: 1
+  own terrain trees: 11 (ENV_PC_Cycad_C 4, ENV_PC_TreeFern_A 5, PFB_ENV_Tree_01 2)
+  missing refs: prefab 0, mesh 0, material 0, broken shader 0, script 0, LOD renderer 0, collider mesh 0; terrain prototypes without asset 0
+  resource nodes in the zone + blend: 345; covered by a zone collider 0, own terrain tree within 1.2 m 0
+  other interactables covered: 0
+  objects within 20 m of the player spawn (-20, 1.5, 211): 0
+  route: zone props within 3 m 0, own trees within 8 m 0; knoll view lines (ford, waterfall, meadow): own trees in the way 0, other trees that cut a line 0 (outside the zone weight they are not moved)
+  wallows (mud weight at the centre): (16, 8.9, 2) mud 0.75, (-24, 8.9, -50) mud 0.82, (4, 8.9, -76) mud 0.82
+  tall grass layer 6: DET_Z_TallGrass / PF/Foliage Wind
+  terrain draw settings (scene): detail distance 90 m, density 1, tree distance 450 m, billboard 450 m; runtime presets (Core/TerrainQuality) override these per quality level
+  landmark: (-48, 9.2, 12) with LM_RockRidge
+VALLEY CHECK OK: 0 problem(s)
+finished, 0 warning(s)
+
+EA WetlandCheck  started 2026-10-01 15:24:15
+[wetland] objects under World/Environment/Wetlands/PrehistoricWetland: 169
+  ENV_PC_FallenTrunk_A: 1
+  ENV_PC_FallenTrunk_B: 1
+  ENV_PC_GiantFern_A: 6
+  ENV_PC_GiantFern_B: 6
+  ENV_PC_HorsetailClump: 16
+  ENV_PC_Roots_A: 2
+  ENV_PC_Roots_B: 2
+  LM_AncientFallenTree: 1
+  PROP_P2_DeadSnag_A: 6
+  PROP_P2_DeadSnag_B: 5
+  own terrain trees: 4 (ENV_PC_Cycad_B 1, ENV_PC_TreeFern_A 1, ENV_PC_TreeFern_B 2)
+  missing refs: prefab 0, mesh 0, material 0, broken shader 0, script 0, LOD renderer 0, collider mesh 0; terrain prototypes without asset 0
+  resource nodes in the zone + blend: 106; covered by a zone collider 0, own terrain tree within 1.2 m 0
+  other interactables covered: 0
+  objects within 20 m of the player spawn (-20, 1.5, 211): 0
+  props standing in water deeper than 0.6 m: 0
+  lagoon water ENV_Wetland_Water: on at (0, 0, 0)
+  landmark: (85.9, 2.1, 194.5) with LM_AncientFallenTree
+  FX anchors: 8: FXA_Wetland_Fog_Lagoon (100, 1.5, 168), FXA_Wetland_Fog_West (83, 1.5, 175), FXA_Wetland_Fog_East (118, 1.5, 174), FXA_Wetland_Mist_RiverMouth (106, 1, 200), FXA_Wetland_Insects_Landmark (88.7, 3.6, 189.2), FXA_Wetland_Insects_Reeds_0 (123, 2.1, 169), FXA_Wetland_Insects_Reeds_1 (99, 2.1, 187), FXA_Wetland_Insects_Reeds_2 (87, 2.1, 157)
+WETLAND CHECK OK: 0 problem(s)
+finished, 0 warning(s)
+
+EA ValleyCheck  started 2026-10-01 15:54:12
+[valley] objects under World/Environment/Forest/MigrationValley: 249
+  ENV_PC_GiantFern_A: 13
+  ENV_PC_GiantFern_B: 13
+  ENV_PC_HorsetailClump: 14
+  ENV_PC_MossRock_A: 10
+  ENV_PC_MossRock_B: 9
+  ENV_PC_MossRock_C: 9
+  LM_RockRidge: 1
+  own terrain trees: 11 (ENV_PC_Cycad_C 4, ENV_PC_TreeFern_A 5, PFB_ENV_Tree_01 2)
+  missing refs: prefab 0, mesh 0, material 0, broken shader 0, script 0, LOD renderer 0, collider mesh 0; terrain prototypes without asset 0
+  resource nodes in the zone + blend: 345; covered by a zone collider 0, own terrain tree within 1.2 m 0
+  other interactables covered: 0
+  objects within 20 m of the player spawn (-20, 1.5, 211): 0
+  route: zone props within 3 m 0, own trees within 8 m 0; knoll view lines (ford, waterfall, meadow): own trees in the way 0, other trees that cut a line 0 (outside the zone weight they are not moved)
+  wallows (mud weight at the centre): (16, 8.9, 2) mud 0.75, (-24, 8.9, -50) mud 0.82, (4, 8.9, -76) mud 0.82
+  tall grass layer 6: DET_Z_TallGrass / PF/Foliage Wind
+  terrain draw settings (scene): detail distance 90 m, density 1, tree distance 450 m, billboard 450 m; runtime presets (Core/TerrainQuality) override these per quality level
+  landmark: (-48, 9.2, 12) with LM_RockRidge
+VALLEY CHECK OK: 0 problem(s)
+finished, 0 warning(s)
+
+EA WetlandCheck  started 2026-10-01 15:54:15
+[wetland] objects under World/Environment/Wetlands/PrehistoricWetland: 169
+  ENV_PC_FallenTrunk_A: 1
+  ENV_PC_FallenTrunk_B: 1
+  ENV_PC_GiantFern_A: 6
+  ENV_PC_GiantFern_B: 6
+  ENV_PC_HorsetailClump: 16
+  ENV_PC_Roots_A: 2
+  ENV_PC_Roots_B: 2
+  LM_AncientFallenTree: 1
+  PROP_P2_DeadSnag_A: 6
+  PROP_P2_DeadSnag_B: 5
+  own terrain trees: 4 (ENV_PC_Cycad_B 1, ENV_PC_TreeFern_A 1, ENV_PC_TreeFern_B 2)
+  missing refs: prefab 0, mesh 0, material 0, broken shader 0, script 0, LOD renderer 0, collider mesh 0; terrain prototypes without asset 0
+  resource nodes in the zone + blend: 106; covered by a zone collider 0, own terrain tree within 1.2 m 0
+  other interactables covered: 0
+  objects within 20 m of the player spawn (-20, 1.5, 211): 0
+  props standing in water deeper than 0.6 m: 0
+  lagoon water ENV_Wetland_Water: on at (0, 0, 0)
+  landmark: (85.9, 2.1, 194.5) with LM_AncientFallenTree
+  FX anchors: 8: FXA_Wetland_Fog_Lagoon (100, 1.5, 168), FXA_Wetland_Fog_West (83, 1.5, 175), FXA_Wetland_Fog_East (118, 1.5, 174), FXA_Wetland_Mist_RiverMouth (106, 1, 200), FXA_Wetland_Insects_Landmark (88.7, 3.6, 189.2), FXA_Wetland_Insects_Reeds_0 (123, 2.1, 169), FXA_Wetland_Insects_Reeds_1 (99, 2.1, 187), FXA_Wetland_Insects_Reeds_2 (87, 2.1, 157)
+WETLAND CHECK OK: 0 problem(s)
+finished, 0 warning(s)
+

@@ -36,6 +36,8 @@ namespace PrimalFrontier.World
         public static float LocalSmoke { get; internal set; }
         /// <summary>fog colour of volcanic smoke (by day; darker at night)</summary>
         public static Color SmokeColor = new Color(0.4f, 0.36f, 0.33f);
+        /// <summary>the volcanic smoke tint; HazardZoneMonitor blends it with the zone haze (wetland mist, fern forest shade) into SmokeColor</summary>
+        public static readonly Color VolcanicSmokeColor = new Color(0.4f, 0.36f, 0.33f);
         /// <summary>fog density at full local smoke = normal x (1 + this)</summary>
         public static float SmokeFogBoost = 5f;
 
@@ -45,7 +47,7 @@ namespace PrimalFrontier.World
             if (Application.isPlaying) HazardZoneMonitor.Ensure();
         }
         void OnDisable() { All.Remove(this); }
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)] static void ResetStatics() { All.Clear(); LocalSmoke = 0f; }
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)] static void ResetStatics() { All.Clear(); LocalSmoke = 0f; SmokeColor = VolcanicSmokeColor; }
 
         bool InHeight(Vector3 p) { float dy = p.y - transform.position.y; return dy >= minHeight && dy <= maxHeight; }
         float Flat(Vector3 p) { var d = p - transform.position; d.y = 0f; return d.magnitude; }

@@ -1,0 +1,503 @@
+# PrimalAtmosphereBuilder.Zones2 2026-10-01 14:32:44
+## Zones
+- migration_valley "Migration Valley": centre (0, 9, -35), r 95 + blend 30
+- prehistoric_wetland "Prehistoric Wetland": centre (102, 0.4, 172), r 45 + blend 25, humidity 0,9, day -1,5 / night -0,5 C
+- bone_valley "Bone Valley": centre (-105, 21, -76), r 50 + blend 25
+- giant_fern_forest "Giant Fern Forest": centre (168, 8, 20), r 70 + blend 30, humidity 0,8, day -2 / night +1 C
+- volcanic_foothills "Volcanic Foothills": centre (-129, 33.5, -170.5), capsule +/- (7, 10.5, -45.5), r 40 + blend 30
+- deep_water_cave "Deep Water Cave": centre (44.8, 0, -96.2), r 80 + blend 10, height band -3..34,3, indoor, stable air 15 C, humidity 0,85
+- landmark lm_rock_ridge at (-48, 9.2, 13.9) (World/Environment/Forest/MigrationValley/Landmark/LM_MigrationValley): found within 16 m or seen from 110 m (look point +6,6 m, size 27,2 m)
+- landmark lm_fallen_tree at (93.9, 2.1, 178.9) (World/Environment/Wetlands/PrehistoricWetland/Landmark/LM_PrehistoricWetland): found within 12 m or seen from 50 m (look point +1 m, size 17,5 m)
+WARNING: lm_fossil_skeleton: LM_BoneValley not in the scene yet (World/Environment/Forest/BoneValley): landmark page waits (re-run Zones2)
+- landmark lm_giant_tree at (161.3, 8.8, 24.1) (World/Environment/Forest/GiantFernForest/LM_GiantFernForest): found within 14 m or seen from 80 m (look point +28,6 m, size 26,8 m)
+- landmark lm_black_ridge at (-149, 44.2, -196.9) (World/Environment/Volcano/VolcanicFoothills/LM_VolcanicFoothills): found within 18 m or seen from 110 m (look point +7,5 m, size 23,3 m)
+- landmark lm_underground_pool at (39.2, 20.6, -175.2) (World/Environment/Caves/DeepWaterCave/LM_DeepWaterCave): found within 10 m or seen from 28 m (look point +3 m, size 4 m)
+WARNING: cave_hidden_chamber: no *HiddenChamber* object under World/Environment/Caves/DeepWaterCave yet (CAVE): page waits
+- ZoneManager: 6 regions, 5 landmarks, 42 zones in all
+## Story
+- journal: 100 pages (71 added)
+WARNING: no ProtagonistVoice in the scene: Bone Valley's line needs it
+- minimap: 19 marked places (7 added); region names are map labels once entered
+## Scene content (World/Environment/Weather/Zones2: 0 old children cleared)
+- created Assets/_Project/Art/World/ZoneFx/M_Z2_Fog.mat
+- prefabs: 14 in Assets/_Project/Prefabs/World/ZoneFx (GroundFog x5, WaterMist x5, Insects x5, Dragonflies x3, Fireflies x3, DustMotes x6, Haze x4, Flies x4, WindDust x3, SmokeWisp x6, AshFall x3, HeatShimmer x3, CaveDrips x4, CaveMist x3)
+- ZoneFxManager: 14 pooled kinds (57 systems at play start), 5 zone hazes
+- MigrationValley FX: none (from agent anchors: 0)
+- PrehistoricWetland FX: GroundFog 5, WaterMist 5, Insects 10, Dragonflies 3, Fireflies 3 (from agent anchors: 0)
+- BoneValley FX: Flies 6, WindDust 3 (from agent anchors: 0)
+  - BoneValley: 5 emitters
+- GiantFernForest FX: WaterMist 4, Insects 2, DustMotes 1, Haze 4, CaveDrips 1 (from agent anchors: 8)
+  - agent anchor -> WaterMist at (116, 12.5, 40)
+  - agent anchor -> WaterMist at (134, 13.1, -8)
+  - agent anchor -> WaterMist at (184, 7.4, 48)
+  - agent anchor -> WaterMist at (194, 6.4, -18)
+  - agent anchor -> Insects at (153, 11.9, 29)
+  - agent anchor -> Insects at (168, 10.5, 18)
+  - agent anchor -> DustMotes at (160, 26.8, 24)
+  - agent anchor -> CaveDrips at (146, 13.9, 46)
+- VolcanicFoothills FX: WindDust 1, SmokeWisp 4, AshFall 4, HeatShimmer 2 (from agent anchors: 11)
+  - agent anchor -> AshFall at (-130.9, 66.4, -181.1)
+  - agent anchor -> AshFall at (-177, 67.2, -184.3)
+  - agent anchor -> AshFall at (-102.6, 65.4, -184)
+  - agent anchor -> AshFall at (-69.7, 71, -183.8)
+  - agent anchor -> SmokeWisp at (-115.1, 35.7, -166.4)
+  - agent anchor -> SmokeWisp at (-162.1, 38.4, -169)
+  - agent anchor -> SmokeWisp at (-92.1, 28.1, -157.9)
+  - agent anchor -> HeatShimmer at (-112.1, 48, -232.6)
+  - agent anchor -> HeatShimmer at (-119.5, 47.5, -211.7)
+  - agent anchor -> WindDust at (-148.9, 34.7, -135.6)
+  - agent anchor -> SmokeWisp at (-150, 54.5, -198)
+  - HZ_foothills_band_0 at (-131.1, 36.5, -156.9): warm ring 34 m, up to +2,5 C, no hot / dangerous ring
+  - HZ_foothills_band_1 at (-127.6, 42, -179.6): warm ring 34 m, up to +4 C, no hot / dangerous ring
+- DeepWaterCave FX: DustMotes 1, CaveDrips 6, CaveMist 1 (from agent anchors: 8)
+  - agent anchor -> CaveDrips at (71.5, 23.2, -163.2)
+  - agent anchor -> CaveDrips at (62, 23.5, -169.4)
+  - agent anchor -> CaveDrips at (36, 29.4, -176)
+  - agent anchor -> CaveDrips at (43.5, 28.9, -171)
+  - agent anchor -> CaveDrips at (23.6, 24.2, -166.8)
+  - agent anchor -> CaveDrips at (44.6, 24.9, -192)
+  - agent anchor -> CaveMist at (90, 21.4, -157.4)
+  - agent anchor -> DustMotes at (37.2, 29.4, -174.4)
+  - DeepWaterCave: 4 emitters
+  - REV_DeepWaterCave (Cave preset) at (44.8, 2, -96.2), 48..84 m
+  - REV_DeepWaterCave_Pool (Cave preset) at (39.2, 22.6, -175.2), 6..16 m
+- totals: 66 FX anchors, 9 emitters, 2 reverb zones, 2 heat band zones
+- AmbienceManager: 6/6 zone beds with a clip, zone calls 4 with 11/11 clips
+scene saved
+## Check
+- zones: 6/6 regions, 5/7 landmarks registered (missing: lm_fossil_skeleton, cave_hidden_chamber)
+- journal: 14/14 Phase 2 pages in the scene list
+- pooled effects: 14 kinds registered (57 systems), 66 anchors: GroundFog 5, WaterMist 9, Insects 12, Dragonflies 3, Fireflies 3, DustMotes 2, Haze 4, Flies 6, WindDust 4, SmokeWisp 4, AshFall 4, HeatShimmer 2, CaveDrips 7, CaveMist 1
+- emitters: 9 (0 without a clip), reverb zones 2, heat band zones 2
+- ambience: 6 zone beds (0 broken), 4 zone calls (0 broken)
+- missing references under World/Environment/Weather/Zones2: 0
+finished, 3 warning(s)
+
+# PrimalAtmosphereBuilder.Zones2 2026-10-01 14:41:00
+## Zones
+- migration_valley "Migration Valley": centre (0, 9, -35), r 95 + blend 30
+- prehistoric_wetland "Prehistoric Wetland": centre (102, 0.4, 172), r 45 + blend 25, humidity 0,9, day -1,5 / night -0,5 C
+- bone_valley "Bone Valley": centre (-105, 21, -76), r 50 + blend 25
+- giant_fern_forest "Giant Fern Forest": centre (168, 8, 20), r 70 + blend 30, humidity 0,8, day -2 / night +1 C
+- volcanic_foothills "Volcanic Foothills": centre (-129, 33.5, -170.5), capsule +/- (7, 10.5, -45.5), r 40 + blend 30
+- deep_water_cave "Deep Water Cave": centre (40, 20.9, -173.6), inside 17 cave parts only (passages / rooms, own floor and height), blend 1,5, indoor, stable air 15 C, humidity 0,85
+- landmark lm_rock_ridge at (-48, 9.2, 13.9) (World/Environment/Forest/MigrationValley/Landmark/LM_MigrationValley): found within 16 m or seen from 110 m (look point +6,6 m, size 27,2 m)
+- landmark lm_fallen_tree at (93.9, 2.1, 178.9) (World/Environment/Wetlands/PrehistoricWetland/Landmark/LM_PrehistoricWetland): found within 12 m or seen from 50 m (look point +1 m, size 17,5 m)
+- landmark lm_fossil_skeleton at (-114.1, 15.5, -29.8) (World/Environment/Forest/BoneValley/Landmark/LM_FossilSkeleton): found within 14 m or seen from 60 m (look point +2,3 m, size 14,3 m)
+- landmark lm_giant_tree at (161.3, 8.8, 24.1) (World/Environment/Forest/GiantFernForest/LM_GiantFernForest): found within 14 m or seen from 80 m (look point +28,6 m, size 26,8 m)
+- landmark lm_black_ridge at (-149, 44.2, -196.9) (World/Environment/Volcano/VolcanicFoothills/LM_VolcanicFoothills): found within 18 m or seen from 110 m (look point +7,5 m, size 23,3 m)
+- landmark lm_underground_pool at (39.2, 20.6, -175.2) (World/Environment/Caves/DeepWaterCave/LM_DeepWaterCave): found within 10 m or seen from 28 m (look point +3 m, size 4 m)
+- hidden chamber at (45.4, 21.3, -192.8) (World/Environment/Caves/DeepWaterCave/HiddenNest): found within 4.5 m (height band 17,3..27,3)
+- ZoneManager: 6 regions, 7 landmarks, 44 zones in all
+## Story
+- journal: 102 pages (2 added)
+- survivor lines: no ProtagonistVoice in the saved scene; GameManager adds it at play start with the built-in lines (Defaults: includes bone_valley and the landmark thoughts)
+- minimap: 19 marked places (0 added); region names are map labels once entered
+## Scene content (World/Environment/Weather/Zones2: 6 old children cleared)
+- prefabs: 15 in Assets/_Project/Prefabs/World/ZoneFx (GroundFog x5, WaterMist x5, Insects x5, Dragonflies x3, Fireflies x3, DustMotes x6, Haze x4, Flies x4, WindDust x3, SmokeWisp x6, AshFall x3, HeatShimmer x3, CaveDrips x4, CaveMist x3, Pollen x4)
+- ZoneFxManager: 15 pooled kinds (61 systems at play start), 5 zone hazes
+- MigrationValley FX: WaterMist 1, Insects 3, WindDust 1, Pollen 2 (from agent anchors: 7)
+  - agent anchor -> Pollen at (-2, 10.8, -28) (ground 9,2)
+  - agent anchor -> WaterMist at (84.6, 11.1, -97.5) (ground 10,6)
+  - agent anchor -> WindDust at (18, 10.7, -72) (ground 9,9)
+  - agent anchor -> Pollen at (-40, 27, -92) (ground 25,4)
+  - agent anchor -> Insects at (16, 10.2, 2) (ground 8,9)
+  - agent anchor -> Insects at (-24, 10.2, -50) (ground 8,9)
+  - agent anchor -> Insects at (4, 10.2, -76) (ground 8,9)
+- PrehistoricWetland FX: GroundFog 3, WaterMist 1, Insects 4, Dragonflies 3, Fireflies 3 (from agent anchors: 8)
+  - agent anchor -> GroundFog at (100, 1.5, 168) (ground 0,3)
+  - agent anchor -> GroundFog at (83, 1.7, 175) (ground 0,5)
+  - agent anchor -> GroundFog at (118, 2.2, 174) (ground 1)
+  - agent anchor -> WaterMist at (106, 0.7, 200) (ground 0,2)
+  - agent anchor -> Insects at (88.7, 2.9, 189.2) (ground 1,6)
+  - agent anchor -> Insects at (123, 2.1, 169) (ground 0,8)
+  - agent anchor -> Insects at (99, 2.1, 187) (ground 0,8)
+  - agent anchor -> Insects at (87, 1.9, 157) (ground 0,6)
+- BoneValley FX: Flies 6, WindDust 3 (from agent anchors: 0)
+  - BoneValley: 5 emitters
+- GiantFernForest FX: GroundFog 4, Insects 2, DustMotes 1, Haze 4, CaveDrips 1 (from agent anchors: 8)
+  - agent anchor -> GroundFog at (116, 12.9, 40) (ground 11,7)
+  - agent anchor -> GroundFog at (134, 13.5, -8) (ground 12,3)
+  - agent anchor -> GroundFog at (184, 7.8, 48) (ground 6,6)
+  - agent anchor -> GroundFog at (194, 6.8, -18) (ground 5,6)
+  - agent anchor -> Insects at (153, 10.7, 29) (ground 9,4)
+  - agent anchor -> Insects at (168, 9.3, 18) (ground 8)
+  - agent anchor -> DustMotes at (160, 22.8, 24) (ground 8,8)
+  - agent anchor -> CaveDrips at (146, 13.9, 46) (ground 10,9)
+- VolcanicFoothills FX: WindDust 1, SmokeWisp 4, AshFall 4, HeatShimmer 2 (from agent anchors: 11)
+  - agent anchor -> AshFall at (-130.9, 50.4, -181.1) (ground 42,4)
+  - agent anchor -> AshFall at (-177, 51.2, -184.3) (ground 43,2)
+  - agent anchor -> AshFall at (-102.6, 49.4, -184) (ground 41,4)
+  - agent anchor -> AshFall at (-69.7, 55, -183.8) (ground 47)
+  - agent anchor -> SmokeWisp at (-115.1, 35.6, -166.4) (ground 35,3)
+  - agent anchor -> SmokeWisp at (-162.1, 38.3, -169) (ground 38)
+  - agent anchor -> SmokeWisp at (-92.1, 28, -157.9) (ground 27,7)
+  - agent anchor -> HeatShimmer at (-112.1, 47.5, -232.6) (ground 45)
+  - agent anchor -> HeatShimmer at (-119.5, 47, -211.7) (ground 44,5)
+  - agent anchor -> WindDust at (-148.9, 34.5, -135.6) (ground 33,7)
+  - agent anchor -> SmokeWisp at (-150, 54.2, -198) (ground 44,2)
+  - HZ_foothills_band_0 at (-131.1, 36.5, -156.9): warm ring 34 m, up to +2,5 C, no hot / dangerous ring
+  - HZ_foothills_band_1 at (-127.6, 42, -179.6): warm ring 34 m, up to +4 C, no hot / dangerous ring
+- DeepWaterCave FX: DustMotes 1, CaveDrips 6, CaveMist 1 (from agent anchors: 8)
+  - agent anchor -> CaveDrips at (71.5, 23.2, -163.2)
+  - agent anchor -> CaveDrips at (62, 23.5, -169.4)
+  - agent anchor -> CaveDrips at (36, 29.4, -176)
+  - agent anchor -> CaveDrips at (43.5, 28.9, -171)
+  - agent anchor -> CaveDrips at (23.6, 24.2, -166.8)
+  - agent anchor -> CaveDrips at (44.6, 24.9, -192)
+  - agent anchor -> CaveMist at (90, 21, -157.4)
+  - agent anchor -> DustMotes at (37.2, 25.4, -174.4)
+  - DeepWaterCave: 4 emitters
+  - 34 cave reverb spheres (Cave preset) along the passages and rooms, radius 1,8..9,8 m
+- totals: 61 FX anchors, 9 emitters, 34 reverb zones, 2 heat band zones
+- AmbienceManager: 6/6 zone beds with a clip, zone calls 4 with 11/11 clips
+scene saved
+## Check
+- zones: 6/6 regions, 7/7 landmarks registered
+- journal: 14/14 Phase 2 pages in the scene list
+- survivor line "Something hunts here.": runtime ProtagonistVoice (GameManager) built-in lines: yes
+- pooled effects: 15 kinds registered (61 systems), 61 anchors: GroundFog 7, WaterMist 2, Insects 9, Dragonflies 3, Fireflies 3, DustMotes 2, Haze 4, Flies 6, WindDust 5, SmokeWisp 4, AshFall 4, HeatShimmer 2, CaveDrips 7, CaveMist 1, Pollen 2
+- emitters: 9 (0 without a clip), reverb zones 34, heat band zones 2
+- ambience: 6 zone beds (0 broken), 4 zone calls (0 broken)
+  - sample valley centre (0, 9.3, -35): cave zone out, indoor no, reverb none
+  - sample meadow (-2, 9.3, -28): cave zone out, indoor no, reverb none
+  - sample herbivore valley (6, 9.3, -40): cave zone out, indoor no, reverb none
+  - sample river (66, 10.8, -45): cave zone out, indoor no, reverb none
+  - sample ford (84.6, 10.7, -97.5): cave zone out, indoor no, reverb none
+  - sample river below the pool (80, 17, -125): cave zone out, indoor no, reverb none
+  - sample waterfall pool (93.5, 18.6, -158.5): cave zone out, indoor no, reverb REV_DeepWaterCave_0  <- WRONG
+  - sample pool west edge (89, 18.8, -158): cave zone out, indoor no, reverb REV_DeepWaterCave_0  <- WRONG
+  - sample 1.9 m inside east mouth (88.2, 19.5, -158.1): cave zone out, indoor no, reverb REV_DeepWaterCave_0  <- WRONG
+  - sample outside west mouth (12.3, 22.5, -139.6): cave zone out, indoor no, reverb REV_DeepWaterCave_23  <- WRONG
+  - sample 1.9 m inside west mouth (12.7, 22.4, -143.3): cave zone out, indoor no, reverb REV_DeepWaterCave_22  <- WRONG
+  - sample cliff top over the chamber (40, 47.5, -173.6): cave zone out, indoor no, reverb none
+  - sample old grotto (-18, 18.4, -131): cave zone out, indoor yes, reverb REV_ZONECave
+  - sample chamber (must be inside) (40, 21, -170): cave zone IN, indoor yes, reverb REV_DeepWaterCave_31
+  - sample stream passage (inside) (67, 20.4, -165.4): cave zone IN, indoor yes, reverb REV_DeepWaterCave_5
+  - sample hidden chamber (inside) (44.8, 21.3, -192.4): cave zone IN, indoor yes, reverb REV_DeepWaterCave_30
+- cave containment: 16 samples, 5 wrong
+- missing references under World/Environment/Weather/Zones2: 0
+finished, 5 warning(s)
+
+# PrimalAtmosphereBuilder.Zones2 2026-10-01 14:43:30
+## Zones
+- migration_valley "Migration Valley": centre (0, 9, -35), r 95 + blend 30
+- prehistoric_wetland "Prehistoric Wetland": centre (102, 0.4, 172), r 45 + blend 25, humidity 0,9, day -1,5 / night -0,5 C
+- bone_valley "Bone Valley": centre (-105, 21, -76), r 50 + blend 25
+- giant_fern_forest "Giant Fern Forest": centre (168, 8, 20), r 70 + blend 30, humidity 0,8, day -2 / night +1 C
+- volcanic_foothills "Volcanic Foothills": centre (-129, 33.5, -170.5), capsule +/- (7, 10.5, -45.5), r 40 + blend 30
+- deep_water_cave "Deep Water Cave": centre (40, 20.9, -173.6), inside 17 cave parts only (passages / rooms, own floor and height), blend 1,5, indoor, stable air 15 C, humidity 0,85
+- landmark lm_rock_ridge at (-48, 9.2, 13.9) (World/Environment/Forest/MigrationValley/Landmark/LM_MigrationValley): found within 16 m or seen from 110 m (look point +6,6 m, size 27,2 m)
+- landmark lm_fallen_tree at (93.9, 2.1, 178.9) (World/Environment/Wetlands/PrehistoricWetland/Landmark/LM_PrehistoricWetland): found within 12 m or seen from 50 m (look point +1 m, size 17,5 m)
+- landmark lm_fossil_skeleton at (-114.1, 15.5, -29.8) (World/Environment/Forest/BoneValley/Landmark/LM_FossilSkeleton): found within 14 m or seen from 60 m (look point +2,3 m, size 14,3 m)
+- landmark lm_giant_tree at (161.3, 8.8, 24.1) (World/Environment/Forest/GiantFernForest/LM_GiantFernForest): found within 14 m or seen from 80 m (look point +28,6 m, size 26,8 m)
+- landmark lm_black_ridge at (-149, 44.2, -196.9) (World/Environment/Volcano/VolcanicFoothills/LM_VolcanicFoothills): found within 18 m or seen from 110 m (look point +7,5 m, size 23,3 m)
+- landmark lm_underground_pool at (39.2, 20.6, -175.2) (World/Environment/Caves/DeepWaterCave/LM_DeepWaterCave): found within 10 m or seen from 28 m (look point +3 m, size 4 m)
+- hidden chamber at (45.4, 21.3, -192.8) (World/Environment/Caves/DeepWaterCave/HiddenNest): found within 4.5 m (height band 17,3..27,3)
+- ZoneManager: 6 regions, 7 landmarks, 44 zones in all
+## Story
+- journal: 102 pages (0 added)
+- survivor lines: no ProtagonistVoice in the saved scene; GameManager adds it at play start with the built-in lines (Defaults: includes bone_valley and the landmark thoughts)
+- minimap: 19 marked places (0 added); region names are map labels once entered
+## Scene content (World/Environment/Weather/Zones2: 6 old children cleared)
+- prefabs: 15 in Assets/_Project/Prefabs/World/ZoneFx (GroundFog x5, WaterMist x5, Insects x5, Dragonflies x3, Fireflies x3, DustMotes x6, Haze x4, Flies x4, WindDust x3, SmokeWisp x6, AshFall x3, HeatShimmer x3, CaveDrips x4, CaveMist x3, Pollen x4)
+- ZoneFxManager: 15 pooled kinds (61 systems at play start), 5 zone hazes
+- MigrationValley FX: WaterMist 1, Insects 3, WindDust 1, Pollen 2 (from agent anchors: 7)
+  - agent anchor -> Pollen at (-2, 10.8, -28) (ground 9,2)
+  - agent anchor -> WaterMist at (84.6, 11.1, -97.5) (ground 10,6)
+  - agent anchor -> WindDust at (18, 10.7, -72) (ground 9,9)
+  - agent anchor -> Pollen at (-40, 27, -92) (ground 25,4)
+  - agent anchor -> Insects at (16, 10.2, 2) (ground 8,9)
+  - agent anchor -> Insects at (-24, 10.2, -50) (ground 8,9)
+  - agent anchor -> Insects at (4, 10.2, -76) (ground 8,9)
+- PrehistoricWetland FX: GroundFog 3, WaterMist 1, Insects 4, Dragonflies 3, Fireflies 3 (from agent anchors: 8)
+  - agent anchor -> GroundFog at (100, 1.5, 168) (ground 0,3)
+  - agent anchor -> GroundFog at (83, 1.7, 175) (ground 0,5)
+  - agent anchor -> GroundFog at (118, 2.2, 174) (ground 1)
+  - agent anchor -> WaterMist at (106, 0.7, 200) (ground 0,2)
+  - agent anchor -> Insects at (88.7, 2.9, 189.2) (ground 1,6)
+  - agent anchor -> Insects at (123, 2.1, 169) (ground 0,8)
+  - agent anchor -> Insects at (99, 2.1, 187) (ground 0,8)
+  - agent anchor -> Insects at (87, 1.9, 157) (ground 0,6)
+- BoneValley FX: Flies 6, WindDust 3 (from agent anchors: 0)
+  - BoneValley: 5 emitters
+- GiantFernForest FX: GroundFog 4, Insects 2, DustMotes 1, Haze 4, CaveDrips 1 (from agent anchors: 8)
+  - agent anchor -> GroundFog at (116, 12.9, 40) (ground 11,7)
+  - agent anchor -> GroundFog at (134, 13.5, -8) (ground 12,3)
+  - agent anchor -> GroundFog at (184, 7.8, 48) (ground 6,6)
+  - agent anchor -> GroundFog at (194, 6.8, -18) (ground 5,6)
+  - agent anchor -> Insects at (153, 10.7, 29) (ground 9,4)
+  - agent anchor -> Insects at (168, 9.3, 18) (ground 8)
+  - agent anchor -> DustMotes at (160, 22.8, 24) (ground 8,8)
+  - agent anchor -> CaveDrips at (146, 13.9, 46) (ground 10,9)
+- VolcanicFoothills FX: WindDust 1, SmokeWisp 4, AshFall 4, HeatShimmer 2 (from agent anchors: 11)
+  - agent anchor -> AshFall at (-130.9, 50.4, -181.1) (ground 42,4)
+  - agent anchor -> AshFall at (-177, 51.2, -184.3) (ground 43,2)
+  - agent anchor -> AshFall at (-102.6, 49.4, -184) (ground 41,4)
+  - agent anchor -> AshFall at (-69.7, 55, -183.8) (ground 47)
+  - agent anchor -> SmokeWisp at (-115.1, 35.6, -166.4) (ground 35,3)
+  - agent anchor -> SmokeWisp at (-162.1, 38.3, -169) (ground 38)
+  - agent anchor -> SmokeWisp at (-92.1, 28, -157.9) (ground 27,7)
+  - agent anchor -> HeatShimmer at (-112.1, 47.5, -232.6) (ground 45)
+  - agent anchor -> HeatShimmer at (-119.5, 47, -211.7) (ground 44,5)
+  - agent anchor -> WindDust at (-148.9, 34.5, -135.6) (ground 33,7)
+  - agent anchor -> SmokeWisp at (-150, 54.2, -198) (ground 44,2)
+  - HZ_foothills_band_0 at (-131.1, 36.5, -156.9): warm ring 34 m, up to +2,5 C, no hot / dangerous ring
+  - HZ_foothills_band_1 at (-127.6, 42, -179.6): warm ring 34 m, up to +4 C, no hot / dangerous ring
+- DeepWaterCave FX: DustMotes 1, CaveDrips 6, CaveMist 1 (from agent anchors: 8)
+  - agent anchor -> CaveDrips at (71.5, 23.2, -163.2)
+  - agent anchor -> CaveDrips at (62, 23.5, -169.4)
+  - agent anchor -> CaveDrips at (36, 29.4, -176)
+  - agent anchor -> CaveDrips at (43.5, 28.9, -171)
+  - agent anchor -> CaveDrips at (23.6, 24.2, -166.8)
+  - agent anchor -> CaveDrips at (44.6, 24.9, -192)
+  - agent anchor -> CaveMist at (90, 21, -157.4)
+  - agent anchor -> DustMotes at (37.2, 25.4, -174.4)
+  - DeepWaterCave: 4 emitters
+  - 34 cave reverb spheres (Cave preset) along the passages and rooms, max distance 1,8..9,8 m
+- totals: 61 FX anchors, 9 emitters, 34 reverb zones, 2 heat band zones
+- AmbienceManager: 6/6 zone beds with a clip, zone calls 4 with 11/11 clips
+scene saved
+## Check
+- zones: 6/6 regions, 7/7 landmarks registered
+- journal: 14/14 Phase 2 pages in the scene list
+- survivor line "Something hunts here.": runtime ProtagonistVoice (GameManager) built-in lines: yes
+- pooled effects: 15 kinds registered (61 systems), 61 anchors: GroundFog 7, WaterMist 2, Insects 9, Dragonflies 3, Fireflies 3, DustMotes 2, Haze 4, Flies 6, WindDust 5, SmokeWisp 4, AshFall 4, HeatShimmer 2, CaveDrips 7, CaveMist 1, Pollen 2
+- emitters: 9 (0 without a clip), reverb zones 34, heat band zones 2
+- ambience: 6 zone beds (0 broken), 4 zone calls (0 broken)
+  - sample valley centre (0, 9.3, -35): cave zone out, indoor no, reverb none
+  - sample meadow (-2, 9.3, -28): cave zone out, indoor no, reverb none
+  - sample herbivore valley (6, 9.3, -40): cave zone out, indoor no, reverb none
+  - sample river (66, 10.8, -45): cave zone out, indoor no, reverb none
+  - sample ford (84.6, 10.7, -97.5): cave zone out, indoor no, reverb none
+  - sample river below the pool (80, 17, -125): cave zone out, indoor no, reverb none
+  - sample waterfall pool (93.5, 18.6, -158.5): cave zone out, indoor no, reverb none
+  - sample pool west edge (89, 18.8, -158): cave zone out, indoor no, reverb none
+  - sample 1.9 m inside east mouth (88.2, 19.5, -158.1): cave zone out, indoor no, reverb none
+  - sample outside west mouth (12.3, 22.5, -139.6): cave zone out, indoor no, reverb none
+  - sample 1.9 m inside west mouth (12.7, 22.4, -143.3): cave zone out, indoor no, reverb none
+  - sample cliff top over the chamber (40, 47.5, -173.6): cave zone out, indoor no, reverb none
+  - sample old grotto (-18, 18.4, -131): cave zone out, indoor yes, reverb REV_ZONECave
+  - sample chamber (must be inside) (40, 21, -170): cave zone IN, indoor yes, reverb REV_DeepWaterCave_31
+  - sample stream passage (inside) (67, 20.4, -165.4): cave zone IN, indoor yes, reverb REV_DeepWaterCave_6
+  - sample hidden chamber (inside) (44.8, 21.3, -192.4): cave zone IN, indoor yes, reverb REV_DeepWaterCave_33
+- cave containment: 16 samples, 0 wrong
+- missing references under World/Environment/Weather/Zones2: 0
+finished, 0 warning(s)
+
+# PrimalAtmosphereBuilder.Zones2 2026-10-01 15:53:06
+## Zones
+- migration_valley "Migration Valley": centre (0, 9, -35), r 95 + blend 30
+- prehistoric_wetland "Prehistoric Wetland": centre (102, 0.4, 172), r 45 + blend 25, humidity 0,9, day -1,5 / night -0,5 C
+- bone_valley "Bone Valley": centre (-105, 21, -76), r 50 + blend 25
+- giant_fern_forest "Giant Fern Forest": centre (168, 8, 20), r 70 + blend 30, humidity 0,8, day -2 / night +1 C
+- volcanic_foothills "Volcanic Foothills": centre (-129, 33.5, -170.5), capsule +/- (7, 10.5, -45.5), r 40 + blend 30
+- deep_water_cave "Deep Water Cave": centre (40, 20.9, -173.6), inside 17 cave parts only (passages / rooms, own floor and height), blend 1,5, indoor, stable air 15 C, humidity 0,85
+- landmark lm_rock_ridge at (-48, 9.2, 13.9) (World/Environment/Forest/MigrationValley/Landmark/LM_MigrationValley): found within 16 m or seen from 110 m (look point +6,6 m, size 27,2 m)
+- landmark lm_fallen_tree at (93.9, 2.1, 178.9) (World/Environment/Wetlands/PrehistoricWetland/Landmark/LM_PrehistoricWetland): found within 12 m or seen from 50 m (look point +1 m, size 17,5 m)
+- landmark lm_fossil_skeleton at (-114.1, 15.5, -29.8) (World/Environment/Forest/BoneValley/Landmark/LM_FossilSkeleton): found within 14 m or seen from 60 m (look point +2,3 m, size 14,3 m)
+- landmark lm_giant_tree at (161.3, 8.8, 24.1) (World/Environment/Forest/GiantFernForest/LM_GiantFernForest): found within 14 m or seen from 80 m (look point +28,6 m, size 26,8 m)
+- landmark lm_black_ridge at (-149.4, 44.1, -198.3) (World/Environment/Volcano/VolcanicFoothills/LM_VolcanicFoothills): found within 18 m or seen from 110 m (look point +7,5 m, size 25,1 m)
+- landmark lm_underground_pool at (39.2, 20.6, -175.2) (World/Environment/Caves/DeepWaterCave/LM_DeepWaterCave): found within 10 m or seen from 28 m (look point +3 m, size 4 m)
+- hidden chamber at (45.4, 21.3, -192.8) (World/Environment/Caves/DeepWaterCave/HiddenNest): found within 4.5 m (height band 17,3..27,3)
+- ZoneManager: 6 regions, 7 landmarks, 44 zones in all
+## Story
+- journal: 102 pages (0 added)
+- survivor lines: no ProtagonistVoice in the saved scene; GameManager adds it at play start with the built-in lines (Defaults: includes bone_valley and the landmark thoughts)
+- minimap: 19 marked places (0 added); region names are map labels once entered
+## Scene content (World/Environment/Weather/Zones2: 6 old children cleared)
+- prefabs: 15 in Assets/_Project/Prefabs/World/ZoneFx (GroundFog x5, WaterMist x5, Insects x5, Dragonflies x3, Fireflies x3, DustMotes x6, Haze x4, Flies x4, WindDust x3, SmokeWisp x6, AshFall x3, HeatShimmer x3, CaveDrips x4, CaveMist x3, Pollen x4)
+- ZoneFxManager: 15 pooled kinds (61 systems at play start), 5 zone hazes
+- MigrationValley FX: WaterMist 1, Insects 3, WindDust 1, Pollen 2 (from agent anchors: 7)
+  - agent anchor -> Pollen at (-2, 10.8, -28) (ground 9,2)
+  - agent anchor -> WaterMist at (84.6, 11.1, -97.5) (ground 10,6)
+  - agent anchor -> WindDust at (18, 10.7, -72) (ground 9,9)
+  - agent anchor -> Pollen at (-40, 27, -92) (ground 25,4)
+  - agent anchor -> Insects at (16, 10.2, 2) (ground 8,9)
+  - agent anchor -> Insects at (-24, 10.2, -50) (ground 8,9)
+  - agent anchor -> Insects at (4, 10.2, -76) (ground 8,9)
+- PrehistoricWetland FX: GroundFog 3, WaterMist 1, Insects 4, Dragonflies 3, Fireflies 3 (from agent anchors: 8)
+  - agent anchor -> GroundFog at (100, 1.5, 168) (ground 0,3)
+  - agent anchor -> GroundFog at (83, 1.7, 175) (ground 0,5)
+  - agent anchor -> GroundFog at (118, 2.2, 174) (ground 1)
+  - agent anchor -> WaterMist at (106, 0.7, 200) (ground 0,2)
+  - agent anchor -> Insects at (88.7, 2.9, 189.2) (ground 1,6)
+  - agent anchor -> Insects at (123, 2.1, 169) (ground 0,8)
+  - agent anchor -> Insects at (99, 2.1, 187) (ground 0,8)
+  - agent anchor -> Insects at (87, 1.9, 157) (ground 0,6)
+- BoneValley FX: Flies 6, WindDust 3 (from agent anchors: 0)
+  - BoneValley: 5 emitters
+- GiantFernForest FX: GroundFog 4, Insects 3, DustMotes 1, Haze 4, CaveDrips 1 (from agent anchors: 9)
+  - agent anchor -> GroundFog at (116, 12.9, 40) (ground 11,7)
+  - agent anchor -> GroundFog at (134, 13.5, -8) (ground 12,3)
+  - agent anchor -> GroundFog at (184, 7.8, 48) (ground 6,6)
+  - agent anchor -> GroundFog at (194, 6.8, -18) (ground 5,6)
+  - agent anchor -> Insects at (153, 10.7, 29) (ground 9,4)
+  - agent anchor -> Insects at (168, 9.3, 18) (ground 8)
+  - agent anchor -> Insects at (171.5, 8.5, -33.7) (ground 7,2)
+  - agent anchor -> DustMotes at (160, 22.8, 24) (ground 8,8)
+  - agent anchor -> CaveDrips at (146, 13.9, 46) (ground 10,9)
+- VolcanicFoothills FX: WindDust 2, SmokeWisp 4, AshFall 4, HeatShimmer 2 (from agent anchors: 12)
+  - agent anchor -> AshFall at (-172.5, 50.6, -182.1) (ground 42,6)
+  - agent anchor -> AshFall at (-118.2, 50.4, -181.1) (ground 42,4)
+  - agent anchor -> AshFall at (-72.1, 54.4, -183.9) (ground 46,4)
+  - agent anchor -> AshFall at (-142.7, 50.4, -183.1) (ground 42,4)
+  - agent anchor -> SmokeWisp at (-127, 36.1, -163) (ground 35,8)
+  - agent anchor -> SmokeWisp at (-93.9, 29.1, -161.4) (ground 28,8)
+  - agent anchor -> SmokeWisp at (-159.8, 37.9, -163.1) (ground 37,6)
+  - agent anchor -> HeatShimmer at (-112.1, 47.5, -232.6) (ground 45)
+  - agent anchor -> HeatShimmer at (-119.5, 47, -211.7) (ground 44,5)
+  - agent anchor -> WindDust at (-76.9, 23.4, -141.2) (ground 22,6)
+  - agent anchor -> WindDust at (-146.4, 34.7, -138.2) (ground 33,9)
+  - agent anchor -> SmokeWisp at (-148, 54.1, -198) (ground 44,1)
+  - HZ_foothills_band_0 at (-131.1, 36.5, -156.9): warm ring 34 m, up to +2,5 C, no hot / dangerous ring
+  - HZ_foothills_band_1 at (-127.6, 42, -179.6): warm ring 34 m, up to +4 C, no hot / dangerous ring
+- DeepWaterCave FX: DustMotes 1, CaveDrips 6, CaveMist 1 (from agent anchors: 8)
+  - agent anchor -> CaveDrips at (71.5, 23.2, -163.2)
+  - agent anchor -> CaveDrips at (62, 23.5, -169.4)
+  - agent anchor -> CaveDrips at (36, 29.4, -176)
+  - agent anchor -> CaveDrips at (43.5, 28.9, -171)
+  - agent anchor -> CaveDrips at (23.6, 24.2, -166.8)
+  - agent anchor -> CaveDrips at (44.6, 24.9, -192)
+  - agent anchor -> CaveMist at (90, 21, -157.4)
+  - agent anchor -> DustMotes at (37.2, 25.4, -174.4)
+  - DeepWaterCave: 4 emitters
+  - 34 cave reverb spheres (Cave preset) along the passages and rooms, max distance 1,8..9,8 m
+- totals: 63 FX anchors, 9 emitters, 34 reverb zones, 2 heat band zones
+- AmbienceManager: 6/6 zone beds with a clip, zone calls 4 with 11/11 clips
+scene saved
+## Check
+- zones: 6/6 regions, 7/7 landmarks registered
+- journal: 14/14 Phase 2 pages in the scene list
+- survivor line "Something hunts here.": runtime ProtagonistVoice (GameManager) built-in lines: yes
+- pooled effects: 15 kinds registered (61 systems), 63 anchors: GroundFog 7, WaterMist 2, Insects 10, Dragonflies 3, Fireflies 3, DustMotes 2, Haze 4, Flies 6, WindDust 6, SmokeWisp 4, AshFall 4, HeatShimmer 2, CaveDrips 7, CaveMist 1, Pollen 2
+- emitters: 9 (0 without a clip), reverb zones 34, heat band zones 2
+- ambience: 6 zone beds (0 broken), 4 zone calls (0 broken)
+  - sample valley centre (0, 9.3, -35): cave zone out, indoor no, reverb none
+  - sample meadow (-2, 9.3, -28): cave zone out, indoor no, reverb none
+  - sample herbivore valley (6, 9.3, -40): cave zone out, indoor no, reverb none
+  - sample river (66, 10.8, -45): cave zone out, indoor no, reverb none
+  - sample ford (84.6, 10.7, -97.5): cave zone out, indoor no, reverb none
+  - sample river below the pool (80, 17, -125): cave zone out, indoor no, reverb none
+  - sample waterfall pool (93.5, 18.6, -158.5): cave zone out, indoor no, reverb none
+  - sample pool west edge (89, 18.8, -158): cave zone out, indoor no, reverb none
+  - sample 1.9 m inside east mouth (88.2, 19.5, -158.1): cave zone out, indoor no, reverb none
+  - sample outside west mouth (12.3, 22.5, -139.6): cave zone out, indoor no, reverb none
+  - sample 1.9 m inside west mouth (12.7, 22.4, -143.3): cave zone out, indoor no, reverb none
+  - sample cliff top over the chamber (40, 47.5, -173.6): cave zone out, indoor no, reverb none
+  - sample old grotto (-18, 18.4, -131): cave zone out, indoor yes, reverb REV_ZONECave
+  - sample chamber (must be inside) (40, 21, -170): cave zone IN, indoor yes, reverb REV_DeepWaterCave_31
+  - sample stream passage (inside) (67, 20.4, -165.4): cave zone IN, indoor yes, reverb REV_DeepWaterCave_6
+  - sample hidden chamber (inside) (44.8, 21.3, -192.4): cave zone IN, indoor yes, reverb REV_DeepWaterCave_30
+- cave containment: 16 samples, 0 wrong
+- missing references under World/Environment/Weather/Zones2: 0
+finished, 0 warning(s)
+
+# PrimalAtmosphereBuilder.Zones2 2026-10-01 15:59:28
+## Zones
+- migration_valley "Migration Valley": centre (0, 9, -35), r 95 + blend 30
+- prehistoric_wetland "Prehistoric Wetland": centre (102, 0.4, 172), r 45 + blend 25, humidity 0,9, day -1,5 / night -0,5 C
+- bone_valley "Bone Valley": centre (-105, 21, -76), r 50 + blend 25
+- giant_fern_forest "Giant Fern Forest": centre (168, 8, 20), r 70 + blend 30, humidity 0,8, day -2 / night +1 C
+- volcanic_foothills "Volcanic Foothills": centre (-129, 33.5, -170.5), capsule +/- (7, 10.5, -45.5), r 40 + blend 30
+- deep_water_cave "Deep Water Cave": centre (40, 20.9, -173.6), inside 17 cave parts only (passages / rooms, own floor and height), blend 1,5, indoor, stable air 15 C, humidity 0,85
+- landmark lm_rock_ridge at (-48, 9.2, 13.9) (World/Environment/Forest/MigrationValley/Landmark/LM_MigrationValley): found within 16 m or seen from 110 m (look point +6,6 m, size 27,2 m)
+- landmark lm_fallen_tree at (93.9, 2.1, 178.9) (World/Environment/Wetlands/PrehistoricWetland/Landmark/LM_PrehistoricWetland): found within 12 m or seen from 50 m (look point +1 m, size 17,5 m)
+- landmark lm_fossil_skeleton at (-114.1, 15.5, -29.8) (World/Environment/Forest/BoneValley/Landmark/LM_FossilSkeleton): found within 14 m or seen from 60 m (look point +2,3 m, size 14,3 m)
+- landmark lm_giant_tree at (161.3, 8.8, 24.1) (World/Environment/Forest/GiantFernForest/LM_GiantFernForest): found within 14 m or seen from 80 m (look point +28,6 m, size 26,8 m)
+- landmark lm_black_ridge at (-149.4, 44.1, -198.3) (World/Environment/Volcano/VolcanicFoothills/LM_VolcanicFoothills): found within 18 m or seen from 110 m (look point +7,5 m, size 25,1 m)
+- landmark lm_underground_pool at (39.2, 20.6, -175.2) (World/Environment/Caves/DeepWaterCave/LM_DeepWaterCave): found within 10 m or seen from 28 m (look point +3 m, size 4 m)
+- hidden chamber at (45.4, 21.3, -192.8) (World/Environment/Caves/DeepWaterCave/HiddenNest): found within 4.5 m (height band 17,3..27,3)
+- ZoneManager: 6 regions, 7 landmarks, 44 zones in all
+## Story
+- journal: 102 pages (0 added)
+- survivor lines: no ProtagonistVoice in the saved scene; GameManager adds it at play start with the built-in lines (Defaults: includes bone_valley and the landmark thoughts)
+- minimap: 19 marked places (0 added); region names are map labels once entered
+## Scene content (World/Environment/Weather/Zones2: 6 old children cleared)
+- prefabs: 15 in Assets/_Project/Prefabs/World/ZoneFx (GroundFog x5, WaterMist x5, Insects x5, Dragonflies x3, Fireflies x3, DustMotes x6, Haze x4, Flies x4, WindDust x3, SmokeWisp x6, AshFall x3, HeatShimmer x3, CaveDrips x4, CaveMist x3, Pollen x4)
+- ZoneFxManager: 15 pooled kinds (61 systems at play start), 5 zone hazes
+- MigrationValley FX: WaterMist 1, Insects 3, WindDust 1, Pollen 2 (from agent anchors: 7)
+  - agent anchor -> Pollen at (-2, 10.8, -28) (ground 9,2)
+  - agent anchor -> WaterMist at (84.6, 11.1, -97.5) (ground 10,6)
+  - agent anchor -> WindDust at (18, 10.7, -72) (ground 9,9)
+  - agent anchor -> Pollen at (-40, 27, -92) (ground 25,4)
+  - agent anchor -> Insects at (16, 10.2, 2) (ground 8,9)
+  - agent anchor -> Insects at (-24, 10.2, -50) (ground 8,9)
+  - agent anchor -> Insects at (4, 10.2, -76) (ground 8,9)
+- PrehistoricWetland FX: GroundFog 3, WaterMist 1, Insects 4, Dragonflies 3, Fireflies 3 (from agent anchors: 8)
+  - agent anchor -> GroundFog at (100, 1.5, 168) (ground 0,3)
+  - agent anchor -> GroundFog at (83, 1.7, 175) (ground 0,5)
+  - agent anchor -> GroundFog at (118, 2.2, 174) (ground 1)
+  - agent anchor -> WaterMist at (106, 0.7, 200) (ground 0,2)
+  - agent anchor -> Insects at (88.7, 2.9, 189.2) (ground 1,6)
+  - agent anchor -> Insects at (123, 2.1, 169) (ground 0,8)
+  - agent anchor -> Insects at (99, 2.1, 187) (ground 0,8)
+  - agent anchor -> Insects at (87, 1.9, 157) (ground 0,6)
+- BoneValley FX: Flies 6, WindDust 3 (from agent anchors: 0)
+  - BoneValley: 5 emitters
+- GiantFernForest FX: GroundFog 4, Insects 3, DustMotes 1, Haze 4, CaveDrips 1 (from agent anchors: 9)
+  - agent anchor -> GroundFog at (116, 12.9, 40) (ground 11,7)
+  - agent anchor -> GroundFog at (134, 13.5, -8) (ground 12,3)
+  - agent anchor -> GroundFog at (184, 7.8, 48) (ground 6,6)
+  - agent anchor -> GroundFog at (194, 6.8, -18) (ground 5,6)
+  - agent anchor -> Insects at (153, 10.7, 29) (ground 9,4)
+  - agent anchor -> Insects at (168, 9.3, 18) (ground 8)
+  - agent anchor -> Insects at (171.5, 8.5, -33.7) (ground 7,2)
+  - agent anchor -> DustMotes at (160, 22.8, 24) (ground 8,8)
+  - agent anchor -> CaveDrips at (146, 13.9, 46) (ground 10,9)
+- VolcanicFoothills FX: WindDust 2, SmokeWisp 4, AshFall 4, HeatShimmer 2 (from agent anchors: 12)
+  - agent anchor -> AshFall at (-172.5, 50.6, -182.1) (ground 42,6)
+  - agent anchor -> AshFall at (-118.2, 50.4, -181.1) (ground 42,4)
+  - agent anchor -> AshFall at (-72.1, 54.4, -183.9) (ground 46,4)
+  - agent anchor -> AshFall at (-142.7, 50.4, -183.1) (ground 42,4)
+  - agent anchor -> SmokeWisp at (-127, 36.1, -163) (ground 35,8)
+  - agent anchor -> SmokeWisp at (-93.9, 29.1, -161.4) (ground 28,8)
+  - agent anchor -> SmokeWisp at (-159.8, 37.9, -163.1) (ground 37,6)
+  - agent anchor -> HeatShimmer at (-112.1, 47.5, -232.6) (ground 45)
+  - agent anchor -> HeatShimmer at (-119.5, 47, -211.7) (ground 44,5)
+  - agent anchor -> WindDust at (-76.9, 23.4, -141.2) (ground 22,6)
+  - agent anchor -> WindDust at (-146.4, 34.7, -138.2) (ground 33,9)
+  - agent anchor -> SmokeWisp at (-148, 54.1, -198) (ground 44,1)
+  - HZ_foothills_band_0 at (-131.1, 36.5, -156.9): warm ring 34 m, up to +2,5 C, no hot / dangerous ring
+  - HZ_foothills_band_1 at (-127.6, 42, -179.6): warm ring 34 m, up to +4 C, no hot / dangerous ring
+- DeepWaterCave FX: DustMotes 1, CaveDrips 6, CaveMist 1 (from agent anchors: 8)
+  - agent anchor -> CaveDrips at (71.5, 23.2, -163.2)
+  - agent anchor -> CaveDrips at (62, 23.5, -169.4)
+  - agent anchor -> CaveDrips at (36, 29.4, -176)
+  - agent anchor -> CaveDrips at (43.5, 28.9, -171)
+  - agent anchor -> CaveDrips at (23.6, 24.2, -166.8)
+  - agent anchor -> CaveDrips at (44.6, 24.9, -192)
+  - agent anchor -> CaveMist at (90, 21, -157.4)
+  - agent anchor -> DustMotes at (37.2, 25.4, -174.4)
+  - DeepWaterCave: 4 emitters
+  - 34 cave reverb spheres (Cave preset) along the passages and rooms, max distance 1,8..9,8 m
+- totals: 63 FX anchors, 9 emitters, 34 reverb zones, 2 heat band zones
+- AmbienceManager: 6/6 zone beds with a clip, zone calls 4 with 11/11 clips
+scene saved
+## Check
+- zones: 6/6 regions, 7/7 landmarks registered
+- journal: 14/14 Phase 2 pages in the scene list
+- survivor line "Something hunts here.": runtime ProtagonistVoice (GameManager) built-in lines: yes
+- pooled effects: 15 kinds registered (61 systems), 63 anchors: GroundFog 7, WaterMist 2, Insects 10, Dragonflies 3, Fireflies 3, DustMotes 2, Haze 4, Flies 6, WindDust 6, SmokeWisp 4, AshFall 4, HeatShimmer 2, CaveDrips 7, CaveMist 1, Pollen 2
+- emitters: 9 (0 without a clip), reverb zones 34, heat band zones 2
+- ambience: 6 zone beds (0 broken), 4 zone calls (0 broken)
+  - sample valley centre (0, 9.3, -35): cave zone out, indoor no, reverb none
+  - sample meadow (-2, 9.3, -28): cave zone out, indoor no, reverb none
+  - sample herbivore valley (6, 9.3, -40): cave zone out, indoor no, reverb none
+  - sample river (66, 10.8, -45): cave zone out, indoor no, reverb none
+  - sample ford (84.6, 10.7, -97.5): cave zone out, indoor no, reverb none
+  - sample river below the pool (80, 17, -125): cave zone out, indoor no, reverb none
+  - sample waterfall pool (93.5, 18.6, -158.5): cave zone out, indoor no, reverb none
+  - sample pool west edge (89, 18.8, -158): cave zone out, indoor no, reverb none
+  - sample 1.9 m inside east mouth (88.2, 19.5, -158.1): cave zone out, indoor no, reverb none
+  - sample outside west mouth (12.3, 22.5, -139.6): cave zone out, indoor no, reverb none
+  - sample 1.9 m inside west mouth (12.7, 22.4, -143.3): cave zone out, indoor no, reverb none
+  - sample cliff top over the chamber (40, 47.5, -173.6): cave zone out, indoor no, reverb none
+  - sample old grotto (-18, 18.4, -131): cave zone out, indoor yes, reverb REV_ZONECave
+  - sample chamber (must be inside) (40, 21, -170): cave zone IN, indoor yes, reverb REV_DeepWaterCave_31
+  - sample stream passage (inside) (67, 20.4, -165.4): cave zone IN, indoor yes, reverb REV_DeepWaterCave_6
+  - sample hidden chamber (inside) (44.8, 21.3, -192.4): cave zone IN, indoor yes, reverb REV_DeepWaterCave_33
+- cave containment: 16 samples, 0 wrong
+- missing references under World/Environment/Weather/Zones2: 0
+finished, 0 warning(s)
+

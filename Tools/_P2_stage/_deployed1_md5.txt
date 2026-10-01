@@ -1,0 +1,14 @@
+1ed280e8396ddf0b31979056fc933579  AI/AmbientCreature.cs
+b644c5cdc9431887ccf8978f4773c28c  AI/DinoSenses.cs
+63ef2a5c2c7943267f8ebad962613c6f  AI/DinosaurController.cs
+1998cdc257ddd89a9224a79efe475f9c  AI/HerdGroup.cs
+94fa7d248530473fa596ccdb618d67a3  AI/HuntDirector.cs
+33ed7c12653c25558503b48c70303906  AI/PerceptionConfig.cs
+98df6e9e240b7bbdd2ee1afc173f6160  AI/WildlifeConfig.cs
+112a6d156a65b5a46362198f690006fd  AI/WildlifePlan.cs
+e4f94d8583c9d492eb04c82d20267271  AI/WildlifePlanZones.cs
+46483451867554711940eaad53f3f00d  AI/WildlifeRoutine.cs
+c647bd82bb0f9ce056917577becc9b30  AI/WildlifeZones.cs
+aaa18b4bd0c742f05aa02686519a8c07  Editor/PrimalWildlifeBuilder.cs
+a0516a4559931a005c6e16aae861d53f  Editor/PrimalWildlifeBuilder.Phase2.cs
+c182a96d9aee73e6e760aa2fc9444309  World/Carcass.cs

@@ -45,9 +45,9 @@ Mesh:
       format: 0
       dimension: 3
     - stream: 0
-      offset: 0
+      offset: 12
       format: 0
-      dimension: 0
+      dimension: 3
     - stream: 0
       offset: 0
       format: 0
@@ -96,8 +96,8 @@ Mesh:
       offset: 0
       format: 0
       dimension: 0
-    m_DataSize: 120
-    _typelessdata: c0ccac3f000000360000803740cc8b3f000000360084223f0098d53e00000036007a833f0098d5be00000036007a833f40cc8bbf000000360084223fc0ccacbf000000360000803740cc8bbf00000036008222bf0098d5be00000036007983bf0098d53e00000036007983bf40cc8b3f00000036008222bf
+    m_DataSize: 240
+    _typelessdata: c0ccac3f0000000000008037bb1fdc1f18000000ffffffff40cc8b3f000000000084223f738ea941305ee376d40100000098d53e00000000007a833fd001000008998e74d00100000098d5be00000000007a833f6ac4a941009acebe6c62043e40cc8bbf000000000084223f327304be2c16bcba000080bfc0ccacbf0000000000008037efcba94100000000d302093e40cc8bbf00000000008222bf3284093e7831e7be0000803f0098d5be00000000007983bf7278a941000000009d9d803e0098d53e00000000007983bfc40454be8df9463f000080bf40cc8b3f00000000008222bf9998a94100385ebe76095cbe
   m_CompressedMesh:
     m_Vertices:
       m_NumItems: 0
@@ -151,7 +151,7 @@ Mesh:
       m_BitSize: 0
     m_UVInfo: 0
   m_LocalAABB:
-    m_Center: {x: 0, y: 0.0000019073486, z: 0.000015258789}
+    m_Center: {x: 0, y: 0, z: 0.000015258789}
     m_Extent: {x: 1.3499985, y: 0, z: 1.0271454}
   m_MeshUsageFlags: 0
   m_CookingOptions: 30
